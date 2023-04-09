@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="影视剧观看、在线追剧" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="referrer" content="no-referrer" />
+  <script>
+    // const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    // const styleElement = document.createElement('style');
+    // styleElement.textContent = `body { background-color: #171717; }`;
+    // if (darkModeMediaQuery.matches) {
+    //   styleElement.textContent = `body { background-color: #f3f4f6; }`;
+    // }
+    // document.head.appendChild(styleElement);
+    document.documentElement.style.cssText = 'color-schema: dark;';
+  </script>
+  <title>影视剧列表</title>
+  <style>
+    :root {
+      --background: #f3f4f6;
+      --foreground: #171717;
+    }
+
+    [data-theme="dark"] {
+      --background: #171717;
+      --foreground: #f3f4f6;
+    }
+
+    html,
+    body {
+      overscroll-behavior: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      font-family: "Courier New", Courier, monospace;
+    }
+
+    [data-theme="light"] body {
+      background-color: #f3f4f6;
+    }
+
+    [data-theme="dark"] body {
+      background-color: #171717;
+    }
+
+    video {
+      max-height: 100%;
+      height: unset;
+    }
+  </style>
+</head>
+
+<body>
+  <script>!function () { try { var d = document.documentElement, n = 'data-theme', s = 'setAttribute'; var e = localStorage.getItem('theme'); if ('system' === e || (!e && true)) { var t = '(prefers-color-scheme: dark)', m = window.matchMedia(t); if (m.media !== t || m.matches) { d.style.colorScheme = 'dark'; d[s](n, 'dark') } else { d.style.colorScheme = 'light'; d[s](n, 'light') } } else if (e) { d[s](n, e || '') } if (e === 'light' || e === 'dark') d.style.colorScheme = e } catch (e) { } }()</script>
+  <div id="root"></div>
+  <script defer type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
+<!DOCTYPE html>
+<html>
