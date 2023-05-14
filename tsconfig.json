@@ -17,8 +17,6 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@list-helper/core/*": ["./src/domains/list-helper-core/*"],
-      "@list-helper/hooks/*": ["./src/domains/list-helper-hooks/*"],
       "@/*": ["./src/*"]
     }
   },

@@ -3,9 +3,9 @@
  */
 import { useEffect, useState } from "react";
 
-import useHelper from "@/domains/list-helper-hook";
+// import useHelper from "@/domains/list-helper-hook";
 import { Page, Router } from "@/domains/router";
-import { CurUser } from "@/domains/user";
+import { UserCore } from "@/domains/user";
 import { fetch_tv_list } from "@/services";
 import { PartialSearchedTV } from "@/services";
 import LazyImage from "@/components/LazyImage";
@@ -13,16 +13,20 @@ import ScrollView from "@/components/ScrollView";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useInitialize, useLatestValue } from "@/hooks";
+import { ListCore } from "@/domains/list";
+
+const helper = new ListCore<PartialSearchedTV>(fetch_tv_list);
 
 interface IProps {
   router: Router;
   page: Page;
-  user: CurUser;
+  user: UserCore;
 }
 export const TVSearchResultPage: React.FC<IProps> = (props) => {
   const { router, page, user } = props;
   const { name: queryName = "" } = router.query;
-  const [response, helper] = useHelper<PartialSearchedTV>(fetch_tv_list);
+  // const [response, helper] = useHelper<PartialSearchedTV>(fetch_tv_list);
+  const [response] = useState(helper.response);
   const [name, set_name] = useState(queryName);
   const latestNameRef = useLatestValue(name);
 

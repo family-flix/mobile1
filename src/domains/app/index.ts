@@ -1,82 +1,184 @@
-import { CurUser } from "@/domains/user";
-import { Router, Page } from "@/domains/router";
-import { Listener } from "@/domains/base";
+import { Handler } from "mitt";
+
+import { BaseDomain } from "@/domains/base";
+import { NavigatorCore } from "@/domains/navigator";
+import { UserCore } from "@/domains/user";
 import { Result } from "@/types";
 
-export class Application {
-  user: CurUser;
-  router: Router;
+import { LocalCache } from "./cache";
+
+enum Events {
+  Ready,
+  Tip,
+  Error,
+  Login,
+  Logout,
+  // 一些平台相关的事件
+  PopState,
+  Resize,
+  UserCore,
+  Blur,
+  Keydown,
+  EscapeKeyDown,
+  ClickLink,
+  // 该怎么处理？
+  DrivesChange,
+}
+type TheTypesOfEvents = {
+  [Events.Ready]: void;
+  // [Events.Tip]: { icon?: string; text: string[] };
+  [Events.Error]: Error;
+  [Events.Login]: {};
+  [Events.Logout]: void;
+  [Events.PopState]: {
+    type: string;
+    pathname: string;
+  };
+  [Events.Resize]: {
+    width: number;
+    height: number;
+  };
+  [Events.Keydown]: {
+    key: string;
+  };
+  [Events.EscapeKeyDown]: void;
+  [Events.ClickLink]: {
+    href: string;
+  };
+  [Events.Blur]: void;
+};
+
+export class Application extends BaseDomain<TheTypesOfEvents> {
+  user: UserCore;
+  router: NavigatorCore;
+  cache: LocalCache;
   lifetimes: Partial<{
     beforeReady: () => Promise<Result<null>>;
     onReady: () => void;
   }> = {};
+  size: {
+    width: number;
+    height: number;
+  } = {
+    width: 0,
+    height: 0,
+  };
+  Events = Events;
+
+  // @todo 怎么才能更方便地拓展 Application 类，给其添加许多的额外属性还能有类型提示呢？
 
   state: Partial<{
     ready: boolean;
   }> = {};
 
+  static Events = Events;
+
   constructor(
-    options: { user: CurUser; router: Router } & Application["lifetimes"]
+    options: {
+      user: UserCore;
+      router: NavigatorCore;
+      cache: LocalCache;
+    } & Application["lifetimes"]
   ) {
-    const { user, router, beforeReady, onReady } = options;
+    super();
+
+    const { user, router, cache, beforeReady, onReady } = options;
     this.lifetimes = {
       beforeReady,
       onReady,
     };
     this.user = user;
     this.router = router;
+    this.cache = cache;
   }
-  onLaunch() {}
   /** 启动应用 */
   async start() {
+    // console.log('[Application]start');
     const { beforeReady } = this.lifetimes;
     if (beforeReady) {
       const r = await beforeReady();
+      // console.log("[]Application - ready result", r);
       if (r.error) {
         return Result.Err(r.error);
       }
     }
     this.emitReady();
-    this.router.start();
+    // console.log("[]Application - before start");
     return Result.Ok(null);
   }
-
-  /** ready Start */
-  readyListeners: Listener<{}>[] = [];
-  emitReady = () => {
-    for (let i = 0; i < this.readyListeners.length; i += 1) {
-      const listener = this.readyListeners[i];
-      listener({});
-    }
-  };
-  /** 监听应用加载完成后的回调 */
-  onReady(reachBottomListener: Listener<{}>) {
-    this.readyListeners.push(reachBottomListener);
+  /** 手机震动 */
+  vibrate() {}
+  setSize(size: { width: number; height: number }) {
+    this.size = size;
   }
-
-  /** ready Start */
-  errorListeners: Listener<Error>[] = [];
+  getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
+    throw new Error("请实现 getComputedStyle 方法");
+  }
+  disablePointer() {
+    throw new Error("请实现 disablePointer 方法");
+  }
+  enablePointer() {
+    throw new Error("请实现 enablePointer 方法");
+  }
+  /** 平台相关的全局事件 */
+  keydown({ key }: { key: string }) {
+    if (key === "Escape") {
+      this.escape();
+    }
+    this.emit(Events.Keydown, { key });
+  }
+  escape() {
+    this.emit(Events.EscapeKeyDown);
+  }
+  popstate({ type, pathname }: { type: string; pathname: string }) {
+    this.emit(Events.PopState, { type, pathname });
+  }
+  resize(size: { width: number; height: number }) {
+    this.size = size;
+    this.emit(Events.Resize, size);
+  }
+  blur() {
+    this.emit(Events.Blur);
+  }
+  /* ----------------
+   * Lifetime
+   * ----------------
+   */
+  emitReady = () => {
+    this.emit(Events.Ready);
+  };
+  onReady(handler: Handler<TheTypesOfEvents[Events.Ready]>) {
+    this.on(Events.Ready, handler);
+  }
+  /** 平台相关全局事件 */
+  onPopState(handler: Handler<TheTypesOfEvents[Events.PopState]>) {
+    this.on(Events.PopState, handler);
+  }
+  onResize(handler: Handler<TheTypesOfEvents[Events.Resize]>) {
+    this.on(Events.Resize, handler);
+  }
+  onBlur(handler: Handler<TheTypesOfEvents[Events.Blur]>) {
+    this.on(Events.Blur, handler);
+  }
+  onClickLink(handler: Handler<TheTypesOfEvents[Events.ClickLink]>) {
+    this.on(Events.ClickLink, handler);
+  }
+  onKeydown(handler: Handler<TheTypesOfEvents[Events.Keydown]>) {
+    this.on(Events.Keydown, handler);
+  }
+  onEscapeKeyDown(handler: Handler<TheTypesOfEvents[Events.EscapeKeyDown]>) {
+    this.on(Events.EscapeKeyDown, handler);
+  }
+  /**
+   * ----------------
+   * Event
+   * ----------------
+   */
   /** 向 app 发送错误，该错误会作为全屏错误遮挡所有内容 */
   emitError = (error: Error) => {
-    for (let i = 0; i < this.errorListeners.length; i += 1) {
-      const listener = this.errorListeners[i];
-      listener(error);
-    }
+    this.emit(Events.Error, error);
   };
-  /** 监听应用发生错误时的回调 */
-  onError(errorListener: Listener<Error>) {
-    this.errorListeners.push(errorListener);
-  }
-
-  warningListeners: Listener<Error>[] = [];
-  emitWarning = (warning: Error) => {
-    for (let i = 0; i < this.errorListeners.length; i += 1) {
-      const listener = this.warningListeners[i];
-      listener(warning);
-    }
-  };
-  /** 监听应用发生错误时的回调 */
-  onWarning(waringListener: Listener<Error>) {
-    this.warningListeners.push(waringListener);
+  onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
+    this.on(Events.Error, handler);
   }
 }

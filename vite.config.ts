@@ -9,14 +9,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "hls.js": "hls.js/dist/hls.min.js",
-      "@list-helper/core": path.resolve(
-        __dirname,
-        "./src/domains/list-helper-core"
-      ),
-      "@list-helper/hooks": path.resolve(
-        __dirname,
-        "./src/domains/list-helper-hook"
-      ),
       "@": path.resolve(__dirname, "./src"),
     },
   },

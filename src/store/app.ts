@@ -1,11 +1,63 @@
+/**
+ * @file 应用实例，也可以看作启动入口，优先会执行这里的代码
+ * 应该在这里进行一些初始化操作、全局状态或变量的声明
+ */
+import { ListCore } from "@/domains/list";
 import { Application } from "@/domains/app";
-import Helper from "@list-helper/core/core";
-
-import { user } from "./user";
-import { router } from "./router";
+import { LocalCache } from "@/domains/app/cache";
+import { UserCore } from "@/domains/user";
+import { NavigatorCore } from "@/domains/navigator";
 import { Result } from "@/types";
 
-Helper.defaultProcessor = (originalResponse) => {
+// class CurUser extends UserCore {
+//   /** 该用户的网盘列表 */
+//   drives: Drive[];
+
+//   constructor(props) {
+//     super(props);
+//   }
+
+//   async fetchDrives() {
+//     const r = await Drive.ListHelper.init();
+//     if (r.error) {
+//       this.emit(UserCore.Events.Error, r.error);
+//       return;
+//     }
+//     this.drives = r.data;
+//   }
+// }
+
+const cache = new LocalCache();
+const router = new NavigatorCore();
+const user = new UserCore(cache.get("user"));
+
+export const app = new Application({
+  user,
+  router,
+  cache,
+  async beforeReady() {
+    // ListCore.onError = (error: Error) => {
+    //   app.tip({
+    //     text: [error.message],
+    //   });
+    // };
+    user.onError((error) => {
+      app.tip({
+        text: [error.message],
+      });
+    });
+    user.onLogin((profile) => {
+      cache.set("user", profile);
+    });
+    if (!user.isLogin) {
+      // router.replace("/login");
+      return Result.Ok(null);
+    }
+    return Result.Ok(null);
+  },
+});
+
+ListCore.commonProcessor = (originalResponse) => {
   if (originalResponse.error) {
     return {
       dataSource: [],
@@ -44,20 +96,4 @@ Helper.defaultProcessor = (originalResponse) => {
     };
   }
 };
-
-export const app = new Application({
-  user,
-  router,
-  async beforeReady() {
-    Helper.onError = (error: Error) => {
-      app.emitWarning(error);
-    };
-    const { token } = router.query;
-    const r = await user.loginInMember(token);
-    if (r.error) {
-      app.emitError(r.error);
-      return Result.Err(r.error);
-    }
-    return Result.Ok(null);
-  },
-});
+// export const app = _app;

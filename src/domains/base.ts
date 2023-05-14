@@ -1,68 +1,118 @@
 /**
  * 注册的监听器
- * @todo
- * 1、支持在 emitValuesChange 前做一些事情，比如衍生一些状态值
  */
-import mitt from "mitt";
+import mitt, { EventType, Handler } from "mitt";
 
-export type Listener<T> = (values: T) => void;
+let _uid = 0;
+function uid() {
+  _uid += 1;
+  return _uid;
+}
+// 这里必须给 Tip 显示声明值，否则默认为 0，会和其他地方声明的 Events 第一个 Key 冲突
+enum BaseEvents {
+  Tip = "__tip",
+  Destroy = "__destroy",
+}
+type TheTypesOfBaseEvents = {
+  [BaseEvents.Tip]: {
+    icon?: unknown;
+    text: string[];
+  };
+  [BaseEvents.Destroy]: void;
+};
+type BaseDomainEvents<E> = TheTypesOfBaseEvents & E;
 
-export class Domain<T> {
-  values: T;
-  emitter: ReturnType<typeof mitt>;
-  /**
-   * 监听列表
-   */
-  listeners: Listener<T>[] = [];
-  /**
-   * 错误监听列表
-   */
-  errorListeners: ((error: unknown) => void)[] = [];
+export class BaseDomain<Events extends Record<EventType, unknown>> {
+  name: string = "BaseDomain";
+  debug: boolean = false;
 
-  constructor(values: T) {
-    this.values = values;
-    this.emitter = mitt();
-  }
+  _emitter = mitt<BaseDomainEvents<Events>>();
+  listeners: (() => void)[] = [];
 
-  /**
-   * 注册数据变更监听
-   */
-  addListener(listener: Listener<T>) {
-    // console.log('[]WechatAd - addListener', listener);
-    if (!this.listeners.includes(listener)) {
-      this.listeners.push(listener);
+  constructor(
+    params: Partial<{
+      name: string;
+      debug: boolean;
+    }> = {}
+  ) {
+    const { name, debug } = params;
+    if (name) {
+      this.name = name;
     }
   }
-  /**
-   * 注册错误监听
-   */
-  addErrorListener(listener: (error: unknown) => void) {
-    // console.log('[]WechatAd - addErrorListener', listener);
-    if (!this.errorListeners.includes(listener)) {
-      this.errorListeners.push(listener);
-    }
+  uid() {
+    return uid();
   }
-  /**
-   * 广播变更
-   */
-  emitValuesChange() {
-    // console.log("[CORE]emitValuesChange", this.values);
-    if (this.values === undefined) {
+  log(...args: unknown[]) {
+    if (!this.debug) {
+      return [];
+    }
+    // const error = new Error();
+    // const lineNumber = error.stack.split("\n")[2].trim().split(" ")[1];
+    // console.log(error.stack.split("\n"));
+    return [
+      `%c CORE %c ${this.name} %c`,
+      "color:white;background:#dfa639;border-top-left-radius:2px;border-bottom-left-radius:2px;",
+      "color:white;background:#19be6b;border-top-right-radius:2px;border-bottom-right-radius:2px;",
+      "color:#19be6b;",
+      ...args,
+    ];
+  }
+  error(...args: unknown[]) {
+    if (!this.debug) {
       return;
     }
-    for (let i = 0; i < this.listeners.length; i += 1) {
-      const listener = this.listeners[i];
-      listener({ ...this.values });
-    }
+    console.log(
+      `%c CORE %c ${this.name} %c`,
+      "color:white;background:red;border-top-left-radius:2px;border-bottom-left-radius:2px;",
+      "color:white;background:#19be6b;border-top-right-radius:2px;border-bottom-right-radius:2px;",
+      "color:#19be6b;",
+      ...args
+    );
   }
-  /**
-   * 广播错误
-   */
-  emitError(error: unknown) {
-    for (let i = 0; i < this.errorListeners.length; i += 1) {
-      const listener = this.errorListeners[i];
-      listener(error);
+  off<Key extends keyof BaseDomainEvents<Events>>(
+    event: Key,
+    handler: Handler<BaseDomainEvents<Events>[Key]>
+  ) {
+    this._emitter.off(event, handler);
+  }
+  on<Key extends keyof BaseDomainEvents<Events>>(
+    event: Key,
+    handler: Handler<BaseDomainEvents<Events>[Key]>
+  ) {
+    const unlisten = () => {
+      this.listeners = this.listeners.filter((l) => l !== unlisten);
+      this.off(event, handler);
+    };
+    this.listeners.push(unlisten);
+    this._emitter.on(event, handler);
+    return unlisten;
+  }
+  emit<Key extends keyof BaseDomainEvents<Events>>(
+    event: Key,
+    value?: BaseDomainEvents<Events>[Key]
+  ) {
+    this._emitter.emit(event, value);
+  }
+  tip(content: { icon?: unknown; text: string[] }) {
+    // @ts-ignore
+    this._emitter.emit(BaseEvents.Tip, content);
+    return content.text.join("\n");
+  }
+  /** 主动销毁所有的监听事件 */
+  destroy() {
+    // this.log(this.name, "destroy");
+    for (let i = 0; i < this.listeners.length; i += 1) {
+      const off = this.listeners[i];
+      off();
     }
+    this.emit(BaseEvents.Destroy);
+  }
+  onTip(handler: Handler<TheTypesOfBaseEvents[BaseEvents.Tip]>) {
+    return this.on(BaseEvents.Tip, handler);
+  }
+  onDestroy(handler: Handler<TheTypesOfBaseEvents[BaseEvents.Destroy]>) {
+    return this.on(BaseEvents.Destroy, handler);
   }
 
   get [Symbol.toStringTag]() {

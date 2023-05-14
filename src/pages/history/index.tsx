@@ -1,24 +1,28 @@
 /**
  * @file 我的播放历史页面
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import useHelper from "@/domains/list-helper-hook";
-import { CurUser } from "@/domains/user";
+// import useHelper from "@/domains/list-helper-hook";
+import { UserCore } from "@/domains/user";
 import LazyImage from "@/components/LazyImage";
 import ScrollView from "@/components/ScrollView";
 import { Page, Router } from "@/domains/router";
 import { useInitialize } from "@/hooks";
 import { fetch_play_histories, PlayHistoryItem } from "@/services";
+import { ListCore } from "@/domains/list";
+
+const helper = new ListCore<PlayHistoryItem>(fetch_play_histories);
 
 interface IProps {
   router: Router;
   page: Page;
-  user: CurUser;
+  user: UserCore;
 }
 export const PlayHistoryPage: React.FC<IProps> = (props) => {
   const { router, page } = props;
-  const [response, helper] = useHelper<PlayHistoryItem>(fetch_play_histories);
+  // const [response, helper] = useHelper<PlayHistoryItem>(fetch_play_histories);
+  const [response] = useState(helper.response);
 
   useInitialize(() => {
     // console.log("[PAGE]history - useInitialize");

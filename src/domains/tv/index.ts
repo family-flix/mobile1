@@ -2,7 +2,7 @@
  * @file 电视剧
  */
 import { Result } from "@/types";
-import { user } from "@/store/user";
+// import { user } from "@/store/user";
 import { find_recommended_pathname, noop } from "@/utils";
 
 import {
@@ -56,9 +56,9 @@ export class TV {
 
   async init(id: string) {
     this.id = id;
-    if (!user.isLogin) {
-      return this.error_notice(Result.Err("请先登录"));
-    }
+    // if (!user.isLogin) {
+    //   return this.error_notice(Result.Err("请先登录"));
+    // }
     const resp = await this.fetch_profile();
     if (resp.error) {
       return this.error_notice(Result.Err(resp.error));
@@ -283,14 +283,14 @@ export class TV {
     }
     const { current_time, duration } = params;
     // console.log("[DOMAIN]TVPlay - update_play_progress", params, user.is_login);
-    if (user.isLogin) {
-      update_play_history({
-        tv_id: this.id,
-        episode_id: this._cur_episode.id,
-        current_time,
-        duration,
-      });
-    }
+    // if (user.isLogin) {
+    //   update_play_history({
+    //     tv_id: this.id,
+    //     episode_id: this._cur_episode.id,
+    //     current_time,
+    //     duration,
+    //   });
+    // }
   }
   error_notice(res: Result<unknown>) {
     if (!res.error) {

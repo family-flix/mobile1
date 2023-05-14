@@ -1,7 +1,24 @@
+import { Handler } from "mitt";
+
 import { Result } from "@/types";
+import { BaseDomain } from "@/domains/base";
+
 import { fetch_user_profile, login, validate_member_token } from "./services";
 
-export class CurUser {
+export enum Events {
+  Tip,
+  Error,
+  Login,
+  Logout,
+}
+type TheTypesOfEvents = {
+  [Events.Tip]: string[];
+  [Events.Error]: Error;
+  [Events.Login]: {};
+  [Events.Logout]: void;
+};
+
+export class UserCore extends BaseDomain<TheTypesOfEvents> {
   _isLogin: boolean = false;
   user: {
     username: string;
@@ -12,11 +29,13 @@ export class CurUser {
   values: Partial<{ email: string; password: string }> = {};
   onErrorNotice?: (msg: string) => void;
 
-  constructor() {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    this._isLogin = !!user;
-    this.user = user;
-    this.token = user ? user.token : "";
+  constructor(initialUser: UserCore["user"]) {
+    super();
+
+    // this.log("constructor", initialUser);
+    this._isLogin = !!initialUser;
+    this.user = initialUser;
+    this.token = initialUser ? initialUser.token : "";
   }
   get isLogin() {
     return this._isLogin;
@@ -113,5 +132,24 @@ export class CurUser {
       return;
     }
     this.onErrorNotice(result.error.message);
+  }
+
+  onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
+    this.on(Events.Error, handler);
+  }
+  emitError(result: Result<null> | string) {
+    const error = (() => {
+      if (typeof result === "string") {
+        return new Error(result);
+      }
+      return result.error;
+    })();
+    this.emit(Events.Error, error);
+  }
+  onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {
+    this.on(Events.Login, handler);
+  }
+  emitLogin() {
+    this.emit(Events.Login, { ...this.user });
   }
 }

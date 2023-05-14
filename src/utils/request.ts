@@ -5,9 +5,9 @@ import axios, { AxiosError } from "axios";
 import qs from "qs";
 
 import { Result } from "@/types";
-import { user } from "@/store/user";
+import { app } from "@/store/app";
 
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 
 const client = axios.create({
   timeout: 6000,
@@ -25,7 +25,7 @@ export const request = {
       const url = `${endpoint}${query ? "?" + qs.stringify(query) : ""}`;
       const resp = await client.get(url, {
         headers: {
-          Authorization: user.token,
+          Authorization: app.user.token,
         },
       });
       const { code, msg, data } = resp.data;
@@ -42,7 +42,7 @@ export const request = {
     try {
       const resp = await client.post(url, body, {
         headers: {
-          Authorization: user.token,
+          Authorization: app.user.token,
         },
       });
       const { code, msg, data } = resp.data;
