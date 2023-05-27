@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { ViewCore } from "@/domains/view";
+import { ViewCore } from "@/domains/route_view";
 import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 

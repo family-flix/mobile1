@@ -164,11 +164,13 @@ const Content = (props: {
       className={props.className}
       style={{ transform: `translateY(${top}px)` }}
       onTouchStart={(event) => {
+        // console.log('start');
         const { pageX, pageY } = event.touches[0];
         const position = { x: pageX, y: pageY };
         store.startPull(position);
       }}
       onTouchMove={(event) => {
+        // console.log("move");
         const { pageX, pageY } = event.touches[0];
         const position = {
           x: pageX,

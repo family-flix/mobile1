@@ -9,17 +9,17 @@ import { PageContainer } from "@/components/Page";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/Theme";
 import { View } from "./components/ui/view";
-import { KeepAliveView } from "./components/ui/keep-alive";
-import { HomePage } from "@/pages/home";
+import { KeepAliveView } from "./components/ui/keep-alive-route-view";
+import { HomePage as HomeLayout } from "@/pages/home";
 import { TVPlayingPage } from "@/pages/play";
 import { TVSearchResultPage } from "@/pages/search";
 import { PlayHistoryPage } from "@/pages/history";
 import { Test1Page } from "./pages/test1";
 import { Test2Page } from "./pages/test2";
 import { Test3Page } from "./pages/test3";
-import { ViewCore } from "./domains/view";
+import { ViewCore } from "./domains/route_view";
 import { bind } from "./domains/app/bind.web";
-import { HomeAPage } from "./pages/home/a";
+import { HomePage } from "./pages/home/a";
 import { HomeBPage } from "./pages/home/b";
 import { HomeCPage } from "./pages/home/c";
 import { ViewComponent } from "./types";
@@ -70,13 +70,13 @@ const rootView = new ViewCore({
   component: "div",
   keepAlive: true,
 });
-const main = new ViewCore({
+const mainLayout = new ViewCore({
   title: "首页",
-  component: HomePage,
+  component: HomeLayout,
 });
 const aView = new ViewCore({
   title: "首页 A",
-  component: HomeAPage,
+  component: HomePage,
 });
 const bView = new ViewCore({
   title: "首页 B",
@@ -94,13 +94,13 @@ const authLayoutView = new ViewCore({
 //   title: "登录",
 //   component: ,
 // });
-main.register("/home/a", () => {
+mainLayout.register("/home/a", () => {
   return aView;
 });
-main.register("/home/b", () => {
+mainLayout.register("/home/b", () => {
   return bView;
 });
-main.register("/home/c", () => {
+mainLayout.register("/home/c", () => {
   return cView;
 });
 rootView.register("/test1", () => {
@@ -114,7 +114,7 @@ rootView.register("/test1", () => {
 //   return testView;
 // });
 rootView.register("/", () => {
-  return main;
+  return mainLayout;
 });
 router.onPathnameChanged(({ pathname, isBack, prevPathname }) => {
   rootView.checkMatch({ pathname, type: "push", isBack, prevPathname });
@@ -191,7 +191,7 @@ function ApplicationView() {
           </div>
         </div>
       )} */}
-      <div className="flex relative z-0">
+      <div className="screen w-screen h-screen bg-slate-200">
         {subViews.map((subView, index) => {
           const RenderedComponent = subView.component as ViewComponent;
           return (

@@ -9,54 +9,38 @@ import { UserCore } from "@/domains/user";
 import { NavigatorCore } from "@/domains/navigator";
 import { Result } from "@/types";
 
-// class CurUser extends UserCore {
-//   /** 该用户的网盘列表 */
-//   drives: Drive[];
-
-//   constructor(props) {
-//     super(props);
-//   }
-
-//   async fetchDrives() {
-//     const r = await Drive.ListHelper.init();
-//     if (r.error) {
-//       this.emit(UserCore.Events.Error, r.error);
-//       return;
-//     }
-//     this.drives = r.data;
-//   }
-// }
-
 const cache = new LocalCache();
 const router = new NavigatorCore();
 const user = new UserCore(cache.get("user"));
+user.onLogin((profile) => {
+  cache.set("user", profile);
+});
+user.onTip((msg) => {
+  alert(msg.text.join("\n"));
+  app.tip(msg);
+});
+// user.onError((error) => {
+//   app.tip({
+//     text: [error.message],
+//   });
+// });
 
 export const app = new Application({
   user,
   router,
   cache,
   async beforeReady() {
-    // ListCore.onError = (error: Error) => {
-    //   app.tip({
-    //     text: [error.message],
-    //   });
-    // };
-    user.onError((error) => {
-      app.tip({
-        text: [error.message],
-      });
-    });
-    user.onLogin((profile) => {
-      cache.set("user", profile);
-    });
+    const { query } = router;
+    await user.validate(query.token);
     if (!user.isLogin) {
-      // router.replace("/login");
+      app.emit(Application.Events.Error, new Error("请先登录"));
       return Result.Ok(null);
     }
     return Result.Ok(null);
   },
 });
 
+// @ts-ignore
 ListCore.commonProcessor = (originalResponse) => {
   if (originalResponse.error) {
     return {
@@ -65,11 +49,14 @@ ListCore.commonProcessor = (originalResponse) => {
       pageSize: 20,
       total: 0,
       noMore: false,
-      error: new Error(`${originalResponse.error.message}`),
+      error: new Error(
+        `${(originalResponse.error as unknown as Error).message}`
+      ),
     };
   }
   try {
     const data = originalResponse.data || originalResponse;
+    // @ts-ignore
     const { list, page, page_size, total, no_more } = data;
     const result = {
       dataSource: list,

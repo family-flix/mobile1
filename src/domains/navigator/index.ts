@@ -5,10 +5,8 @@
  * Page 核心类
  * 监听路由的变化，判断自身是否要渲染？
  */
-
 import qs from "qs";
 import { Handler } from "mitt";
-import { pathToRegexp } from "path-to-regexp";
 
 import { BaseDomain } from "@/domains/base";
 
@@ -23,17 +21,16 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.PathnameChanged]: {
     pathname: string;
-    prevPathname?: string | null;
     isBack?: boolean;
   };
   [Events.PushState]: {
-    from: string | null;
+    from?: string;
     //     title: string;
     path: string;
     pathname: string;
   };
   [Events.ReplaceState]: {
-    from: string | null;
+    from?: string;
     //     title: string;
     path: string;
     pathname: string;
@@ -64,18 +61,8 @@ type RouteConfigure = {
 };
 
 export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
-  debug = true;
+  debug = false;
   //   prefix: string | null;
-  /** 配置信息 */
-  //   configs: {
-  //     /** 路由匹配规则 */
-  //     path: string;
-  //     /** 根据路由匹配规则解析得到的正则表达式 */
-  //     regexp: RegExp;
-  //     /** 参数获取 */
-  //     keys: ParamConfigure[];
-  //     config: () => RouteConfigure;
-  //   }[];
 
   /** 当前 pathname */
   pathname: string;
@@ -89,6 +76,8 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   url: string;
   location: Partial<RouteLocation> = {};
   child?: NavigatorCore;
+  prevHistories: { pathname: string }[] = [];
+  histories: { pathname: string }[] = [];
 
   /** router 基础信息 */
   host: string;
@@ -104,7 +93,8 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.prevPathname = null;
     this.setPathname(pathname);
     this.origin = origin;
-    // const query = buildQuery(href);
+    const query = buildQuery(href);
+    this.query = query;
     this.histories = [
       {
         pathname,
@@ -123,42 +113,12 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[] - setPathname", p);
     this.pathname = p;
   }
-  private setSomething(params: RouteLocation) {
-    const { host, protocol, origin, pathname, href } = params;
-    this.host = host;
-    this.protocol = protocol;
-    this.origin = origin;
-    this.pathname = pathname;
-    this.url = href;
-    this.query = buildQuery(href);
-    this.location = {
-      host,
-      protocol,
-      origin,
-      pathname,
-      href,
-    };
-  }
-  /** 添加路由 */
-  //   route(path: string, configFactory: () => RouteConfigure) {
-  //     const keys: ParamConfigure[] = [];
-  //     const regexp = pathToRegexp(path, keys);
-  //     this.configs.push({
-  //       regexp,
-  //       keys,
-  //       path,
-  //       config: configFactory,
-  //     });
-  //     return this;
-  //   }
-  /** 添加子路由 */
-  // child(path: string, configFactory: () => RouteConfigure) {}
   /** 跳转到指定路由 */
   async push(
     targetPathname: string,
     options: Partial<{ modifyHistory: boolean }> = {}
   ) {
-    console.log(...this.log("push", targetPathname, this.prevPathname));
+    this.log("push", targetPathname, this.prevPathname);
     if (this.pathname === targetPathname) {
       this.error("cur pathname has been", targetPathname);
       return;
@@ -179,9 +139,6 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       pathname: targetPathname,
     });
   }
-  onPushState(handler: Handler<TheTypesOfEvents[Events.PushState]>) {
-    this.on(Events.PushState, handler);
-  }
   replace = async (targetPathname: string) => {
     this.log("replace", targetPathname, this.pathname);
     if (targetPathname === this.pathname) {
@@ -189,17 +146,12 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.setPrevPathname(this.pathname);
     this.setPathname(targetPathname);
-    //     const { regexp, keys, config } = matchedRoute;
-    //     const params = buildParams({
-    //       regexp,
-    //       targetPath: targetPathname,
-    //       keys,
-    //     });
-    // const query = buildQuery(targetPathname);
+    const query = buildQuery(targetPathname);
+    this.query = query;
     this.histories[this.histories.length - 1] = { pathname: targetPathname };
     this.emit(Events.ReplaceState, {
       from: this.prevPathname,
-      // title,
+      //       title,
       path: `${this.origin}${targetPathname}`,
       pathname: targetPathname,
     });
@@ -207,29 +159,12 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       pathname: targetPathname,
     });
   };
-  onReplaceState(handler: Handler<TheTypesOfEvents[Events.ReplaceState]>) {
-    this.on(Events.ReplaceState, handler);
-  }
   back = () => {
     this.emit(Events.Back);
   };
-  onBack(handler: Handler<TheTypesOfEvents[Events.Back]>) {
-    this.on(Events.Back, handler);
-  }
   reload = () => {
     this.emit(Events.Reload);
   };
-  onReload(handler: Handler<TheTypesOfEvents[Events.Reload]>) {
-    this.on(Events.Reload, handler);
-  }
-  /** 监听路由发生改变 */
-  onPathnameChanged(
-    handler: Handler<TheTypesOfEvents[Events.PathnameChanged]>
-  ) {
-    this.on(Events.PathnameChanged, handler);
-  }
-  prevHistories: { pathname: string }[] = [];
-  histories: { pathname: string }[] = [];
   /** 外部路由改变，作出响应 */
   handlePathnameChanged({
     type,
@@ -238,7 +173,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     type: string;
     pathname: string;
   }) {
-    console.log(...this.log("pathname change", type, pathname));
+    this.log("pathname change", type, pathname);
     if (type !== "popstate") {
       return;
     }
@@ -255,11 +190,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       }
       return false;
     })();
-    this.emit(Events.PathnameChanged, {
-      pathname,
-      isBack: !isForward,
-      prevPathname: this.pathname,
-    });
+    this.emit(Events.PathnameChanged, { pathname, isBack: !isForward });
     // forward
     if (isForward) {
       this.setPrevPathname(this.pathname);
@@ -269,7 +200,6 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     // back
-    console.log(...this.log("is back", this.histories.length));
     if (this.histories.length === 1) {
       this.replace("/");
       return;
@@ -278,27 +208,30 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     // @todo 可以让 emitHidden 返回 promise，决定是否要隐藏页面吗？
     //     theStackPrepareDestroy.page.emitHidden();
     this.prevHistories = this.prevHistories.concat([theStackPrepareDestroy]);
-    //     setTimeout(() => {
     this.setPrevPathname(this.pathname);
     this.setPathname(targetPathname);
     const cloneStacks = this.histories.slice(0, this.histories.length - 1);
-    //       const lastStack = cloneStacks[cloneStacks.length - 1];
     this.histories = cloneStacks;
-    //       lastStack.page.emitDestroy();
-    //       this.emit(RouteEvents.StackChanged, cloneStacks);
-    //     }, 300);
   }
-  /** 获取路由信息 */
-  // getLocation() {
-  //   return window.location;
-  // }
-  //   onStackChange(
-  //     handler: Handler<TheTypesOfRouterEvents[RouteEvents.StackChanged]>
-  //   ) {
-  //     this.on(RouteEvents.StackChanged, handler);
-  //   }
   onStart(handler: Handler<TheTypesOfEvents[Events.Start]>) {
     this.on(Events.Start, handler);
+  }
+  onPushState(handler: Handler<TheTypesOfEvents[Events.PushState]>) {
+    this.on(Events.PushState, handler);
+  }
+  onReload(handler: Handler<TheTypesOfEvents[Events.Reload]>) {
+    this.on(Events.Reload, handler);
+  }
+  onPathnameChanged(
+    handler: Handler<TheTypesOfEvents[Events.PathnameChanged]>
+  ) {
+    this.on(Events.PathnameChanged, handler);
+  }
+  onBack(handler: Handler<TheTypesOfEvents[Events.Back]>) {
+    this.on(Events.Back, handler);
+  }
+  onReplaceState(handler: Handler<TheTypesOfEvents[Events.ReplaceState]>) {
+    this.on(Events.ReplaceState, handler);
   }
 }
 

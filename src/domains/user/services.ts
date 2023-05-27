@@ -40,5 +40,7 @@ export async function fetch_user_profile() {
  * 成员通过授权链接访问首页时，验证该链接是否有效
  */
 export async function validate_member_token(token: string) {
-  return request.post<{ token: string }>("/api/member/validate", { token });
+  return request.post<{ token: string; id: string }>("/api/validate", {
+    token,
+  });
 }

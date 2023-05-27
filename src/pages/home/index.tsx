@@ -17,19 +17,25 @@ export const HomePage: ViewComponent = (props) => {
   });
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 bg-white">
-        {subViews.map((subView) => {
-          const PageContent = subView.component as ViewComponent;
-          return (
-            <View key={subView.id} store={subView}>
-              <PageContent app={app} router={router} view={subView} />
-            </View>
-          );
-        })}
+    <div className="flex flex-col w-full h-full">
+      <div className="flex-1 h-full">
+        <div className="relative w-full h-full">
+          {subViews.map((subView) => {
+            const PageContent = subView.component as ViewComponent;
+            return (
+              <View key={subView.id} store={subView}>
+                <div className="overflow-y-auto w-full h-full">
+                  <div className="min-h-full">
+                    <PageContent app={app} router={router} view={subView} />
+                  </div>
+                </div>
+              </View>
+            );
+          })}
+        </div>
       </div>
-      <div>
-        <div className="h-[80px]"></div>
+      <div className="h-[80px]">
+        <div className="w-full h-[80px]"></div>
         <div className="fixed left-0 bottom-0 grid grid-cols-4 w-screen h-[80px] py-2">
           <div
             className="flex flex-col justify-center items-center"

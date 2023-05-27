@@ -2,7 +2,7 @@
 
 import { Application } from "@/domains/app";
 import { NavigatorCore } from "@/domains/navigator";
-import { ViewCore } from "@/domains/view";
+import { ViewCore } from "@/domains/route_view";
 
 export type Resp<T> = {
   data: T extends null ? null : T;

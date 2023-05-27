@@ -1,4 +1,4 @@
-import { FetchParams } from "@/domains/list-helper-core";
+import { FetchParams } from "@/domains/list/typing";
 // import { PartialSearchedTV } from "@/domains/tmdb/services";
 import {
   ListResponse,
@@ -37,9 +37,9 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
     page_size: pageSize,
   });
   if (resp.error) {
-    return resp;
+    return Result.Err(resp.error);
   }
-  return {
+  return Result.Ok({
     ...resp.data,
     list: resp.data.list.map((history) => {
       const { ...rest } = history;
@@ -48,7 +48,7 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
         // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
       };
     }),
-  };
+  });
 }
 export type TVItem = RequestedResource<typeof fetch_tv_list>["list"][0];
 

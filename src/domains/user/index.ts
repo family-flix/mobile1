@@ -19,22 +19,27 @@ type TheTypesOfEvents = {
 };
 
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
+  name = "UserCore";
+  debug = false;
+
   _isLogin: boolean = false;
-  user: {
+  profile: {
+    id: string;
     username: string;
     avatar: string;
     token: string;
   } | null = null;
   token: string = "";
   values: Partial<{ email: string; password: string }> = {};
-  onErrorNotice?: (msg: string) => void;
 
-  constructor(initialUser: UserCore["user"]) {
+  static Events = Events;
+
+  constructor(initialUser?: UserCore["profile"]) {
     super();
 
-    // this.log("constructor", initialUser);
+    console.log("constructor", initialUser);
     this._isLogin = !!initialUser;
-    this.user = initialUser;
+    this.profile = initialUser ?? null;
     this.token = initialUser ? initialUser.token : "";
   }
   get isLogin() {
@@ -46,54 +51,57 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   inputPassword(value: string) {
     this.values.password = value;
   }
+  /** 用户名密码登录 */
   async login() {
     const { email, password } = this.values;
     if (!email) {
-      return Result.Err("Missing email");
+      return Result.Err("请输入邮箱");
     }
     if (!password) {
-      return Result.Err("Missing password");
+      return Result.Err("请输入密码");
     }
     const r = await login({ email, password });
     if (r.error) {
-      this.noticeError(r);
+      this.tip({ text: ["登录失败", r.error.message] });
       return r;
     }
     this.values = {};
     this._isLogin = true;
-    this.user = r.data;
+    this.profile = r.data;
     this.token = r.data.token;
-    localStorage.setItem("user", JSON.stringify(r.data));
+    this.emit(Events.Login, { ...this.profile });
     return Result.Ok(r.data);
   }
+  logout() {}
   /**
    * 以成员身份登录
    */
-  async loginInMember(token: string) {
+  async validate(token: string) {
     if (this._isLogin) {
-      return Result.Ok(this.user);
+      return Result.Ok(this.profile);
     }
     if (!token) {
-      this.noticeError("请先登录");
-      return Result.Err("请先登录");
+      const msg = this.tip({ text: ["缺少 token"] });
+      return Result.Err(msg);
     }
     const r = await validate_member_token(token);
     if (r.error) {
-      this.noticeError(r);
-      return r;
+      this.tip({ text: ["校验 token 失败", r.error.message] });
+      return Result.Err(r.error);
     }
-    const t = r.data.token;
-    this.user = {
+    this.profile = {
+      id: r.data.id,
       username: "",
       avatar: "",
-      token: t,
+      token: r.data.token,
     };
     this._isLogin = true;
-    localStorage.setItem("user", JSON.stringify(r.data));
-    this.token = t;
-    return Result.Ok({ ...this.user });
+    this.token = this.profile.token;
+    this.emit(Events.Login, {
+      ...this.profile,
+    });
+    return Result.Ok({ ...this.profile });
   }
-  logout() {}
   async register() {
     const { email, password } = this.values;
     if (!email) {
@@ -102,15 +110,6 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!password) {
       return Result.Err("Missing password");
     }
-    // const r = await login({ email, password });
-    // this.values = {};
-    // if (r.error) {
-    //   this.notice_error(r);
-    //   return r;
-    // }
-    // this.user = r.data;
-    // this.token = r.data.token;
-    // localStorage.setItem("user", JSON.stringify(r.data));
     return Result.Ok(null);
   }
   async fetchProfile() {
@@ -123,33 +122,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     return Result.Ok(r.data);
   }
-  noticeError(result: Result<null> | string) {
-    if (!this.onErrorNotice) {
-      return;
-    }
-    if (typeof result === "string") {
-      this.onErrorNotice(result);
-      return;
-    }
-    this.onErrorNotice(result.error.message);
-  }
-
-  onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
-    this.on(Events.Error, handler);
-  }
-  emitError(result: Result<null> | string) {
-    const error = (() => {
-      if (typeof result === "string") {
-        return new Error(result);
-      }
-      return result.error;
-    })();
-    this.emit(Events.Error, error);
-  }
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {
     this.on(Events.Login, handler);
-  }
-  emitLogin() {
-    this.emit(Events.Login, { ...this.user });
   }
 }

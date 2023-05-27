@@ -177,6 +177,7 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
         setTimeout(() => {
           this.subViews = this.subViews.slice(0, this.subViews.length - 1);
           this.emit(Events.SubViewsChanged, this.subViews);
+          // 动画时间
         }, 800);
         return;
       }
