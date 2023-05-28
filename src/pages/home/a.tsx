@@ -2,33 +2,31 @@
  * @file 首页
  */
 import { useEffect, useRef, useState } from "react";
-import { Search } from "lucide-react";
 
-import {
-  fetch_play_histories,
-  fetch_tv_list,
-  PlayHistoryItem,
-  TVItem,
-} from "@/services";
 import LazyImage from "@/components/LazyImage";
-import ScrollView from "@/components/ScrollView";
 // import useHelper from "@/domains/list-helper-hook";
-import { Page, Router } from "@/domains/router";
 import { UserCore } from "@/domains/user";
+import { fetch_tv_list, fetch_play_histories, PlayHistoryItem, TVItem } from "@/domains/tv/services";
 import { useInitialize } from "@/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { ListCore } from "@/domains/list";
+import { NavigatorCore } from "@/domains/navigator";
+import { RouteViewCore } from "@/domains/route_view";
+import { PageView } from "@/components/ui/scroll-view";
+import { ScrollViewCore } from "@/domains/ui/scroll-view";
 
+// @ts-ignore
 const helper = new ListCore<TVItem>(fetch_tv_list, { pageSize: 6 });
 const history_helper = new ListCore<PlayHistoryItem>(fetch_play_histories, {});
+const scrollView = new ScrollViewCore();
 
 interface IProps {
-  router: Router;
-  page: Page;
+  router: NavigatorCore;
+  view: RouteViewCore;
   user: UserCore;
 }
 export const HomePage: React.FC<IProps> = (props) => {
-  const { router, page, user } = props;
+  const { router, view, user } = props;
   const [response, setResponse] = useState(helper.response);
   const [history_response] = useState(history_helper.response);
   // const [response, helper] = useHelper<TVItem>(fetch_tv_list, { pageSize: 6 });
@@ -79,8 +77,8 @@ export const HomePage: React.FC<IProps> = (props) => {
   console.log("[PAGE]home - render", dataSource);
 
   return (
-    <>
-      <div className="pt-4">
+    <PageView store={scrollView}>
+      <div className="">
         {(() => {
           const { dataSource } = history_response;
           if (dataSource.length === 0) {
@@ -112,16 +110,9 @@ export const HomePage: React.FC<IProps> = (props) => {
                       }}
                     >
                       <div className="relative">
-                        <LazyImage
-                          className="w-[120px] object-cover"
-                          src={poster_path}
-                          alt={name || original_name}
-                        />
+                        <LazyImage className="w-[120px] object-cover" src={poster_path} alt={name || original_name} />
                         {(() => {
-                          if (
-                            episode_count &&
-                            cur_episode_count !== episode_count
-                          ) {
+                          if (episode_count && cur_episode_count !== episode_count) {
                             return (
                               <div className="absolute top-1 left-1">
                                 <div className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800">
@@ -192,13 +183,7 @@ export const HomePage: React.FC<IProps> = (props) => {
               //   );
               // }
               return dataSource.map((tv) => {
-                const {
-                  id,
-                  name,
-                  original_name,
-                  overview,
-                  poster_path = "",
-                } = tv;
+                const { id, name, original_name, overview, poster_path = "" } = tv;
                 return (
                   <div
                     key={id}
@@ -223,6 +208,14 @@ export const HomePage: React.FC<IProps> = (props) => {
               });
             })()}
           </div>
+          <div
+            className="text-center mt-4 py-2"
+            onClick={() => {
+              helper.loadMore();
+            }}
+          >
+            加载更多
+          </div>
         </div>
       </div>
       {/* <div className="fixed right-8 bottom-4 xl:right-12 xl:bottom-12">
@@ -235,6 +228,6 @@ export const HomePage: React.FC<IProps> = (props) => {
           <Search className="w-4 h-4 text-gray-800 xl:w-12 xl:h-12 dark:text-gray-100" />
         </div>
       </div> */}
-    </>
+    </PageView>
   );
 };

@@ -1,9 +1,17 @@
-import { Car, File, Film, Home, PersonStanding, Users } from "lucide-react";
+/**
+ * @file 首页布局
+ * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
+ */
+import { Car, Film, Home, Users } from "lucide-react";
 
 import { ViewComponent } from "@/types";
 import { useState } from "react";
 import { useInitialize } from "@/hooks";
-import { View } from "@/components/ui/view";
+import { KeepAliveRouteView } from "@/components/ui/keep-alive-route-view";
+import { Sheet } from "@/components/ui/sheet";
+import { DialogCore } from "@/domains/ui/dialog";
+
+const dialog = new DialogCore();
 
 export const HomePage: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -20,27 +28,27 @@ export const HomePage: ViewComponent = (props) => {
     <div className="flex flex-col w-full h-full">
       <div className="flex-1 h-full">
         <div className="relative w-full h-full">
-          {subViews.map((subView) => {
+          {subViews.map((subView, i) => {
             const PageContent = subView.component as ViewComponent;
             return (
-              <View key={subView.id} store={subView}>
-                <div className="overflow-y-auto w-full h-full">
+              <KeepAliveRouteView key={subView.id} store={subView} index={i}>
+                <div className="overflow-y-auto w-full h-full scrollbar-hide">
                   <div className="min-h-full">
                     <PageContent app={app} router={router} view={subView} />
                   </div>
                 </div>
-              </View>
+              </KeepAliveRouteView>
             );
           })}
         </div>
       </div>
       <div className="h-[80px]">
         <div className="w-full h-[80px]"></div>
-        <div className="fixed left-0 bottom-0 grid grid-cols-4 w-screen h-[80px] py-2">
+        <div className="fixed left-0 bottom-0 grid grid-cols-4 w-screen h-[80px] py-2 bg-slate-300">
           <div
             className="flex flex-col justify-center items-center"
             onClick={() => {
-              router.replace("/home/a");
+              router.replace("/home/index");
             }}
           >
             <div>
@@ -51,7 +59,7 @@ export const HomePage: ViewComponent = (props) => {
           <div
             className="flex flex-col justify-center items-center"
             onClick={() => {
-              router.replace("/home/b");
+              router.replace("/home/search");
             }}
           >
             <div>
@@ -62,19 +70,18 @@ export const HomePage: ViewComponent = (props) => {
           <div
             className="flex flex-col justify-center items-center"
             onClick={() => {
-              router.replace("/home/c");
+              router.replace("/home/history");
             }}
           >
             <div>
               <Car width={24} height={24} />
             </div>
-            <div className="mt-2 text-center">购物车</div>
+            <div className="mt-2 text-center">观看记录</div>
           </div>
           <div
             className="flex flex-col justify-center items-center"
             onClick={() => {
-              // router.replace("/test1");
-              router.push("/test1");
+              dialog.show();
             }}
           >
             <div>
@@ -84,6 +91,9 @@ export const HomePage: ViewComponent = (props) => {
           </div>
         </div>
       </div>
+      <Sheet store={dialog}>
+        <div>敬请期待</div>
+      </Sheet>
     </div>
   );
 };

@@ -1,32 +1,26 @@
 /**
  * @file ???
  */
-// import { createSignal, JSX } from "solid-js";
+import React, { useState } from "react";
 
 import { RouteViewCore } from "@/domains/route_view";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { cn } from "@/utils";
-
-import { PageView } from "./scroll-view";
-
-const scrollView = new ScrollViewCore();
 
 export function KeepAliveRouteView(
   props: {
     store: RouteViewCore;
     index: number;
-  } & JSX.HTMLAttributes<HTMLDivElement>
+  } & { className?: string; children: React.ReactElement }
 ) {
   const { store, index } = props;
 
-  const [state, setState] = createSignal(store.state);
+  const [state, setState] = useState(store.state);
 
   store.onStateChange((nextState) => {
     setState(nextState);
   });
 
-  const visible = () => state().visible;
-  const mounted = () => state().mounted;
+  const { mounted, visible } = state;
 
   // const className = cn(mounted() ? "block" : "hidden", props.class);
 
@@ -35,19 +29,18 @@ export function KeepAliveRouteView(
       className={cn(
         "absolute left-0 top-0 w-full h-full",
         {
-          block: mounted(),
-          hidden: !mounted(),
+          // block: mounted,
+          // hidden: !mounted,
+          // block: visible,
+          // hidden: !visible,
         },
-        props.class
+        props.className
       )}
-      // classList={{
-      //   block: mounted(),
-      //   hidden: !mounted(),
-      // }}
       style={{
+        display: visible ? 'block' : 'none',
         zIndex: index,
       }}
-      data-state={visible() ? "open" : "closed"}
+      data-state={visible ? "open" : "closed"}
     >
       {props.children}
     </div>

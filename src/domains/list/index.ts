@@ -6,22 +6,9 @@ import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
 
-import {
-  DEFAULT_RESPONSE,
-  DEFAULT_PARAMS,
-  DEFAULT_CURRENT_PAGE,
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_TOTAL,
-} from "./constants";
+import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
+import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
 import { omit } from "./utils";
-import {
-  OriginalResponse,
-  FetchParams,
-  Response,
-  Search,
-  ParamsProcessor,
-  ListProps,
-} from "./typing";
 
 /**
  * 只处理
@@ -60,13 +47,11 @@ const RESPONSE_PROCESSOR = <T>(originalResponse: OriginalResponse) => {
       pageSize: DEFAULT_PAGE_SIZE,
       total: DEFAULT_TOTAL,
       noMore: false,
-      error: new Error(
-        `process response fail, because ${(error as Error).message}`
-      ),
+      error: new Error(`process response fail, because ${(error as Error).message}`),
     };
   }
 };
-type ServiceFn = (...args: JSONValue[]) => Promise<Result<OriginalResponse>>;
+type ServiceFn = (...args: (FetchParams & Record<string, JSONValue>)[]) => Promise<Result<OriginalResponse>>;
 enum Events {
   LoadingChange,
   ParamsChange,
@@ -84,9 +69,7 @@ interface ListState<T> extends Response<T> {}
 /**
  * 分页类
  */
-export class ListCore<T extends Record<string, unknown>> extends BaseDomain<
-  TheTypesOfEvents<T>
-> {
+export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheTypesOfEvents<T>> {
   debug: boolean = false;
 
   static defaultResponse = <T>() => {
@@ -119,13 +102,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<
       throw new Error("fetch must be a function");
     }
 
-    const {
-      debug,
-      rowKey = "id",
-      beforeRequest,
-      processor,
-      extraDefaultResponse,
-    } = options;
+    const { debug, rowKey = "id", beforeRequest, processor, extraDefaultResponse } = options;
     this.debug = !!debug;
     this.rowKey = rowKey;
     this.originalFetch = fetch;
@@ -347,7 +324,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<
    * @param {number} page - 要前往的页码
    * @param {number} [pageSize] - 每页数量
    */
-  goto = async (targetPage, targetPageSize) => {
+  goto = async (targetPage: number, targetPageSize: number) => {
     const { page, pageSize, ...restParams } = this.params;
     const res = await this.fetch({
       ...restParams,
@@ -450,7 +427,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<
    * 移除列表中的多项（用在删除场景）
    * @param {T[]} items 要删除的元素列表
    */
-  deleteItems = async (items) => {
+  deleteItems = async (items: T[]) => {
     const { dataSource } = this.response;
     const nextDataSource = dataSource.filter((item) => {
       return !items.includes(item);
@@ -489,14 +466,10 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<
   onStateChange(handler: Handler<TheTypesOfEvents<T>[Events.StateChange]>) {
     this.on(Events.StateChange, handler);
   }
-  onLoadingChange = (
-    handler: Handler<TheTypesOfEvents<T>[Events.LoadingChange]>
-  ) => {
+  onLoadingChange = (handler: Handler<TheTypesOfEvents<T>[Events.LoadingChange]>) => {
     this.on(Events.LoadingChange, handler);
   };
-  onDataSourceAdded = (
-    handler: Handler<TheTypesOfEvents<T>[Events.DataSourceAdded]>
-  ) => {
+  onDataSourceAdded = (handler: Handler<TheTypesOfEvents<T>[Events.DataSourceAdded]>) => {
     this.on(Events.DataSourceAdded, handler);
   };
 }

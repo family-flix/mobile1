@@ -5,6 +5,7 @@ import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
 import { PresenceCore } from "@/domains/ui/presence";
+import { ButtonCore } from "@/domains/ui/button";
 import { sleep } from "@/utils";
 
 enum Events {
@@ -33,8 +34,12 @@ type TheTypesOfEvents = {
 };
 type DialogState = {
   open: boolean;
+  title: string;
+  footer?: boolean;
 };
 type DialogProps = {
+  title: string;
+  footer?: boolean;
   onCancel: () => void;
   onOk: () => void;
 };
@@ -42,15 +47,23 @@ type DialogProps = {
 export class DialogCore extends BaseDomain<TheTypesOfEvents> {
   visible = false;
   present = new PresenceCore();
+  okBtn = new ButtonCore();
+  cancelBtn = new ButtonCore();
 
   state: DialogState = {
     open: false,
+    footer: true,
+    title: "",
   };
 
   constructor(options: Partial<{ name: string } & DialogProps> = {}) {
     super(options);
 
-    const { onOk, onCancel } = options;
+    const { title, footer = true, onOk, onCancel } = options;
+    if (title) {
+      this.state.title = title;
+    }
+    this.state.footer = footer;
     if (onOk) {
       this.onOk(onOk);
     }
@@ -66,6 +79,12 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
       this.state.open = false;
       this.emit(Events.VisibleChange, false);
       this.emit(Events.StateChange, { ...this.state });
+    });
+    this.okBtn.onClick(() => {
+      this.ok();
+    });
+    this.cancelBtn.onClick(() => {
+      this.cancel();
     });
   }
   /** 显示弹窗 */
@@ -99,6 +118,9 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
   }
   onCancel(handler: Handler<TheTypesOfEvents[Events.Cancel]>) {
     this.on(Events.Cancel, handler);
+  }
+  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
+    this.on(Events.StateChange, handler);
   }
 
   get [Symbol.toStringTag]() {

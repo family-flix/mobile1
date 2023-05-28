@@ -7,42 +7,52 @@ import { pathToRegexp } from "path-to-regexp";
 
 import { BaseDomain } from "@/domains/base";
 import { PresenceCore } from "@/domains/ui/presence";
+import { RouteAction } from "@/domains/navigator";
 
 enum Events {
-  SubViewsChanged,
-  SubViewChanged,
+  /** 子视图改变（数量 */
+  ViewsChange,
+  /** 当前展示的子视图改变 */
+  CurViewChange,
+  /** 当前视图载入页面 */
+  Mounted,
+  /** 当前视图可见，稍晚于 Mounted 事件 */
   Show,
+  /** 当前视图隐藏 */
   Hidden,
+  /** 当前视图从页面卸载 */
+  Unmounted,
   Start,
   StateChange,
 }
 type TheTypesOfEvents = {
-  [Events.SubViewsChanged]: ViewCore[];
-  [Events.SubViewChanged]: ViewCore;
+  [Events.ViewsChange]: RouteViewCore[];
+  [Events.CurViewChange]: RouteViewCore;
+  [Events.Mounted]: void;
   [Events.Show]: void;
   [Events.Hidden]: void;
+  [Events.Unmounted]: void;
   [Events.Start]: { pathname: string };
-  [Events.StateChange]: ViewState;
+  [Events.StateChange]: RouteViewState;
 };
 
-type ViewState = {
-  /** 是否加载到页面上（如果有动画，在隐藏动画播放时该值仍为 true，在 animation end 后将该值置为 false 来卸载视图） */
+type RouteViewState = {
+  /** 是否加载到页面上（如果有动画，在隐藏动画播放时该值仍为 true，在 animation end 后从视图上卸载后，该值被置为 false） */
   mounted: boolean;
   /** 是否可见，用于判断是「进入动画」还是「退出动画」 */
   visible: boolean;
 };
-type ViewProps = {
+type RouteViewProps = {
   prefix: string;
   title: string;
   component: unknown;
-  keepAlive: boolean;
 };
 
-export class ViewCore extends BaseDomain<TheTypesOfEvents> {
+export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   name = "ViewCore";
   debug = true;
 
-  presence: PresenceCore;
+  id = this.uid();
   prefix: string | null;
   /** 配置信息 */
   configs: {
@@ -52,20 +62,13 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
     regexp: RegExp;
     /** 参数获取 */
     keys: ParamConfigure[];
-    config: () => ViewCore;
+    config: () => RouteViewCore;
   }[];
-
-  id = this.uid();
   title: string;
-
-  _hidden = false;
-  get hidden() {
-    return this._hidden;
-  }
-  subViews: ViewCore[] = [];
-  curSubView: ViewCore;
+  subViews: RouteViewCore[] = [];
+  curView: RouteViewCore;
   /** 浏览器返回后，被销毁的那个栈 */
-  destroyStacksWhenBack: ViewCore[] = [];
+  destroyStacksWhenBack: RouteViewCore[] = [];
   /** 当前 pathname */
   pathname: string;
   /** 当前路由的 query */
@@ -74,38 +77,42 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
   params: Record<string, string> = {};
   /** 当前访问地址 */
   url: string;
-  keepAlive: boolean;
   component: unknown;
+  presence = new PresenceCore();
 
-  state: ViewState = {
+  state: RouteViewState = {
     mounted: true,
     visible: true,
   };
 
-  constructor(options: Partial<{ name: string } & ViewProps> = {}) {
+  constructor(options: Partial<{ name: string } & RouteViewProps> = {}) {
     super(options);
 
-    const {
-      prefix = null,
-      title = "请指定页面标题",
-      component,
-      keepAlive = false,
-    } = options;
+    const { prefix = null, title, component } = options;
+    // name 是为了调试用
+    this.name = title;
     this.prefix = prefix;
     this.title = title;
     this.component = component;
     this.configs = [];
-    this.keepAlive = keepAlive;
 
-    this.presence = new PresenceCore();
     this.presence.onStateChange((nextState) => {
       const { open, mounted } = nextState;
+      if (this.state.visible === false && open) {
+        this.emit(Events.Show);
+      }
+      if (this.state.visible && open === false) {
+        this.emit(Events.Hidden);
+      }
+      if (this.state.mounted === false && mounted) {
+        this.emit(Events.Mounted);
+      }
+      if (this.state.mounted && mounted === false) {
+        this.emit(Events.Unmounted);
+      }
       this.state.visible = open;
-      this.state.mounted = mounted;
+      this.state.mounted = !!mounted;
       this.emit(Events.StateChange, { ...this.state });
-    });
-    this.presence.onHidden(() => {
-      this.emit(Events.Hidden);
     });
   }
 
@@ -113,13 +120,9 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
   async checkMatch({
     pathname,
     type,
-    isBack,
-    prevPathname,
   }: {
     pathname: string;
-    type: "push" | "replace";
-    prevPathname?: string | null;
-    isBack?: boolean;
+    type: RouteAction;
   }) {
     this.log(
       "checkMatch - ",
@@ -128,21 +131,14 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
       this.configs,
       this.subViews
     );
-    // for (let i = 0; i < this.subViews.length; i += 1) {
-    //   const view = this.subViews[i];
-    //   view.checkMatch({ pathname, type });
-    // }
-    // const latestViewCore = this.subViews[this.subViews.length - 1];
-    // if (latestViewCore) {
-    //   this.log("checkMatch - latest view is", latestViewCore);
-    //   latestViewCore.checkMatch({ pathname, type });
-    // }
     if (this.configs.length === 0) {
       this.log("checkMatch", this.title, "do not have configs");
+      // this.tip({ text: ["没有配置路由"] });
       return;
     }
     if (!pathname) {
       this.error("unexpected pathname", pathname);
+      this.tip({ text: ["请传入 pathname"] });
       return;
     }
     const targetPathname = pathname;
@@ -156,36 +152,12 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
     });
     if (!matchedRoute) {
       this.error(`View ${targetPathname} not found`);
+      this.tip({ text: [targetPathname, "没有找到匹配的路由"] });
       return;
     }
     const { regexp, keys, config } = matchedRoute;
-    if (isBack && this.keepAlive && prevPathname) {
-      const prevMatchRoute = this.configs.find((route) => {
-        const { regexp } = route;
-        const strictMatch = regexp.test(prevPathname);
-        if (strictMatch) {
-          return true;
-        }
-        return prevPathname.startsWith(route.path);
-      });
-      if (prevMatchRoute && prevMatchRoute.path !== matchedRoute.path) {
-        // 在需要暂存页面场景下，返回时仅限将最后一个视图移除即可
-        const lastView = this.subViews[this.subViews.length - 1];
-        lastView.hide();
-        // this.subViews = this.subViews.slice(0, this.subViews.length - 1);
-        // this.emit(Events.SubViewsChanged, this.subViews);
-        setTimeout(() => {
-          this.subViews = this.subViews.slice(0, this.subViews.length - 1);
-          this.emit(Events.SubViewsChanged, this.subViews);
-          // 动画时间
-        }, 800);
-        return;
-      }
-    }
+    // 运行时获取 view
     const v = await config();
-    // if (this.subViews.includes(v)) {
-    //   this.log("the sub view has existing");
-    // }
     const params = buildParams({
       regexp,
       targetPath: targetPathname,
@@ -197,59 +169,73 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
       type,
       query,
       params,
-      replace: type === "replace",
-      isBack,
     });
   }
   private setSubViews(
-    subView: ViewCore,
+    subView: RouteViewCore,
     extra: {
       pathname: string;
-      type: "push" | "replace";
+      type: RouteAction;
       query: Record<string, string>;
       params: Record<string, string>;
-      isBack?: boolean;
-      replace?: boolean;
     }
   ) {
     this.log("setSubViews", this.title, subView);
-    const { title, component } = subView;
-    const { pathname, type, query, params, replace = false, isBack } = extra;
-    this.curSubView = subView;
-    this.emit(Events.SubViewChanged, subView);
-    const cloneStacks = this.subViews;
+    const { pathname, type, query, params } = extra;
+    this.curView = subView;
+    this.emit(Events.CurViewChange, subView);
+    const cloneViews = this.subViews;
     // 已经在 / layout，当路由改变时，仍然响应，并且查找到了 / layout，就可能重复添加，这里做个判断，避免了重复添加
-    const existing = this.subViews.includes(subView);
-    console.log(
-      ...this.log("setSubViews -", this.title, "check", subView.title)
-    );
-    for (let i = 0; i < this.subViews.length; i += 1) {
-      const v = this.subViews[i];
+    // this.log("setSubViews -", this.title, "check", subView.title, "existing", existing);
+
+    const nextSubViews = (() => {
+      const existing = this.subViews.includes(subView);
+      if (existing) {
+        return cloneViews;
+      }
+      if (type === "initialize") {
+        return cloneViews.concat(subView);
+      }
+      if (type === "push") {
+        return cloneViews.concat(subView);
+      }
+      if (type === "replace") {
+        return cloneViews.slice(0, cloneViews.length - 1).concat(subView);
+      }
+      if (type === "forward") {
+        return cloneViews.concat(subView);
+      }
+      if (type === "back") {
+        return cloneViews.slice(0, cloneViews.length - 1);
+      }
+      return cloneViews;
+    })();
+    subView.query = query;
+    subView.params = params;
+    this.log("next sub views", nextSubViews);
+    this.subViews = nextSubViews;
+    this.emit(Events.ViewsChange, [...this.subViews]);
+    for (let i = 0; i < nextSubViews.length; i += 1) {
+      const v = nextSubViews[i];
       if (v === subView) {
         this.log(this.title, "show subView", v.title);
         v.show();
         continue;
       }
       this.log(this.title, "hide subView", v.title);
-      if (!this.keepAlive) {
-        v.hide();
-      }
+      v.hide();
     }
-    if (!existing) {
-      if (replace) {
-        cloneStacks[this.subViews.length - 1] = subView;
-      } else {
-        cloneStacks.push(subView);
-      }
-      // this.log("setSubViews - emit SubViewsChanged");
-      this.emit(Events.SubViewsChanged, [...cloneStacks]);
-    } else {
-    }
-    subView.checkMatch({ pathname, type, isBack });
+    // @todo 判断 query 是否改变，触发特定事件
+    subView.checkMatch({ pathname, type });
   }
   /** 添加子视图 */
-  register(path: string, configFactory: () => ViewCore) {
-    // @todo 检查重复注册路由
+  register(path: string, configFactory: () => RouteViewCore) {
+    const existing = this.configs.find((config) => {
+      return config.path === path;
+    });
+    if (existing) {
+      return this;
+    }
     const keys: ParamConfigure[] = [];
     const regexp = pathToRegexp(path, keys);
     this.configs.push({
@@ -261,18 +247,17 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
     return this;
   }
   show() {
+    if (this.state.visible) {
+      return;
+    }
     this.presence.show();
   }
-  pendingTask: (() => void) | null = null;
   hide() {
+    if (this.state.visible === false) {
+      return;
+    }
     this.presence.hide();
   }
-  async start({ pathname }: { pathname: string }) {
-    this.log("current pathname is", this.title, pathname);
-    this.checkMatch({ pathname, type: "push", isBack: false });
-    this.emit(Events.Start, { pathname });
-  }
-  animationEnd() {}
 
   onStart(handler: Handler<TheTypesOfEvents[Events.Start]>) {
     this.on(Events.Start, handler);
@@ -283,13 +268,14 @@ export class ViewCore extends BaseDomain<TheTypesOfEvents> {
   onHide(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
     this.on(Events.Hidden, handler);
   }
-  /** 视图栈改变 */
-  onSubViewsChange(handler: Handler<TheTypesOfEvents[Events.SubViewsChanged]>) {
-    this.on(Events.SubViewsChanged, handler);
+  onUnmounted(handler: Handler<TheTypesOfEvents[Events.Unmounted]>) {
+    this.on(Events.Unmounted, handler);
   }
-  /** 当前视图改变 */
-  onSubViewChange(handler: Handler<TheTypesOfEvents[Events.SubViewChanged]>) {
-    this.on(Events.SubViewChanged, handler);
+  onSubViewsChange(handler: Handler<TheTypesOfEvents[Events.ViewsChange]>) {
+    this.on(Events.ViewsChange, handler);
+  }
+  onCurViewChange(handler: Handler<TheTypesOfEvents[Events.CurViewChange]>) {
+    this.on(Events.CurViewChange, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     this.on(Events.StateChange, handler);
@@ -308,7 +294,6 @@ function buildParams(opt: {
   keys: ParamConfigure[];
 }) {
   const { regexp, keys, targetPath } = opt;
-  // const regexp = pathToRegexp(path, keys);
   const match = regexp.exec(targetPath);
   if (match) {
     const params: Record<string, string> = {};
@@ -325,18 +310,4 @@ function buildQuery(path: string) {
     return {} as Record<string, string>;
   }
   return qs.parse(search) as Record<string, string>;
-}
-function convertNumberStringsToNumbers(obj: Record<string, any>) {
-  const result: Record<string, string | number> = {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
-      if (!isNaN(value)) {
-        result[key] = Number(value);
-      } else {
-        result[key] = value;
-      }
-    }
-  }
-  return result;
 }

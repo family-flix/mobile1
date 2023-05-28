@@ -4,7 +4,7 @@
 import axios, { AxiosError } from "axios";
 import qs from "qs";
 
-import { Result } from "@/types";
+import { JSONObject, Result } from "@/types";
 import { app } from "@/store/app";
 
 // import dayjs from "dayjs";
@@ -13,10 +13,7 @@ const client = axios.create({
   timeout: 6000,
 });
 type RequestClient = {
-  get: <T>(
-    url: string,
-    query?: Record<string, string | number | undefined>
-  ) => Promise<Result<T>>;
+  get: <T>(url: string, query?: JSONObject) => Promise<Result<T>>;
   post: <T>(url: string, body: Record<string, unknown>) => Promise<Result<T>>;
 };
 export const request = {

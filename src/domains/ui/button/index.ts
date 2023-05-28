@@ -1,5 +1,5 @@
 import { BaseDomain } from "@/domains/base";
-import { CurCore } from "@/domains/cur";
+import { SelectionCore } from "@/domains/cur";
 import { Handler } from "mitt";
 
 enum Events {
@@ -7,7 +7,7 @@ enum Events {
   StateChange,
 }
 type TheTypesOfEvents<T = unknown> = {
-  [Events.Click]: T;
+  [Events.Click]: T | null;
   [Events.StateChange]: ButtonState;
 };
 type ButtonState = {
@@ -15,11 +15,11 @@ type ButtonState = {
   disabled: boolean;
 };
 type ButtonProps<T = unknown> = {
-  onClick: (record?: T) => void;
+  onClick: (record: T | null) => void;
 };
 export class ButtonCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   id = this.uid();
-  cur: CurCore<T>;
+  cur: SelectionCore<T>;
 
   state: ButtonState = {
     loading: false,
@@ -29,16 +29,23 @@ export class ButtonCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   constructor(options: Partial<{ name: string } & ButtonProps<T>> = {}) {
     super(options);
 
-    this.cur = new CurCore();
+    this.cur = new SelectionCore();
     const { onClick } = options;
     if (onClick) {
       this.onClick(() => {
-        onClick(this.cur.consume());
+        onClick(this.cur.value);
       });
     }
   }
   /** 触发一次按钮点击事件 */
   click() {
+    // console.log("click", this.state.loading, this.state.disabled);
+    if (this.state.loading) {
+      return;
+    }
+    if (this.state.disabled) {
+      return;
+    }
     this.emit(Events.Click);
   }
   /** 禁用当前按钮 */
@@ -53,7 +60,7 @@ export class ButtonCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   }
   /** 当按钮处于列表中时，使用该方法保存所在列表记录 */
   bind(v: T) {
-    this.cur.save(v);
+    this.cur.select(v);
     return this;
   }
   setLoading(loading: boolean) {
@@ -109,9 +116,13 @@ export class ButtonInListCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   clear() {
     this.cur = null;
   }
-  setLoading(loading) {
-    console.log("set loading", loading, this.cur);
+  setLoading(loading: boolean) {
+    // console.log("set loading", loading, this.cur);
     if (this.cur === null) {
+      for (let i = 0; i < this.btns.length; i += 1) {
+        const btn = this.btns[i];
+        btn.setLoading(loading);
+      }
       return;
     }
     this.cur.setLoading(loading);

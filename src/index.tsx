@@ -5,88 +5,49 @@ import { cn, sleep } from "@/utils";
 import { app } from "@/store/app";
 import { useInitialize } from "@/hooks";
 import { useToast } from "@/hooks/use-toast";
-import { PageContainer } from "@/components/Page";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/Theme";
 import { View } from "./components/ui/view";
-import { KeepAliveView } from "./components/ui/keep-alive-route-view";
+// import { KeepAliveView } from "./components/ui/keep-alive-route-view";
 import { HomePage as HomeLayout } from "@/pages/home";
 import { TVPlayingPage } from "@/pages/play";
-import { TVSearchResultPage } from "@/pages/search";
-import { PlayHistoryPage } from "@/pages/history";
+// import { PlayHistoryPage } from "@/pages/history";
 import { Test1Page } from "./pages/test1";
-import { Test2Page } from "./pages/test2";
-import { Test3Page } from "./pages/test3";
-import { ViewCore } from "./domains/route_view";
+import { RouteViewCore } from "./domains/route_view";
 import { bind } from "./domains/app/bind.web";
 import { HomePage } from "./pages/home/a";
-import { HomeBPage } from "./pages/home/b";
-import { HomeCPage } from "./pages/home/c";
+import { PlayHistoryPage } from "./pages/home/history";
+import { TVSearchPage } from "./pages/home/search";
 import { ViewComponent } from "./types";
+import { RouteView } from "./components/ui/route-view";
+import { KeepAliveRouteView } from "./components/ui/keep-alive-route-view";
 
 import "./index.css";
 
-// app.router.route("/", () => {
-//   return {
-//     title: "影视剧列表",
-//     component: HomePage,
-//   };
-// });
-// app.router.route("/test2", () => {
-//   return {
-//     title: "测试页2",
-//     component: Test2Page,
-//   };
-// });
-// app.router.route("/test3", () => {
-//   return {
-//     title: "测试页3",
-//     component: Test3Page,
-//   };
-// });
-// app.router.route("/play/:id", () => {
-//   return {
-//     title: "加载中...",
-//     component: TVPlayingPage,
-//   };
-// });
-// app.router.route("/search", () => {
-//   return {
-//     title: "搜索",
-//     component: TVSearchResultPage,
-//   };
-// });
-// app.router.route("/history", () => {
-//   return {
-//     title: "我的播放历史",
-//     component: PlayHistoryPage,
-//   };
-// });
-
 const { router } = app;
 
-const rootView = new ViewCore({
+const rootView = new RouteViewCore({
   title: "ROOT",
   component: "div",
-  keepAlive: true,
+  // keepAlive: true,
 });
-const mainLayout = new ViewCore({
+const mainLayout = new RouteViewCore({
   title: "首页",
   component: HomeLayout,
 });
-const aView = new ViewCore({
-  title: "首页 A",
+const aView = new RouteViewCore({
+  title: "首页",
   component: HomePage,
 });
-const bView = new ViewCore({
-  title: "首页 B",
-  component: HomeBPage,
+const bView = new RouteViewCore({
+  title: "搜索",
+  component: TVSearchPage,
 });
-const cView = new ViewCore({
-  title: "首页 C",
-  component: HomeCPage,
+const cView = new RouteViewCore({
+  title: "播放历史",
+  component: PlayHistoryPage,
 });
-const authLayoutView = new ViewCore({
+const authLayoutView = new RouteViewCore({
   title: "EmptyLayout",
   component: Test1Page,
 });
@@ -94,35 +55,34 @@ const authLayoutView = new ViewCore({
 //   title: "登录",
 //   component: ,
 // });
-mainLayout.register("/home/a", () => {
+mainLayout.register("/home/index", () => {
   return aView;
 });
-mainLayout.register("/home/b", () => {
+mainLayout.register("/home/search", () => {
   return bView;
 });
-mainLayout.register("/home/c", () => {
+mainLayout.register("/home/history", () => {
   return cView;
 });
-rootView.register("/test1", () => {
-  return authLayoutView;
+const tvPlaying = new RouteViewCore({
+  title: "加载中...",
+  component: TVPlayingPage,
 });
-// const testView = new ViewCore({
-//   title: "测试",
-//   component: TestPage,
-// });
-// rootView.register("/test", () => {
-//   return testView;
-// });
+rootView.register("/play/:id", () => {
+  return tvPlaying;
+});
 rootView.register("/", () => {
   return mainLayout;
 });
-router.onPathnameChanged(({ pathname, isBack, prevPathname }) => {
-  rootView.checkMatch({ pathname, type: "push", isBack, prevPathname });
+router.onPathnameChange(({ pathname, type }) => {
+  // router.log("[]Application - pathname change", pathname);
+  rootView.checkMatch({ pathname, type });
 });
 app.onPopState((options) => {
   const { type, pathname } = options;
-  router.handlePathnameChanged({ type, pathname });
+  router.handlePopState({ type, pathname });
 });
+
 bind(app);
 
 function ApplicationView() {
@@ -134,9 +94,7 @@ function ApplicationView() {
 
   useInitialize(() => {
     rootView.onSubViewsChange((nextSubViews) => {
-      console.log(
-        ...rootView.log("[]Application - subViews changed", nextSubViews)
-      );
+      console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
       setSubViews(nextSubViews);
     });
     app.onTip(async (msg) => {
@@ -191,18 +149,13 @@ function ApplicationView() {
           </div>
         </div>
       )} */}
-      <div className="screen w-screen h-screen bg-slate-200">
+      <div className="screen w-screen h-screen">
         {subViews.map((subView, index) => {
           const RenderedComponent = subView.component as ViewComponent;
           return (
-            <KeepAliveView
-              key={subView.id}
-              parent={rootView}
-              store={subView}
-              index={index}
-            >
+            <KeepAliveRouteView key={subView.id} store={subView} index={index}>
               <RenderedComponent app={app} router={router} view={subView} />
-            </KeepAliveView>
+            </KeepAliveRouteView>
           );
         })}
       </div>

@@ -14,35 +14,51 @@ type InputState = {
   value: string;
   placeholder: string;
   disabled: boolean;
+  type: string;
 };
 type InputProps = {
   /** 字段键 */
   name: string;
   defaultValue: string;
   placeholder: string;
+  type: string;
+  onChange: (v: string) => void;
 };
 
 export class InputCore extends BaseDomain<TheTypesOfEvents> {
-  _defaultValue: string;
+  _defaultValue: string = "";
   value = "";
   state = {
     value: "",
     placeholder: "请输入",
     disabled: false,
+    type: "string",
   };
 
   constructor(options: Partial<{ name: string } & InputProps> = {}) {
     super(options);
 
-    const { name, defaultValue, placeholder } = options;
-    this.name = name;
+    const { name, defaultValue, placeholder, type, onChange } = options;
+    if (name) {
+      this.name = name;
+    }
     if (placeholder) {
       this.state.placeholder = placeholder;
     }
-    this._defaultValue = defaultValue;
+    if (type) {
+      this.state.type = type;
+    }
+    if (defaultValue) {
+      this._defaultValue = defaultValue;
+    }
     if (defaultValue) {
       this.value = defaultValue;
       this.state.value = defaultValue;
+    }
+    if (onChange) {
+      this.onChange((v) => {
+        onChange(v);
+      });
     }
   }
 
@@ -60,7 +76,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     this.state.disabled = false;
     this.emit(Events.StateChange, { ...this.state });
   }
-  empty() {
+  clear() {
     this.state.value = "";
     this.emit(Events.StateChange, { ...this.state });
   }

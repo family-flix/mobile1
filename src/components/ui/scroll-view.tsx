@@ -71,34 +71,20 @@ export const PageView = (props: {
   const Component = options[step];
 
   return (
-    <Root
-      className={cn(
-        "overflow-hidden fixed inset-0 w-screen h-screen",
-        className
-      )}
-      style={style}
-      {...restProps}
-    >
+    <Root className={cn("overflow-hidden absolute inset-0 w-full h-full", className)} style={style} {...restProps}>
       <Indicator store={store}>
         <div className="flex items-center justify-center h-[80px]">
           <Component />
         </div>
       </Indicator>
-      <Content
-        store={store}
-        className="absolute inset-0 max-h-screen overflow-y-auto"
-      >
+      <Content store={store} className="absolute inset-0 max-h-screen overflow-y-auto">
         {children}
       </Content>
     </Root>
   );
 };
 
-const Root = (props: {
-  className?: string;
-  style: React.CSSProperties;
-  children: React.ReactNode;
-}) => {
+const Root = (props: { className?: string; style: React.CSSProperties; children: React.ReactNode }) => {
   const { className, style, children, ...restProps } = props;
   return (
     <div className={className} style={style} {...restProps}>
@@ -106,10 +92,7 @@ const Root = (props: {
     </div>
   );
 };
-const Indicator = (props: {
-  store: ScrollViewCore;
-  children: React.ReactElement;
-}) => {
+const Indicator = (props: { store: ScrollViewCore; children: React.ReactElement }) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
   store.onStateChange((nextState) => {
@@ -129,11 +112,7 @@ const Indicator = (props: {
     </div>
   );
 };
-const Content = (props: {
-  store: ScrollViewCore;
-  className?: string;
-  children: React.ReactElement;
-}) => {
+const Content = (props: { store: ScrollViewCore; className?: string; children: React.ReactElement }) => {
   const { store } = props;
   //   let $page: HTMLDivElement;
   const $page = useRef<HTMLDivElement>(null);

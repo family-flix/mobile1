@@ -2,16 +2,14 @@
 
 import { Application } from "@/domains/app";
 import { NavigatorCore } from "@/domains/navigator";
-import { ViewCore } from "@/domains/route_view";
+import { RouteViewCore } from "@/domains/route_view";
 
 export type Resp<T> = {
   data: T extends null ? null : T;
   error: T extends null ? Error : null;
 };
 export type Result<T> = Resp<T> | Resp<null>;
-export type UnpackedResult<T> = NonNullable<
-  T extends Resp<infer U> ? (U extends null ? U : U) : T
->;
+export type UnpackedResult<T> = NonNullable<T extends Resp<infer U> ? (U extends null ? U : U) : T>;
 /** 构造一个结果对象 */
 export const Result = {
   /** 构造成功结果 */
@@ -64,14 +62,13 @@ export type ListResponse<T> = {
   list: T[];
 };
 
-export type RequestedResource<T extends (...args: any[]) => any> =
-  UnpackedResult<Unpacked<ReturnType<T>>>;
+export type RequestedResource<T extends (...args: any[]) => any> = UnpackedResult<Unpacked<ReturnType<T>>>;
 
 export type ViewComponent = (props: {
   app: Application;
   router: NavigatorCore;
-  view: ViewCore;
-}) => JSX.Element;
+  view: RouteViewCore;
+}) => React.ReactElement;
 
 export type Rect = {
   width: number;
@@ -86,11 +83,5 @@ export type Rect = {
 };
 
 export interface JSONArray extends Array<JSONValue> {}
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | JSONObject
-  | JSONArray
-  | null;
+export type JSONValue = string | number | boolean | JSONObject | JSONArray | null;
 export type JSONObject = { [Key in string]?: JSONValue };

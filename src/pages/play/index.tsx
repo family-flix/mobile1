@@ -1,15 +1,7 @@
 /**
  * @file 视频播放页面
  */
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import throttle from "lodash/fp/throttle";
-import debounce from "lodash/fp/debounce";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowBigLeft,
   ArrowBigRight,
@@ -24,149 +16,194 @@ import {
   RotateCw,
 } from "lucide-react";
 
-import { cn, episode_to_chinese_num, season_to_chinese_num } from "@/utils";
-import { TV } from "@/domains/tv";
-import { Player } from "@/domains/player";
-import { Page, Router } from "@/domains/router";
-import { useToast } from "@/hooks/use-toast";
-import { useInitialize } from "@/hooks";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/utils";
+import { TVCore } from "@/domains/tv";
+import { PlayerCore } from "@/domains/player";
+import { Sheet } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { ElementCore } from "@/domains/ui/element";
+import { connect } from "@/domains/player/connect.web";
+import { EpisodeResolutionTypes } from "@/domains/tv/constants";
+import { Element } from "@/components/ui/element";
+import { useInitialize } from "@/hooks";
+import { ViewComponent } from "@/types";
+import { DialogCore } from "@/domains/ui/dialog";
 
-interface IProps {
-  router: Router;
-  page: Page;
-}
-export const TVPlayingPage: React.FC<IProps> = (props) => {
-  const { router, page } = props;
-  const { id: tvId } = router.params as { id: string };
+const tv = new TVCore();
+const player = new PlayerCore();
+const video = new ElementCore({});
+const aSheet = new DialogCore({});
+const bSheet = new DialogCore();
+const cSheet = new DialogCore();
+const dSheet = new DialogCore();
+
+export const TVPlayingPage: ViewComponent = (props) => {
+  const { app, router, view } = props;
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [profile, setProfile] = useState(tv.profile);
+  const [source, setSource] = useState(tv.curSource);
 
   useInitialize(() => {
-    page.onPullToRefresh(() => {
-      router.reload();
-    });
-    page.onHidden(() => {});
+    (async () => {
+      view.onHide(() => {
+        player.pause();
+      });
+      view.onShow(() => {
+        // 异常情况，现在返回后，页面不销毁
+        if (!view.state.visible) {
+          return;
+        }
+        // 锁屏后 currentTime 不是锁屏前的
+        player.setCurrentTime(player.currentTime);
+      });
+      video.onMounted(() => {
+        const $video = videoRef.current;
+        if (!$video) {
+          return;
+        }
+        connect($video, player);
+      });
+      tv.onProfileLoaded((profile) => {
+        app.setTitle(tv.getTitle().join(" - "));
+        const { curEpisode } = profile;
+        tv.playEpisode(curEpisode);
+      });
+      tv.onEpisodeChange((nextEpisode) => {
+        app.setTitle(tv.getTitle().join(" - "));
+        const { currentTime } = nextEpisode;
+        player.setCurrentTime(currentTime);
+        player.pause();
+      });
+      tv.onStateChange((nextProfile) => {
+        setProfile(nextProfile);
+      });
+      tv.onSourceChange((mediaSource) => {
+        // player.setCurrentTime(tv.curEpisode?.currentTime ?? 0);
+        // app.setTitle(tv.getTitle().join(" - "));
+        const { width, height } = mediaSource;
+        const h = Math.ceil((height / width) * app.size.width);
+        // player.setResolution(values.resolution);
+        player.pause();
+        player.loadSource(mediaSource);
+        player.setSize({
+          width,
+          height: h,
+        });
+        setSource(mediaSource);
+      });
+      tv.onTip((msg) => {
+        alert(msg.text.join("\n"));
+        app.tip(msg);
+      });
+      // tv.onResolutionChange((values: { resolution: { type: EpisodeResolutionTypes; text: string } }) => {
+      //   player.setResolution(values.resolution);
+      //   player.pause();
+      // });
+      // player.on
+      player.onCanPlay(() => {
+        player.play();
+      });
+      player.onProgress(({ currentTime, duration }) => {
+        // console.log("[PAGE]TVPlaying - onProgress", currentTime);
+        tv.updatePlayProgress({
+          currentTime,
+          duration,
+        });
+      });
+      player.onPause(({ currentTime, duration }) => {
+        tv.updatePlayProgress({
+          currentTime,
+          duration,
+        });
+      });
+      player.onEnd(() => {
+        // console.log("[PAGE]TVPlaying - onEnd");
+        tv.playNextEpisode();
+      });
+      player.onVolumeChange(({ volume }) => {
+        console.log("[]onVolumeChange", volume);
+        // settings.volume = volume;
+        // cache.set("video_settings", settings);
+      });
+      player.onSizeChange(({ height }) => {
+        // console.log("[COMPONENT]VideoPlayer - size change", height);
+        // setSize((prev) => {
+        //   return {
+        //     ...prev,
+        //     height,
+        //   };
+        // });
+      });
+      player.onResolutionChange(({ type }) => {
+        // settings.resolution = type;
+        // app.cache.set("video_settings", settings);
+      });
+      player.onSourceLoaded(() => {
+        console.log("[COMPONENT]VideoPlayer - on loaded", tv.currentTime);
+        player.setCurrentTime(tv.currentTime);
+      });
+      player.onUrlChange(async ({ url, thumbnail }) => {
+        console.log("[COMPONENT]VideoPlayer - on url change", url);
+        const $video = videoRef.current;
+        if (!$video) {
+          return;
+        }
+        // setPoster(thumbnail);
+        if ($video.canPlayType("application/vnd.apple.mpegurl")) {
+          $video.src = url;
+          $video.load();
+          return;
+        }
+        const mod = await import("hls.js");
+        const Hls2 = mod.default;
+        if (Hls2.isSupported() && url.includes("m3u8")) {
+          // console.log("[PAGE]TVPlaying - need using hls.js");
+          const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+          Hls.attachMedia($video);
+          Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+            Hls.loadSource(url);
+          });
+          return;
+        }
+        $video.src = url;
+        $video.load();
+      });
+      //
+      console.log("fetch profile", view.params.id);
+      tv.fetchProfile(view.params.id);
+    })();
   });
 
-  const { toast } = useToast();
-  const tvRef = useRef(new TV({ id: tvId }));
-  const playerRef = useRef(
-    new Player({
-      url: "",
-      on_change(next_values) {
-        // set_values(next_values);
-        playerStateRef.current = next_values;
-      },
-    })
-  );
-  const [profile, setProfile] = useState<{
-    cur_episode: TV["cur_episode"];
-    info: TV["info"];
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [show_menus, setShowMenus] = useState(true);
-  const playerStateRef = useRef(playerRef.current.values);
-  const [values, set_values] = useState(playerRef.current.values);
-  const [target_progress, set_target_progress] = useState(0);
-  const hideMenus = useMemo(() => {
-    return debounce(2000, () => {
-      if (playerStateRef.current.playing) {
-        setShowMenus(false);
-      }
-    });
-  }, []);
-  const toggleMenuVisible = useCallback(() => {
-    setShowMenus((prev) => {
-      const target_visible = !prev;
-      if (playerStateRef.current.playing) {
-        hideMenus();
-      }
-      return target_visible;
-    });
-  }, []);
+  // console.log("[PAGE]TVPlayingPage - render", tvId);
 
-  console.log("[PAGE]TVPlayingPage - render", tvId);
-
-  useEffect(() => {
-    if (!tvId) {
-      return;
-    }
-    (async () => {
-      tvRef.current.onErrorNotice = (msg) => {
-        toast({
-          title: "ERROR",
-          description: msg,
-        });
-      };
-      tvRef.current.onNotice = (msg) => {
-        // toast({
-        //   title: "Info",
-        //   description: msg,
-        // });
-      };
-      const res = await tvRef.current.init(tvId);
-      if (res.error) {
-        setError(res.error.message);
-        return;
-      }
-      const { cur_episode, info } = tvRef.current;
-      setProfile({
-        cur_episode,
-        info,
-      });
-      if (cur_episode === null || info === null) {
-        return;
-      }
-      page.setTitle(
-        `${episode_to_chinese_num(
-          cur_episode.episode
-        )} - ${season_to_chinese_num(cur_episode.season)} - ${info.name}`
-      );
-    })();
-  }, []);
-
-  const whenVideoPlaying = useMemo(() => {
-    return throttle(10 * 1000, ({ current_time, duration }) => {
-      tvRef.current.update_play_progress({
-        current_time,
-        duration,
-      });
-    });
-  }, []);
-
-  if (error) {
-    return (
-      <div className="w-full h-[100vh]">
-        <div className="center text-center">{error}</div>
-      </div>
-    );
-  }
-  // console.log(
-  //   "[]VideoPlayingPage - render",
-  //   profile?.cur_episode,
-  //   target_progress
-  // );
+  // if (error) {
+  //   return (
+  //     <div className="w-full h-[100vh]">
+  //       <div className="center text-center">{error}</div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="tv__video">
+    <div className="tv__video bg-slate-100">
       {(() => {
         return (
           <>
             <div className="operations overflow-hidden relative ws-screen h-screen">
-              <div
+              {/* <div
                 className={cn(
                   show_menus ? "hidden" : "block",
                   "absolute inset-0"
                 )}
                 onClick={toggleMenuVisible}
-              />
+              /> */}
               <div
                 className={cn(
-                  show_menus ? "block" : "hidden",
+                  // show_menus ? "block" : "hidden",
                   "absolute inset-0"
                 )}
-                onClick={toggleMenuVisible}
+                // onClick={toggleMenuVisible}
               >
                 <div
                   className="p-4"
@@ -219,11 +256,7 @@ export const TVPlayingPage: React.FC<IProps> = (props) => {
                     <div
                       className="flex flex-col items-center"
                       onClick={async () => {
-                        await tvRef.current.play_prev_episode();
-                        setProfile({
-                          cur_episode: tvRef.current.cur_episode,
-                          info: tvRef.current.info,
-                        });
+                        tv.playPrevEpisode();
                       }}
                     >
                       <ArrowBigLeft className="w-8 h-8" />
@@ -232,12 +265,8 @@ export const TVPlayingPage: React.FC<IProps> = (props) => {
                     <div className="flex flex-col items-center"></div>
                     <div
                       className="flex flex-col items-center"
-                      onClick={async () => {
-                        await tvRef.current.play_next_episode();
-                        setProfile({
-                          cur_episode: tvRef.current.cur_episode,
-                          info: tvRef.current.info,
-                        });
+                      onClick={() => {
+                        tv.playNextEpisode();
                       }}
                     >
                       <ArrowBigRight className="w-8 h-8 " />
@@ -245,187 +274,62 @@ export const TVPlayingPage: React.FC<IProps> = (props) => {
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
-                    <Sheet>
-                      <SheetTrigger>
-                        <div className="flex flex-col items-center">
-                          <List className="w-6 h-6 " />
-                          <p className="mt-2 text-sm ">选集</p>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent position="bottom" size="lg">
-                        {(() => {
-                          if (profile === null || profile.info === null) {
-                            return <div>Loading</div>;
-                          }
-                          const { seasons, folders = [] } = profile.info;
-                          const episodes_elm = (
-                            <div className="">
-                              {folders.map((folder) => {
-                                const { parent_paths, resolution, episodes } =
-                                  folder;
-                                return (
-                                  <div key={parent_paths}>
-                                    <p className="p-4 ">{resolution}</p>
-                                    <div className="p-4">
-                                      {episodes.map((episode) => {
-                                        const {
-                                          id,
-                                          file_id,
-                                          file_name,
-                                          episode: e,
-                                        } = episode;
-                                        return (
-                                          <div
-                                            key={id}
-                                            className={cn(
-                                              "p-4 rounded cursor-pointer",
-                                              profile?.cur_episode?.file_id ===
-                                                file_id
-                                                ? "bg-slate-500"
-                                                : ""
-                                            )}
-                                            title={file_name}
-                                            onClick={async () => {
-                                              await tvRef.current.play_episode(
-                                                id
-                                              );
-                                              setProfile((prev) => {
-                                                if (prev === null) {
-                                                  return prev;
-                                                }
-                                                return {
-                                                  ...prev,
-                                                  cur_episode:
-                                                    tvRef.current.cur_episode,
-                                                };
-                                              });
-                                            }}
-                                          >
-                                            {e}
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                          if (seasons.length === 1) {
-                            return (
-                              <div className="overflow-y-auto mt-8 pb-12 h-full">
-                                {episodes_elm}
-                              </div>
-                            );
-                          }
-                          return (
-                            <Tabs
-                              defaultValue="episode"
-                              className="w-[400px] overflow-y-auto pb-12 h-full"
-                            >
-                              <TabsList>
-                                <TabsTrigger value="episode">集数</TabsTrigger>
-                                <TabsTrigger value="season">季</TabsTrigger>
-                              </TabsList>
-                              <TabsContent value="episode">
-                                {episodes_elm}
-                              </TabsContent>
-                              <TabsContent value="season">
-                                <div className="">
-                                  {seasons.map((season) => {
-                                    return (
-                                      <div
-                                        key={season}
-                                        className={cn(
-                                          "p-4 rounded cursor-pointer",
-                                          season === profile.cur_episode?.season
-                                            ? "bg-slate-500"
-                                            : ""
-                                        )}
-                                        onClick={async () => {
-                                          await tvRef.current.load_episodes_of_special_season(
-                                            season
-                                          );
-                                          setProfile({
-                                            cur_episode:
-                                              tvRef.current.cur_episode,
-                                            info: tvRef.current.info,
-                                          });
-                                        }}
-                                      >
-                                        {season}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </TabsContent>
-                            </Tabs>
-                          );
-                        })()}
-                      </SheetContent>
-                    </Sheet>
-                    <Sheet>
-                      <SheetTrigger>
-                        <div className="flex flex-col items-center">
-                          <Gauge className="w-6 h-6 " />
-                          <p className="mt-2 text-sm ">倍速</p>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent position="bottom">
-                        <p className="mt-8 text-center text-sm ">敬请期待</p>
-                      </SheetContent>
-                    </Sheet>
-                    <Sheet>
-                      <SheetTrigger>
-                        <div className="flex flex-col items-center">
-                          <Glasses className="w-6 h-6 " />
-                          <p className="mt-2 text-sm ">分辨率</p>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent position="bottom">
-                        <p className="mt-8 text-center text-sm ">敬请期待</p>
-                      </SheetContent>
-                    </Sheet>
-                    <Sheet>
-                      <SheetTrigger>
-                        <div className="flex flex-col items-center focus:outline-none focus:ring-0">
-                          <MoreHorizontal className="w-6 h-6 " />
-                          <p className="mt-2 text-sm ">更多</p>
-                        </div>
-                      </SheetTrigger>
-                      <SheetContent position="bottom">
-                        <p className="mt-8 text-center text-sm ">敬请期待</p>
-                      </SheetContent>
-                    </Sheet>
+                    <div
+                      className="flex flex-col items-center"
+                      onClick={() => {
+                        aSheet.show();
+                      }}
+                    >
+                      <List className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">选集</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center"
+                      onClick={() => {
+                        bSheet.show();
+                      }}
+                    >
+                      <Gauge className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">倍速</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center"
+                      onClick={() => {
+                        cSheet.show();
+                      }}
+                    >
+                      <Glasses className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">分辨率</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center focus:outline-none focus:ring-0"
+                      onClick={() => {
+                        cSheet.show();
+                      }}
+                    >
+                      <MoreHorizontal className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">更多</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div className="video absolute z-20 w-full top-32">
               {(() => {
-                if (profile === null || profile.cur_episode === null) {
+                if (profile === null || profile.curEpisode === null) {
                   return null;
                 }
-                const { url, width, height, current_time, thumbnail } =
-                  profile.cur_episode;
                 return (
-                  <VideoPlayer
-                    className=""
-                    url={url}
-                    core={playerRef.current}
-                    width={width}
-                    height={height}
-                    current_time={current_time}
-                    poster={thumbnail}
-                    on_progress={whenVideoPlaying}
-                    on_end={async () => {
-                      await tvRef.current.play_next_episode();
-                      setProfile({
-                        cur_episode: tvRef.current.cur_episode,
-                        info: tvRef.current.info,
-                      });
-                    }}
-                  />
+                  <Element store={video}>
+                    <video
+                      ref={videoRef}
+                      className="w-full"
+                      controls={true}
+                      webkit-playsinline="true"
+                      playsInline
+                      preload="none"
+                    />
+                  </Element>
                 );
               })()}
               {/* <div className={cn("absolute inset-0")}>
@@ -473,6 +377,100 @@ export const TVPlayingPage: React.FC<IProps> = (props) => {
           </>
         );
       })()}
+      <Sheet store={aSheet}>
+        {(() => {
+          if (profile === null) {
+            return <div>Loading</div>;
+          }
+          const { seasons, curEpisodes } = profile;
+          const episodes_elm = (
+            <div className="">
+              {curEpisodes.map((episode) => {
+                const { id, name, overview, episode: episode_number } = episode;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => {
+                      tv.playEpisode(episode);
+                    }}
+                  >
+                    <div
+                      className={cn("p-4 rounded cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}
+                    >
+                      <div>{name || episode_number}</div>
+                      <div className="text-sm">{overview}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+          if (seasons.length === 1) {
+            return <div className="overflow-y-auto mt-8 pb-12 h-full">{episodes_elm}</div>;
+          }
+          return (
+            <Tabs defaultValue="episode" className="overflow-y-auto pb-12 h-full">
+              <TabsList>
+                <TabsTrigger value="episode">集数</TabsTrigger>
+                <TabsTrigger value="season">季</TabsTrigger>
+              </TabsList>
+              <TabsContent value="episode">{episodes_elm}</TabsContent>
+              <TabsContent value="season">
+                <div className="">
+                  {seasons.map((season) => {
+                    const { id, name } = season;
+                    return (
+                      <div
+                        key={id}
+                        className={cn("p-4 rounded cursor-pointer", profile.curSeason.id === id ? "bg-slate-500" : "")}
+                        onClick={() => {
+                          tv.fetchEpisodesOfSeason(season);
+                        }}
+                      >
+                        <div>{name}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            </Tabs>
+          );
+        })()}
+      </Sheet>
+      <Sheet store={bSheet}>
+        <p className="mt-8 text-center text-sm ">敬请期待</p>
+      </Sheet>
+      <Sheet store={cSheet}>
+        {(() => {
+          if (profile === null || source === null) {
+            return <div>Loading</div>;
+          }
+          const { typeText: curTypeText, resolutions } = source;
+          return (
+            <div className="overflow-y-auto mt-8 pb-12 h-full">
+              {resolutions.map((r) => {
+                const { type, typeText } = r;
+                return (
+                  <div key={typeText} className="px-4">
+                    <div
+                      className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                      onClick={() => {
+                        tv.switchResolution(type);
+                      }}
+                    >
+                      {typeText}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
+      </Sheet>
+      <Sheet store={dSheet}>
+        <p className="mt-8 text-center text-sm ">敬请期待</p>
+      </Sheet>
     </div>
   );
 };

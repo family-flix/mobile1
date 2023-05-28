@@ -6,6 +6,9 @@ export function bind(app: Application) {
   app.getComputedStyle = (el: HTMLElement) => {
     return window.getComputedStyle(el);
   };
+  app.setTitle = (title: string) => {
+    document.title = title;
+  };
   window.addEventListener("DOMContentLoaded", () => {
     // 1
     const { innerWidth, innerHeight } = window;
@@ -86,23 +89,23 @@ export function bind(app: Application) {
   router.onReload(() => {
     window.location.reload();
   });
-  router.onPushState(({ from, path, pathname }) => {
-    console.log(...router.log("[Application]- onPushState", path, pathname));
+  router.onPushState(({ from, path }) => {
+    // router.log("[Application ]- onPushState", path);
     window.history.pushState(
       {
         from,
       },
-      "hello",
+      "",
       path
     );
   });
   router.onReplaceState(({ from, path, pathname }) => {
-    console.log(...router.log("[Application]- onReplaceState", path, pathname));
+    // router.log("[Application ]- onReplaceState");
     window.history.replaceState(
       {
         from,
       },
-      "world",
+      "",
       path
     );
   });

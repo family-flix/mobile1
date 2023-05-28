@@ -76,8 +76,8 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   /**
    * 以成员身份登录
    */
-  async validate(token: string) {
-    if (this._isLogin) {
+  async validate(token: string, force: string) {
+    if (force !== "1" && this._isLogin) {
       return Result.Ok(this.profile);
     }
     if (!token) {

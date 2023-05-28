@@ -1,8 +1,9 @@
 import { Handler } from "mitt";
 
-import { BaseDomain } from "@/domains/base";
-import { NavigatorCore } from "@/domains/navigator";
 import { UserCore } from "@/domains/user";
+import { BaseDomain } from "@/domains/base";
+// import { Drive } from "@/domains/drive";
+import { NavigatorCore } from "@/domains/navigator";
 import { Result } from "@/types";
 
 import { LocalCache } from "./cache";
@@ -16,17 +17,16 @@ enum Events {
   // 一些平台相关的事件
   PopState,
   Resize,
-  UserCore,
   Blur,
   Keydown,
   EscapeKeyDown,
   ClickLink,
   // 该怎么处理？
-  DrivesChange,
+  // DrivesChange,
 }
 type TheTypesOfEvents = {
   [Events.Ready]: void;
-  // [Events.Tip]: { icon?: string; text: string[] };
+  // [EventsUserCore{ icon?: string; text: string[] };
   [Events.Error]: Error;
   [Events.Login]: {};
   [Events.Logout]: void;
@@ -46,6 +46,7 @@ type TheTypesOfEvents = {
     href: string;
   };
   [Events.Blur]: void;
+  // [Events.DrivesChange]: Drive[];
 };
 
 export class Application extends BaseDomain<TheTypesOfEvents> {
@@ -66,6 +67,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   Events = Events;
 
   // @todo 怎么才能更方便地拓展 Application 类，给其添加许多的额外属性还能有类型提示呢？
+
+  /** 网盘列表 */
+  // drives: Drive[] = [];
 
   state: Partial<{
     ready: boolean;
@@ -102,7 +106,7 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
         return Result.Err(r.error);
       }
     }
-    this.emitReady();
+    this.emit(Events.Ready);
     // console.log("[]Application - before start");
     return Result.Ok(null);
   }
@@ -110,6 +114,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   vibrate() {}
   setSize(size: { width: number; height: number }) {
     this.size = size;
+  }
+  setTitle(title: string): void {
+    throw new Error("请实现 setTitle 方法");
   }
   getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
     throw new Error("请实现 getComputedStyle 方法");
@@ -144,9 +151,6 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
    * Lifetime
    * ----------------
    */
-  emitReady = () => {
-    this.emit(Events.Ready);
-  };
   onReady(handler: Handler<TheTypesOfEvents[Events.Ready]>) {
     this.on(Events.Ready, handler);
   }
@@ -174,10 +178,6 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
    * Event
    * ----------------
    */
-  /** 向 app 发送错误，该错误会作为全屏错误遮挡所有内容 */
-  emitError = (error: Error) => {
-    this.emit(Events.Error, error);
-  };
   onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
     this.on(Events.Error, handler);
   }
