@@ -46,7 +46,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
 
   useInitialize(() => {
     (async () => {
-      view.onHide(() => {
+      view.onHidden(() => {
         player.pause();
       });
       view.onShow(() => {
@@ -100,10 +100,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       //   player.setResolution(values.resolution);
       //   player.pause();
       // });
-      // player.on
-      player.onCanPlay(() => {
-        player.play();
-      });
+      // player.onCanPlay(() => {
+      //   player.play();
+      // });
       player.onProgress(({ currentTime, duration }) => {
         // console.log("[PAGE]TVPlaying - onProgress", currentTime);
         tv.updatePlayProgress({
@@ -186,7 +185,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   // }
 
   return (
-    <div className="tv__video bg-slate-100">
+    <div className="tv__video">
       {(() => {
         return (
           <>
@@ -328,6 +327,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       webkit-playsinline="true"
                       playsInline
                       preload="none"
+                      // x5-video-player-fullscreen="true"
+                      // x5-video-player-type="h5"
+                      // x5-video-orientation="landscape"
+                      // style={{ objectFit: "fill" }}
                     />
                   </Element>
                 );

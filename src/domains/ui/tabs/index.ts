@@ -42,6 +42,7 @@ export class TabsCore extends BaseDomain<TheTypesOfEvents> {
     super(options);
 
     this.roving = new RovingFocusCore();
+    this.presence = new PresenceCore();
   }
 
   selectTab(value: string) {
@@ -56,11 +57,7 @@ export class TabsCore extends BaseDomain<TheTypesOfEvents> {
     this.prevContent = matchedContent;
     this.emit(Events.ValueChange, value);
   }
-  appendContent(content: {
-    id: number;
-    value: string;
-    presence: PresenceCore;
-  }) {
+  appendContent(content: { id: number; value: string; presence: PresenceCore }) {
     if (this.contents.includes(content)) {
       return;
     }

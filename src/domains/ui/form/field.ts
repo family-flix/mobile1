@@ -27,8 +27,12 @@ export class FormFieldCore extends BaseDomain<TheTypesOfEvents> {
     super(options);
 
     const { name, label } = options;
-    this.name = name;
-    this.state.label = label;
+    if (name) {
+      this._name = name;
+    }
+    if (label) {
+      this.state.label = label;
+    }
   }
 
   onInput(handler: Handler<TheTypesOfEvents[Events.Input]>) {

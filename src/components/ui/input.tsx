@@ -33,8 +33,8 @@ const Input = (props: { store: InputCore } & React.AllHTMLAttributes<HTMLInputEl
       placeholder={placeholder}
       disabled={disabled}
       type={type}
-      onChange={(event: React.ChangeEvent & { currentTarget: HTMLInputElement }) => {
-        const { value } = event.currentTarget;
+      onChange={(event: React.ChangeEvent & { target: HTMLInputElement }) => {
+        const { value } = event.target;
         store.change(value);
       }}
     />

@@ -3,6 +3,8 @@ import { BaseDomain } from "@/domains/base";
 enum Events {}
 type TheTypesOfEvents = {};
 export class SelectValueCore extends BaseDomain<TheTypesOfEvents> {
+  $node: unknown = null;
+
   constructor(
     options: Partial<{
       name: string;
@@ -23,9 +25,9 @@ export class SelectValueCore extends BaseDomain<TheTypesOfEvents> {
       this.getStyles = getStyles;
     }
   }
-  $node() {
-    return null;
-  }
+  // $node() {
+  //   return null;
+  // }
   getRect() {
     return {} as DOMRect;
   }

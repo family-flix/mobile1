@@ -91,7 +91,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
   private extraResponse: Record<string, unknown>;
   private params: FetchParams = { ...DEFAULT_PARAMS };
 
-  // 响应数据
+  // @ts-ignore
   response: Response<T> = { ...DEFAULT_RESPONSE };
   rowKey: string;
 
@@ -107,6 +107,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
     this.rowKey = rowKey;
     this.originalFetch = fetch;
     if (processor) {
+      // @ts-ignore
       this.processor = (originalResponse) => {
         const nextResponse = {
           ...this.response,
@@ -124,7 +125,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
     };
     this.initialize(options);
   }
-  private initialize = (options) => {
+  private initialize = (options: ListProps<T>) => {
     const { search, dataSource, page, pageSize } = options;
 
     if (search !== undefined) {
@@ -165,7 +166,6 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
       ...responseFromPlugin,
       search: {
         ...this.response.search,
-        ...responseFromPlugin.search,
       },
     };
   };
@@ -173,12 +173,12 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
    * 手动修改当前实例的查询参数
    * @param {import('./typing').FetchParams} nextParams 查询参数或设置函数
    */
-  setParams = (nextParams) => {
+  setParams = (nextParams: FetchParams | ((v: FetchParams) => FetchParams)) => {
     let result = nextParams;
     if (typeof nextParams === "function") {
       result = nextParams(this.params);
     }
-    this.params = result;
+    this.params = result as FetchParams;
     this.emit(Events.ParamsChange, { ...this.params });
   };
   /**
@@ -199,6 +199,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
     if (processedParams === undefined) {
       processedParams = mergedParams;
     }
+    // @ts-ignore
     const res = await this.originalFetch(processedParams);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);
@@ -454,7 +455,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
   /**
    * 手动修改当前 search
    */
-  modifySearch = (fn) => {
+  modifySearch = (fn: Function) => {
     this.params = {
       ...fn(omit(this.params, ["page", "pageSize"])),
       page: this.params.page,

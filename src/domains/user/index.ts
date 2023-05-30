@@ -19,7 +19,7 @@ type TheTypesOfEvents = {
 };
 
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
-  name = "UserCore";
+  _name = "UserCore";
   debug = false;
 
   _isLogin: boolean = false;

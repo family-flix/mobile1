@@ -1,15 +1,25 @@
 /**
- * @file 会销毁页面的视图（如果希望不销毁可以使用 keep-alive-route-view
+ * @file 会销毁页面的视图（如果希望不销毁可以使用 keep-alive-route-view/stack-route-view
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { RouteViewCore } from "@/domains/route_view";
+import { useInitialize } from "@/hooks";
 
-export function RouteView(
-  props: { store: RouteViewCore } & { children: React.ReactElement }
-) {
+export function RouteView(props: { store: RouteViewCore } & React.AllHTMLAttributes<HTMLDivElement>) {
   const { store } = props;
   const [state, setState] = useState(store.state);
+
+  useInitialize(() => {
+    store.ready();
+  });
+  useEffect(() => {
+    store.mounted();
+    store.showed();
+    return () => {
+      store.unmounted();
+    };
+  }, []);
 
   store.onStateChange((nextState) => {
     setState(nextState);
@@ -20,18 +30,13 @@ export function RouteView(
 
   //   console.log("RouteView", store.name, visible(), mounted());
 
-  if (!state.mounted) {
+  if (!state.visible) {
     return null;
   }
 
   return (
     <div
-      className="w-full h-full"
-      // class={cn(
-      //   "animate-in sm:zoom-in-90",
-      //   "data-[state=open]:data-[state=open]:slide-in-from-bottom-full",
-      //   "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top-full"
-      // )}
+      className={props.className}
       data-state={state.visible ? "open" : "closed"}
       // onAnimationEnd={() => {
       //   store.presence.animationEnd();

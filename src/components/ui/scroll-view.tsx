@@ -10,28 +10,28 @@ import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 // import { Dynamic } from "solid-js/web";
 
+// export const ScrollView = (props: {
+//   store: ScrollViewCore;
+//   className?: string;
+//   style?: React.CSSProperties;
+//   children: React.ReactElement;
+// }) => {
+//   const { store, className, style = {}, children } = props;
+
+//   const [state, setState] = useState(store.state);
+
+//   store.onStateChange((nextState) => {
+//     setState(nextState);
+//   });
+
+//   return (
+//     <Root className={className} style={style}>
+//       <Content store={store}>{children}</Content>
+//     </Root>
+//   );
+// };
+
 export const ScrollView = (props: {
-  store: ScrollViewCore;
-  className?: string;
-  style?: React.CSSProperties;
-  children: React.ReactElement;
-}) => {
-  const { store, className, style = {}, children } = props;
-
-  const [state, setState] = useState(store.state);
-
-  store.onStateChange((nextState) => {
-    setState(nextState);
-  });
-
-  return (
-    <Root className={className} style={style}>
-      <Content store={store}>{children}</Content>
-    </Root>
-  );
-};
-
-export const PageView = (props: {
   store: ScrollViewCore;
   className?: string;
   style?: React.CSSProperties;
@@ -48,20 +48,20 @@ export const PageView = (props: {
   const options = {
     pending: () => null,
     pulling: () => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center space-x-2">
         <ArrowDown width={18} height={18} />
         <div>下拉刷新</div>
       </div>
     ),
     releasing: () => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center space-x-2">
         <ArrowUp width={18} height={18} />
         <div>松手刷新</div>
       </div>
     ),
     refreshing: () => (
-      <div className="flex items-center justify-center">
-        <Loader2 width={18} height={18} />
+      <div className="flex items-center justify-center space-x-2">
+        <Loader2 className="animate animate-spin" width={18} height={18} />
         <div>正在刷新</div>
       </div>
     ),
@@ -77,7 +77,7 @@ export const PageView = (props: {
           <Component />
         </div>
       </Indicator>
-      <Content store={store} className="absolute inset-0 max-h-screen overflow-y-auto">
+      <Content store={store} className="absolute inset-0 max-h-screen overflow-y-auto hide-scroll">
         {children}
       </Content>
     </Root>

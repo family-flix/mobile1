@@ -40,7 +40,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
 
     const { name, defaultValue, placeholder, type, onChange } = options;
     if (name) {
-      this.name = name;
+      this._name = name;
     }
     if (placeholder) {
       this.state.placeholder = placeholder;

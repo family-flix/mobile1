@@ -19,13 +19,13 @@ export class SelectTriggerCore extends BaseDomain<TheTypesOfEvents> {
     if (getStyles) {
       this.getStyles = getStyles;
     }
-    if ($node) {
-      this.$node = $node;
-    }
+    // if ($node) {
+    //   this.$node = $node;
+    // }
   }
-  $node() {
-    return null;
-  }
+  // $node() {
+  //   return null;
+  // }
   getRect() {
     return {} as DOMRect;
   }

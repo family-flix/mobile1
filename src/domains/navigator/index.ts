@@ -21,12 +21,12 @@ type TheTypesOfEvents = {
     type: RouteAction;
   };
   [Events.PushState]: {
-    from?: string;
+    from: string | null;
     path: string;
     pathname: string;
   };
   [Events.ReplaceState]: {
-    from?: string;
+    from: string | null;
     path: string;
     pathname: string;
   };
@@ -56,11 +56,11 @@ type RouteConfigure = {
 };
 
 export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
-  name = "NavigatorCore";
+  _name = "NavigatorCore";
   debug = false;
 
   /** 当前 pathname */
-  pathname: string;
+  pathname: string = "/";
   /** 发生跳转前的 pathname */
   prevPathname: string | null = null;
   /** 当前路由的 query */
@@ -70,13 +70,21 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   prevHistories: { pathname: string }[] = [];
   histories: { pathname: string }[] = [];
   /** 当前访问地址 */
-  url: string;
+  // url: string;
   location: Partial<RouteLocation> = {};
 
   /** router 基础信息 */
-  host: string;
-  protocol: string;
-  origin: string;
+  // host: string;
+  // protocol: string;
+  origin: string = "";
+
+  _pending: {
+    pathname: string;
+    type: RouteAction;
+  } = {
+    pathname: "/",
+    type: "initialize",
+  };
 
   /** 启动路由监听 */
   async start(location: RouteLocation) {
@@ -93,10 +101,11 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
         pathname,
       },
     ];
-    this.emit(Events.PathnameChange, {
+    this._pending = {
       pathname,
       type: "initialize",
-    });
+    };
+    // this.emit(Events.PathnameChange, { ...this._pending });
   }
 
   private setPrevPathname(p: string) {
@@ -122,10 +131,11 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       path: `${this.origin}${targetPathname}`,
       pathname: targetPathname,
     });
-    this.emit(Events.PathnameChange, {
+    this._pending = {
       pathname: targetPathname,
       type: "push",
-    });
+    };
+    this.emit(Events.PathnameChange, { ...this._pending });
   }
   replace = async (targetPathname: string) => {
     this.log("replace", targetPathname, this.pathname);
@@ -141,10 +151,11 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       path: `${this.origin}${targetPathname}`,
       pathname: targetPathname,
     });
-    this.emit(Events.PathnameChange, {
+    this._pending = {
       pathname: targetPathname,
-      type: "replace",
-    });
+      type: "push",
+    };
+    this.emit(Events.PathnameChange, { ...this._pending });
   };
   back = () => {
     this.emit(Events.Back);
@@ -163,15 +174,14 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       if (this.prevHistories.length === 0) {
         return false;
       }
-      const lastStackWhenBack =
-        this.prevHistories[this.prevHistories.length - 1];
+      const lastStackWhenBack = this.prevHistories[this.prevHistories.length - 1];
       // console.log("[Router]lastStackWhenBack", lastStackWhenBack);
       if (lastStackWhenBack.pathname === targetPathname) {
         return true;
       }
       return false;
     })();
-    this.emit(Events.PathnameChange, {
+    this._pending = {
       pathname,
       type: (() => {
         if (isForward) {
@@ -179,7 +189,8 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
         }
         return "back";
       })(),
-    });
+    };
+    this.emit(Events.PathnameChange, { ...this._pending });
     // forward
     if (isForward) {
       this.setPrevPathname(this.pathname);
@@ -226,12 +237,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   }
 }
 
-export type RouteAction =
-  | "initialize"
-  | "push"
-  | "replace"
-  | "back"
-  | "forward";
+export type RouteAction = "initialize" | "push" | "replace" | "back" | "forward";
 
 function buildQuery(path: string) {
   const [, search] = path.split("?");

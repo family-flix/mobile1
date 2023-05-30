@@ -39,3 +39,10 @@
 .page.unmounted {
   transform: translateX(100%);
 }
+
+.hide-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+.hide-scroll::-webkit-scrollbar {
+  display: none;
+}

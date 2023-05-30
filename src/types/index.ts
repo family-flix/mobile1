@@ -68,7 +68,7 @@ export type ViewComponent = (props: {
   app: Application;
   router: NavigatorCore;
   view: RouteViewCore;
-}) => React.ReactElement;
+}) => React.ReactElement | null;
 
 export type Rect = {
   width: number;

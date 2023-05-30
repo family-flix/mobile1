@@ -43,12 +43,12 @@ const defaultMenuItemState: MenuItemState = {
 };
 
 export class MenuItemCore extends BaseDomain<TheTypesOfEvents> {
-  name = "MenuItemCore";
+  _name = "MenuItemCore";
   debug = true;
 
   state: MenuItemState = { ...defaultMenuItemState };
 
-  label: string;
+  label?: string;
   /** 子菜单 */
   menu: MenuCore | null = null;
 
@@ -58,9 +58,11 @@ export class MenuItemCore extends BaseDomain<TheTypesOfEvents> {
     super(options);
 
     const { label, disabled = false, menu, onClick } = options;
-    this.state.label = label;
+    if (label) {
+      this.state.label = label;
+      this.label = label;
+    }
     this.state.disabled = disabled;
-    this.label = label;
     if (menu) {
       this.menu = menu;
       menu.onShow(() => {

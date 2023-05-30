@@ -35,7 +35,7 @@ type ToastProps = {
 };
 
 export class ToastCore extends BaseDomain<TheTypesOfEvents> {
-  name = "ToastCore";
+  _name = "ToastCore";
 
   present: PresenceCore;
   delay = 1200;

@@ -7,15 +7,20 @@ import { fetch_tv_list, TVItem } from "@/domains/tv/services";
 import LazyImage from "@/components/LazyImage";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useInitialize } from "@/hooks";
+import { useInitialize, useUnmounted } from "@/hooks";
 import { ListCore } from "@/domains/list";
 import { ViewComponent } from "@/types";
 import { ButtonCore } from "@/domains/ui/button";
 import { InputCore } from "@/domains/ui/input";
+import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { sleep } from "@/utils";
+import { ScrollView } from "@/components/ui/scroll-view";
 
 // @ts-ignore
 const helper = new ListCore<TVItem>(fetch_tv_list);
-const nameInput = new InputCore();
+const nameInput = new InputCore({
+  placeholder: "请输入关键字搜索",
+});
 const searchBtn = new ButtonCore({
   onClick() {
     if (!nameInput.value) {
@@ -24,22 +29,43 @@ const searchBtn = new ButtonCore({
     helper.search({ name: nameInput.value });
   },
 });
+const scrollView = new ScrollViewCore();
 
-export const TVSearchPage: ViewComponent = (props) => {
+export const HomeSearchPage: ViewComponent = (props) => {
   const { router, view } = props;
   // const [response, helper] = useHelper<PartialSearchedTV>(fetch_tv_list);
   const [response, setResponse] = useState(helper.response);
 
   useInitialize(() => {
-    // view.onPullToRefresh(() => {
-    //   if (!latestNameRef.current) {
-    //     return;
-    //   }
-    //   helper.refresh();
+    console.log("home/search initialize");
+    view.onReady(() => {
+      console.log("home/search ready");
+    });
+    view.onMounted(() => {
+      console.log("home/search mounted");
+    });
+    view.onShow(() => {
+      console.log("home/search show");
+    });
+    view.onHidden(() => {
+      console.log("home/search hide");
+    });
+    // view.onUnmounted(() => {
+    //   console.log("home/search unmounted");
     // });
-    // view.onReachBottom(() => {
-    //   helper.loadMore();
-    // });
+    scrollView.onPullToRefresh(async () => {
+      await (async () => {
+        console.log(nameInput.value);
+        if (!nameInput.value) {
+          return sleep(1200);
+        }
+        return helper.refresh();
+      })();
+      scrollView.stopPullToRefresh();
+    });
+    scrollView.onReachBottom(() => {
+      helper.loadMore();
+    });
     helper.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
@@ -48,12 +74,12 @@ export const TVSearchPage: ViewComponent = (props) => {
   const { dataSource } = response;
 
   return (
-    <>
-      <div className="max-w-screen p-4 pt-8">
+    <ScrollView store={scrollView}>
+      <div className="pt-4">
+        <h2 className="h2 pb-4 text-center">影片搜索</h2>
         <div className="m-auto space-y-2">
           <div className="">
-            <h2 className="h2 mt-4 pb-4 text-center">搜索结果</h2>
-            <div className="flex mt-4 space-x-2">
+            <div className="flex mt-4 px-4 space-x-2">
               <Input store={nameInput} className="" />
               <Button store={searchBtn} className="w-[80px]">
                 搜索
@@ -86,6 +112,6 @@ export const TVSearchPage: ViewComponent = (props) => {
           </div>
         </div>
       </div>
-    </>
+    </ScrollView>
   );
 };

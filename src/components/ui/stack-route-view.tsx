@@ -7,7 +7,7 @@ import { RouteViewCore } from "@/domains/route_view";
 import { cn } from "@/utils";
 import { useInitialize } from "@/hooks";
 
-export function KeepAliveRouteView(
+export function StackRouteView(
   props: {
     store: RouteViewCore;
     index: number;
@@ -21,9 +21,6 @@ export function KeepAliveRouteView(
     store.ready();
   });
   useEffect(() => {
-    if (store.isMounted) {
-      return;
-    }
     store.mounted();
     store.showed();
     return () => {
@@ -37,11 +34,14 @@ export function KeepAliveRouteView(
 
   const { mounted, visible } = state;
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div
       className={cn(props.className)}
       style={{
-        display: mounted ? "block" : "none",
         zIndex: index,
       }}
       data-state={visible ? "open" : "closed"}

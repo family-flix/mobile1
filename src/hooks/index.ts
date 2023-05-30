@@ -16,6 +16,13 @@ export function useInitialize(fn: Function) {
     }
   }, []);
 }
+export function useUnmounted(fn: Function) {
+  useEffect(() => {
+    return () => {
+      fn();
+    };
+  }, []);
+}
 
 export function useLatestValue(v: unknown) {
   const ref = useRef(v);

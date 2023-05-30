@@ -21,13 +21,13 @@ type TheTypesOfEvents = {
 };
 type SelectItemState = {
   /** 标志唯一值 */
-  value: string;
+  value?: string;
   selected: boolean;
   focused: boolean;
   disabled: boolean;
 };
 export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
-  name = "SelectItemCore";
+  _name = "SelectItemCore";
   debug = true;
 
   value: unknown = undefined;
@@ -42,7 +42,7 @@ export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
     $node: () => HTMLElement;
     getRect: () => DOMRect;
     getStyles: () => CSSStyleDeclaration;
-  } | null;
+  } | null = null;
 
   _leave = false;
   _enter = false;
@@ -62,7 +62,7 @@ export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[SelectItemCore]constructor", state);
     this.state.value = value;
     if (name) {
-      this.name = `${this.name}_${name}`;
+      this._name = `${this._name}_${name}`;
     }
     this.value = value;
     this.state = {

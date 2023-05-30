@@ -1,60 +1,22 @@
+/**
+ * @file 项目根入口
+ */
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
-import { cn, sleep } from "@/utils";
-import { app } from "@/store/app";
-import { useInitialize } from "@/hooks";
-import { useToast } from "@/hooks/use-toast";
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/Theme";
-import { View } from "./components/ui/view";
-// import { KeepAliveView } from "./components/ui/keep-alive-route-view";
-import { HomePage as HomeLayout } from "@/pages/home";
-import { TVPlayingPage } from "@/pages/play";
-// import { PlayHistoryPage } from "@/pages/history";
-import { Test1Page } from "./pages/test1";
-import { RouteViewCore } from "./domains/route_view";
+import { ThemeProvider } from "./components/Theme";
 import { bind } from "./domains/app/bind.web";
-import { HomePage } from "./pages/home/a";
-import { PlayHistoryPage } from "./pages/home/history";
-import { TVSearchPage } from "./pages/home/search";
+import { StackRouteView } from "./components/ui/stack-route-view";
+import { useInitialize } from "./hooks";
+import { aView, bView, cView, dView, mainLayout, rootView, testView, tvPlaying } from "./store/views";
+import { app } from "./store/app";
+import { cn } from "./utils";
 import { ViewComponent } from "./types";
-import { RouteView } from "./components/ui/route-view";
-import { KeepAliveRouteView } from "./components/ui/keep-alive-route-view";
 
 import "./index.css";
 
 const { router } = app;
 
-const rootView = new RouteViewCore({
-  title: "ROOT",
-  component: "div",
-  // keepAlive: true,
-});
-const mainLayout = new RouteViewCore({
-  title: "首页",
-  component: HomeLayout,
-});
-const aView = new RouteViewCore({
-  title: "首页",
-  component: HomePage,
-});
-const bView = new RouteViewCore({
-  title: "搜索",
-  component: TVSearchPage,
-});
-const cView = new RouteViewCore({
-  title: "播放历史",
-  component: PlayHistoryPage,
-});
-const authLayoutView = new RouteViewCore({
-  title: "EmptyLayout",
-  component: Test1Page,
-});
-// const loginView = new ViewCore({
-//   title: "登录",
-//   component: ,
-// });
 mainLayout.register("/home/index", () => {
   return aView;
 });
@@ -64,20 +26,22 @@ mainLayout.register("/home/search", () => {
 mainLayout.register("/home/history", () => {
   return cView;
 });
-const tvPlaying = new RouteViewCore({
-  title: "加载中...",
-  component: TVPlayingPage,
+mainLayout.register("/home/my", () => {
+  return dView;
 });
 rootView.register("/play/:id", () => {
   return tvPlaying;
 });
+rootView.register("/test", () => {
+  return testView;
+});
 rootView.register("/", () => {
   return mainLayout;
 });
-router.onPathnameChange(({ pathname, type }) => {
-  // router.log("[]Application - pathname change", pathname);
-  rootView.checkMatch({ pathname, type });
-});
+// router.onPathnameChange(({ pathname, type }) => {
+//   // router.log("[]Application - pathname change", pathname);
+//   rootView.checkMatch({ pathname, type });
+// });
 app.onPopState((options) => {
   const { type, pathname } = options;
   router.handlePopState({ type, pathname });
@@ -87,15 +51,53 @@ bind(app);
 
 function ApplicationView() {
   // const [showMask, setShowMask] = useState(true);
-  // const [ready, setReady] = useState(false);
-  // const [stacks, setStacks] = useState<Router["stacks"]>([]);
   // const [error, setError] = useState<Error | null>(null);
   const [subViews, setSubViews] = useState(rootView.subViews);
 
   useInitialize(() => {
     rootView.onSubViewsChange((nextSubViews) => {
-      console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
+      // console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
       setSubViews(nextSubViews);
+    });
+    rootView.onMatched((subView) => {
+      console.log("root layout matched", rootView.curView?._name, subView._name, router._pending.type);
+      if (subView === rootView.curView) {
+        // subView.show();
+        return;
+      }
+      const prevView = rootView.curView;
+      rootView.prevView = prevView;
+      rootView.curView = subView;
+      if (!rootView.subViews.includes(subView)) {
+        rootView.appendSubView(subView);
+      }
+      subView.show();
+      if (prevView && router._pending.type === "back") {
+        prevView.hide();
+        // setTimeout(() => {
+        //   rootView.prevView = null;
+        //   rootView.removeSubView(prevView);
+        // }, 120);
+      }
+      // for (let i = 0; i < rootView.subViews.length; i += 1) {
+      //   (() => {
+      //     const v = rootView.subViews[i];
+      //     if (v === subView) {
+      //       v.show();
+      //       return;
+      //     }
+      //     v.hide();
+      //   })();
+      // }
+    });
+    rootView.onNotFound(() => {
+      console.log("root layout not found");
+      rootView.curView = mainLayout;
+      rootView.appendSubView(mainLayout);
+    });
+    router.onPathnameChange(({ pathname, type }) => {
+      // router.log("[]Application - pathname change", pathname);
+      rootView.checkMatch({ pathname, type });
     });
     app.onTip(async (msg) => {
       const { text } = msg;
@@ -106,8 +108,9 @@ function ApplicationView() {
     // app.onError((msg) => {
     //   alert(msg.message);
     // });
-    // console.log("[]Application - before start", window.history);
+    console.log("[]Application - before start", window.history);
     router.start(window.location);
+    rootView.checkMatch(router._pending);
     app.start();
   });
 
@@ -151,11 +154,20 @@ function ApplicationView() {
       )} */}
       <div className="screen w-screen h-screen">
         {subViews.map((subView, index) => {
-          const RenderedComponent = subView.component as ViewComponent;
+          const PageContent = subView.component as ViewComponent;
           return (
-            <KeepAliveRouteView key={subView.id} store={subView} index={index}>
-              <RenderedComponent app={app} router={router} view={subView} />
-            </KeepAliveRouteView>
+            <StackRouteView
+              key={subView.id}
+              className={cn(
+                "absolute inset-0 bg-white opacity-100 dark:bg-slate-900",
+                "animate-in slide-in-from-right",
+                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
+              )}
+              store={subView}
+              index={index}
+            >
+              <PageContent app={app} router={router} view={subView} />
+            </StackRouteView>
           );
         })}
       </div>
