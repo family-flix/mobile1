@@ -23,16 +23,16 @@ import { Sheet } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ElementCore } from "@/domains/ui/element";
 import { connect } from "@/domains/player/connect.web";
-import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { Element } from "@/components/ui/element";
-import { useInitialize } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { DialogCore } from "@/domains/ui/dialog";
+import { ToggleCore } from "@/domains/ui/toggle";
+import { LazyImage } from "@/components/ui/image";
+import { ToggleView } from "@/components/ui/toggle";
+import { Video } from "@/components/ui/video";
 
-const tv = new TVCore();
-const player = new PlayerCore();
-const video = new ElementCore({});
-const aSheet = new DialogCore({});
+const aSheet = new DialogCore();
 const bSheet = new DialogCore();
 const cSheet = new DialogCore();
 const dSheet = new DialogCore();
@@ -40,138 +40,134 @@ const dSheet = new DialogCore();
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // const videoRef = useRef<HTMLVideoElement>(null);
+
+  const tv = useInstance(() => new TVCore());
+  const player = useInstance(() => new PlayerCore({ app }));
+  // const video = useInstance(() => new ElementCore({}));
+  const cover = useInstance(() => new ToggleCore({ boolean: true }));
   const [profile, setProfile] = useState(tv.profile);
   const [source, setSource] = useState(tv.curSource);
 
   useInitialize(() => {
-    (async () => {
-      view.onHidden(() => {
-        player.pause();
+    console.log("[PAGE]play - useInitialize");
+    app.onHidden(() => {
+      player.pause();
+      // tv.updatePlayProgress();
+    });
+    app.onShow(() => {
+      console.log("[PAGE]play - app.onShow", player.currentTime);
+      // 锁屏后 currentTime 不是锁屏前的
+      player.setCurrentTime(player.currentTime);
+    });
+    view.onHidden(() => {
+      player.pause();
+      // tv.updatePlayProgress();
+    });
+    // view.onUnmounted(() => {
+    //   player.destroy();
+    // });
+
+    tv.onProfileLoaded((profile) => {
+      app.setTitle(tv.getTitle().join(" - "));
+      const { curEpisode } = profile;
+      console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+      tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
+      player.setCurrentTime(curEpisode.currentTime);
+    });
+    tv.onEpisodeChange((nextEpisode) => {
+      app.setTitle(tv.getTitle().join(" - "));
+      const { currentTime } = nextEpisode;
+      player.setCurrentTime(currentTime);
+      player.pause();
+    });
+    tv.onStateChange((nextProfile) => {
+      setProfile(nextProfile);
+    });
+    tv.onTip((msg) => {
+      app.tip(msg);
+    });
+    tv.onSourceChange((mediaSource) => {
+      const { width, height } = mediaSource;
+      // console.log("[PAGE]play - tv.onSourceChange", width, height);
+      const h = Math.ceil((height / width) * app.size.width);
+      // player.setResolution(values.resolution);
+      player.pause();
+      player.loadSource(mediaSource);
+      player.setSize({
+        width: app.size.width,
+        height: h,
       });
-      view.onShow(() => {
-        // 异常情况，现在返回后，页面不销毁
-        if (!view.state.visible) {
-          return;
-        }
-        // 锁屏后 currentTime 不是锁屏前的
-        player.setCurrentTime(player.currentTime);
+      player.setCurrentTime(mediaSource.currentTime);
+      setSource(mediaSource);
+    });
+    player.onCanPlay(() => {
+      console.log("[PAGE]play - player.onCanPlay");
+      cover.hide();
+      player.play();
+    });
+    player.onProgress(({ currentTime, duration }) => {
+      // console.log("[PAGE]TVPlaying - onProgress", currentTime);
+      tv.setCurrentTime(currentTime);
+      tv.updatePlayProgress({
+        currentTime,
+        duration,
       });
-      video.onMounted(() => {
-        const $video = videoRef.current;
-        if (!$video) {
-          return;
-        }
-        connect($video, player);
+    });
+    player.onPause(({ currentTime, duration }) => {
+      console.log("[PAGE]play - player.onPause", currentTime, duration);
+      tv.updatePlayProgressForce({
+        currentTime,
+        duration,
       });
-      tv.onProfileLoaded((profile) => {
-        app.setTitle(tv.getTitle().join(" - "));
-        const { curEpisode } = profile;
-        tv.playEpisode(curEpisode);
-      });
-      tv.onEpisodeChange((nextEpisode) => {
-        app.setTitle(tv.getTitle().join(" - "));
-        const { currentTime } = nextEpisode;
-        player.setCurrentTime(currentTime);
-        player.pause();
-      });
-      tv.onStateChange((nextProfile) => {
-        setProfile(nextProfile);
-      });
-      tv.onSourceChange((mediaSource) => {
-        // player.setCurrentTime(tv.curEpisode?.currentTime ?? 0);
-        // app.setTitle(tv.getTitle().join(" - "));
-        const { width, height } = mediaSource;
-        const h = Math.ceil((height / width) * app.size.width);
-        // player.setResolution(values.resolution);
-        player.pause();
-        player.loadSource(mediaSource);
-        player.setSize({
-          width,
-          height: h,
+    });
+    player.onEnd(() => {
+      console.log("[PAGE]play - player.onEnd");
+      tv.playNextEpisode();
+    });
+    player.onVolumeChange(({ volume }) => {
+      console.log("[PAGE]play - player.onVolumeChange", volume);
+    });
+    player.onSizeChange(({ height }) => {
+      console.log("[PAGE]play - player.onSizeChange");
+    });
+    player.onResolutionChange(({ type }) => {
+      console.log("[PAGE]play - player.onResolutionChange", type);
+      player.setCurrentTime(tv.currentTime);
+    });
+    player.onSourceLoaded(() => {
+      console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+      aSheet.hide();
+      cSheet.hide();
+    });
+    console.log("[PAGE]play - before player.onError");
+    player.onError((error) => {
+      console.log("[PAGE]play - player.onError");
+      app.tip({ text: ["视频加载错误", error.message] });
+      player.pause();
+    });
+    player.onUrlChange(async ({ url, thumbnail }) => {
+      console.log("[PAGE]play - player.onUrlChange");
+      if (player.canPlayType("application/vnd.apple.mpegurl")) {
+        player.load(url);
+      }
+      const $video = player.node();
+      const mod = await import("hls.js");
+      const Hls2 = mod.default;
+      if (Hls2.isSupported() && url.includes("m3u8") && $video) {
+        // console.log("[PAGE]TVPlaying - need using hls.js");
+        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+        Hls.attachMedia($video);
+        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+          Hls.loadSource(url);
         });
-        setSource(mediaSource);
-      });
-      tv.onTip((msg) => {
-        alert(msg.text.join("\n"));
-        app.tip(msg);
-      });
-      // tv.onResolutionChange((values: { resolution: { type: EpisodeResolutionTypes; text: string } }) => {
-      //   player.setResolution(values.resolution);
-      //   player.pause();
-      // });
-      // player.onCanPlay(() => {
-      //   player.play();
-      // });
-      player.onProgress(({ currentTime, duration }) => {
-        // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-        tv.updatePlayProgress({
-          currentTime,
-          duration,
-        });
-      });
-      player.onPause(({ currentTime, duration }) => {
-        tv.updatePlayProgress({
-          currentTime,
-          duration,
-        });
-      });
-      player.onEnd(() => {
-        // console.log("[PAGE]TVPlaying - onEnd");
-        tv.playNextEpisode();
-      });
-      player.onVolumeChange(({ volume }) => {
-        console.log("[]onVolumeChange", volume);
-        // settings.volume = volume;
-        // cache.set("video_settings", settings);
-      });
-      player.onSizeChange(({ height }) => {
-        // console.log("[COMPONENT]VideoPlayer - size change", height);
-        // setSize((prev) => {
-        //   return {
-        //     ...prev,
-        //     height,
-        //   };
-        // });
-      });
-      player.onResolutionChange(({ type }) => {
-        // settings.resolution = type;
-        // app.cache.set("video_settings", settings);
-      });
-      player.onSourceLoaded(() => {
-        console.log("[COMPONENT]VideoPlayer - on loaded", tv.currentTime);
-        player.setCurrentTime(tv.currentTime);
-      });
-      player.onUrlChange(async ({ url, thumbnail }) => {
-        console.log("[COMPONENT]VideoPlayer - on url change", url);
-        const $video = videoRef.current;
-        if (!$video) {
-          return;
-        }
-        // setPoster(thumbnail);
-        if ($video.canPlayType("application/vnd.apple.mpegurl")) {
-          $video.src = url;
-          $video.load();
-          return;
-        }
-        const mod = await import("hls.js");
-        const Hls2 = mod.default;
-        if (Hls2.isSupported() && url.includes("m3u8")) {
-          // console.log("[PAGE]TVPlaying - need using hls.js");
-          const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-          Hls.attachMedia($video);
-          Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-            Hls.loadSource(url);
-          });
-          return;
-        }
-        $video.src = url;
-        $video.load();
-      });
-      //
-      console.log("fetch profile", view.params.id);
-      tv.fetchProfile(view.params.id);
-    })();
+        return;
+      }
+      player.load(url);
+    });
+    //
+    // console.log("fetch profile", view.params.id);
+    tv.fetchProfile(view.params.id);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
@@ -205,12 +201,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 // onClick={toggleMenuVisible}
               >
                 <div
-                  className="p-4"
+                  className="inline-block p-4"
                   onClick={() => {
                     router.back();
                   }}
                 >
-                  <ArrowLeft className="w-8 h-8" />
+                  <ArrowLeft className="w-6 h-6 dark:text-black-200" />
                 </div>
                 <div className="absolute bottom-12 w-full">
                   {/* <div className="flex items-center w-36 m-auto">
@@ -303,7 +299,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     <div
                       className="flex flex-col items-center focus:outline-none focus:ring-0"
                       onClick={() => {
-                        cSheet.show();
+                        dSheet.show();
                       }}
                     >
                       <MoreHorizontal className="w-6 h-6 " />
@@ -319,20 +315,19 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   return null;
                 }
                 return (
-                  <Element store={video}>
-                    <video
-                      ref={videoRef}
-                      className="w-full"
-                      controls={true}
-                      webkit-playsinline="true"
-                      playsInline
-                      preload="none"
-                      // x5-video-player-fullscreen="true"
-                      // x5-video-player-type="h5"
-                      // x5-video-orientation="landscape"
-                      // style={{ objectFit: "fill" }}
-                    />
-                  </Element>
+                  <div className="relative">
+                    <ToggleView store={cover}>
+                      <LazyImage
+                        className="absolute left-0 top-0 z-20"
+                        src={profile.curEpisode.thumbnail ?? undefined}
+                        alt={profile.name}
+                      />
+                      <div className="center z-30 top-20">
+                        <Loader className="inline-block w-8 h-8 text-white animate-spin" />
+                      </div>
+                    </ToggleView>
+                    <Video store={player} />
+                  </div>
                 );
               })()}
               {/* <div className={cn("absolute inset-0")}>
@@ -394,7 +389,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <div
                     key={id}
                     onClick={() => {
-                      tv.playEpisode(episode);
+                      tv.playEpisode(episode, { currentTime: 0, thumbnail: null });
                     }}
                   >
                     <div
@@ -451,10 +446,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
           const { typeText: curTypeText, resolutions } = source;
           return (
             <div className="overflow-y-auto mt-8 pb-12 h-full">
-              {resolutions.map((r) => {
+              {resolutions.map((r, i) => {
                 const { type, typeText } = r;
                 return (
-                  <div key={typeText} className="px-4">
+                  <div key={i} className="px-4">
                     <div
                       className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                       onClick={() => {
@@ -472,7 +467,23 @@ export const TVPlayingPage: ViewComponent = (props) => {
         {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
       </Sheet>
       <Sheet store={dSheet}>
-        <p className="mt-8 text-center text-sm ">敬请期待</p>
+        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
+        {(() => {
+          if (profile === null) {
+            return (
+              <div>
+                <Loader className="animate animate-spin w-6 h-6" />
+              </div>
+            );
+          }
+          const { name, overview } = profile;
+          return (
+            <div className="p-4 pb-12 h-full overflow-y-auto">
+              <div className="text-2xl">{name}</div>
+              <div className="text-sm">{overview}</div>
+            </div>
+          );
+        })()}
       </Sheet>
     </div>
   );

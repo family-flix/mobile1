@@ -31,3 +31,25 @@ export function useLatestValue(v: unknown) {
   }, [v]);
   return ref;
 }
+
+type Factory = () => unknown;
+const _cache: Map<Factory, ReturnType<Factory>> = new Map();
+export function useInstance<T extends Factory>(fn: T) {
+  const ref = useRef<ReturnType<T>>(
+    (() => {
+      if (_cache.get(fn)) {
+        const r = _cache.get(fn) as ReturnType<T>;
+        return r;
+      }
+      const resp = fn();
+      _cache.set(fn, resp);
+      return resp as ReturnType<T>;
+    })()
+  );
+  useEffect(() => {
+    return () => {
+      _cache.delete(fn);
+    };
+  }, []);
+  return ref.current;
+}

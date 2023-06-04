@@ -14,6 +14,8 @@ import { cn } from "./utils";
 import { ViewComponent } from "./types";
 
 import "./index.css";
+import { Toast } from "./components/ui/toast";
+import { ToastCore } from "./domains/ui/toast";
 
 const { router } = app;
 
@@ -49,6 +51,8 @@ app.onPopState((options) => {
 
 bind(app);
 
+const toast = new ToastCore();
+
 function ApplicationView() {
   // const [showMask, setShowMask] = useState(true);
   // const [error, setError] = useState<Error | null>(null);
@@ -56,13 +60,12 @@ function ApplicationView() {
 
   useInitialize(() => {
     rootView.onSubViewsChange((nextSubViews) => {
-      // console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
+      console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
       setSubViews(nextSubViews);
     });
     rootView.onMatched((subView) => {
-      console.log("root layout matched", rootView.curView?._name, subView._name, router._pending.type);
+      console.log("[Application]rootView.onMatched", rootView.curView?._name, subView._name, router._pending.type);
       if (subView === rootView.curView) {
-        // subView.show();
         return;
       }
       const prevView = rootView.curView;
@@ -72,26 +75,26 @@ function ApplicationView() {
         rootView.appendSubView(subView);
       }
       subView.show();
-      if (prevView && router._pending.type === "back") {
-        prevView.hide();
+      // setTimeout(() => {
+      //   subView.checkMatch(router._pending);
+      // }, 200);
+      if (prevView) {
+        if (router._pending.type === "back") {
+          prevView.hide();
+          subView.uncovered();
+          return;
+        }
+        prevView.layered();
+        // prevView.layered();
+        // prevView.state.layered = true;
         // setTimeout(() => {
         //   rootView.prevView = null;
         //   rootView.removeSubView(prevView);
         // }, 120);
       }
-      // for (let i = 0; i < rootView.subViews.length; i += 1) {
-      //   (() => {
-      //     const v = rootView.subViews[i];
-      //     if (v === subView) {
-      //       v.show();
-      //       return;
-      //     }
-      //     v.hide();
-      //   })();
-      // }
     });
     rootView.onNotFound(() => {
-      console.log("root layout not found");
+      console.log("[Application]rootView.onNotFound");
       rootView.curView = mainLayout;
       rootView.appendSubView(mainLayout);
     });
@@ -99,18 +102,21 @@ function ApplicationView() {
       // router.log("[]Application - pathname change", pathname);
       rootView.checkMatch({ pathname, type });
     });
-    app.onTip(async (msg) => {
+    // router.onRelaunch(() => {
+    //   router.log("[]Application - router.onRelaunch");
+    //   rootView.relaunch(mainLayout);
+    // });
+    app.onTip((msg) => {
       const { text } = msg;
-      // toast.show({
-      //   texts: text,
-      // });
+      toast.show({
+        texts: text,
+      });
     });
     // app.onError((msg) => {
     //   alert(msg.message);
     // });
     console.log("[]Application - before start", window.history);
     router.start(window.location);
-    rootView.checkMatch(router._pending);
     app.start();
   });
 
@@ -152,14 +158,14 @@ function ApplicationView() {
           </div>
         </div>
       )} */}
-      <div className="screen w-screen h-screen">
+      <div className={cn("screen w-screen h-screen")}>
         {subViews.map((subView, index) => {
           const PageContent = subView.component as ViewComponent;
           return (
             <StackRouteView
               key={subView.id}
               className={cn(
-                "absolute inset-0 bg-white opacity-100 dark:bg-slate-900",
+                "absolute inset-0 bg-white opacity-100 dark:bg-black",
                 "animate-in slide-in-from-right",
                 "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
               )}
@@ -171,6 +177,7 @@ function ApplicationView() {
           );
         })}
       </div>
+      <Toast store={toast} />
     </>
   );
 }

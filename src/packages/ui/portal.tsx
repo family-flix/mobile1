@@ -12,6 +12,7 @@ export function Portal(props: React.AllHTMLAttributes<HTMLElement>) {
   //   const $e = document.createElement("div");
   //   document.body.appendChild($e);
   // });
+  // console.log("[COMPONENT]Portal - render");
 
-  return createPortal(<div className="content">{props.children}</div>, document.body);
+  return createPortal(<div className="portal">{props.children}</div>, document.body);
 }

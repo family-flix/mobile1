@@ -24,6 +24,7 @@ export function KeepAliveRouteView(
     if (store.isMounted) {
       return;
     }
+    console.log("[COMPONENT]keep-alice-route-view - useEffect");
     store.mounted();
     store.showed();
     return () => {

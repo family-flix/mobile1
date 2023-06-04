@@ -88,6 +88,8 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string }) {
       season_id: string;
       /** 当前进度 */
       current_time: number;
+      /** 当前进度截图 */
+      thumbnail: string | null;
       /** 可播放的视频源 */
       sources: {
         id: string;
@@ -140,12 +142,14 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string }) {
       if (cur_episode === null) {
         return null;
       }
-      const { id, name, overview, season_number, episode_number, current_time, sources, season_id } = cur_episode;
+      const { id, name, overview, season_number, episode_number, current_time, sources, season_id, thumbnail } =
+        cur_episode;
       const d = {
         id,
         name,
         overview,
         currentTime: current_time,
+        thumbnail,
         season_id,
         season: season_to_chinese_num(season_number),
         episode: episode_to_chinese_num(episode_number),
@@ -227,9 +231,10 @@ export async function fetch_episode_profile(params: { id: string; type?: Episode
   if (res.error) {
     return Result.Err(res.error);
   }
-  const { url, width, height, thumbnail, type, other } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other } = res.data;
   return Result.Ok({
     url,
+    file_id,
     type,
     typeText: EpisodeResolutionTypeTexts[type],
     width,
@@ -323,14 +328,16 @@ export async function update_play_history(params: {
   episode_id: string;
   /** 视频当前时间 */
   current_time: number;
-  duration: number;
+  duration?: number;
+  file_id: string;
 }) {
-  const { tv_id, episode_id, current_time, duration } = params;
+  const { tv_id, episode_id, current_time, duration, file_id } = params;
   return request.post<null>("/api/history/update", {
     tv_id,
     episode_id,
-    current_time: Math.floor(current_time),
+    current_time,
     duration,
+    file_id,
   });
 }
 
@@ -388,13 +395,13 @@ export async function fetch_play_histories(params: FetchParams) {
       /** 影片id */
       episode_id: string;
       /** 该集总时长 */
-      duration: string;
+      duration: number;
       /** 看到该电视剧第几集 */
       episode_number: string;
       /** 该集是第几季 */
       season_number: string;
       /** 播放记录当前集进度 */
-      current_time: string;
+      current_time: number;
       /** 播放记录更新时间 */
       updated: string;
       /** 当前总集数 */
@@ -409,6 +416,7 @@ export async function fetch_play_histories(params: FetchParams) {
       air_date: string;
       /** 看过后是否有更新 */
       has_update: number;
+      thumbnail: string;
     }>
   >("/api/history/list", {
     ...rest,
@@ -436,6 +444,9 @@ export async function fetch_play_histories(params: FetchParams) {
         season_number,
         cur_episode_count,
         episode_count,
+        duration,
+        current_time,
+        thumbnail,
       } = history;
       return {
         id,
@@ -449,6 +460,9 @@ export async function fetch_play_histories(params: FetchParams) {
         season: season_to_chinese_num(season_number),
         updated: relative_time_from_now(updated),
         has_update: !!has_update,
+        currentTime: current_time,
+        percent: parseFloat((current_time / duration).toFixed(2)) * 100 + "%",
+        thumbnail,
       };
     }),
   });

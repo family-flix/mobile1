@@ -32,11 +32,9 @@ enum Events {
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
-  [Events.SourceChange]: MediaSourceProfile;
+  [Events.SourceChange]: MediaSourceProfile & { currentTime: number };
   [Events.EpisodeChange]: TVProps["profile"]["curEpisode"] & { currentTime: number };
-  [Events.ResolutionChange]: {
-    resolution: { type: EpisodeResolutionTypes; text: string };
-  };
+  [Events.ResolutionChange]: MediaSourceProfile & { currentTime: number };
   [Events.StateChange]: TVProps["profile"];
 };
 type TVState = {};
@@ -48,7 +46,7 @@ type TVProps = {
     /** 如果存在播放记录，返回当前播放的集数对应季，如果没有播放记录，返回第一季 */
     curSeason: TVSeasonProfile;
     /** 如果存在播放记录，返回当前播放的集数，如果没有播放记录，返回第一季、第一集 */
-    curEpisode: TVEpisodeProfile & { currentTime: number };
+    curEpisode: TVEpisodeProfile & { currentTime: number; thumbnail: string | null };
     /** 电视剧下所有季 */
     seasons: TVSeasonProfile[];
     /** 当前播放剧集同一季的所有剧集 */
@@ -146,7 +144,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       curEpisodes,
       seasons,
     };
-    this.currentTime = curEpisode.currentTime;
+    // this.currentTime = curEpisode.currentTime;
     this.curSeason = curSeason;
     // this.curEpisode = curEpisode;
     this.emit(Events.ProfileLoaded, { ...this.profile });
@@ -155,7 +153,10 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   /** 播放该电视剧下指定影片 */
-  async playEpisode(episode: TVEpisodeProfile & { currentTime?: number }, options: Partial<{}> = {}) {
+  async playEpisode(episode: TVEpisodeProfile, extra: { currentTime?: number; thumbnail?: string | null } = {}) {
+    // 只有继续播放时，才有这两个参数
+    const { currentTime = 0, thumbnail = null } = extra;
+    console.log("[PAGE](play/index) - play episode");
     if (!this.profile) {
       const msg = this.tip({ text: ["请先调用 fetchProfile 获取详情"] });
       return Result.Err(msg);
@@ -176,14 +177,15 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(res.error);
     }
-    // 如果季不同，还有更新季
-    this.profile.curEpisode = { ...episode, currentTime: this.currentTime };
-    this.curEpisode = { ...episode, currentTime: this.currentTime };
+    this.profile.curEpisode = { ...episode, currentTime, thumbnail };
+    this.curEpisode = { ...episode, currentTime, thumbnail };
     this.curSource = (() => {
+      const { file_id } = res.data;
       if (this.curResolutionType === "LD") {
         const { url, type, typeText, width, height, thumbnail, resolutions } = res.data;
         return {
           url,
+          file_id,
           type,
           typeText,
           width,
@@ -198,6 +200,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         const { url, type, typeText, width, height, thumbnail } = resolutions[0];
         return {
           url,
+          file_id,
           type,
           typeText,
           width,
@@ -209,6 +212,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       const { url, type, typeText, width, height, thumbnail } = matched_resolution;
       return {
         url,
+        file_id,
         type,
         typeText,
         width,
@@ -222,7 +226,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // });
     // console.log("[DOMAIN]TV - playEpisode");
     this.emit(Events.EpisodeChange, { ...this.curEpisode });
-    this.emit(Events.SourceChange, { ...this.curSource });
+    this.emit(Events.SourceChange, { ...this.curSource, currentTime });
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok(this.curEpisode);
   }
@@ -334,8 +338,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       this._pending = false;
       return Result.Err("没有找到可播放剧集");
     }
-    this.currentTime = 0;
-    await this.playEpisode(nextEpisode);
+    // this.currentTime = 0;
+    await this.playEpisode(nextEpisode, { currentTime: 0, thumbnail: null });
     this._pending = false;
     return Result.Ok(null);
   }
@@ -357,8 +361,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       this._pending = false;
       return Result.Err("没有找到可播放剧集");
     }
-    this.currentTime = 0;
-    await this.playEpisode(prevEpisode);
+    // this.currentTime = 0;
+    await this.playEpisode(prevEpisode, { currentTime: 0, thumbnail: null });
     this._pending = false;
     return Result.Ok(null);
   }
@@ -412,12 +416,12 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 切换分辨率 */
   switchResolution(target_type: EpisodeResolutionTypes) {
-    console.log("switchResolution 1");
+    // console.log("switchResolution 1");
     if (this.profile === null || this.curSource === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
-    console.log("switchResolution 2");
+    // console.log("switchResolution 2");
     const { type, resolutions } = this.curSource;
     if (type === target_type) {
       const msg = this.tip({
@@ -425,17 +429,18 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(msg);
     }
-    console.log("switchResolution 3");
+    // console.log("switchResolution 3");
     this.curResolutionType = target_type;
     const matched_resolution = resolutions.find((e) => e.type === target_type);
     if (!matched_resolution) {
       const msg = this.tip({ text: [`没有 '${target_type}' 分辨率`] });
       return Result.Err(msg);
     }
-    console.log("switchResolution 4");
+    // console.log("switchResolution 4");
     const { url, type: nextType, typeText, width, height, thumbnail } = matched_resolution;
     this.curSource = {
       url,
+      file_id: this.curSource.file_id,
       type: nextType,
       typeText,
       width,
@@ -443,34 +448,41 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       thumbnail,
       resolutions,
     };
-    console.log("switchResolution 5");
-    this.emit(Events.SourceChange, { ...this.curSource });
+    this.emit(Events.SourceChange, { ...this.curSource, currentTime: this.currentTime });
     this.emit(Events.ResolutionChange, {
-      resolution: {
-        type: target_type,
-        text: EpisodeResolutionTypeTexts[target_type],
-      },
+      ...this.curSource,
+      currentTime: this.currentTime,
     });
     return Result.Ok(null);
   }
-  /** 更新观看进度 */
-  updatePlayProgress = throttle(10 * 1000, ({ currentTime, duration }) => {
-    // console.log("[DOMAIN]TVPlay - update_play_progress", params, user.is_login);
+  setCurrentTime(currentTime: number) {
+    this.currentTime = currentTime;
+  }
+  updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
+    const { currentTime = this.currentTime, duration } = values;
+    // console.log("[DOMAIN]TVPlay - update_play_progress", currentTime);
     if (!this.id) {
       return;
     }
     if (this.curEpisode === null) {
       return;
     }
+    if (this.curSource === null) {
+      return;
+    }
     const { id: episode_id } = this.curEpisode;
-    this.currentTime = currentTime;
-    this.curEpisode.currentTime = currentTime;
+    const { file_id } = this.curSource;
     update_play_history({
       tv_id: this.id,
       episode_id,
       current_time: currentTime,
       duration,
+      file_id,
     });
+  }
+  /** 更新观看进度 */
+  updatePlayProgress = throttle_1(10 * 1000, (values: Partial<{ currentTime: number; duration: number }> = {}) => {
+    this.updatePlayProgressForce(values);
   });
   getTitle(): [string, string, string] {
     if (this.profile === null || this.curEpisode === null) {
@@ -496,4 +508,20 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
   }
+}
+
+function throttle_1(delay: number, fn: Function) {
+  let canInvoke = true;
+
+  setInterval(() => {
+    canInvoke = true;
+  }, delay);
+
+  return (...args: unknown[]) => {
+    if (canInvoke === false) {
+      return;
+    }
+    fn(...args);
+    canInvoke = false;
+  };
 }

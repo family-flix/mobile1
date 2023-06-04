@@ -10,7 +10,7 @@ import * as DialogPrimitive from "@/packages/ui/dialog";
 import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 
-import { Show } from "./when";
+import { Show } from "./show";
 
 export function Dialog(
   props: {

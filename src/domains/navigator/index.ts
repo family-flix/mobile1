@@ -14,6 +14,10 @@ enum Events {
   Reload,
   Start,
   PathnameChange,
+  /** 销毁所有页面并跳转至指定页面 */
+  Relaunch,
+  /** ???? */
+  RedirectToHome,
 }
 type TheTypesOfEvents = {
   [Events.PathnameChange]: {
@@ -33,6 +37,7 @@ type TheTypesOfEvents = {
   [Events.Back]: void;
   [Events.Reload]: void;
   [Events.Start]: RouteLocation;
+  [Events.Relaunch]: void;
 };
 type RouteLocation = {
   host: string;
@@ -105,7 +110,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       pathname,
       type: "initialize",
     };
-    // this.emit(Events.PathnameChange, { ...this._pending });
+    this.emit(Events.PathnameChange, { ...this._pending });
   }
 
   private setPrevPathname(p: string) {
@@ -163,7 +168,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   reload = () => {
     this.emit(Events.Reload);
   };
-  /** 外部路由改变，作出响应 */
+  /** 外部路由改变（点击浏览器前进、后退），作出响应 */
   handlePopState({ type, pathname }: { type: string; pathname: string }) {
     this.log("pathname change", type, pathname);
     if (type !== "popstate") {
@@ -201,7 +206,14 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     }
     // back
     if (this.histories.length === 1) {
-      this.replace("/home");
+      this.emit(Events.Relaunch);
+      // const targetPathname = "/home/index";
+      // this.emit(Events.ReplaceState, {
+      //   from: this.prevPathname,
+      //   path: `${this.origin}${targetPathname}`,
+      //   pathname: targetPathname,
+      // });
+      // this.replace("/home/index");
       return;
     }
     // var confirmationMessage = "您的输入还未完成，确认放弃吗？";
@@ -227,13 +239,16 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     return this.on(Events.ReplaceState, handler);
   }
   onReload(handler: Handler<TheTypesOfEvents[Events.Reload]>) {
-    this.on(Events.Reload, handler);
+    return this.on(Events.Reload, handler);
   }
   onPathnameChange(handler: Handler<TheTypesOfEvents[Events.PathnameChange]>) {
-    this.on(Events.PathnameChange, handler);
+    return this.on(Events.PathnameChange, handler);
   }
   onBack(handler: Handler<TheTypesOfEvents[Events.Back]>) {
-    this.on(Events.Back, handler);
+    return this.on(Events.Back, handler);
+  }
+  onRelaunch(handler: Handler<TheTypesOfEvents[Events.Relaunch]>) {
+    return this.on(Events.Relaunch, handler);
   }
 }
 

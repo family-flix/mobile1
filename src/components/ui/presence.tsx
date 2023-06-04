@@ -5,7 +5,8 @@ import { useState } from "react";
 
 import { PresenceCore } from "@/domains/ui/presence";
 import { cn } from "@/utils";
-import { Show } from "./when";
+
+import { Show } from "./show";
 
 export const Presence = (
   props: {

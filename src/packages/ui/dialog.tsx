@@ -1,8 +1,6 @@
 /**
  * @file 弹窗 组件
  */
-// import { children, createSignal, JSX, Show } from "solid-js";
-// import { Portal as PortalPrimitive } from "solid-js/web";
 import React, { useState } from "react";
 
 import { DialogCore } from "@/domains/ui/dialog";
@@ -12,7 +10,7 @@ import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 
 import { Portal as PortalPrimitive } from "./portal";
-import { Show } from "./when";
+import { Show } from "./show";
 
 export function Dialog(
   props: {

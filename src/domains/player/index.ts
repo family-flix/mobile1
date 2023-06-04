@@ -7,6 +7,7 @@ import { Handler } from "mitt";
 import { BaseDomain } from "@/domains/base";
 import { MediaSourceProfile } from "@/domains/tv/services";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
+import { Application } from "@/domains/app";
 
 enum Events {
   /** 改变播放地址（切换剧集或分辨率） */
@@ -37,6 +38,10 @@ enum Events {
   BeforeEnded,
   /** 播放结束 */
   End,
+  Resize,
+  /** 发生错误 */
+  Error,
+  StateChange,
 }
 type TheTypesOfEvents = {
   [Events.UrlChange]: MediaSourceProfile;
@@ -70,6 +75,16 @@ type TheTypesOfEvents = {
     current_time: number;
     duration: number;
   };
+  [Events.Error]: Error;
+  [Events.Resize]: { width: number; height: number };
+  [Events.StateChange]: PlayerState;
+};
+
+type PlayerProps = {};
+type PlayerState = {
+  width: number;
+  height: number;
+  ready: boolean;
 };
 
 export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
@@ -79,6 +94,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
 
   private _timer: null | number = null;
   private _playing = false;
+  private _canPlay = false;
   get playing() {
     return this._playing;
   }
@@ -88,19 +104,35 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   get currentTime() {
     return this._currentTime;
   }
+  /** 默认是不能播放的，只有用户交互后可以播放 */
   private _target_current_time = 0;
   private _progress = 0;
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
   private _abstractNode: {
+    $node: HTMLVideoElement;
     play: () => void;
     pause: () => void;
-    changeCurrentTime: (v: number) => void;
-    changeVolume: (v: number) => void;
+    load: (url: string) => void;
+    canPlayType: (type: string) => boolean;
+    setCurrentTime: (v: number) => void;
+    setVolume: (v: number) => void;
   } | null = null;
+  private _app: Application;
 
-  constructor() {
+  get state(): PlayerState {
+    return {
+      width: this._size.width,
+      height: this._size.height,
+      ready: this._canPlay,
+    };
+  }
+
+  constructor(options: { app: Application }) {
     super();
+
+    const { app } = options;
+    this._app = app;
   }
 
   bindAbstractNode(node: PlayerCore["_abstractNode"]) {
@@ -124,11 +156,11 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._abstractNode.pause();
   }
   /** 改变音量 */
-  setVolume(v: number) {
+  changeVolume(v: number) {
     if (this._abstractNode === null) {
       return;
     }
-    this._abstractNode.changeVolume(v);
+    this._abstractNode.setVolume(v);
   }
   /** 改变当前进度 */
   setCurrentTime(currentTime: number = 0) {
@@ -136,7 +168,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._currentTime = currentTime;
-    this._abstractNode.changeCurrentTime(currentTime);
+    this._abstractNode.setCurrentTime(currentTime);
   }
   setSize(size: { width: number; height: number }) {
     if (
@@ -149,6 +181,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     this._size = size;
     this.emit(Events.SizeChange, size);
+    this.emit(Events.StateChange, { ...this.state });
   }
   setResolution(values: { type: EpisodeResolutionTypes; text: string }) {
     this.emit(Events.ResolutionChange, values);
@@ -161,7 +194,31 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   preloadSource(url: string) {
     this.emit(Events.Preload, { url });
   }
-  emitTimeUpdate({ currentTime, duration }: { currentTime: number; duration: number }) {
+  canPlayType(type: string) {
+    if (!this._abstractNode) {
+      return false;
+    }
+    return this._abstractNode.canPlayType(type);
+  }
+  load(url: string) {
+    if (!this._abstractNode) {
+      return false;
+    }
+    this._abstractNode.load(url);
+  }
+  node() {
+    if (!this._abstractNode) {
+      return null;
+    }
+    return this._abstractNode.$node;
+  }
+  handleTimeUpdate({ currentTime, duration }: { currentTime: number; duration: number }) {
+    if (currentTime === 0) {
+      return;
+    }
+    if (this._currentTime === currentTime) {
+      return;
+    }
     this._currentTime = currentTime;
     if (typeof duration === "number" && !Number.isNaN(duration)) {
       this._duration = duration;
@@ -184,8 +241,24 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     this._passPoint = false;
   }
+  handlePause({ currentTime, duration }: { currentTime: number; duration: number }) {
+    this.emit(Events.Pause, { currentTime, duration });
+  }
+  handleVolumeChange(cur_volume: number) {
+    this.emit(Events.VolumeChange, { volume: cur_volume });
+  }
+  handleResize(size: { width: number; height: number }) {
+    // const { width, height } = size;
+    // const h = Math.ceil((height / width) * this._app.size.width);
+    // this._size = {
+    //   width: this._app.size.width,
+    //   height: h,
+    // };
+    // this.emit(Events.Resize, this._size);
+    // this.emit(Events.StateChange, { ...this.state });
+  }
   /** 视频播放结束 */
-  end() {
+  handleEnd() {
     this._playing = false;
     this._ended = true;
     this.emit(Events.End, {
@@ -193,14 +266,26 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       duration: this._duration,
     });
   }
-
-  _canPlay = false;
-  setCanPlay() {
+  handleLoadedmetadata() {
+    this.emit(Events.SourceLoaded);
+  }
+  handleLoad() {
+    this.emit(Events.Loaded);
+  }
+  handleCanPlay() {
     if (this._canPlay) {
       return;
     }
     this._canPlay = true;
     this.emit(Events.CanPlay);
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  handlePlay() {
+    this.emit(Events.Play);
+  }
+  handleError(msg: string) {
+    // console.log("[DOMAIN]Player - throwError", msg);
+    this.emit(Events.Error, new Error(msg));
   }
 
   onReady(handler: Handler<TheTypesOfEvents[Events.Ready]>) {
@@ -247,5 +332,11 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   onEnd(handler: Handler<TheTypesOfEvents[Events.End]>) {
     return this.on(Events.End, handler);
+  }
+  onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
+    return this.on(Events.Error, handler);
+  }
+  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
+    return this.on(Events.StateChange, handler);
   }
 }

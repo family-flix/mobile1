@@ -2,7 +2,7 @@
  * @file 首页布局
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
-import { Car, Film, Home, Users } from "lucide-react";
+import { HardDrive, Home, Search, Users } from "lucide-react";
 
 import { ViewComponent } from "@/types";
 import { useState } from "react";
@@ -25,7 +25,7 @@ export const HomeLayout: ViewComponent = (props) => {
       setSubViews(nextSubViews);
     });
     view.onMatched((subView) => {
-      console.log("home layout match route", view.curView?._name, view.prevView?._name, subView._name);
+      console.log("[LAYOUT]home/layout - view.onMatched", view.curView?._name, view.prevView?._name, subView._name);
       if (subView === view.curView) {
         return;
       }
@@ -43,11 +43,25 @@ export const HomeLayout: ViewComponent = (props) => {
         // }, 120);
       }
     });
+    view.onLayered(() => {
+      console.log("[LAYOUT]home/layout - view.onLayered");
+    });
+    view.onUncover(() => {
+      console.log("[LAYOUT]home/layout - view.onUncover");
+    });
+    // 因为 home layout 和 playing page 是共存的，所以切换到 playing page 时，home layout 也会检查是否匹配，结果是不匹配
+    // 所以给 home layout 加了个 index
     view.onNotFound(() => {
-      view.curView = aView;
-      view.appendSubView(aView);
+      console.log("[LAYOUT]home/layout - view.onNotFound", view.subViews);
+      // view.appendSubView(aView);
+      // view.curView = aView;
+      // view.curView.show();
     });
     router.onPathnameChange(({ pathname, type }) => {
+      console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
+      if (view.state.layered) {
+        return;
+      }
       view.checkMatch({ pathname, type });
     });
     view.checkMatch(router._pending);
@@ -66,7 +80,7 @@ export const HomeLayout: ViewComponent = (props) => {
                 store={subView}
                 index={i}
               >
-                <div className="w-full h-full scrollbar-hide overflow-y-auto bg-white opacity-100 dark:bg-slate-900 hide-scroll">
+                <div className="w-full h-full scrollbar-hide overflow-y-auto bg-white opacity-100 dark:bg-black hide-scroll">
                   <PageContent app={app} router={router} view={subView} />
                 </div>
               </KeepAliveRouteView>
@@ -74,53 +88,53 @@ export const HomeLayout: ViewComponent = (props) => {
           })}
         </div>
       </div>
-      <div className="h-[80px]">
-        <div className="w-full h-[80px]"></div>
-        <div className="fixed left-0 bottom-0 grid grid-cols-4 w-screen h-[80px] bg-white opacity-100 dark:bg-slate-900">
+      <div className="h-[68px] box-content safe-bottom">
+        <div className="w-full h-[68px] box-content safe-bottom"></div>
+        <div className="fixed left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
-            className="flex flex-col justify-center items-center"
+            className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
               router.push("/home/index");
             }}
           >
             <div>
-              <Home width={24} height={24} />
+              <Home className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-center">首页</div>
+            <div className="mt-2 text-sm text-center">首页</div>
           </div>
           <div
-            className="flex flex-col justify-center items-center"
+            className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
               router.push("/home/search");
             }}
           >
             <div>
-              <Film width={24} height={24} />
+              <Search className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-center">影片</div>
+            <div className="mt-2 text-sm text-center">搜索</div>
           </div>
           <div
-            className="flex flex-col justify-center items-center"
+            className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
               router.push("/home/history");
             }}
           >
             <div>
-              <Car width={24} height={24} />
+              <HardDrive className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-center">观看记录</div>
+            <div className="mt-2 text-sm text-center">观看记录</div>
           </div>
           <div
-            className="flex flex-col justify-center items-center"
+            className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
-              router.push("/home/my");
-              // dialog.show();
+              // router.push("/home/my");
+              dialog.show();
             }}
           >
             <div>
-              <Users width={24} height={24} />
+              <Users className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-center">我的</div>
+            <div className="mt-2 text-sm text-center">我的</div>
           </div>
         </div>
       </div>

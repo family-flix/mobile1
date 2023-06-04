@@ -15,29 +15,10 @@
   .center--top {
     @apply top-[24%];
   }
-  .card {
-    border-radius: theme("borderRadius.lg");
-    padding: theme("spacing.6");
-    box-shadow: theme("boxShadow.lg");
-  }
-  .card:hover {
-    box-shadow: theme("boxShadow.xl");
-  }
 }
+
 .app__mask {
   transition: all 0.8s;
-}
-.page {
-  transition: all 0.2s;
-}
-.page.slide {
-  transform: translateX(100%);
-}
-.page.mounted {
-  transform: translateX(0);
-}
-.page.unmounted {
-  transform: translateX(100%);
 }
 
 .hide-scroll {

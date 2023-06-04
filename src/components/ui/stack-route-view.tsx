@@ -21,6 +21,10 @@ export function StackRouteView(
     store.ready();
   });
   useEffect(() => {
+    if (store.isMounted) {
+      return;
+    }
+    console.log("[COMPONENT]stack-route-view - useEffect");
     store.mounted();
     store.showed();
     return () => {

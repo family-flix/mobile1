@@ -24,6 +24,10 @@ enum Events {
   Hidden,
   /** 当前视图从页面卸载 */
   Unmounted,
+  /** 被其他视图覆盖 */
+  Layered,
+  /** 覆盖自身的视图被移开 */
+  Uncover,
   Start,
   StateChange,
   /** 子视图匹配上了 */
@@ -37,6 +41,8 @@ type TheTypesOfEvents = {
   [Events.Mounted]: void;
   [Events.Show]: void;
   [Events.Hidden]: void;
+  [Events.Layered]: void;
+  [Events.Uncover]: void;
   [Events.Unmounted]: void;
   [Events.Start]: { pathname: string };
   [Events.StateChange]: RouteViewState;
@@ -49,6 +55,8 @@ type RouteViewState = {
   mounted: boolean;
   /** 是否可见，用于判断是「进入动画」还是「退出动画」 */
   visible: boolean;
+  /** 被另一视图覆盖 */
+  layered: boolean;
 };
 type RouteViewProps = {
   prefix?: string;
@@ -98,6 +106,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   state: RouteViewState = {
     mounted: false,
     visible: false,
+    layered: false,
   };
 
   constructor(options: Partial<{ name: string }> & RouteViewProps) {
@@ -154,7 +163,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     if (!matchedRoute) {
       // this.error(`View ${targetPathname} not found`);
       const msg = this.tip({ text: [targetPathname, "没有找到匹配的路由"] });
-      console.log(...this.log("not found", targetPathname));
+      // console.log(...this.log("not found", targetPathname));
       this.emit(Events.NotFound);
       return Result.Err(msg);
     }
@@ -177,6 +186,18 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     //   query,
     //   params,
     // });
+  }
+  relaunch(view: RouteViewCore) {
+    const prevView = this.curView;
+    this.prevView = prevView;
+    this.curView = view;
+    this.subViews = [view];
+    console.log("[Navigator]relaunch - prev view", prevView?._name, view._name);
+    if (prevView) {
+      prevView.hide();
+    }
+    this.emit(Events.ViewsChange, [...this.subViews]);
+    this.curView.show();
   }
   private setSubViews(
     subView: RouteViewCore,
@@ -288,9 +309,13 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Ready);
   }
   mounted() {
+    if (this.isMounted) {
+      return;
+    }
     this.isMounted = true;
     this.emit(Events.Mounted);
   }
+  /** 主动展示视图 */
   show() {
     if (this.state.visible) {
       // 为了让 presence 内部 hide 时判断 mounted 为 true
@@ -300,6 +325,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.presence.show();
   }
   _showed = false;
+  /** 视图被展示 */
   showed() {
     if (this._showed) {
       return;
@@ -307,16 +333,29 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this._showed = true;
     this.emit(Events.Show);
   }
+  /** 主动隐藏视图 */
   hide() {
+    console.log("[ROUTE_VIEW]hide", this._name, this.state.visible);
     if (this.state.visible === false) {
       return;
     }
     this.presence.hide();
   }
+  /** 视图被隐藏（由框架发出？） */
   hidden() {
     this._showed = false;
     this.emit(Events.Hidden);
   }
+  /** 自己被其他视图覆盖了 */
+  layered() {
+    this.state.layered = true;
+    this.emit(Events.Layered);
+  }
+  uncovered() {
+    this.state.layered = false;
+    this.emit(Events.Uncover);
+  }
+  /** 视图被卸载 */
   unmounted() {
     this.isMounted = false;
     this.emit(Events.Unmounted);
@@ -336,6 +375,12 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   onHidden(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
     return this.on(Events.Hidden, handler);
+  }
+  onLayered(handler: Handler<TheTypesOfEvents[Events.Layered]>) {
+    return this.on(Events.Layered, handler);
+  }
+  onUncover(handler: Handler<TheTypesOfEvents[Events.Uncover]>) {
+    return this.on(Events.Uncover, handler);
   }
   onUnmounted(handler: Handler<TheTypesOfEvents[Events.Unmounted]>) {
     return this.on(Events.Unmounted, handler);

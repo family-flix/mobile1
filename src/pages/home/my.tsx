@@ -4,7 +4,7 @@ import { useInitialize } from "@/hooks";
 import { ViewComponent } from "@/types";
 
 export const HomeMyPage: ViewComponent = (props) => {
-  const { view, router } = props;
+  const { app, view, router } = props;
   // const [scrollTop, setScrollTop] = useState(page.client.scrollTop);
   // const [top, setTop] = useState(0);
 
@@ -35,6 +35,15 @@ export const HomeMyPage: ViewComponent = (props) => {
           }}
         >
           goto
+        </div>
+        <div
+          onClick={() => {
+            app.tip({
+              text: ["测试"],
+            });
+          }}
+        >
+          Hello
         </div>
         <div className="h-[400px] bg-gray-100">我的个人中心</div>
         <div className="h-[400px] bg-gray-200"></div>

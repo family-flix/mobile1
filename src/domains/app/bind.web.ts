@@ -45,6 +45,32 @@ export function bind(app: Application) {
   window.addEventListener("blur", () => {
     app.emit(app.Events.Blur);
   });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      app.emit(app.Events.Hidden);
+      return;
+    }
+    app.emit(app.Events.Show);
+  });
+
+  const { availHeight, availWidth } = window.screen;
+  if (window.navigator.userAgent.match(/iphone/i)) {
+    const matched = [
+      // iphonex iphonexs iphone12mini
+      "375-812",
+      // iPhone XS Max iPhone XR
+      "414-896",
+      // iPhone pro max iPhone14Plus
+      "428-926",
+      // iPhone 12/pro 13/14  753
+      "390-844",
+      // iPhone 14Pro
+      "393-852",
+      // iPhone 14ProMax
+      "430-932",
+    ].includes(`${availWidth}-${availHeight}`);
+    app.safeArea = !!matched;
+  }
   ownerDocument.addEventListener("keydown", (event) => {
     const { key } = event;
     app.keydown({ key });

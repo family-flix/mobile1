@@ -14,6 +14,10 @@ export function RouteView(props: { store: RouteViewCore } & React.AllHTMLAttribu
     store.ready();
   });
   useEffect(() => {
+    if (store.isMounted) {
+      return;
+    }
+    console.log("[COMPONENT]route-view - useEffect");
     store.mounted();
     store.showed();
     return () => {

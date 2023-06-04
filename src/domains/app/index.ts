@@ -21,6 +21,8 @@ enum Events {
   Keydown,
   EscapeKeyDown,
   ClickLink,
+  Show,
+  Hidden,
   // 该怎么处理？
   // DrivesChange,
 }
@@ -46,6 +48,8 @@ type TheTypesOfEvents = {
     href: string;
   };
   [Events.Blur]: void;
+  [Events.Show]: void;
+  [Events.Hidden]: void;
   // [Events.DrivesChange]: Drive[];
 };
 
@@ -64,6 +68,7 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     width: 0,
     height: 0,
   };
+  safeArea = false;
   Events = Events;
 
   // @todo 怎么才能更方便地拓展 Application 类，给其添加许多的额外属性还能有类型提示呢？
@@ -94,6 +99,24 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     this.user = user;
     this.router = router;
     this.cache = cache;
+
+    const { availHeight, availWidth } = window.screen;
+    if (window.navigator.userAgent.match(/iphone/i)) {
+      const matched = [
+        // iphonex iphonexs iphone12mini
+        "375-812",
+        // iPhone XS Max iPhone XR
+        "414-896",
+        // iPhone pro max iPhone14Plus
+        "428-926",
+        // iPhone 12/pro 13/14  753
+        "390-844",
+        // iPhone 14Pro
+        "393-852",
+        // iPhone 14ProMax
+        "430-932",
+      ].includes(`${availWidth}-${availHeight}`);
+    }
   }
   /** 启动应用 */
   async start() {
@@ -163,6 +186,12 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   onBlur(handler: Handler<TheTypesOfEvents[Events.Blur]>) {
     this.on(Events.Blur, handler);
+  }
+  onShow(handler: Handler<TheTypesOfEvents[Events.Show]>) {
+    return this.on(Events.Show, handler);
+  }
+  onHidden(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
+    return this.on(Events.Hidden, handler);
   }
   onClickLink(handler: Handler<TheTypesOfEvents[Events.ClickLink]>) {
     this.on(Events.ClickLink, handler);
