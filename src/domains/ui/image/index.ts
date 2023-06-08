@@ -37,6 +37,15 @@ const prefix = "http://static.funzm.com";
 const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
 
 export class ImageCore extends BaseDomain<TheTypesOfEvents> {
+  static url(u: string | null) {
+    if (!u) {
+      return DEFAULT_IMAGE1;
+    }
+    if (u.includes("http")) {
+      return u;
+    }
+    return prefix + u;
+  }
   src: string;
   width: number;
   height: number;
@@ -75,8 +84,14 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
   handleShow() {
     console.log("[IMAGE_CORE]handleShow", this.realSrc);
     this.load(this.realSrc);
-    this.src = prefix + this.realSrc;
+    this.src = this.getUrl();
     this.emit(Events.StateChange, { ...this.state });
+  }
+  getUrl() {
+    if (this.realSrc.includes("http")) {
+      return this.realSrc;
+    }
+    return prefix + this.realSrc;
   }
   /** 图片加载完成 */
   handleLoaded() {

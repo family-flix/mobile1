@@ -84,6 +84,7 @@ type TheTypesOfEvents = {
 
 type PlayerProps = {};
 type PlayerState = {
+  poster?: string;
   width: number;
   height: number;
   ready: boolean;
@@ -107,6 +108,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     return this._currentTime;
   }
   _mounted = false;
+  poster?: string;
   /** 默认是不能播放的，只有用户交互后可以播放 */
   private _target_current_time = 0;
   private _progress = 0;
@@ -125,6 +127,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
 
   get state(): PlayerState {
     return {
+      poster: this.poster,
       width: this._size.width,
       height: this._size.height,
       ready: this._canPlay,
@@ -164,6 +167,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._abstractNode.setVolume(v);
+  }
+  setPoster(url: string | null) {
+    if (url === null) {
+      return;
+    }
+    this.poster = url;
+    this.emit(Events.StateChange, { ...this.state });
   }
   /** 改变当前进度 */
   setCurrentTime(currentTime: number = 0) {

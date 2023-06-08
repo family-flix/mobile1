@@ -24,9 +24,9 @@ export function Video(props: { store: PlayerCore }) {
     connect($video, store);
   }, []);
 
-  const { width, height, ready } = state;
+  const { width, height, ready, poster } = state;
 
-  console.log("[COMPONENT]Video - render", width, height);
+  console.log("[COMPONENT]Video - render", width, height, poster);
 
   return (
     <div
@@ -39,18 +39,14 @@ export function Video(props: { store: PlayerCore }) {
     >
       <video
         ref={videoRef}
+        poster={poster}
         className="w-full relative z-10"
         controls={true}
         webkit-playsinline="true"
         playsInline
         preload="none"
         height={height}
-        style={{ opacity: ready ? "1" : "0" }}
-        // width={}
-        // x5-video-player-fullscreen="true"
-        // x5-video-player-type="h5"
-        // x5-video-orientation="landscape"
-        // style={{ objectFit: "fill" }}
+        // style={{ opacity: ready ? "1" : "0" }}
       />
     </div>
   );

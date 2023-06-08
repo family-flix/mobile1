@@ -129,7 +129,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.log("push", targetPathname, this.prevPathname);
     const realTargetPathname = `${NavigatorCore.prefix}${targetPathname}`;
     if (this.pathname === realTargetPathname) {
-      this.error("cur pathname has been", targetPathname);
+      console.log("cur pathname has been", targetPathname);
       return;
     }
     const prevPathname = this.pathname;
@@ -182,6 +182,9 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const targetPathname = pathname;
+    const prevPathname = this.pathname;
+    this.setPrevPathname(prevPathname);
+    this.setPathname(targetPathname);
     const isForward = (() => {
       if (this.prevHistories.length === 0) {
         return false;

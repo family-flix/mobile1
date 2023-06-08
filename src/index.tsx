@@ -80,8 +80,17 @@ function ApplicationView() {
       // }, 200);
       if (prevView) {
         if (router._pending.type === "back") {
+          // const unlisten = prevView.onHidden(() => {
+          //   if (prevView === tvPlaying) {
+          //     rootView.removeSubView(prevView);
+          //     unlisten();
+          //   }
+          // });
           prevView.hide();
           subView.uncovered();
+          setTimeout(() => {
+            rootView.removeSubView(prevView);
+          }, 800);
           return;
         }
         prevView.layered();
