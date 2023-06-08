@@ -2,7 +2,6 @@ import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
 
-const prefix = "https://static.funzm.com";
 enum Events {
   StateChange,
   StartLoad,
@@ -32,6 +31,9 @@ type ImageState = ImageProps & {
   failed: boolean;
   loaded: boolean;
 };
+// const prefix = window.location.origin;
+// const prefix = "http://127.0.0.1:3100";
+const prefix = "http://static.funzm.com";
 const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
 
 export class ImageCore extends BaseDomain<TheTypesOfEvents> {

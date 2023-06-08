@@ -31,6 +31,7 @@ import { ToggleCore } from "@/domains/ui/toggle";
 import { LazyImage } from "@/components/ui/image";
 import { ToggleView } from "@/components/ui/toggle";
 import { Video } from "@/components/ui/video";
+import { Show } from "@/packages/ui/show";
 
 const aSheet = new DialogCore();
 const bSheet = new DialogCore();
@@ -40,11 +41,11 @@ const dSheet = new DialogCore();
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  // const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const tv = useInstance(() => new TVCore());
   const player = useInstance(() => new PlayerCore({ app }));
-  // const video = useInstance(() => new ElementCore({}));
+  const video = useInstance(() => new ElementCore({}));
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
   const [profile, setProfile] = useState(tv.profile);
   const [source, setSource] = useState(tv.curSource);
@@ -67,11 +68,15 @@ export const TVPlayingPage: ViewComponent = (props) => {
     // view.onUnmounted(() => {
     //   player.destroy();
     // });
+    video.onMounted(() => {
+      connect(videoRef.current!, player);
+    });
 
     tv.onProfileLoaded((profile) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { curEpisode } = profile;
-      console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+      // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+      console.log(2);
       tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
       player.setCurrentTime(curEpisode.currentTime);
     });
@@ -92,6 +97,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       // console.log("[PAGE]play - tv.onSourceChange", width, height);
       const h = Math.ceil((height / width) * app.size.width);
       // player.setResolution(values.resolution);
+      console.log(3);
       player.pause();
       player.loadSource(mediaSource);
       player.setSize({
@@ -102,7 +108,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       setSource(mediaSource);
     });
     player.onCanPlay(() => {
-      console.log("[PAGE]play - player.onCanPlay");
+      // console.log("[PAGE]play - player.onCanPlay");
+      console.log(5);
       cover.hide();
       player.play();
     });
@@ -136,7 +143,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.setCurrentTime(tv.currentTime);
     });
     player.onSourceLoaded(() => {
-      console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+      console.log(6);
+      // console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
       aSheet.hide();
       cSheet.hide();
     });
@@ -147,27 +155,46 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
-      console.log("[PAGE]play - player.onUrlChange");
+      console.log(4);
+      // const $video = player.node()!;
+      const $video = videoRef.current!;
+      $video!.onloadstart = () => {
+        console.log("load start");
+      };
+      console.log("[PAGE]play - player.onUrlChange", url);
       if (player.canPlayType("application/vnd.apple.mpegurl")) {
-        player.load(url);
+        console.log(4.1);
+        $video.src = url;
+        console.log(4.2);
+        $video.load();
+        // player.load(url);
+        return;
       }
-      const $video = player.node();
       const mod = await import("hls.js");
       const Hls2 = mod.default;
-      if (Hls2.isSupported() && url.includes("m3u8") && $video) {
+      if (Hls2.isSupported() && url.includes("m3u8")) {
         // console.log("[PAGE]TVPlaying - need using hls.js");
         const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
         Hls.attachMedia($video);
         Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+          console.log(4.2);
           Hls.loadSource(url);
         });
         return;
       }
+      console.log(4.3);
       player.load(url);
     });
     //
     // console.log("fetch profile", view.params.id);
-    tv.fetchProfile(view.params.id);
+    // player.onMounted(() => {
+    //   console.log(1);
+    //   tv.fetchProfile(view.params.id);
+    // });
+    setTimeout(() => {
+      console.log(1);
+      tv.fetchProfile(view.params.id);
+    }, 3000);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
@@ -310,26 +337,42 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
             <div className="video absolute z-20 w-full top-32">
-              {(() => {
+              {/* {(() => {
                 if (profile === null || profile.curEpisode === null) {
                   return null;
                 }
                 return (
                   <div className="relative">
                     <ToggleView store={cover}>
-                      <LazyImage
-                        className="absolute left-0 top-0 z-20"
-                        src={profile.curEpisode.thumbnail ?? undefined}
-                        alt={profile.name}
-                      />
+                      <Show when={!!profile.curEpisode.thumbnail}>
+                        <LazyImage
+                          className="absolute left-0 top-0 z-20"
+                          src={profile.curEpisode.thumbnail ?? undefined}
+                          alt={profile.name}
+                        />
+                      </Show>
                       <div className="center z-30 top-20">
                         <Loader className="inline-block w-8 h-8 text-white animate-spin" />
                       </div>
                     </ToggleView>
-                    <Video store={player} />
                   </div>
                 );
-              })()}
+              })()} */}
+              <Element store={video}>
+                <video
+                  ref={videoRef}
+                  className="w-full"
+                  controls={true}
+                  webkit-playsinline="true"
+                  playsInline
+                  preload="none"
+                  // x5-video-player-fullscreen="true"
+                  // x5-video-player-type="h5"
+                  // x5-video-orientation="landscape"
+                  // style={{ objectFit: "fill" }}
+                />
+              </Element>
+              {/* <Video store={player} /> */}
               {/* <div className={cn("absolute inset-0")}>
                   <div
                     className={cn(

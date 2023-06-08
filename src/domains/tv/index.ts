@@ -225,6 +225,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     //   text: [this.profile.name, this.curEpisode.episode],
     // });
     // console.log("[DOMAIN]TV - playEpisode");
+    if (!this.curEpisode.thumbnail && this.curSource.thumbnail) {
+      this.curEpisode.thumbnail = this.curSource.thumbnail;
+    }
     this.emit(Events.EpisodeChange, { ...this.curEpisode });
     this.emit(Events.SourceChange, { ...this.curSource, currentTime });
     this.emit(Events.StateChange, { ...this.profile });

@@ -61,6 +61,7 @@ type RouteConfigure = {
 };
 
 export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
+  static prefix: string | null = null;
   _name = "NavigatorCore";
   debug = false;
 
@@ -92,24 +93,28 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   };
 
   /** 启动路由监听 */
-  async start(location: RouteLocation) {
+  async prepare(location: RouteLocation) {
     // console.log("[DOMAIN]router - start");
     const { pathname, href, origin, host, protocol } = location;
     this.origin = origin;
-    this.log("start, current pathname is", pathname);
-    // this.setSomething(location);
-    this.setPathname(pathname);
+    // this.pathname = pathname;
     const query = buildQuery(href);
     this.query = query;
+    this._pending = {
+      pathname,
+      type: "initialize",
+    };
+    this.log("start, current pathname is", pathname);
+    // this.setSomething(location);
+  }
+  start() {
+    const { pathname } = this._pending;
+    this.setPathname(pathname);
     this.histories = [
       {
         pathname,
       },
     ];
-    this._pending = {
-      pathname,
-      type: "initialize",
-    };
     this.emit(Events.PathnameChange, { ...this._pending });
   }
 
@@ -122,42 +127,44 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   /** 跳转到指定路由 */
   async push(targetPathname: string) {
     this.log("push", targetPathname, this.prevPathname);
-    if (this.pathname === targetPathname) {
+    const realTargetPathname = `${NavigatorCore.prefix}${targetPathname}`;
+    if (this.pathname === realTargetPathname) {
       this.error("cur pathname has been", targetPathname);
       return;
     }
     const prevPathname = this.pathname;
     this.setPrevPathname(prevPathname);
-    this.setPathname(targetPathname);
-    this.histories.push({ pathname: targetPathname });
+    this.setPathname(realTargetPathname);
+    this.histories.push({ pathname: realTargetPathname });
     this.emit(Events.PushState, {
       from: this.prevPathname,
       // 这里似乎不用 this.origin，只要是 / 开头的，就会拼接在后面
-      path: `${this.origin}${targetPathname}`,
-      pathname: targetPathname,
+      path: `${this.origin}${realTargetPathname}`,
+      pathname: realTargetPathname,
     });
     this._pending = {
-      pathname: targetPathname,
+      pathname: realTargetPathname,
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });
   }
   replace = async (targetPathname: string) => {
+    const realTargetPathname = NavigatorCore.prefix + targetPathname;
     this.log("replace", targetPathname, this.pathname);
-    if (targetPathname === this.pathname) {
+    if (this.pathname === realTargetPathname) {
       return;
     }
     this.setPrevPathname(this.pathname);
-    this.setPathname(targetPathname);
-    this.histories[this.histories.length - 1] = { pathname: targetPathname };
+    this.setPathname(realTargetPathname);
+    this.histories[this.histories.length - 1] = { pathname: realTargetPathname };
     this.emit(Events.ReplaceState, {
       from: this.prevPathname,
       //       title,
-      path: `${this.origin}${targetPathname}`,
-      pathname: targetPathname,
+      path: `${this.origin}${realTargetPathname}`,
+      pathname: realTargetPathname,
     });
     this._pending = {
-      pathname: targetPathname,
+      pathname: realTargetPathname,
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });

@@ -59,7 +59,7 @@ type RouteViewState = {
   layered: boolean;
 };
 type RouteViewProps = {
-  prefix?: string;
+  // prefix?: string;
   title: string;
   component: unknown;
   keepAlive?: boolean;
@@ -67,11 +67,11 @@ type RouteViewProps = {
 
 export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
+  static prefix: string | null = null;
 
   _name = "ViewCore";
   debug = true;
   id = this.uid();
-  prefix: string | null;
   /** 配置信息 */
   configs: {
     /** 路由匹配规则 */
@@ -111,10 +111,10 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(options: Partial<{ name: string }> & RouteViewProps) {
     super(options);
-    const { prefix = null, title, component, keepAlive = false } = options;
+    const { title, component, keepAlive = false } = options;
     this.title = title;
     this._name = title;
-    this.prefix = prefix;
+    // this.prefix = prefix;
     this.component = component;
     this.configs = [];
     // this.keepAlive = keepAlive;
@@ -280,6 +280,10 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.subViews.push(view);
     this.emit(Events.ViewsChange, [...this.subViews]);
   }
+  replaceSubViews(views: RouteViewCore[]) {
+    this.subViews = views;
+    this.emit(Events.ViewsChange, [...this.subViews]);
+  }
   removeSubView(view: RouteViewCore) {
     if (!this.subViews.includes(view)) {
       return;
@@ -289,6 +293,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 添加子视图 */
   register(path: string, configFactory: () => RouteViewCore) {
+    const realPath = `${RouteViewCore.prefix}${path}`;
     const existing = this.configs.find((config) => {
       return config.path === path;
     });
@@ -296,11 +301,11 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
       return this;
     }
     const keys: ParamConfigure[] = [];
-    const regexp = pathToRegexp(path, keys);
+    const regexp = pathToRegexp(realPath, keys);
     this.configs.push({
       regexp,
       keys,
-      path,
+      path: realPath,
       config: configFactory,
     });
     return this;

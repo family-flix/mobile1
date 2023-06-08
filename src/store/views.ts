@@ -11,6 +11,8 @@ import { TVPlayingPage } from "@/pages/play";
 import { Test1Page } from "@/pages/test1";
 import { NotFoundPage } from "@/pages/not-found";
 
+RouteViewCore.prefix = "/mobile";
+
 export const rootView = new RouteViewCore({
   title: "ROOT",
   component: "div",

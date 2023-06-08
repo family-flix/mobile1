@@ -3,7 +3,13 @@
  */
 import { JSONObject } from "@/types";
 
-export interface OriginalResponse extends JSONObject {}
+export type OriginalResponse = {
+  list: unknown[];
+} & {
+  data: {
+    list: unknown[];
+  };
+};
 /**
  * 查询参数
  */
@@ -55,6 +61,8 @@ export interface Response<T> {
    * 是否请求中，initial 时 loading 为 false
    */
   loading: boolean;
+  /** 是否为空（用于展示空状态） */
+  empty: boolean;
   /**
    * 是否正在刷新（用于移动端下拉刷新）
    */
@@ -72,19 +80,13 @@ export type OriginalResponseProcessor = <T>(
  * 响应处理器
  */
 export type ResponseProcessor = <T>(
-  response: Omit<
-    Response<T>,
-    "dataSource" | "page" | "pageSize" | "noMore" | "error"
-  >,
+  response: Omit<Response<T>, "dataSource" | "page" | "pageSize" | "noMore" | "error">,
   originalResponse: OriginalResponse
 ) => Omit<Response<T>, "dataSource" | "page" | "pageSize" | "noMore" | "error">;
 /**
  * 参数处理器
  */
-export type ParamsProcessor = (
-  params: FetchParams,
-  currentParams: any
-) => FetchParams;
+export type ParamsProcessor = (params: FetchParams, currentParams: any) => FetchParams;
 export interface ListProps<T> {
   /**
    * 是否打开 debug
@@ -104,10 +106,7 @@ export interface ListProps<T> {
    * 响应处理器
    * 建议在 service 函数中直接处理
    */
-  processor?: <T>(
-    response: Response<T>,
-    originalResponse: OriginalResponse
-  ) => Response<T>;
+  processor?: <T>(response: Response<T>, originalResponse: OriginalResponse) => Response<T>;
   /**
    * 默认已存在的数据
    */

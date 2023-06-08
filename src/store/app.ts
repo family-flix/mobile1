@@ -9,6 +9,7 @@ import { UserCore } from "@/domains/user";
 import { NavigatorCore } from "@/domains/navigator";
 import { Result } from "@/types";
 
+NavigatorCore.prefix = "/mobile";
 const cache = new LocalCache();
 const router = new NavigatorCore();
 const user = new UserCore(cache.get("user"));
@@ -16,7 +17,6 @@ user.onLogin((profile) => {
   cache.set("user", profile);
 });
 user.onTip((msg) => {
-  alert(msg.text.join("\n"));
   app.tip(msg);
 });
 // user.onError((error) => {
@@ -30,46 +30,48 @@ export const app = new Application({
   router,
   cache,
   async beforeReady() {
-    const { query } = router;
-    await user.validate(query.token, query.force);
+    // const { query } = router;
+    await user.validate(router.query.token, router.query.force);
     if (!user.isLogin) {
       app.emit(Application.Events.Error, new Error("请先登录"));
       return Result.Ok(null);
     }
+    app.emit(Application.Events.Ready);
     return Result.Ok(null);
   },
 });
 
-// @ts-ignore
-ListCore.commonProcessor = (originalResponse) => {
-  if (originalResponse.error) {
-    return {
-      dataSource: [],
-      page: 1,
-      pageSize: 20,
-      total: 0,
-      noMore: false,
-      error: new Error(
-        `${(originalResponse.error as unknown as Error).message}`
-      ),
-    };
-  }
+ListCore.commonProcessor = <T>(
+  originalResponse: any
+): {
+  dataSource: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  empty: boolean;
+  noMore: boolean;
+  error: Error | null;
+} => {
   try {
     const data = originalResponse.data || originalResponse;
-    // @ts-ignore
     const { list, page, page_size, total, no_more } = data;
     const result = {
       dataSource: list,
       page,
       pageSize: page_size,
       total,
+      empty: false,
       noMore: false,
+      error: null,
     };
     if (total <= page_size * page) {
       result.noMore = true;
     }
     if (no_more !== undefined) {
       result.noMore = no_more;
+    }
+    if (list.length === 0 && page >= 1) {
+      result.empty = true;
     }
     return result;
   } catch (error) {
@@ -79,8 +81,8 @@ ListCore.commonProcessor = (originalResponse) => {
       pageSize: 20,
       total: 0,
       noMore: false,
+      empty: false,
       error: new Error(`${(error as Error).message}`),
     };
   }
 };
-// export const app = _app;

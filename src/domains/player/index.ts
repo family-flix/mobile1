@@ -10,6 +10,7 @@ import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { Application } from "@/domains/app";
 
 enum Events {
+  Mounted,
   /** 改变播放地址（切换剧集或分辨率） */
   UrlChange,
   /** 调整进度 */
@@ -44,6 +45,7 @@ enum Events {
   StateChange,
 }
 type TheTypesOfEvents = {
+  [Events.Mounted]: boolean;
   [Events.UrlChange]: MediaSourceProfile;
   [Events.CurrentTimeChange]: { currentTime: number };
   [Events.ResolutionChange]: {
@@ -104,6 +106,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   get currentTime() {
     return this._currentTime;
   }
+  _mounted = false;
   /** 默认是不能播放的，只有用户交互后可以播放 */
   private _target_current_time = 0;
   private _progress = 0;
@@ -241,6 +244,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     this._passPoint = false;
   }
+  setMounted() {
+    this._mounted = true;
+    this.emit(Events.Mounted);
+  }
   handlePause({ currentTime, duration }: { currentTime: number; duration: number }) {
     this.emit(Events.Pause, { currentTime, duration });
   }
@@ -338,5 +345,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
+  }
+  onMounted(handler: Handler<TheTypesOfEvents[Events.Mounted]>) {
+    return this.on(Events.Mounted, handler);
   }
 }

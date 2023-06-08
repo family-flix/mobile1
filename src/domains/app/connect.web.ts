@@ -1,6 +1,6 @@
 import { Application } from "@/domains/app";
 
-export function bind(app: Application) {
+export function connect(app: Application) {
   const { router } = app;
   const ownerDocument = globalThis.document;
   app.getComputedStyle = (el: HTMLElement) => {

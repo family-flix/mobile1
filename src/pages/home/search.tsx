@@ -4,7 +4,8 @@
 import { useState } from "react";
 
 import { fetch_tv_list, TVItem } from "@/domains/tv/services";
-import LazyImage from "@/components/LazyImage";
+import { LazyImage } from "@/components/ui/image";
+import { RequestCore } from "@/domains/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useInitialize, useUnmounted } from "@/hooks";
@@ -16,8 +17,7 @@ import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { sleep } from "@/utils";
 import { ScrollView } from "@/components/ui/scroll-view";
 
-// @ts-ignore
-const helper = new ListCore<TVItem>(fetch_tv_list);
+const helper = new ListCore(new RequestCore(fetch_tv_list));
 const nameInput = new InputCore({
   placeholder: "请输入关键字搜索",
 });

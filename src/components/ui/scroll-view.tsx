@@ -1,35 +1,12 @@
 /**
  * @file 可滚动容器，支持下拉刷新、滚动监听等
  */
-// import { createSignal, onMount, JSX, children } from "solid-js";
 import React, { useRef, useState } from "react";
 import { ArrowDown, ArrowUp, Loader2 } from "lucide-react";
 
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
-// import { Dynamic } from "solid-js/web";
-
-// export const ScrollView = (props: {
-//   store: ScrollViewCore;
-//   className?: string;
-//   style?: React.CSSProperties;
-//   children: React.ReactElement;
-// }) => {
-//   const { store, className, style = {}, children } = props;
-
-//   const [state, setState] = useState(store.state);
-
-//   store.onStateChange((nextState) => {
-//     setState(nextState);
-//   });
-
-//   return (
-//     <Root className={className} style={style}>
-//       <Content store={store}>{children}</Content>
-//     </Root>
-//   );
-// };
 
 export const ScrollView = (props: {
   store: ScrollViewCore;

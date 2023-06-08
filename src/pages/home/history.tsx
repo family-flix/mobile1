@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { fetch_play_histories, PlayHistoryItem } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { RequestCore } from "@/domains/client";
 import { ViewComponent } from "@/types";
 import { useInitialize, useInstance } from "@/hooks";
 import { ScrollView } from "@/components/ui/scroll-view";
@@ -15,7 +16,7 @@ import { sleep } from "@/utils";
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { router, view } = props;
   // const [response, helper] = useHelper<PlayHistoryItem>(fetch_play_histories);
-  const helper = useInstance(() => new ListCore<PlayHistoryItem>(fetch_play_histories));
+  const helper = useInstance(() => new ListCore(new RequestCore(fetch_play_histories)));
   const scrollView = useInstance(() => new ScrollViewCore({}));
   const [response, setResponse] = useState(helper.response);
 
@@ -38,7 +39,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
       console.log("home/history hide");
     });
     scrollView.onPullToRefresh(async () => {
-      await Promise.all([helper.refresh(), sleep(2000)]);
+      await helper.refresh();
       scrollView.stopPullToRefresh();
     });
     scrollView.onReachBottom(() => {

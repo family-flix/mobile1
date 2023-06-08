@@ -5,7 +5,7 @@ interface IProps {
   src?: string;
   alt?: string;
 }
-const LazyImage: React.FC<IProps> = (props) => {
+export const LazyImage: React.FC<IProps> = (props) => {
   const { className, src, alt } = props;
 
   const ref = useRef<HTMLImageElement>(null);
@@ -60,5 +60,3 @@ const LazyImage: React.FC<IProps> = (props) => {
     </div>
   );
 };
-
-export default LazyImage;

@@ -1,29 +1,51 @@
 /**
  * @file 分页领域
  */
-import { JSONValue, Result } from "@/types";
+import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
+import { RequestCore } from "@/domains/client";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
-import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
 import { omit } from "./utils";
+import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
 
 /**
  * 只处理
  * @param originalResponse
  * @returns
  */
-const RESPONSE_PROCESSOR = <T>(originalResponse: OriginalResponse) => {
+const RESPONSE_PROCESSOR = <T>(
+  originalResponse: OriginalResponse
+): {
+  dataSource: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  empty: boolean;
+  noMore: boolean;
+  error: Error | null;
+} => {
   try {
-    const data = originalResponse.data || originalResponse;
-    const { list, page, pageSize, total, isEnd } = data as {
+    const data = (() => {
+      if (originalResponse.data) {
+        return originalResponse.data;
+      }
+      return originalResponse;
+    })();
+    const {
+      list,
+      page = 1,
+      pageSize = 10,
+      total = 0,
+      isEnd,
+    } = data as {
       list: T[];
-      page: number;
-      pageSize: number;
-      total: number;
-      isEnd: boolean;
+      page?: number;
+      pageSize?: number;
+      total?: number;
+      isEnd?: boolean;
     };
     const result = {
       dataSource: list,
@@ -31,13 +53,17 @@ const RESPONSE_PROCESSOR = <T>(originalResponse: OriginalResponse) => {
       pageSize,
       total,
       noMore: false,
+      empty: false,
       error: null,
     };
-    if (total <= pageSize * page) {
+    if (total && pageSize && page && total <= pageSize * page) {
       result.noMore = true;
     }
     if (isEnd !== undefined) {
       result.noMore = isEnd;
+    }
+    if (list.length === 0 && page > 1) {
+      result.empty = true;
     }
     return result;
   } catch (error) {
@@ -47,11 +73,12 @@ const RESPONSE_PROCESSOR = <T>(originalResponse: OriginalResponse) => {
       pageSize: DEFAULT_PAGE_SIZE,
       total: DEFAULT_TOTAL,
       noMore: false,
+      empty: false,
       error: new Error(`process response fail, because ${(error as Error).message}`),
     };
   }
 };
-type ServiceFn = (...args: (FetchParams & Record<string, JSONValue>)[]) => Promise<Result<OriginalResponse>>;
+// type ServiceFn = (...args: unknown[]) => Promise<Result<OriginalResponse>>;
 enum Events {
   LoadingChange,
   ParamsChange,
@@ -69,7 +96,10 @@ interface ListState<T> extends Response<T> {}
 /**
  * 分页类
  */
-export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheTypesOfEvents<T>> {
+export class ListCore<
+  S extends (...args: any[]) => Promise<Result<any>>,
+  T extends RequestedResource<S>["list"][number]
+> extends BaseDomain<TheTypesOfEvents<T>> {
   debug: boolean = false;
 
   static defaultResponse = <T>() => {
@@ -78,44 +108,47 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
   static commonProcessor = RESPONSE_PROCESSOR;
 
   /** 原始请求方法 */
-  private originalFetch: ServiceFn;
+  private originalFetch: RequestCore<S>;
   // private originalFetch: (...args: unknown[]) => Promise<OriginalResponse>;
   /** 支持请求前对参数进行处理（formToBody） */
   private beforeRequest: ParamsProcessor = (currentParams, prevParams) => {
     return { ...prevParams, ...currentParams };
   };
   /** 响应处理器 */
-  private processor = ListCore.commonProcessor;
+  private processor: (response: OriginalResponse) => Response<T>;
   /** 初始查询参数 */
   private initialParams: FetchParams;
   private extraResponse: Record<string, unknown>;
   private params: FetchParams = { ...DEFAULT_PARAMS };
 
-  // @ts-ignore
+  // 响应数据
   response: Response<T> = { ...DEFAULT_RESPONSE };
   rowKey: string;
 
-  constructor(fetch: ServiceFn, options: ListProps<T> = {}) {
+  constructor(fetch: RequestCore<S>, options: ListProps<T> = {}) {
     super();
 
-    if (typeof fetch !== "function") {
-      throw new Error("fetch must be a function");
+    if (!(fetch instanceof RequestCore)) {
+      throw new Error("fetch must be a instance of RequestCore");
     }
 
     const { debug, rowKey = "id", beforeRequest, processor, extraDefaultResponse } = options;
     this.debug = !!debug;
     this.rowKey = rowKey;
     this.originalFetch = fetch;
-    if (processor) {
-      // @ts-ignore
-      this.processor = (originalResponse) => {
-        const nextResponse = {
-          ...this.response,
-          ...ListCore.commonProcessor<T>(originalResponse),
-        } as Response<T>;
-        return processor<T>(nextResponse, originalResponse);
-      };
-    }
+    this.processor = (originalResponse): Response<T> => {
+      const nextResponse = {
+        ...this.response,
+        ...ListCore.commonProcessor<T>(originalResponse),
+      } as Response<T>;
+      if (processor) {
+        const r = processor<T>(nextResponse, originalResponse);
+        if (r !== undefined) {
+          return r;
+        }
+      }
+      return nextResponse;
+    };
     if (beforeRequest !== undefined) {
       this.beforeRequest = beforeRequest;
     }
@@ -173,7 +206,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
    * 手动修改当前实例的查询参数
    * @param {import('./typing').FetchParams} nextParams 查询参数或设置函数
    */
-  setParams = (nextParams: FetchParams | ((v: FetchParams) => FetchParams)) => {
+  setParams = (nextParams: Partial<FetchParams> | ((p: FetchParams) => FetchParams)) => {
     let result = nextParams;
     if (typeof nextParams === "function") {
       result = nextParams(this.params);
@@ -186,7 +219,8 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
    * 外部不应该直接调用该方法
    * @param {import('./typing').FetchParams} nextParams - 查询参数
    */
-  fetch = async (params = {}) => {
+  fetch = async (params: Partial<FetchParams>, ...restArgs: any[]) => {
+    // const [params, ...restArgs] = args;
     this.response.error = null;
     this.response.loading = true;
     this.emit(Events.LoadingChange, true);
@@ -199,20 +233,19 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
     if (processedParams === undefined) {
       processedParams = mergedParams;
     }
-    // @ts-ignore
-    const res = await this.originalFetch(processedParams);
+    const processedArgs = [processedParams, ...restArgs] as Parameters<S>;
+    console.log("[DOMAIN]ListCore - fetch", processedParams, params);
+    const res = await this.originalFetch.run(...processedArgs);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);
     this.params = { ...processedParams };
+    this.emit(Events.LoadingChange, false);
     this.emit(Events.ParamsChange, { ...this.params });
     if (res.error) {
       return Result.Err(res.error);
     }
     const originalResponse = res.data;
-    let response = this.processor<T>(originalResponse);
-    if (response === undefined) {
-      response = ListCore.commonProcessor(originalResponse);
-    }
+    let response = this.processor(originalResponse);
     // console.log(...this.log('3、afterProcessor', response));
     const responseIsEmpty = response.dataSource === undefined;
     if (responseIsEmpty) {
@@ -296,6 +329,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
    * 无限加载时使用的下一页
    */
   loadMore = async () => {
+    console.log("[DOMAIN]ListCore - loadMore");
     if (this.response.loading || this.response.noMore) {
       return;
     }
@@ -304,6 +338,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
       ...restParams,
       page: page + 1,
     });
+    console.log("[DOMAIN]ListCore - loadMore res", res.data);
     if (res.error) {
       this.tip({ icon: "error", text: [res.error.message] });
       this.response.error = res.error;
@@ -424,6 +459,13 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
     this.emit(Events.StateChange, { ...this.response });
     return Result.Ok({ ...this.response });
   };
+  clear() {
+    this.response = {
+      ...DEFAULT_RESPONSE,
+    };
+    this.params = { ...DEFAULT_PARAMS };
+    this.emit(Events.StateChange, { ...this.response });
+  }
   /**
    * 移除列表中的多项（用在删除场景）
    * @param {T[]} items 要删除的元素列表
@@ -455,7 +497,7 @@ export class ListCore<T extends Record<string, unknown>> extends BaseDomain<TheT
   /**
    * 手动修改当前 search
    */
-  modifySearch = (fn: Function) => {
+  modifySearch = (fn: (v: Partial<FetchParams>) => FetchParams) => {
     this.params = {
       ...fn(omit(this.params, ["page", "pageSize"])),
       page: this.params.page,

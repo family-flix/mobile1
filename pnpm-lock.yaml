@@ -1,16 +1,10 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@radix-ui/react-context-menu': ^2.1.3
-  '@radix-ui/react-dialog': ^1.0.3
-  '@radix-ui/react-dropdown-menu': ^2.0.4
   '@radix-ui/react-label': ^2.0.1
   '@radix-ui/react-progress': ^1.0.2
-  '@radix-ui/react-select': ^1.2.1
   '@radix-ui/react-slider': ^1.1.1
   '@radix-ui/react-tabs': ^1.0.3
-  '@radix-ui/react-toast': ^1.1.3
-  '@radix-ui/react-tooltip': ^1.0.5
   '@tailwindcss/line-clamp': ^0.4.4
   '@types/lodash': ^4.14.192
   '@types/node': ^18.15.11
@@ -21,7 +15,6 @@ specifiers:
   autoprefixer: ^10.4.14
   axios: ^1.3.4
   class-variance-authority: ^0.4.0
-  classnames: ^2.3.2
   clsx: ^1.2.1
   dayjs: ^1.11.7
   hls.js: ^1.3.5
@@ -40,25 +33,17 @@ specifiers:
   tailwind-merge: ^1.11.0
   tailwindcss: ^3.3.1
   tailwindcss-animate: ^1.0.5
-  tapable: ^2.2.1
   typescript: ^4.9.5
   vite: ^4.2.0
   vitest: ^0.29.8
 
 dependencies:
-  '@radix-ui/react-context-menu': registry.npmmirror.com/@radix-ui/react-context-menu/2.1.3_tqcjxml4rosq5qpg5cznikfcd4
-  '@radix-ui/react-dialog': registry.npmmirror.com/@radix-ui/react-dialog/1.0.3_tqcjxml4rosq5qpg5cznikfcd4
-  '@radix-ui/react-dropdown-menu': registry.npmmirror.com/@radix-ui/react-dropdown-menu/2.0.4_tqcjxml4rosq5qpg5cznikfcd4
   '@radix-ui/react-label': registry.npmmirror.com/@radix-ui/react-label/2.0.1_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-progress': registry.npmmirror.com/@radix-ui/react-progress/1.0.2_biqbaboplfbrettd7655fr4n2y
-  '@radix-ui/react-select': registry.npmmirror.com/@radix-ui/react-select/1.2.1_tqcjxml4rosq5qpg5cznikfcd4
   '@radix-ui/react-slider': registry.npmmirror.com/@radix-ui/react-slider/1.1.1_biqbaboplfbrettd7655fr4n2y
   '@radix-ui/react-tabs': registry.npmmirror.com/@radix-ui/react-tabs/1.0.3_biqbaboplfbrettd7655fr4n2y
-  '@radix-ui/react-toast': registry.npmmirror.com/@radix-ui/react-toast/1.1.3_biqbaboplfbrettd7655fr4n2y
-  '@radix-ui/react-tooltip': registry.npmmirror.com/@radix-ui/react-tooltip/1.0.5_tqcjxml4rosq5qpg5cznikfcd4
   axios: registry.npmmirror.com/axios/1.4.0
   class-variance-authority: registry.npmmirror.com/class-variance-authority/0.4.0_typescript@4.9.5
-  classnames: registry.npmmirror.com/classnames/2.3.2
   clsx: registry.npmmirror.com/clsx/1.2.1
   dayjs: registry.npmmirror.com/dayjs/1.11.7
   hls.js: registry.npmmirror.com/hls.js/1.4.3
@@ -70,7 +55,6 @@ dependencies:
   qs: registry.npmmirror.com/qs/6.11.1
   react: registry.npmmirror.com/react/18.2.0
   react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-  tapable: registry.npmmirror.com/tapable/2.2.1
 
 devDependencies:
   '@tailwindcss/line-clamp': registry.npmmirror.com/@tailwindcss/line-clamp/0.4.4_tailwindcss@3.3.2
@@ -352,37 +336,6 @@ packages:
     dev: true
     optional: true
 
-  registry.npmmirror.com/@floating-ui/core/0.7.3:
-    resolution: {integrity: sha512-buc8BXHmG9l82+OQXOFU3Kr2XQx9ys01U/Q9HMIrZ300iLc8HLMgh7dcCqgYzAzf4BkoQvDcXf5Y+CuEZ5JBYg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@floating-ui/core/-/core-0.7.3.tgz}
-    name: '@floating-ui/core'
-    version: 0.7.3
-    dev: false
-
-  registry.npmmirror.com/@floating-ui/dom/0.5.4:
-    resolution: {integrity: sha512-419BMceRLq0RrmTSDxn8hf9R3VCJv2K9PUfugh5JyEFmdjzDo+e8U5EdR8nzKq8Yj1htzLm3b6eQEEam3/rrtg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@floating-ui/dom/-/dom-0.5.4.tgz}
-    name: '@floating-ui/dom'
-    version: 0.5.4
-    dependencies:
-      '@floating-ui/core': registry.npmmirror.com/@floating-ui/core/0.7.3
-    dev: false
-
-  registry.npmmirror.com/@floating-ui/react-dom/0.7.2_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-1T0sJcpHgX/u4I1OzIEhlcrvkUN8ln39nz7fMoE/2HDHrPiMFoOGR7++GYyfUmIQHkkrTinaeQsO3XWubjSvGg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@floating-ui/react-dom/-/react-dom-0.7.2.tgz}
-    id: registry.npmmirror.com/@floating-ui/react-dom/0.7.2
-    name: '@floating-ui/react-dom'
-    version: 0.7.2
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      '@floating-ui/dom': registry.npmmirror.com/@floating-ui/dom/0.5.4
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-      use-isomorphic-layout-effect: registry.npmmirror.com/use-isomorphic-layout-effect/1.1.2_s3k22s5ab4eu26xuel7hiaraxy
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
   registry.npmmirror.com/@jridgewell/gen-mapping/0.3.3:
     resolution: {integrity: sha512-HLhSWOLRi875zjjMG/r+Nv0oCW8umGb0BgEhyX3dDX3egwZtB8PqLnjz3yedt8R5StBrzcg4aBpnh8UA9D1BoQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz}
     name: '@jridgewell/gen-mapping'
@@ -472,21 +425,6 @@ packages:
       '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-arrow/1.0.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-fqYwhhI9IarZ0ll2cUSfKuXHlJK0qE4AfnRrPBbRwEH/4mGQn04/QFGomLi8TXWIdv9WJk//KgGm+aDxVIr1wA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-arrow/-/react-arrow-1.0.2.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-arrow/1.0.2
-    name: '@radix-ui/react-arrow'
-    version: 1.0.2
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-collection/1.0.2_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-s8WdQQ6wNXpaxdZ308KSr8fEWGrg4un8i4r/w7fhiS4ElRNjk5rRcl0/C6TANG2LvLOGIxtzo/jAg6Qf73TEBw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-collection/-/react-collection-1.0.2.tgz}
     id: registry.npmmirror.com/@radix-ui/react-collection/1.0.2
@@ -517,28 +455,6 @@ packages:
       react: registry.npmmirror.com/react/18.2.0
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-context-menu/2.1.3_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-T+Jpbl/L9eJmlNGdgrl39NUqYTrtHJz4FmjdSc2WDUiZXWMmokK+1K8t/xEcx9q2PvVYfL5UDy9dkzU9UouyGw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-context-menu/-/react-context-menu-2.1.3.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-context-menu/2.1.3
-    name: '@radix-ui/react-context-menu'
-    version: 2.1.3
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-menu': registry.npmmirror.com/@radix-ui/react-menu/2.0.4_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0:
     resolution: {integrity: sha512-1pVM9RfOQ+n/N5PJK33kRSKsr1glNxomxONs5c49MliinBY6Yw2Q995qfBUUo0/Mbg05B/sGA0gkgPI7kmSHBg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-context/-/react-context-1.0.0.tgz}
     id: registry.npmmirror.com/@radix-ui/react-context/1.0.0
@@ -551,36 +467,6 @@ packages:
       react: registry.npmmirror.com/react/18.2.0
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-dialog/1.0.3_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-owNhq36kNPqC2/a+zJRioPg6HHnTn5B/sh/NjTY8r4W9g1L5VJlrzZIVcBr7R9Mg8iLjVmh6MGgMlfoVf/WO/A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-dialog/-/react-dialog-1.0.3.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-dialog/1.0.3
-    name: '@radix-ui/react-dialog'
-    version: 1.0.3
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-dismissable-layer': registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-focus-guards': registry.npmmirror.com/@radix-ui/react-focus-guards/1.0.0_react@18.2.0
-      '@radix-ui/react-focus-scope': registry.npmmirror.com/@radix-ui/react-focus-scope/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-id': registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0
-      '@radix-ui/react-portal': registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-presence': registry.npmmirror.com/@radix-ui/react-presence/1.0.0_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-slot': registry.npmmirror.com/@radix-ui/react-slot/1.0.1_react@18.2.0
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      aria-hidden: registry.npmmirror.com/aria-hidden/1.2.3
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-      react-remove-scroll: registry.npmmirror.com/react-remove-scroll/2.5.5_s3k22s5ab4eu26xuel7hiaraxy
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-direction/1.0.0_react@18.2.0:
     resolution: {integrity: sha512-2HV05lGUgYcA6xgLQ4BKPDmtL+QbIZYH5fCOTAOOcJ5O0QbWS3i9lKaurLzliYUDhORI2Qr3pyjhJh44lKA3rQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-direction/-/react-direction-1.0.0.tgz}
     id: registry.npmmirror.com/@radix-ui/react-direction/1.0.0
@@ -591,77 +477,6 @@ packages:
     dependencies:
       '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
       react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-nXZOvFjOuHS1ovumntGV7NNoLaEp9JEvTht3MBjP44NSW5hUKj/8OnfN3+8WmB+CEhN44XaGhpHoSsUIEl5P7Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.0.3.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3
-    name: '@radix-ui/react-dismissable-layer'
-    version: 1.0.3
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      '@radix-ui/react-use-escape-keydown': registry.npmmirror.com/@radix-ui/react-use-escape-keydown/1.0.2_react@18.2.0
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-dropdown-menu/2.0.4_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-y6AT9+MydyXcByivdK1+QpjWoKaC7MLjkS/cH1Q3keEyMvDkiY85m8o2Bi6+Z1PPUlCsMULopxagQOSfN0wahg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-dropdown-menu/-/react-dropdown-menu-2.0.4.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-dropdown-menu/2.0.4
-    name: '@radix-ui/react-dropdown-menu'
-    version: 2.0.4
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-id': registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0
-      '@radix-ui/react-menu': registry.npmmirror.com/@radix-ui/react-menu/2.0.4_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-focus-guards/1.0.0_react@18.2.0:
-    resolution: {integrity: sha512-UagjDk4ijOAnGu4WMUPj9ahi7/zJJqNZ9ZAiGPp7waUWJO0O1aWXi/udPphI0IUjvrhBsZJGSN66dR2dsueLWQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-focus-guards/-/react-focus-guards-1.0.0.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-focus-guards/1.0.0
-    name: '@radix-ui/react-focus-guards'
-    version: 1.0.0
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-focus-scope/1.0.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-spwXlNTfeIprt+kaEWE/qYuYT3ZAqJiAGjN/JgdvgVDTu8yc+HuX+WOWXrKliKnLnwck0F6JDkqIERncnih+4A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-focus-scope/-/react-focus-scope-1.0.2.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-focus-scope/1.0.2
-    name: '@radix-ui/react-focus-scope'
-    version: 1.0.2
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
     dev: false
 
   registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0:
@@ -682,81 +497,6 @@ packages:
     id: registry.npmmirror.com/@radix-ui/react-label/2.0.1
     name: '@radix-ui/react-label'
     version: 2.0.1
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-menu/2.0.4_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-mzKR47tZ1t193trEqlQoJvzY4u9vYfVH16ryBrVrCAGZzkgyWnMQYEZdUkM7y8ak9mrkKtJiqB47TlEnubeOFQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-menu/-/react-menu-2.0.4.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-menu/2.0.4
-    name: '@radix-ui/react-menu'
-    version: 2.0.4
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-collection': registry.npmmirror.com/@radix-ui/react-collection/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-direction': registry.npmmirror.com/@radix-ui/react-direction/1.0.0_react@18.2.0
-      '@radix-ui/react-dismissable-layer': registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-focus-guards': registry.npmmirror.com/@radix-ui/react-focus-guards/1.0.0_react@18.2.0
-      '@radix-ui/react-focus-scope': registry.npmmirror.com/@radix-ui/react-focus-scope/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-id': registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0
-      '@radix-ui/react-popper': registry.npmmirror.com/@radix-ui/react-popper/1.1.1_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-portal': registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-presence': registry.npmmirror.com/@radix-ui/react-presence/1.0.0_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-roving-focus': registry.npmmirror.com/@radix-ui/react-roving-focus/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-slot': registry.npmmirror.com/@radix-ui/react-slot/1.0.1_react@18.2.0
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      aria-hidden: registry.npmmirror.com/aria-hidden/1.2.3
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-      react-remove-scroll: registry.npmmirror.com/react-remove-scroll/2.5.5_s3k22s5ab4eu26xuel7hiaraxy
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-popper/1.1.1_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-keYDcdMPNMjSC8zTsZ8wezUMiWM9Yj14wtF3s0PTIs9srnEPC9Kt2Gny1T3T81mmSeyDjZxsD9N5WCwNNb712w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-popper/-/react-popper-1.1.1.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-popper/1.1.1
-    name: '@radix-ui/react-popper'
-    version: 1.1.1
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@floating-ui/react-dom': registry.npmmirror.com/@floating-ui/react-dom/0.7.2_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-arrow': registry.npmmirror.com/@radix-ui/react-arrow/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      '@radix-ui/react-use-layout-effect': registry.npmmirror.com/@radix-ui/react-use-layout-effect/1.0.0_react@18.2.0
-      '@radix-ui/react-use-rect': registry.npmmirror.com/@radix-ui/react-use-rect/1.0.0_react@18.2.0
-      '@radix-ui/react-use-size': registry.npmmirror.com/@radix-ui/react-use-size/1.0.0_react@18.2.0
-      '@radix-ui/rect': registry.npmmirror.com/@radix-ui/rect/1.0.0
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-swu32idoCW7KA2VEiUZGBSu9nB6qwGdV6k6HYhUoOo3M1FFpD+VgLzUqtt3mwL1ssz7r2x8MggpLSQach2Xy/Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-portal/-/react-portal-1.0.2.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-portal/1.0.2
-    name: '@radix-ui/react-portal'
-    version: 1.0.2
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
       react-dom: ^16.8 || ^17.0 || ^18.0
@@ -837,43 +577,6 @@ packages:
       react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-select/1.2.1_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-GULRMITaOHNj79BZvQs3iZO0+f2IgI8g5HDhMi7Bnc13t7IlG86NFtOCfTLme4PNZdEtU+no+oGgcl6IFiphpQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-select/-/react-select-1.2.1.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-select/1.2.1
-    name: '@radix-ui/react-select'
-    version: 1.2.1
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/number': registry.npmmirror.com/@radix-ui/number/1.0.0
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-collection': registry.npmmirror.com/@radix-ui/react-collection/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-direction': registry.npmmirror.com/@radix-ui/react-direction/1.0.0_react@18.2.0
-      '@radix-ui/react-dismissable-layer': registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-focus-guards': registry.npmmirror.com/@radix-ui/react-focus-guards/1.0.0_react@18.2.0
-      '@radix-ui/react-focus-scope': registry.npmmirror.com/@radix-ui/react-focus-scope/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-id': registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0
-      '@radix-ui/react-popper': registry.npmmirror.com/@radix-ui/react-popper/1.1.1_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-portal': registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-slot': registry.npmmirror.com/@radix-ui/react-slot/1.0.1_react@18.2.0
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      '@radix-ui/react-use-layout-effect': registry.npmmirror.com/@radix-ui/react-use-layout-effect/1.0.0_react@18.2.0
-      '@radix-ui/react-use-previous': registry.npmmirror.com/@radix-ui/react-use-previous/1.0.0_react@18.2.0
-      '@radix-ui/react-visually-hidden': registry.npmmirror.com/@radix-ui/react-visually-hidden/1.0.2_biqbaboplfbrettd7655fr4n2y
-      aria-hidden: registry.npmmirror.com/aria-hidden/1.2.3
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-      react-remove-scroll: registry.npmmirror.com/react-remove-scroll/2.5.5_s3k22s5ab4eu26xuel7hiaraxy
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-slider/1.1.1_biqbaboplfbrettd7655fr4n2y:
     resolution: {integrity: sha512-0aswLpUKZIraPEOcXfwW25N1KPfLA6Mvm1TxogUChGsbLbys2ihd7uk9XAKsol9ZQPucxh2/mybwdRtAKrs/MQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-slider/-/react-slider-1.1.1.tgz}
     id: registry.npmmirror.com/@radix-ui/react-slider/1.1.1
@@ -934,60 +637,6 @@ packages:
       react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-toast/1.1.3_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-yHFgpxi9wjbfPvpSPdYAzivCqw48eA1ofT8m/WqYOVTxKPdmQMuVKRYPlMmj4C1d6tJdFj/LBa1J4iY3fL4OwQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-toast/-/react-toast-1.1.3.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-toast/1.1.3
-    name: '@radix-ui/react-toast'
-    version: 1.1.3
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-collection': registry.npmmirror.com/@radix-ui/react-collection/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-dismissable-layer': registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-portal': registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-presence': registry.npmmirror.com/@radix-ui/react-presence/1.0.0_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      '@radix-ui/react-use-layout-effect': registry.npmmirror.com/@radix-ui/react-use-layout-effect/1.0.0_react@18.2.0
-      '@radix-ui/react-visually-hidden': registry.npmmirror.com/@radix-ui/react-visually-hidden/1.0.2_biqbaboplfbrettd7655fr4n2y
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-tooltip/1.0.5_tqcjxml4rosq5qpg5cznikfcd4:
-    resolution: {integrity: sha512-cDKVcfzyO6PpckZekODJZDe5ZxZ2fCZlzKzTmPhe4mX9qTHRfLcKgqb0OKf22xLwDequ2tVleim+ZYx3rabD5w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-tooltip/-/react-tooltip-1.0.5.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-tooltip/1.0.5
-    name: '@radix-ui/react-tooltip'
-    version: 1.0.5
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/primitive': registry.npmmirror.com/@radix-ui/primitive/1.0.0
-      '@radix-ui/react-compose-refs': registry.npmmirror.com/@radix-ui/react-compose-refs/1.0.0_react@18.2.0
-      '@radix-ui/react-context': registry.npmmirror.com/@radix-ui/react-context/1.0.0_react@18.2.0
-      '@radix-ui/react-dismissable-layer': registry.npmmirror.com/@radix-ui/react-dismissable-layer/1.0.3_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-id': registry.npmmirror.com/@radix-ui/react-id/1.0.0_react@18.2.0
-      '@radix-ui/react-popper': registry.npmmirror.com/@radix-ui/react-popper/1.1.1_tqcjxml4rosq5qpg5cznikfcd4
-      '@radix-ui/react-portal': registry.npmmirror.com/@radix-ui/react-portal/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-presence': registry.npmmirror.com/@radix-ui/react-presence/1.0.0_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      '@radix-ui/react-slot': registry.npmmirror.com/@radix-ui/react-slot/1.0.1_react@18.2.0
-      '@radix-ui/react-use-controllable-state': registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0_react@18.2.0
-      '@radix-ui/react-visually-hidden': registry.npmmirror.com/@radix-ui/react-visually-hidden/1.0.2_biqbaboplfbrettd7655fr4n2y
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0:
     resolution: {integrity: sha512-GZtyzoHz95Rhs6S63D2t/eqvdFCm7I+yHMLVQheKM7nBD8mbZIt+ct1jz4536MDnaOGKIxynJ8eHTkVGVVkoTg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-use-callback-ref/-/react-use-callback-ref-1.0.0.tgz}
     id: registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0
@@ -1005,19 +654,6 @@ packages:
     id: registry.npmmirror.com/@radix-ui/react-use-controllable-state/1.0.0
     name: '@radix-ui/react-use-controllable-state'
     version: 1.0.0
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/react-use-callback-ref': registry.npmmirror.com/@radix-ui/react-use-callback-ref/1.0.0_react@18.2.0
-      react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-use-escape-keydown/1.0.2_react@18.2.0:
-    resolution: {integrity: sha512-DXGim3x74WgUv+iMNCF+cAo8xUHHeqvjx8zs7trKf+FkQKPQXLk2sX7Gx1ysH7Q76xCpZuxIJE7HLPxRE+Q+GA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-use-escape-keydown/-/react-use-escape-keydown-1.0.2.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-use-escape-keydown/1.0.2
-    name: '@radix-ui/react-use-escape-keydown'
-    version: 1.0.2
     peerDependencies:
       react: ^16.8 || ^17.0 || ^18.0
     dependencies:
@@ -1050,19 +686,6 @@ packages:
       react: registry.npmmirror.com/react/18.2.0
     dev: false
 
-  registry.npmmirror.com/@radix-ui/react-use-rect/1.0.0_react@18.2.0:
-    resolution: {integrity: sha512-TB7pID8NRMEHxb/qQJpvSt3hQU4sqNPM1VCTjTRjEOa7cEop/QMuq8S6fb/5Tsz64kqSvB9WnwsDHtjnrM9qew==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-use-rect/-/react-use-rect-1.0.0.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-use-rect/1.0.0
-    name: '@radix-ui/react-use-rect'
-    version: 1.0.0
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/rect': registry.npmmirror.com/@radix-ui/rect/1.0.0
-      react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
   registry.npmmirror.com/@radix-ui/react-use-size/1.0.0_react@18.2.0:
     resolution: {integrity: sha512-imZ3aYcoYCKhhgNpkNDh/aTiU05qw9hX+HHI1QDBTyIlcFjgeFlKKySNGMwTp7nYFLQg/j0VA2FmCY4WPDDHMg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-use-size/-/react-use-size-1.0.0.tgz}
     id: registry.npmmirror.com/@radix-ui/react-use-size/1.0.0
@@ -1074,29 +697,6 @@ packages:
       '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
       '@radix-ui/react-use-layout-effect': registry.npmmirror.com/@radix-ui/react-use-layout-effect/1.0.0_react@18.2.0
       react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/react-visually-hidden/1.0.2_biqbaboplfbrettd7655fr4n2y:
-    resolution: {integrity: sha512-qirnJxtYn73HEk1rXL12/mXnu2rwsNHDID10th2JGtdK25T9wX+mxRmGt7iPSahw512GbZOc0syZX1nLQGoEOg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/react-visually-hidden/-/react-visually-hidden-1.0.2.tgz}
-    id: registry.npmmirror.com/@radix-ui/react-visually-hidden/1.0.2
-    name: '@radix-ui/react-visually-hidden'
-    version: 1.0.2
-    peerDependencies:
-      react: ^16.8 || ^17.0 || ^18.0
-      react-dom: ^16.8 || ^17.0 || ^18.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
-      '@radix-ui/react-primitive': registry.npmmirror.com/@radix-ui/react-primitive/1.0.2_biqbaboplfbrettd7655fr4n2y
-      react: registry.npmmirror.com/react/18.2.0
-      react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
-    dev: false
-
-  registry.npmmirror.com/@radix-ui/rect/1.0.0:
-    resolution: {integrity: sha512-d0O68AYy/9oeEy1DdC07bz1/ZXX+DqCskRd3i4JzLSTXwefzaepQrKjXC7aNM8lTHjFLDO0pDgaEiQ7jEk+HVg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@radix-ui/rect/-/rect-1.0.0.tgz}
-    name: '@radix-ui/rect'
-    version: 1.0.0
-    dependencies:
-      '@babel/runtime': registry.npmmirror.com/@babel/runtime/7.21.5
     dev: false
 
   registry.npmmirror.com/@swc/core-darwin-arm64/1.3.57:
@@ -1285,6 +885,7 @@ packages:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/prop-types/-/prop-types-15.7.5.tgz}
     name: '@types/prop-types'
     version: 15.7.5
+    dev: true
 
   registry.npmmirror.com/@types/qs/6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/qs/-/qs-6.9.7.tgz}
@@ -1308,11 +909,13 @@ packages:
       '@types/prop-types': registry.npmmirror.com/@types/prop-types/15.7.5
       '@types/scheduler': registry.npmmirror.com/@types/scheduler/0.16.3
       csstype: registry.npmmirror.com/csstype/3.1.2
+    dev: true
 
   registry.npmmirror.com/@types/scheduler/0.16.3:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/scheduler/-/scheduler-0.16.3.tgz}
     name: '@types/scheduler'
     version: 0.16.3
+    dev: true
 
   registry.npmmirror.com/@vitejs/plugin-react-swc/3.3.1_vite@4.3.5:
     resolution: {integrity: sha512-ZoYjGxMniXP7X+5ry/W1tpY7w0OeLUEsBF5RHFPmAhpgwwNWie8OF4056MRXRi9QgvYYoZPDzdOXGK3wlCoTfQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@vitejs/plugin-react-swc/-/plugin-react-swc-3.3.1.tgz}
@@ -1440,15 +1043,6 @@ packages:
     name: arg
     version: 5.0.2
     dev: true
-
-  registry.npmmirror.com/aria-hidden/1.2.3:
-    resolution: {integrity: sha512-xcLxITLe2HYa1cnYnwCjkOO1PqUHQpozB8x9AR0OgWN2woOBi5kSDVxKfd0b7sb1hw5qFeJhXm9H1nu3xSfLeQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/aria-hidden/-/aria-hidden-1.2.3.tgz}
-    name: aria-hidden
-    version: 1.2.3
-    engines: {node: '>=10'}
-    dependencies:
-      tslib: registry.npmmirror.com/tslib/2.5.0
-    dev: false
 
   registry.npmmirror.com/assertion-error/1.1.0:
     resolution: {integrity: sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/assertion-error/-/assertion-error-1.1.0.tgz}
@@ -1665,12 +1259,6 @@ packages:
         optional: true
     dependencies:
       typescript: registry.npmmirror.com/typescript/4.9.5
-    dev: false
-
-  registry.npmmirror.com/classnames/2.3.2:
-    resolution: {integrity: sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/classnames/-/classnames-2.3.2.tgz}
-    name: classnames
-    version: 2.3.2
     dev: false
 
   registry.npmmirror.com/cli-truncate/3.1.0:
@@ -1894,6 +1482,7 @@ packages:
     resolution: {integrity: sha512-I7K1Uu0MBPzaFKg4nI5Q7Vs2t+3gWWW648spaF+Rg7pI9ds18Ugn+lvg4SHczUdKlHI5LWBXyqfS8+DufyBsgQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/csstype/-/csstype-3.1.2.tgz}
     name: csstype
     version: 3.1.2
+    dev: true
 
   registry.npmmirror.com/dayjs/1.11.7:
     resolution: {integrity: sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/dayjs/-/dayjs-1.11.7.tgz}
@@ -1929,12 +1518,6 @@ packages:
     name: delayed-stream
     version: 1.0.0
     engines: {node: '>=0.4.0'}
-    dev: false
-
-  registry.npmmirror.com/detect-node-es/1.1.0:
-    resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/detect-node-es/-/detect-node-es-1.1.0.tgz}
-    name: detect-node-es
-    version: 1.1.0
     dev: false
 
   registry.npmmirror.com/didyoumean/1.2.2:
@@ -2214,13 +1797,6 @@ packages:
       has-symbols: registry.npmmirror.com/has-symbols/1.0.3
     dev: false
 
-  registry.npmmirror.com/get-nonce/1.0.1:
-    resolution: {integrity: sha512-FJhYRoDaiatfEkUK8HKlicmu/3SGFD51q3itKDGoSTysQJBnfOcxU5GxnhE1E6soB76MbT0MBtnKJuXyAx+96Q==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/get-nonce/-/get-nonce-1.0.1.tgz}
-    name: get-nonce
-    version: 1.0.1
-    engines: {node: '>=6'}
-    dev: false
-
   registry.npmmirror.com/glob-parent/5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/glob-parent/-/glob-parent-5.1.2.tgz}
     name: glob-parent
@@ -2367,14 +1943,6 @@ packages:
     name: inherits
     version: 2.0.4
     dev: true
-
-  registry.npmmirror.com/invariant/2.2.4:
-    resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/invariant/-/invariant-2.2.4.tgz}
-    name: invariant
-    version: 2.2.4
-    dependencies:
-      loose-envify: registry.npmmirror.com/loose-envify/1.4.0
-    dev: false
 
   registry.npmmirror.com/is-binary-path/2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/is-binary-path/-/is-binary-path-2.1.0.tgz}
@@ -3459,67 +3027,6 @@ packages:
     version: 17.0.2
     dev: true
 
-  registry.npmmirror.com/react-remove-scroll-bar/2.3.4_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-63C4YQBUt0m6ALadE9XV56hV8BgJWDmmTPY758iIJjfQKt2nYwoUrPk0LXRXcB/yIj82T1/Ixfdpdk68LwIB0A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-remove-scroll-bar/-/react-remove-scroll-bar-2.3.4.tgz}
-    id: registry.npmmirror.com/react-remove-scroll-bar/2.3.4
-    name: react-remove-scroll-bar
-    version: 2.3.4
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      react: registry.npmmirror.com/react/18.2.0
-      react-style-singleton: registry.npmmirror.com/react-style-singleton/2.2.1_s3k22s5ab4eu26xuel7hiaraxy
-      tslib: registry.npmmirror.com/tslib/2.5.0
-    dev: false
-
-  registry.npmmirror.com/react-remove-scroll/2.5.5_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-ImKhrzJJsyXJfBZ4bzu8Bwpka14c/fQt0k+cyFp/PBhTfyDnU5hjOtM4AG/0AMyy8oKzOTR0lDgJIM7pYXI0kw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-remove-scroll/-/react-remove-scroll-2.5.5.tgz}
-    id: registry.npmmirror.com/react-remove-scroll/2.5.5
-    name: react-remove-scroll
-    version: 2.5.5
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      react: registry.npmmirror.com/react/18.2.0
-      react-remove-scroll-bar: registry.npmmirror.com/react-remove-scroll-bar/2.3.4_s3k22s5ab4eu26xuel7hiaraxy
-      react-style-singleton: registry.npmmirror.com/react-style-singleton/2.2.1_s3k22s5ab4eu26xuel7hiaraxy
-      tslib: registry.npmmirror.com/tslib/2.5.0
-      use-callback-ref: registry.npmmirror.com/use-callback-ref/1.3.0_s3k22s5ab4eu26xuel7hiaraxy
-      use-sidecar: registry.npmmirror.com/use-sidecar/1.1.2_s3k22s5ab4eu26xuel7hiaraxy
-    dev: false
-
-  registry.npmmirror.com/react-style-singleton/2.2.1_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-ZWj0fHEMyWkHzKYUr2Bs/4zU6XLmq9HsgBURm7g5pAVfyn49DgUiNgY2d4lXRlYSiCif9YBGpQleewkcqddc7g==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react-style-singleton/-/react-style-singleton-2.2.1.tgz}
-    id: registry.npmmirror.com/react-style-singleton/2.2.1
-    name: react-style-singleton
-    version: 2.2.1
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      get-nonce: registry.npmmirror.com/get-nonce/1.0.1
-      invariant: registry.npmmirror.com/invariant/2.2.4
-      react: registry.npmmirror.com/react/18.2.0
-      tslib: registry.npmmirror.com/tslib/2.5.0
-    dev: false
-
   registry.npmmirror.com/react/18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/react/-/react-18.2.0.tgz}
     name: react
@@ -3920,13 +3427,6 @@ packages:
       - ts-node
     dev: true
 
-  registry.npmmirror.com/tapable/2.2.1:
-    resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/tapable/-/tapable-2.2.1.tgz}
-    name: tapable
-    version: 2.2.1
-    engines: {node: '>=6'}
-    dev: false
-
   registry.npmmirror.com/temp/0.9.4:
     resolution: {integrity: sha512-yYrrsWnrXMcdsnu/7YMYAofM1ktpL5By7vZhf15CrXijWWrEYZks5AXBudalfSWJLlnen/QUJUB5aoB0kqZUGA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/temp/-/temp-0.9.4.tgz}
     name: temp
@@ -3989,12 +3489,6 @@ packages:
     version: 0.1.13
     dev: true
 
-  registry.npmmirror.com/tslib/2.5.0:
-    resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/tslib/-/tslib-2.5.0.tgz}
-    name: tslib
-    version: 2.5.0
-    dev: false
-
   registry.npmmirror.com/type-detect/4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/type-detect/-/type-detect-4.0.8.tgz}
     name: type-detect
@@ -4028,59 +3522,6 @@ packages:
       escalade: registry.npmmirror.com/escalade/3.1.1
       picocolors: registry.npmmirror.com/picocolors/1.0.0
     dev: true
-
-  registry.npmmirror.com/use-callback-ref/1.3.0_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-3FT9PRuRdbB9HfXhEq35u4oZkvpJ5kuYbpqhCfmiZyReuRgpnhDlbr2ZEnnuS0RrJAPn6l23xjFg9kpDM+Ms7w==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/use-callback-ref/-/use-callback-ref-1.3.0.tgz}
-    id: registry.npmmirror.com/use-callback-ref/1.3.0
-    name: use-callback-ref
-    version: 1.3.0
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@types/react': ^16.8.0 || ^17.0.0 || ^18.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      react: registry.npmmirror.com/react/18.2.0
-      tslib: registry.npmmirror.com/tslib/2.5.0
-    dev: false
-
-  registry.npmmirror.com/use-isomorphic-layout-effect/1.1.2_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/use-isomorphic-layout-effect/-/use-isomorphic-layout-effect-1.1.2.tgz}
-    id: registry.npmmirror.com/use-isomorphic-layout-effect/1.1.2
-    name: use-isomorphic-layout-effect
-    version: 1.1.2
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      react: registry.npmmirror.com/react/18.2.0
-    dev: false
-
-  registry.npmmirror.com/use-sidecar/1.1.2_s3k22s5ab4eu26xuel7hiaraxy:
-    resolution: {integrity: sha512-epTbsLuzZ7lPClpz2TyryBfztm7m+28DlEv2ZCQ3MDr5ssiwyOwGH/e5F9CkfWjJ1t4clvI58yF822/GUkjjhw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/use-sidecar/-/use-sidecar-1.1.2.tgz}
-    id: registry.npmmirror.com/use-sidecar/1.1.2
-    name: use-sidecar
-    version: 1.1.2
-    engines: {node: '>=10'}
-    peerDependencies:
-      '@types/react': ^16.9.0 || ^17.0.0 || ^18.0.0
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': registry.npmmirror.com/@types/react/18.2.6
-      detect-node-es: registry.npmmirror.com/detect-node-es/1.1.0
-      react: registry.npmmirror.com/react/18.2.0
-      tslib: registry.npmmirror.com/tslib/2.5.0
-    dev: false
 
   registry.npmmirror.com/util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/util-deprecate/-/util-deprecate-1.0.2.tgz}

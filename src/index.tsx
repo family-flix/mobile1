@@ -5,8 +5,10 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 import { ThemeProvider } from "./components/Theme";
-import { bind } from "./domains/app/bind.web";
+import { connect } from "./domains/app/connect.web";
 import { StackRouteView } from "./components/ui/stack-route-view";
+import { Toast } from "./components/ui/toast";
+import { ToastCore } from "./domains/ui/toast";
 import { useInitialize } from "./hooks";
 import { aView, bView, cView, dView, mainLayout, rootView, testView, tvPlaying } from "./store/views";
 import { app } from "./store/app";
@@ -14,8 +16,6 @@ import { cn } from "./utils";
 import { ViewComponent } from "./types";
 
 import "./index.css";
-import { Toast } from "./components/ui/toast";
-import { ToastCore } from "./domains/ui/toast";
 
 const { router } = app;
 
@@ -49,13 +49,13 @@ app.onPopState((options) => {
   router.handlePopState({ type, pathname });
 });
 
-bind(app);
+connect(app);
 
 const toast = new ToastCore();
 
 function ApplicationView() {
   // const [showMask, setShowMask] = useState(true);
-  // const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const [subViews, setSubViews] = useState(rootView.subViews);
 
   useInitialize(() => {
@@ -112,34 +112,35 @@ function ApplicationView() {
         texts: text,
       });
     });
-    // app.onError((msg) => {
-    //   alert(msg.message);
-    // });
+    app.onError((err) => {
+      setError(err);
+    });
+    app.onReady(() => {
+      router.start();
+    });
     console.log("[]Application - before start", window.history);
-    router.start(window.location);
+    router.prepare(window.location);
     app.start();
   });
 
   // console.log("[ROOT]renderer - render");
-  // if (error) {
-  //   return (
-  //     <div
-  //       className={cn("fixed inset-0 z-10")}
-  //       onClick={() => {
-  //         app.router.reload();
-  //       }}
-  //     >
-  //       <div className="w-screen h-screen flex items-center justify-center">
-  //         <div>
-  //           <div className="text-3xl text-center">{error.message}</div>
-  //           <div className="mt-4 text-center">
-  //             请根据上述提示进行操作，或者点击刷新
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (error) {
+    return (
+      <div
+        className={cn("fixed inset-0 z-10")}
+        onClick={() => {
+          app.router.reload();
+        }}
+      >
+        <div className="w-screen h-screen flex items-center justify-center">
+          <div>
+            <div className="text-3xl text-center">{error.message}</div>
+            <div className="mt-4 text-center">请根据上述提示进行操作，或者点击刷新</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -5,7 +5,7 @@ export class LocalCache {
 
   constructor() {
     // @todo localStorage 是端相关 API，应该在外部传入
-    this._values = JSON.parse(localStorage.getItem("global") || "{}");
+    this._values = JSON.parse(localStorage.getItem("m_global") || "{}");
   }
 
   get values() {
@@ -22,7 +22,7 @@ export class LocalCache {
       [key]: values,
     };
     this._values = nextValues;
-    localStorage.setItem("global", JSON.stringify(nextValues));
+    localStorage.setItem("m_global", JSON.stringify(nextValues));
   }) as (key: string, value: unknown) => void;
 
   get<T>(key: string, defaultValue?: T) {
