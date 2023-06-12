@@ -6,18 +6,30 @@ import { HardDrive, Home, Search, Users } from "lucide-react";
 
 import { ViewComponent } from "@/types";
 import { useState } from "react";
-import { useInitialize } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks";
 import { KeepAliveRouteView } from "@/components/ui/keep-alive-route-view";
 import { Sheet } from "@/components/ui/sheet";
 import { DialogCore } from "@/domains/ui/dialog";
-import { RouteViewCore } from "@/domains/route_view";
-import { aView } from "@/store/views";
+import { Button } from "@/components/ui/button";
+import { ButtonCore } from "@/domains/ui/button";
 
 const dialog = new DialogCore();
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
 
+  const logoutBtn = useInstance(
+    () =>
+      new ButtonCore({
+        async onClick() {
+          const r = await app.user.validate(router.query.token, "1");
+          if (r.error) {
+            return;
+          }
+          router.reload();
+        },
+      })
+  );
   const [subViews, setSubViews] = useState(view.subViews);
 
   useInitialize(() => {
@@ -139,7 +151,11 @@ export const HomeLayout: ViewComponent = (props) => {
         </div>
       </div>
       <Sheet store={dialog}>
-        <div>敬请期待</div>
+        <div className="p-4">
+          <div className="grid grid-cols-1">
+            <Button store={logoutBtn}>重新登录</Button>
+          </div>
+        </div>
       </Sheet>
     </div>
   );

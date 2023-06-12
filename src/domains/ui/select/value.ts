@@ -7,7 +7,7 @@ export class SelectValueCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(
     options: Partial<{
-      name: string;
+      _name: string;
       $node: () => HTMLElement;
       getStyles: () => CSSStyleDeclaration;
       getRect: () => DOMRect;

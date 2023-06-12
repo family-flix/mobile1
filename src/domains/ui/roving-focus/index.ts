@@ -33,10 +33,10 @@ export class RovingFocusCore extends BaseDomain<TheTypesOfEvents> {
     dir: "ltr",
   };
 
-  constructor(options: Partial<{ name: string }> = {}) {
+  constructor(options: Partial<{ _name: string }> = {}) {
     super(options);
 
-    const { name } = options;
+    const { _name: name } = options;
     this.collection = new CollectionCore();
   }
 

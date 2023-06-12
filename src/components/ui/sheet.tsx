@@ -8,7 +8,7 @@ import { cn } from "@/utils";
 import { DialogCore } from "@/domains/ui/dialog";
 
 const sheetVariants = cva(
-  "fixed z-50 scale-100 gap-4 rounded-tl-xl rounded-tr-xl bg-white opacity-100 dark:bg-slate-900",
+  "fixed z-50 scale-100 gap-4 rounded-tl-xl rounded-tr-xl bg-white opacity-100 dark:bg-black-900",
   {
     variants: {
       position: {

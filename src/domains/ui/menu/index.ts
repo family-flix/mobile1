@@ -57,13 +57,13 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
   constructor(
     options: Partial<
       {
-        name: string;
+        _name: string;
       } & MenuProps
     > = {}
   ) {
     super(options);
 
-    const { name, items = [], side, align, strategy } = options;
+    const { _name: name, items = [], side, align, strategy } = options;
     this.state.items = items;
     this.items = items;
     this.listenItems(items);
@@ -71,7 +71,7 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
       side,
       align,
       strategy,
-      name: name ? `${name}-popper` : "MenuCore",
+      _name: name ? `${name}-popper` : "MenuCore",
     });
     this.presence = new PresenceCore();
     this.layer = new DismissableLayerCore();

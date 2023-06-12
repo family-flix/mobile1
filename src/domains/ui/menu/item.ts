@@ -54,7 +54,7 @@ export class MenuItemCore extends BaseDomain<TheTypesOfEvents> {
 
   _enter = false;
 
-  constructor(options: Partial<{ name: string } & MenuItemProps> = {}) {
+  constructor(options: Partial<{ _name: string } & MenuItemProps> = {}) {
     super(options);
 
     const { label, disabled = false, menu, onClick } = options;

@@ -114,7 +114,7 @@ const Content = (
       className={cn(
         "fixed z-50 grid w-full gap-4 rounded-b-lg bg-white p-6 sm:max-w-lg sm:rounded-lg",
         "sm:zoom-in-90",
-        "dark:bg-slate-900",
+        "dark:bg-black-900",
         "animate-in data-[state=open]:fade-in-90",
         "data-[state=closed]:animate-out data-[state=closed]:fade-out"
       )}
@@ -125,7 +125,7 @@ const Content = (
         className={cn(
           "absolute top-4 right-4 cursor-pointer rounded-sm",
           "opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none",
-          "dark:focus:ring-slate-400 dark:focus:ring-offset-slate-900",
+          "dark:focus:ring-slate-400 dark:focus:ring-offset-black-900",
           "data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800"
         )}
       >

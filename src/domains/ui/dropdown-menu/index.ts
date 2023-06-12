@@ -29,7 +29,7 @@ export class DropdownMenuCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(
     options: Partial<{
-      name: string;
+      _name: string;
       items: MenuItemCore[];
     }> = {}
   ) {

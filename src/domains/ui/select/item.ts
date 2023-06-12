@@ -49,7 +49,7 @@ export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(
     options: Partial<{
-      name: string;
+      _name: string;
       value: string;
       state: Partial<SelectItemState>;
       $node: () => HTMLElement;
@@ -58,7 +58,7 @@ export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
     }> = {}
   ) {
     super(options);
-    const { name, value, state, $node, getRect, getStyles } = options;
+    const { _name: name, value, state, $node, getRect, getStyles } = options;
     // console.log("[SelectItemCore]constructor", state);
     this.state.value = value;
     if (name) {

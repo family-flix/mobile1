@@ -118,7 +118,7 @@ export class PopperCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(
     options: Partial<{
-      name: string;
+      _name: string;
       side: Side;
       align: Align;
       strategy: "fixed" | "absolute";
@@ -127,7 +127,7 @@ export class PopperCore extends BaseDomain<TheTypesOfEvents> {
   ) {
     super(options);
 
-    const { name, side = "bottom", align = "center", strategy = "fixed", middleware = [] } = options;
+    const { _name: name, side = "bottom", align = "center", strategy = "fixed", middleware = [] } = options;
     if (name) {
       this._name = name;
     }

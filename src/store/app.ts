@@ -16,14 +16,20 @@ const user = new UserCore(cache.get("user"));
 user.onLogin((profile) => {
   cache.set("user", profile);
 });
+user.onLogout(() => {
+  cache.clear("user");
+  // router.push("/login");
+});
+user.onExpired(() => {
+  cache.clear("user");
+  app.tip({
+    text: ["token 已过期，请重新登录"],
+  });
+  // router.replace("/login");
+});
 user.onTip((msg) => {
   app.tip(msg);
 });
-// user.onError((error) => {
-//   app.tip({
-//     text: [error.message],
-//   });
-// });
 
 export const app = new Application({
   user,

@@ -10,75 +10,73 @@ export enum Events {
   Error,
   Login,
   Logout,
+  /** 身份凭证失效 */
+  Expired,
+  StateChange,
 }
 type TheTypesOfEvents = {
   [Events.Tip]: string[];
   [Events.Error]: Error;
-  [Events.Login]: {};
+  [Events.Login]: UserState & { token: string };
   [Events.Logout]: void;
+  [Events.Expired]: void;
+  [Events.StateChange]: UserState;
 };
-
+type UserProps = {
+  id: string;
+  username: string;
+  avatar: string;
+  token: string;
+};
+type UserState = UserProps & {
+  // id: string;
+  // username: string;
+  // avatar: string;
+  // token: string;
+};
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
+  static Events = Events;
+
   _name = "UserCore";
   debug = false;
 
-  _isLogin: boolean = false;
-  profile: {
-    id: string;
-    username: string;
-    avatar: string;
-    token: string;
-  } | null = null;
+  id: string = "";
+  username: string = "Anonymous";
+  avatar: string = "";
   token: string = "";
-  values: Partial<{ email: string; password: string }> = {};
+  isLogin: boolean = false;
 
-  static Events = Events;
+  get state(): UserState {
+    return {
+      id: this.id,
+      username: this.username,
+      avatar: this.avatar,
+      token: this.token,
+    };
+  }
+  constructor(options: Partial<{ _name: string }> & UserProps) {
+    super(options);
 
-  constructor(initialUser?: UserCore["profile"]) {
-    super();
-
-    console.log("constructor", initialUser);
-    this._isLogin = !!initialUser;
-    this.profile = initialUser ?? null;
-    this.token = initialUser ? initialUser.token : "";
-  }
-  get isLogin() {
-    return this._isLogin;
-  }
-  inputEmail(value: string) {
-    this.values.email = value;
-  }
-  inputPassword(value: string) {
-    this.values.password = value;
-  }
-  /** 用户名密码登录 */
-  async login() {
-    const { email, password } = this.values;
-    if (!email) {
-      return Result.Err("请输入邮箱");
+    if (!options) {
+      return;
     }
-    if (!password) {
-      return Result.Err("请输入密码");
-    }
-    const r = await login({ email, password });
-    if (r.error) {
-      this.tip({ text: ["登录失败", r.error.message] });
-      return r;
-    }
-    this.values = {};
-    this._isLogin = true;
-    this.profile = r.data;
-    this.token = r.data.token;
-    this.emit(Events.Login, { ...this.profile });
-    return Result.Ok(r.data);
+    const { id, username, avatar, token } = options;
+    // this.log("constructor", initialUser);
+    this.id = id;
+    this.username = username;
+    this.avatar = avatar;
+    this.isLogin = !!token;
+    this.token = token;
   }
-  logout() {}
+  logout() {
+    // this.validate()
+  }
   /**
    * 以成员身份登录
    */
-  async validate(token: string, force: string) {
-    if (force !== "1" && this._isLogin) {
-      return Result.Ok(this.profile);
+  async validate(token: string, force?: string) {
+    if (force !== "1" && this.isLogin) {
+      return Result.Ok(this.state);
     }
     if (!token) {
       const msg = this.tip({ text: ["缺少 token"] });
@@ -89,31 +87,16 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       this.tip({ text: ["校验 token 失败", r.error.message] });
       return Result.Err(r.error);
     }
-    this.profile = {
-      id: r.data.id,
-      username: "",
-      avatar: "",
-      token: r.data.token,
-    };
-    this._isLogin = true;
-    this.token = this.profile.token;
+    this.id = r.data.id;
+    this.token = r.data.token;
+    this.isLogin = true;
     this.emit(Events.Login, {
-      ...this.profile,
+      ...this.state,
     });
-    return Result.Ok({ ...this.profile });
-  }
-  async register() {
-    const { email, password } = this.values;
-    if (!email) {
-      return Result.Err("Missing email");
-    }
-    if (!password) {
-      return Result.Err("Missing password");
-    }
-    return Result.Ok(null);
+    return Result.Ok({ ...this.state });
   }
   async fetchProfile() {
-    if (!this._isLogin) {
+    if (!this.isLogin) {
       return Result.Err("请先登录");
     }
     const r = await fetch_user_profile();
@@ -122,7 +105,14 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     return Result.Ok(r.data);
   }
+
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {
-    this.on(Events.Login, handler);
+    return this.on(Events.Login, handler);
+  }
+  onLogout(handler: Handler<TheTypesOfEvents[Events.Logout]>) {
+    return this.on(Events.Logout, handler);
+  }
+  onExpired(handler: Handler<TheTypesOfEvents[Events.Expired]>) {
+    return this.on(Events.Expired, handler);
   }
 }

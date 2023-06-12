@@ -23,10 +23,10 @@ export class FormFieldCore extends BaseDomain<TheTypesOfEvents> {
     label: "",
   };
 
-  constructor(options: Partial<{ name: string } & FormFieldProps> = {}) {
+  constructor(options: Partial<{ _name: string } & FormFieldProps> = {}) {
     super(options);
 
-    const { name, label } = options;
+    const { _name: name, label } = options;
     if (name) {
       this._name = name;
     }
