@@ -10,7 +10,19 @@ import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
 import { ToastCore } from "./domains/ui/toast";
 import { useInitialize } from "./hooks";
-import { aView, bView, cView, dView, mainLayout, rootView, testView, tvPlaying } from "./store/views";
+import {
+  homeIndexPage,
+  homeSearchPage,
+  cView,
+  homeMyPage,
+  homeLayout,
+  rootView,
+  testView,
+  tvPlayingPage,
+  outerPlayerPage,
+  homeMoviePage,
+  moviePlayingPage,
+} from "./store/views";
 import { app } from "./store/app";
 import { cn } from "./utils";
 import { ViewComponent } from "./types";
@@ -19,26 +31,35 @@ import "./index.css";
 
 const { router } = app;
 
-mainLayout.register("/home/index", () => {
-  return aView;
+homeLayout.register("/home/index", () => {
+  return homeIndexPage;
 });
-mainLayout.register("/home/search", () => {
-  return bView;
+homeLayout.register("/home/movie", () => {
+  return homeMoviePage;
 });
-mainLayout.register("/home/history", () => {
+homeLayout.register("/home/search", () => {
+  return homeSearchPage;
+});
+homeLayout.register("/home/history", () => {
   return cView;
 });
-mainLayout.register("/home/my", () => {
-  return dView;
+homeLayout.register("/home/my", () => {
+  return homeMyPage;
 });
-rootView.register("/play/:id", () => {
-  return tvPlaying;
+rootView.register("/movie/play/:id", () => {
+  return moviePlayingPage;
+});
+rootView.register("/tv/play/:id", () => {
+  return tvPlayingPage;
+});
+rootView.register("/out_players", () => {
+  return outerPlayerPage;
 });
 rootView.register("/test", () => {
   return testView;
 });
 rootView.register("/", () => {
-  return mainLayout;
+  return homeLayout;
 });
 // router.onPathnameChange(({ pathname, type }) => {
 //   // router.log("[]Application - pathname change", pathname);
@@ -104,12 +125,12 @@ function ApplicationView() {
     });
     rootView.onNotFound(() => {
       console.log("[Application]rootView.onNotFound");
-      rootView.curView = mainLayout;
-      rootView.appendSubView(mainLayout);
+      rootView.curView = homeLayout;
+      rootView.appendSubView(homeLayout);
     });
-    router.onPathnameChange(({ pathname, type }) => {
+    router.onPathnameChange(({ pathname, href, type }) => {
       // router.log("[]Application - pathname change", pathname);
-      rootView.checkMatch({ pathname, type });
+      rootView.checkMatch({ pathname, href, type });
     });
     // router.onRelaunch(() => {
     //   router.log("[]Application - router.onRelaunch");

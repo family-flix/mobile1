@@ -1,14 +1,14 @@
 /**
- * @file 电视剧搜索
+ * @file 电视剧、电影搜索
  */
 import { useState } from "react";
 
-import { fetch_tv_list, TVItem } from "@/domains/tv/services";
+import { search_tv_and_movie } from "@/domains/tv/services";
 import { LazyImage } from "@/components/ui/image";
 import { RequestCore } from "@/domains/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useInitialize, useUnmounted } from "@/hooks";
+import { useInitialize } from "@/hooks";
 import { ListCore } from "@/domains/list";
 import { ViewComponent } from "@/types";
 import { ButtonCore } from "@/domains/ui/button";
@@ -17,7 +17,7 @@ import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { sleep } from "@/utils";
 import { ScrollView } from "@/components/ui/scroll-view";
 
-const helper = new ListCore(new RequestCore(fetch_tv_list));
+const helper = new ListCore(new RequestCore(search_tv_and_movie));
 const nameInput = new InputCore({
   placeholder: "请输入关键字搜索",
 });
@@ -89,17 +89,21 @@ export const HomeSearchPage: ViewComponent = (props) => {
           <div>
             <div className="space-y-4">
               {dataSource.map((t) => {
-                const { id, name, original_name, overview, poster_path } = t;
+                const { id, name, overview, poster_path, type } = t;
                 return (
                   <div
                     key={id}
                     className="flex m-4 cursor-pointer"
                     onClick={() => {
-                      router.push(`/play/${id}`);
+                      if (type === 1) {
+                        router.push(`/tv/play/${id}`);
+                        return;
+                      }
+                      router.push(`/movie/play/${id}`);
                     }}
                   >
-                    <LazyImage className="w-[120px] mr-4 object-cover" src={poster_path} alt={name || original_name} />
-                    <div className="flex-1 max-w-sm overflow-hidden text-ellipsis">
+                    <LazyImage className="w-[120px] mr-4 object-cover" src={poster_path} alt={name} />
+                    <div className="flex-1 overflow-hidden text-ellipsis">
                       <h2 className="truncate text-xl">{name}</h2>
                       <div className="mt-2">
                         <p className="text-sm break-all whitespace-pre-wrap truncate line-clamp-6">{overview}</p>

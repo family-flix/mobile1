@@ -22,6 +22,7 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.PathnameChange]: {
     pathname: string;
+    href: string;
     type: RouteAction;
   };
   [Events.PushState]: {
@@ -86,9 +87,11 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
 
   _pending: {
     pathname: string;
+    href: string;
     type: RouteAction;
   } = {
     pathname: "/",
+    href: "/",
     type: "initialize",
   };
 
@@ -102,6 +105,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.query = query;
     this._pending = {
       pathname,
+      href,
       type: "initialize",
     };
     this.log("start, current pathname is", pathname);
@@ -144,6 +148,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     });
     this._pending = {
       pathname: realTargetPathname,
+      href: realTargetPathname,
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });
@@ -165,9 +170,21 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     });
     this._pending = {
       pathname: realTargetPathname,
+      href: realTargetPathname,
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });
+  };
+  replaceSilently = async (targetPathname: string) => {
+    const realTargetPathname = NavigatorCore.prefix + targetPathname;
+    if (this.pathname === realTargetPathname) {
+      return;
+    }
+    this.emit(Events.ReplaceState, {
+      from: this.prevPathname,
+      path: `${this.origin}${realTargetPathname}`,
+      pathname: realTargetPathname,
+    });
   };
   back = () => {
     this.emit(Events.Back);
@@ -198,6 +215,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     })();
     this._pending = {
       pathname,
+      href: pathname,
       type: (() => {
         if (isForward) {
           return "forward";

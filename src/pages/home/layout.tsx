@@ -2,7 +2,7 @@
  * @file 首页布局
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
-import { HardDrive, Home, Search, Users } from "lucide-react";
+import { Film, HardDrive, Home, Search, Users } from "lucide-react";
 
 import { ViewComponent } from "@/types";
 import { useState } from "react";
@@ -74,7 +74,7 @@ export const HomeLayout: ViewComponent = (props) => {
       if (view.state.layered) {
         return;
       }
-      view.checkMatch({ pathname, type });
+      view.checkMatch({ pathname, href: pathname, type });
     });
     view.checkMatch(router._pending);
   });
@@ -102,7 +102,7 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <div className="h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
+        <div className="fixed left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
             className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
@@ -113,6 +113,17 @@ export const HomeLayout: ViewComponent = (props) => {
               <Home className="w-5 h-5" />
             </div>
             <div className="mt-2 text-sm text-center">首页</div>
+          </div>
+          <div
+            className="flex flex-col justify-center items-center dark:text-black-200"
+            onClick={() => {
+              router.push("/home/movie");
+            }}
+          >
+            <div>
+              <Film className="w-5 h-5" />
+            </div>
+            <div className="mt-2 text-sm text-center">电影</div>
           </div>
           <div
             className="flex flex-col justify-center items-center dark:text-black-200"

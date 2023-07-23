@@ -4,7 +4,7 @@ import { UserCore } from "@/domains/user";
 import { BaseDomain } from "@/domains/base";
 // import { Drive } from "@/domains/drive";
 import { NavigatorCore } from "@/domains/navigator";
-import { Result } from "@/types";
+import { JSONObject, Result } from "@/types";
 
 import { LocalCache } from "./cache";
 
@@ -69,6 +69,7 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     height: 0,
   };
   safeArea = false;
+  env: JSONObject = {};
   Events = Events;
 
   // @todo 怎么才能更方便地拓展 Application 类，给其添加许多的额外属性还能有类型提示呢？
@@ -140,6 +141,12 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   setTitle(title: string): void {
     throw new Error("请实现 setTitle 方法");
+  }
+  setEnv(extra: JSONObject) {
+    this.env = {
+      ...this.env,
+      ...extra,
+    };
   }
   getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
     throw new Error("请实现 getComputedStyle 方法");

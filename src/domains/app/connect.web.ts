@@ -38,7 +38,7 @@ export function connect(app: Application) {
       width: innerWidth,
       height: innerHeight,
     };
-    console.log("resize", size);
+    // console.log("resize", size);
     // app.emit(app.Events.Resize, { width: innerWidth, height: innerHeight });
     app.resize(size);
   });
@@ -52,7 +52,10 @@ export function connect(app: Application) {
     }
     app.emit(app.Events.Show);
   });
-
+  const ua = navigator.userAgent.toLowerCase();
+  app.setEnv({
+    wechat: ua.indexOf("micromessenger") !== -1,
+  });
   const { availHeight, availWidth } = window.screen;
   if (window.navigator.userAgent.match(/iphone/i)) {
     const matched = [

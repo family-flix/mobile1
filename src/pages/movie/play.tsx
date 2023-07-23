@@ -2,56 +2,34 @@
  * @file 视频播放页面
  */
 import { useRef, useState } from "react";
-import {
-  ArrowBigLeft,
-  ArrowBigRight,
-  ArrowLeft,
-  Gauge,
-  Glasses,
-  List,
-  Loader,
-  MoreHorizontal,
-  Pause,
-  Play,
-  RotateCw,
-} from "lucide-react";
+import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw } from "lucide-react";
 
 import { cn } from "@/utils";
-import { TVCore } from "@/domains/tv";
 import { PlayerCore } from "@/domains/player";
 import { Sheet } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ElementCore } from "@/domains/ui/element";
-import { connect } from "@/domains/player/connect.web";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { DialogCore } from "@/domains/ui/dialog";
-import { ToggleCore } from "@/domains/ui/toggle";
-import { LazyImage } from "@/components/ui/image";
-import { ToggleView } from "@/components/ui/toggle";
 import { Video } from "@/components/ui/video";
-import { Show } from "@/packages/ui/show";
-import { ImageCore } from "@/domains/ui/image";
+import { MovieCore } from "@/domains/movie";
 
 const aSheet = new DialogCore();
 const bSheet = new DialogCore();
 const cSheet = new DialogCore();
 const dSheet = new DialogCore();
 
-export const TVPlayingPage: ViewComponent = (props) => {
+export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const tv = useInstance(() => new TVCore());
+  const movie = useInstance(() => new MovieCore());
   const player = useInstance(() => new PlayerCore({ app }));
-  const video = useInstance(() => new ElementCore({}));
-  const cover = useInstance(() => new ToggleCore({ boolean: true }));
-  const [profile, setProfile] = useState(tv.profile);
-  const [source, setSource] = useState(tv.curSource);
+  const [profile, setProfile] = useState(movie.profile);
+  const [curSource, setCurSource] = useState(movie.curSource);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
+
+    // console.log("[PAGE]play - useInitialize");
     app.onHidden(() => {
       player.pause();
       // tv.updatePlayProgress();
@@ -68,33 +46,25 @@ export const TVPlayingPage: ViewComponent = (props) => {
     // view.onUnmounted(() => {
     //   player.destroy();
     // });
-    video.onMounted(() => {
-      connect(videoRef.current!, player);
-    });
+    // video.onMounted(() => {
+    //   connect(videoRef.current!, player);
+    // });
 
-    tv.onProfileLoaded((profile) => {
-      app.setTitle(tv.getTitle().join(" - "));
-      const { curEpisode } = profile;
+    movie.onProfileLoaded((profile) => {
+      app.setTitle(movie.getTitle().join(" - "));
       // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
-      tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
-      player.setCurrentTime(curEpisode.currentTime);
+      movie.play();
+      player.setCurrentTime(profile.currentTime);
     });
-    tv.onEpisodeChange((nextEpisode) => {
-      app.setTitle(tv.getTitle().join(" - "));
-      const { currentTime, thumbnail } = nextEpisode;
-      player.setCurrentTime(currentTime);
-      player.setPoster(ImageCore.url(thumbnail));
-      player.pause();
-    });
-    tv.onStateChange((nextProfile) => {
+    movie.onStateChange((nextProfile) => {
       setProfile(nextProfile);
     });
-    tv.onTip((msg) => {
+    movie.onTip((msg) => {
       app.tip(msg);
     });
-    tv.onSourceChange((mediaSource) => {
+    movie.onSourceChange((mediaSource) => {
       const { width, height } = mediaSource;
-      // console.log("[PAGE]play - tv.onSourceChange", app.size);
+      // console.log("[PAGE]play - tv.onSourceChange", width, height);
       const h = Math.ceil((height / width) * app.size.width);
       // player.setResolution(values.resolution);
       player.pause();
@@ -103,35 +73,35 @@ export const TVPlayingPage: ViewComponent = (props) => {
         width: app.size.width,
         height: h,
       });
+      console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       player.setCurrentTime(mediaSource.currentTime);
-      setSource(mediaSource);
+      setCurSource(mediaSource);
     });
     player.onCanPlay(() => {
       if (!view.state.visible) {
         return;
       }
       // console.log("[PAGE]play - player.onCanPlay");
-      cover.hide();
-      // player.play();
+      // cover.hide();
+      player.play();
     });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-      tv.setCurrentTime(currentTime);
-      tv.updatePlayProgress({
+      movie.setCurrentTime(currentTime);
+      movie.updatePlayProgress({
         currentTime,
         duration,
       });
     });
     player.onPause(({ currentTime, duration }) => {
       console.log("[PAGE]play - player.onPause", currentTime, duration);
-      tv.updatePlayProgressForce({
+      movie.updatePlayProgressForce({
         currentTime,
         duration,
       });
     });
     player.onEnd(() => {
       console.log("[PAGE]play - player.onEnd");
-      tv.playNextEpisode();
     });
     player.onVolumeChange(({ volume }) => {
       console.log("[PAGE]play - player.onVolumeChange", volume);
@@ -141,24 +111,22 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     player.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
-      player.setCurrentTime(tv.currentTime);
+      player.setCurrentTime(movie.currentTime);
     });
     player.onSourceLoaded(() => {
-      // console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
-      aSheet.hide();
-      cSheet.hide();
+      console.log("[PAGE]play - player.onSourceLoaded", player.currentTime);
+      player.setCurrentTime(player.currentTime);
     });
     console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
       console.log("[PAGE]play - player.onError");
-      // const token = "lg9lT9e03WPcmBn";
-      // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
       app.tip({ text: ["视频加载错误", error.message] });
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
       const $video = player.node()!;
-      // console.log("[PAGE]play - player.onUrlChange", url);
+      console.log("[PAGE]play - player.onUrlChange", player.currentTime);
+      //   player.setCurrentTime(player.currentTime);
       if (player.canPlayType("application/vnd.apple.mpegurl")) {
         player.load(url);
         return;
@@ -166,6 +134,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       const mod = await import("hls.js");
       const Hls2 = mod.default;
       if (Hls2.isSupported() && url.includes("m3u8")) {
+        // console.log("[PAGE]TVPlaying - need using hls.js");
         const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
         Hls.attachMedia($video);
         Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
@@ -175,7 +144,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       player.load(url);
     });
-    tv.fetchProfile(view.params.id);
+    console.log("[PAGE]tv/play - before fetch tv profile", view.params.id);
+    movie.fetchProfile(view.params.id);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
@@ -252,27 +222,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         {values.duration}
                       </p>
                     </div> */}
-            <div className="grid grid-cols-3 gap-4 mt-18">
-              <div
-                className="flex flex-col items-center"
-                onClick={async () => {
-                  tv.playPrevEpisode();
-                }}
-              >
-                <ArrowBigLeft className="w-8 h-8" />
-                <p className="mt-2 text-sm">上一集</p>
-              </div>
-              <div className="flex flex-col items-center"></div>
-              <div
-                className="flex flex-col items-center"
-                onClick={() => {
-                  tv.playNextEpisode();
-                }}
-              >
-                <ArrowBigRight className="w-8 h-8 " />
-                <p className="mt-2 text-sm ">下一集</p>
-              </div>
-            </div>
+            <div className="grid grid-cols-3 gap-4 mt-18"></div>
             <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
               <div
                 className="flex flex-col items-center"
@@ -281,7 +231,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 }}
               >
                 <List className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">选集</p>
+                <p className="mt-2 text-sm ">切换源</p>
               </div>
               <div
                 className="flex flex-col items-center"
@@ -316,7 +266,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       </div>
       <div className="video z-20 absolute top-[20%]">
         {(() => {
-          if (profile === null || profile.curEpisode === null) {
+          if (profile === null) {
             return null;
           }
           return (
@@ -390,60 +340,27 @@ export const TVPlayingPage: ViewComponent = (props) => {
           if (profile === null) {
             return <div>Loading</div>;
           }
-          const { seasons, curEpisodes } = profile;
-          const episodes_elm = (
-            <div className="">
-              {curEpisodes.map((episode) => {
-                const { id, name, overview, episode: episode_number } = episode;
+          const { sources } = profile;
+          return (
+            <div className="overflow-y-auto mt-8 pb-12 h-full">
+              {sources.map((source) => {
+                const { file_id, file_name } = source;
                 return (
                   <div
-                    key={id}
+                    key={file_id}
                     onClick={() => {
-                      tv.playEpisode(episode, { currentTime: 0, thumbnail: null });
+                      movie.changeSource(source);
                     }}
                   >
                     <div
-                      className={cn("p-4 rounded cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}
+                      className={cn("p-4 rounded cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}
                     >
-                      <div>
-                        {episode_number}、{name}
-                      </div>
-                      {/* <div className="text-sm">{overview}</div> */}
+                      <div className="break-all">{file_name}</div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          );
-          if (seasons.length === 1) {
-            return <div className="overflow-y-auto mt-8 pb-12 h-full">{episodes_elm}</div>;
-          }
-          return (
-            <Tabs defaultValue="episode" className="overflow-y-auto pb-12 h-full">
-              <TabsList>
-                <TabsTrigger value="episode">集数</TabsTrigger>
-                <TabsTrigger value="season">季</TabsTrigger>
-              </TabsList>
-              <TabsContent value="episode">{episodes_elm}</TabsContent>
-              <TabsContent value="season">
-                <div className="">
-                  {seasons.map((season) => {
-                    const { id, name } = season;
-                    return (
-                      <div
-                        key={id}
-                        className={cn("p-4 rounded cursor-pointer", profile.curSeason.id === id ? "bg-slate-500" : "")}
-                        onClick={() => {
-                          tv.fetchEpisodesOfSeason(season);
-                        }}
-                      >
-                        <div>{name}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </TabsContent>
-            </Tabs>
           );
         })()}
       </Sheet>
@@ -461,10 +378,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
       </Sheet>
       <Sheet store={cSheet}>
         {(() => {
-          if (profile === null || source === null) {
+          if (profile === null || curSource === null) {
             return <div>Loading</div>;
           }
-          const { typeText: curTypeText, resolutions } = source;
+          const { typeText: curTypeText, resolutions } = curSource;
           return (
             <div className="overflow-y-auto mt-8 pb-12 h-full">
               {resolutions.map((r, i) => {
@@ -474,7 +391,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     <div
                       className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                       onClick={() => {
-                        tv.switchResolution(type);
+                        movie.switchResolution(type);
                       }}
                     >
                       {typeText}

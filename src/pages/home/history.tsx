@@ -80,7 +80,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                   key={tv_id}
                   className="cursor-pointer"
                   onClick={() => {
-                    router.push(`/play/${tv_id}`);
+                    router.push(`/tv/play/${tv_id}`);
                   }}
                 >
                   <div className="relative">

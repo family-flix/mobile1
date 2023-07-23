@@ -10,6 +10,7 @@ export function Video(props: { store: PlayerCore }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [state, setState] = useState(store.state);
+
   useInitialize(() => {
     store.onStateChange((nextState) => {
       setState(nextState);
@@ -46,7 +47,6 @@ export function Video(props: { store: PlayerCore }) {
         playsInline
         preload="none"
         height={height}
-        // style={{ opacity: ready ? "1" : "0" }}
       />
     </div>
   );

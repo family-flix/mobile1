@@ -59,6 +59,17 @@ ListCore.commonProcessor = <T>(
   error: Error | null;
 } => {
   try {
+    if (originalResponse === null) {
+      return {
+        dataSource: [],
+        page: 1,
+        pageSize: 20,
+        total: 0,
+        noMore: false,
+        empty: false,
+        error: null,
+      };
+    }
     const data = originalResponse.data || originalResponse;
     const { list, page, page_size, total, no_more } = data;
     const result = {

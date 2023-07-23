@@ -142,7 +142,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   /** 判断给定的 pathname 是否有匹配的内容 */
-  async checkMatch({ pathname, type }: { pathname: string; type: RouteAction }) {
+  async checkMatch({ pathname, href, type }: { pathname: string; href: string; type: RouteAction }) {
     console.log(...this.log("checkMatch - ", this.title, pathname, this.configs, this.subViews));
     if (this.configs.length === 0) {
       return Result.Err("未配置子视图");
@@ -175,7 +175,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
       targetPath: targetPathname,
       keys,
     });
-    const query = buildQuery(targetPathname);
+    const query = buildQuery(href);
     matchedSubView.query = query;
     matchedSubView.params = params;
     console.log(...this.log("match", matchedSubView._name));

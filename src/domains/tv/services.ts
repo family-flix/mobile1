@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-
 import { FetchParams } from "@/domains/list/typing";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
@@ -32,8 +30,8 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
   }
   return Result.Ok({
     ...resp.data,
-    list: resp.data.list.map((history) => {
-      const { ...rest } = history;
+    list: resp.data.list.map((tv) => {
+      const { ...rest } = tv;
       return {
         ...rest,
         // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
@@ -468,3 +466,39 @@ export async function fetch_play_histories(params: FetchParams) {
   });
 }
 export type PlayHistoryItem = RequestedResource<typeof fetch_play_histories>["list"][0];
+
+/**
+ * 获取电视剧列表
+ */
+export async function search_tv_and_movie(params: FetchParams & { name: string }) {
+  const { page, pageSize, ...rest } = params;
+  const resp = await request.get<
+    ListResponse<{
+      id: string;
+      type: 1 | 2;
+      name: string;
+      season_number?: string;
+      overview: string;
+      poster_path: string;
+      air_date: string;
+    }>
+  >("/api/search", {
+    ...rest,
+    page,
+    page_size: pageSize,
+  });
+  if (resp.error) {
+    return Result.Err(resp.error);
+  }
+  return Result.Ok({
+    ...resp.data,
+    list: resp.data.list.map((tv) => {
+      const { ...rest } = tv;
+      return {
+        ...rest,
+        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
+      };
+    }),
+  });
+}
+export type SearchResultItem = RequestedResource<typeof search_tv_and_movie>["list"][0];
