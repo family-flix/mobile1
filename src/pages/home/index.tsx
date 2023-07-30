@@ -3,20 +3,22 @@
  */
 import React, { useEffect, useState } from "react";
 
-import { fetch_tv_list } from "@/domains/tv/services";
+import { fetch_season_list } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
-import { ScrollView } from "@/components/ui/scroll-view";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { ScrollView } from "@/components/ui/scroll-view";
 import { LazyImage } from "@/components/ui/image";
+import { ListView } from "@/components/ui/list-view";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { router, view } = props;
 
   const scrollView = useInstance(() => new ScrollViewCore());
-  const helper = useInstance(() => new ListCore(new RequestCore(fetch_tv_list), { pageSize: 6 }));
+  const helper = useInstance(() => new ListCore(new RequestCore(fetch_season_list), { pageSize: 6 }));
   const [response, setResponse] = useState(helper.response);
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
@@ -40,19 +42,13 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       console.log("load  more");
       helper.loadMore();
     });
-    // page.onReady(() => {
-    //   history_helper.init();
-    //   helper.init();
-    // });
     helper.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-  });
-  useEffect(() => {
     helper.init();
-  }, []);
+  });
 
-  const { dataSource, error } = response;
+  const { dataSource } = response;
 
   console.log("[PAGE]home - render", dataSource);
 
@@ -61,57 +57,40 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       <div className="">
         <div className="mt-4 overflow-hidden">
           <h2 className="h2 pb-4 text-center">所有影片</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-            {(() => {
-              // if (initial) {
-              //   return (
-              //     <div className="w-[320px] mx-auto">
-              //       <div className="m-4 cursor-pointer">
-              //         <LazyImage className="w-full h-[524px] bg-gray-200 object-cover dark:bg-gray-800" />
-              //         <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
-              //           <h2 className="w-[256px] h-[32px] bg-gray-200 truncate text-2xl dark:bg-gray-800"></h2>
-              //           <div className="mt-4">
-              //             <p className="w-[375px] h-[24px] bg-gray-200 truncate dark:bg-gray-800"></p>
-              //           </div>
-              //         </div>
-              //       </div>
-              //     </div>
-              //   );
-              // }
-              if (error) {
-                return (
-                  <div className="center text-center">
-                    <div className="text-xl">获取电视剧列表失败</div>
-                    <div className="mt-2 text-2xl">{error.message}</div>
+          <ListView
+            store={helper}
+            className="grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            skeleton={
+              <div className="w-full mx-auto">
+                <div className="m-4 cursor-pointer">
+                  <Skeleton className="w-full h-[512px] dark:bg-gray-800" />
+                  <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
+                    <Skeleton className="w-[256px] h-[32px] dark:bg-gray-800"></Skeleton>
                   </div>
-                );
-              }
-              return dataSource.map((tv) => {
-                const { id, name, original_name, overview, poster_path = "" } = tv;
+                </div>
+              </div>
+            }
+          >
+            {(() => {
+              return dataSource.map((season) => {
+                const { id, tv_id, name, poster_path = "" } = season;
                 return (
                   <div
                     key={id}
                     className="m-4 cursor-pointer"
                     onClick={() => {
-                      router.push(`/tv/play/${id}`);
+                      router.push(`/tv/play/${tv_id}?season_id=${id}`);
                     }}
                   >
-                    <LazyImage
-                      className="w-full min-h-[384px] object-cover"
-                      src={poster_path}
-                      alt={name || original_name}
-                    />
+                    <LazyImage className="w-full h-[512px] object-cover" src={poster_path} alt={name} />
                     <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
-                      <h2 className="truncate text-2xl">{name}</h2>
-                      <div className="">
-                        <p className="truncate">{overview}</p>
-                      </div>
+                      <h2 className="truncate text-slate-900 text-2xl">{name}</h2>
                     </div>
                   </div>
                 );
               });
             })()}
-          </div>
+          </ListView>
         </div>
       </div>
     </ScrollView>

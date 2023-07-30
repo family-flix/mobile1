@@ -69,12 +69,12 @@ export const HomeLayout: ViewComponent = (props) => {
       // view.curView = aView;
       // view.curView.show();
     });
-    router.onPathnameChange(({ pathname, type }) => {
+    router.onPathnameChange(({ pathname, search, type }) => {
       console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
       if (view.state.layered) {
         return;
       }
-      view.checkMatch({ pathname, href: pathname, type });
+      view.checkMatch({ pathname, search, type });
     });
     view.checkMatch(router._pending);
   });

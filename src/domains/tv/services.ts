@@ -42,12 +42,49 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
 export type TVItem = RequestedResource<typeof fetch_tv_list>["list"][0];
 
 /**
+ * 获取电视剧列表
+ */
+export async function fetch_season_list(params: FetchParams & { name: string }) {
+  const { page, pageSize, ...rest } = params;
+  const resp = await request.get<
+    ListResponse<{
+      id: string;
+      tv_id: string;
+      name: string;
+      original_name: string;
+      overview: string;
+      poster_path: string;
+      backdrop_path: string;
+      first_air_date: string;
+    }>
+  >("/api/season/list", {
+    ...rest,
+    page,
+    page_size: pageSize,
+  });
+  if (resp.error) {
+    return Result.Err(resp.error);
+  }
+  return Result.Ok({
+    ...resp.data,
+    list: resp.data.list.map((tv) => {
+      const { ...rest } = tv;
+      return {
+        ...rest,
+        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
+      };
+    }),
+  });
+}
+export type SeasonItem = RequestedResource<typeof fetch_season_list>["list"][0];
+
+/**
  * 获取电视剧及包含的剧集详情
  * @param params
  */
-export async function fetch_tv_and_cur_episode(params: { tv_id: string }) {
+export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_id?: string }) {
   // console.log("[]fetch_tv_profile params", params);
-  const { tv_id } = params;
+  const { tv_id, season_id } = params;
   const r = await request.get<{
     id: string;
     name: string;
@@ -101,7 +138,9 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string }) {
       overview: string;
       air_date: string;
     };
-  }>(`/api/tv/play/${tv_id}`);
+  }>(`/api/tv/play/${tv_id}`, {
+    season_id,
+  });
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -467,6 +506,10 @@ export async function fetch_play_histories(params: FetchParams) {
 }
 export type PlayHistoryItem = RequestedResource<typeof fetch_play_histories>["list"][0];
 
+export enum MediaTypes {
+  TV = 1,
+  Movie = 2,
+}
 /**
  * 获取电视剧列表
  */
@@ -475,7 +518,8 @@ export async function search_tv_and_movie(params: FetchParams & { name: string }
   const resp = await request.get<
     ListResponse<{
       id: string;
-      type: 1 | 2;
+      tv_id: string;
+      type: MediaTypes;
       name: string;
       season_number?: string;
       overview: string;

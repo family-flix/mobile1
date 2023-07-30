@@ -11,6 +11,7 @@ specifiers:
   '@types/qs': ^6.9.7
   '@types/react': ^18.0.28
   '@types/react-dom': ^18.0.11
+  '@types/url-parse': ^1.4.8
   '@vitejs/plugin-react-swc': ^3.0.0
   autoprefixer: ^10.4.14
   axios: ^1.3.4
@@ -34,6 +35,7 @@ specifiers:
   tailwindcss: ^3.3.1
   tailwindcss-animate: ^1.0.5
   typescript: ^4.9.5
+  url-parse: ^1.5.10
   vite: ^4.2.0
   vitest: ^0.29.8
 
@@ -55,6 +57,7 @@ dependencies:
   qs: registry.npmmirror.com/qs/6.11.1
   react: registry.npmmirror.com/react/18.2.0
   react-dom: registry.npmmirror.com/react-dom/18.2.0_react@18.2.0
+  url-parse: registry.npmmirror.com/url-parse/1.5.10
 
 devDependencies:
   '@tailwindcss/line-clamp': registry.npmmirror.com/@tailwindcss/line-clamp/0.4.4_tailwindcss@3.3.2
@@ -63,6 +66,7 @@ devDependencies:
   '@types/qs': registry.npmmirror.com/@types/qs/6.9.7
   '@types/react': registry.npmmirror.com/@types/react/18.2.6
   '@types/react-dom': registry.npmmirror.com/@types/react-dom/18.2.4
+  '@types/url-parse': registry.npmmirror.com/@types/url-parse/1.4.8
   '@vitejs/plugin-react-swc': registry.npmmirror.com/@vitejs/plugin-react-swc/3.3.1_vite@4.3.5
   autoprefixer: registry.npmmirror.com/autoprefixer/10.4.14_postcss@8.4.23
   husky: registry.npmmirror.com/husky/8.0.3
@@ -915,6 +919,12 @@ packages:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/scheduler/-/scheduler-0.16.3.tgz}
     name: '@types/scheduler'
     version: 0.16.3
+    dev: true
+
+  registry.npmmirror.com/@types/url-parse/1.4.8:
+    resolution: {integrity: sha512-zqqcGKyNWgTLFBxmaexGUKQyWqeG7HjXj20EuQJSJWwXe54BjX0ihIo5cJB9yAQzH8dNugJ9GvkBYMjPXs/PJw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@types/url-parse/-/url-parse-1.4.8.tgz}
+    name: '@types/url-parse'
+    version: 1.4.8
     dev: true
 
   registry.npmmirror.com/@vitejs/plugin-react-swc/3.3.1_vite@4.3.5:
@@ -3002,6 +3012,12 @@ packages:
       side-channel: registry.npmmirror.com/side-channel/1.0.4
     dev: false
 
+  registry.npmmirror.com/querystringify/2.2.0:
+    resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/querystringify/-/querystringify-2.2.0.tgz}
+    name: querystringify
+    version: 2.2.0
+    dev: false
+
   registry.npmmirror.com/queue-microtask/1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/queue-microtask/-/queue-microtask-1.2.3.tgz}
     name: queue-microtask
@@ -3065,6 +3081,12 @@ packages:
     version: 2.1.1
     engines: {node: '>=0.10.0'}
     dev: true
+
+  registry.npmmirror.com/requires-port/1.0.0:
+    resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/requires-port/-/requires-port-1.0.0.tgz}
+    name: requires-port
+    version: 1.0.0
+    dev: false
 
   registry.npmmirror.com/resolve-from/5.0.0:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/resolve-from/-/resolve-from-5.0.0.tgz}
@@ -3522,6 +3544,15 @@ packages:
       escalade: registry.npmmirror.com/escalade/3.1.1
       picocolors: registry.npmmirror.com/picocolors/1.0.0
     dev: true
+
+  registry.npmmirror.com/url-parse/1.5.10:
+    resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/url-parse/-/url-parse-1.5.10.tgz}
+    name: url-parse
+    version: 1.5.10
+    dependencies:
+      querystringify: registry.npmmirror.com/querystringify/2.2.0
+      requires-port: registry.npmmirror.com/requires-port/1.0.0
+    dev: false
 
   registry.npmmirror.com/util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/util-deprecate/-/util-deprecate-1.0.2.tgz}

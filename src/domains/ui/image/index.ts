@@ -20,50 +20,51 @@ type ImageProps = {
   /** 图片高度 */
   height: number;
   /** 图片地址 */
-  src: string;
+  src?: string;
   /** 说明 */
   alt?: string;
   /** 模式 */
   fit?: "cover" | "contain";
 };
 type ImageState = ImageProps & {
-  loading: boolean;
-  failed: boolean;
-  loaded: boolean;
+  step: ImageStep;
 };
 const prefix = window.location.origin;
-// const prefix = "http://127.0.0.1:3100";
-// const prefix = "http://static.funzm.com";
-const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
+// const prefix = "https://img.funzm.com";
+// const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
+
+export enum ImageStep {
+  Pending,
+  Loading,
+  Loaded,
+  Failed,
+}
 
 export class ImageCore extends BaseDomain<TheTypesOfEvents> {
-  static url(u: string | null) {
-    if (!u) {
-      return DEFAULT_IMAGE1;
+  static url(url?: string | null) {
+    if (!url) {
+      return "";
     }
-    if (u.includes("http")) {
-      return u;
+    if (url.includes("http")) {
+      return url;
     }
-    return prefix + u;
+    return prefix + url;
   }
+
   src: string;
   width: number;
   height: number;
   fit: "cover" | "contain";
 
-  loading: boolean = false;
-  failed: boolean = false;
-  loaded: boolean = false;
-  realSrc: string;
+  step: ImageStep = ImageStep.Pending;
+  realSrc?: string;
 
   get state(): ImageState {
     return {
       src: this.src,
+      step: this.step,
       width: this.width,
       height: this.height,
-      loading: this.loading,
-      failed: this.failed,
-      loaded: this.loaded,
     };
   }
 
@@ -73,32 +74,38 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
     const { width, height, src, fit = "cover" } = options;
     this.width = width;
     this.height = height;
-    this.src = DEFAULT_IMAGE1;
+    this.src = "";
     this.fit = fit;
     this.realSrc = src;
   }
 
-  load(src: string) {}
-
+  updateSrc(src: string) {
+    this.realSrc = src;
+    this.handleShow();
+  }
   /** 图片进入可视区域 */
   handleShow() {
-    console.log("[IMAGE_CORE]handleShow", this.realSrc);
-    this.load(this.realSrc);
-    this.src = this.getUrl();
+    // console.log("[IMAGE_CORE]handleShow", this.realSrc);
+    (() => {
+      if (!this.realSrc) {
+        this.step = ImageStep.Failed;
+        return;
+      }
+      this.step = ImageStep.Loading;
+      this.src = ImageCore.url(this.realSrc);
+    })();
     this.emit(Events.StateChange, { ...this.state });
-  }
-  getUrl() {
-    if (this.realSrc.includes("http")) {
-      return this.realSrc;
-    }
-    return prefix + this.realSrc;
   }
   /** 图片加载完成 */
   handleLoaded() {
+    this.step = ImageStep.Loaded;
     this.emit(Events.Loaded);
+    this.emit(Events.StateChange, { ...this.state });
   }
   /** 图片加载失败 */
   handleError() {
+    this.step = ImageStep.Failed;
+    this.emit(Events.StateChange, { ...this.state });
     this.emit(Events.Error);
   }
 

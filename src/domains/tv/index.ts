@@ -29,12 +29,16 @@ enum Events {
   /** 分辨率改变 */
   ResolutionChange,
   StateChange,
+  BeforeNextEpisode,
+  BeforePrevEpisode,
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
   [Events.SourceChange]: MediaSourceProfile & { currentTime: number };
   [Events.EpisodeChange]: TVProps["profile"]["curEpisode"] & { currentTime: number };
   [Events.ResolutionChange]: MediaSourceProfile & { currentTime: number };
+  [Events.BeforeNextEpisode]: void;
+  [Events.BeforePrevEpisode]: void;
   [Events.StateChange]: TVProps["profile"];
 };
 type TVState = {};
@@ -101,6 +105,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   /** 当前影片播放进度 */
   currentTime = 0;
   curResolutionType: EpisodeResolutionTypes = "LD";
+  canAutoPlay = false;
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
 
@@ -113,14 +118,14 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // this.curEpisode = profile.curEpisode;
   }
 
-  async fetchProfile(id: string) {
+  async fetchProfile(id: string, extra: { season_id?: string } = {}) {
     if (id === undefined) {
       const msg = this.tip({ text: ["缺少 tv id 参数"] });
       return Result.Err(msg);
       // return Result.Err("缺少电视剧 id");
     }
     this.id = id;
-    const res = await fetch_tv_and_cur_episode({ tv_id: id });
+    const res = await fetch_tv_and_cur_episode({ tv_id: id, season_id: extra.season_id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       // return Result.Err(res.error);
@@ -329,6 +334,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       this.tip({ text: ["正在加载下一集"] });
       return;
     }
+    this.canAutoPlay = true;
+    this.emit(Events.BeforeNextEpisode);
     this._pending = true;
     const nextEpisodeRes = await this.getNextEpisode();
     if (nextEpisodeRes.error) {
@@ -352,6 +359,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       this.tip({ text: ["正在加载上一集"] });
       return;
     }
+    this.canAutoPlay = true;
+    this.emit(Events.BeforePrevEpisode);
     this._pending = true;
     const prevEpisodeRes = await this.getPrevEpisode();
     if (prevEpisodeRes.error) {
@@ -510,6 +519,12 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
+  }
+  onBeforeNextEpisode(handler: Handler<TheTypesOfEvents[Events.BeforeNextEpisode]>) {
+    return this.on(Events.BeforeNextEpisode, handler);
+  }
+  onBeforePrevEpisode(handler: Handler<TheTypesOfEvents[Events.BeforePrevEpisode]>) {
+    return this.on(Events.BeforePrevEpisode, handler);
   }
 }
 

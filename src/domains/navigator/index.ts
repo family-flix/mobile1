@@ -6,6 +6,7 @@ import qs from "qs";
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
+import { JSONObject } from "@/types";
 
 enum Events {
   PushState,
@@ -22,7 +23,7 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.PathnameChange]: {
     pathname: string;
-    href: string;
+    search: string;
     type: RouteAction;
   };
   [Events.PushState]: {
@@ -46,6 +47,7 @@ type RouteLocation = {
   origin: string;
   pathname: string;
   href: string;
+  search: string;
 };
 type ParamConfigure = {
   name: string;
@@ -87,29 +89,29 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
 
   _pending: {
     pathname: string;
-    href: string;
+    search: string;
     type: RouteAction;
   } = {
     pathname: "/",
-    href: "/",
+    search: "",
     type: "initialize",
   };
 
   /** 启动路由监听 */
   async prepare(location: RouteLocation) {
     // console.log("[DOMAIN]router - start");
-    const { pathname, href, origin, host, protocol } = location;
+    const { pathname, href, search, origin, host, protocol } = location;
+    this.setPathname(pathname);
     this.origin = origin;
     // this.pathname = pathname;
     const query = buildQuery(href);
     this.query = query;
     this._pending = {
       pathname,
-      href,
+      search,
       type: "initialize",
     };
-    this.log("start, current pathname is", pathname);
-    // this.setSomething(location);
+    // this.log("start, current pathname is", pathname);
   }
   start() {
     const { pathname } = this._pending;
@@ -129,9 +131,19 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.pathname = p;
   }
   /** 跳转到指定路由 */
-  async push(targetPathname: string) {
-    this.log("push", targetPathname, this.prevPathname);
-    const realTargetPathname = `${NavigatorCore.prefix}${targetPathname}`;
+  async push(targetPathname: string, targetQuery?: Record<string, string>) {
+    // this.log("push", targetPathname, this.prevPathname);
+    const url = (() => {
+      if (targetPathname.startsWith("http")) {
+        return targetPathname;
+      }
+      const p = `${NavigatorCore.prefix}${targetPathname}`;
+      return `${this.origin}${p}`;
+    })();
+    const r = new URL(url);
+    const { pathname: realTargetPathname, search } = r;
+    const query = targetQuery || buildQuery(search);
+    this.query = query;
     if (this.pathname === realTargetPathname) {
       console.log("cur pathname has been", targetPathname);
       return;
@@ -143,19 +155,25 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.PushState, {
       from: this.prevPathname,
       // 这里似乎不用 this.origin，只要是 / 开头的，就会拼接在后面
-      path: `${this.origin}${realTargetPathname}`,
+      path: (() => {
+        let url = `${this.origin}${realTargetPathname}`;
+        if (search) {
+          url += search;
+        }
+        return url;
+      })(),
       pathname: realTargetPathname,
     });
     this._pending = {
       pathname: realTargetPathname,
-      href: realTargetPathname,
+      search,
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });
   }
   replace = async (targetPathname: string) => {
     const realTargetPathname = NavigatorCore.prefix + targetPathname;
-    this.log("replace", targetPathname, this.pathname);
+    // this.log("replace", targetPathname, this.pathname);
     if (this.pathname === realTargetPathname) {
       return;
     }
@@ -170,21 +188,10 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     });
     this._pending = {
       pathname: realTargetPathname,
-      href: realTargetPathname,
+      search: "",
       type: "push",
     };
     this.emit(Events.PathnameChange, { ...this._pending });
-  };
-  replaceSilently = async (targetPathname: string) => {
-    const realTargetPathname = NavigatorCore.prefix + targetPathname;
-    if (this.pathname === realTargetPathname) {
-      return;
-    }
-    this.emit(Events.ReplaceState, {
-      from: this.prevPathname,
-      path: `${this.origin}${realTargetPathname}`,
-      pathname: realTargetPathname,
-    });
   };
   back = () => {
     this.emit(Events.Back);
@@ -194,7 +201,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   };
   /** 外部路由改变（点击浏览器前进、后退），作出响应 */
   handlePopState({ type, pathname }: { type: string; pathname: string }) {
-    this.log("pathname change", type, pathname);
+    // this.log("pathname change", type, pathname);
     if (type !== "popstate") {
       return;
     }
@@ -215,7 +222,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     })();
     this._pending = {
       pathname,
-      href: pathname,
+      search: "",
       type: (() => {
         if (isForward) {
           return "forward";

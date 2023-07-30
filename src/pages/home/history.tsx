@@ -12,6 +12,8 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { LazyImage } from "@/components/ui/image";
 import { sleep } from "@/utils";
+import { ListView } from "@/components/ui/list-view";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { router, view } = props;
@@ -58,7 +60,26 @@ export const HomeHistoryPage: ViewComponent = (props) => {
       <div className="pt-4">
         <h2 className="h2 pb-4 text-center">我的所有播放记录</h2>
         <div className="">
-          <div className="grid grid-cols-1 space-y-4 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          <ListView
+            store={helper}
+            className="grid grid-cols-1 space-y-4 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+            skeleton={
+              <>
+                <div className="flex cursor-pointer">
+                  <div className="relative mr-4">
+                    <Skeleton className="w-[120px] h-[180px]" />
+                  </div>
+                  <div className="relative flex-1 mt-2">
+                    <Skeleton className="w-36 h-[32px]"></Skeleton>
+                    <div className="flex items-center mt-2 text-xl">
+                      <Skeleton className="w-24 h-[28px]"></Skeleton>
+                    </div>
+                    <Skeleton className="mt-2 w-12 h-[24px]"></Skeleton>
+                  </div>
+                </div>
+              </>
+            }
+          >
             {dataSource.map((history) => {
               const {
                 id,
@@ -71,20 +92,18 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                 cur_episode_count,
                 episode_count,
                 has_update,
-                currentTime,
                 percent,
-                thumbnail,
               } = history;
               return (
                 <div
                   key={tv_id}
-                  className="cursor-pointer"
+                  className="flex cursor-pointer"
                   onClick={() => {
                     router.push(`/tv/play/${tv_id}`);
                   }}
                 >
-                  <div className="relative">
-                    <LazyImage className="w-full object-cover" src={thumbnail} alt={name} />
+                  <div className="relative mr-4">
+                    <LazyImage className="w-[120px] object-cover" src={poster_path} alt={name} />
                     {(() => {
                       if (episode_count && cur_episode_count !== episode_count) {
                         return (
@@ -92,17 +111,6 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                             <div className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800">
                               <div className="text-[12px] leading-none text-gray-800 dark:text-gray-300 ">
                                 更新到第{cur_episode_count}集
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-                      if (episode_count && cur_episode_count === episode_count) {
-                        return (
-                          <div className="absolute top-1 left-1">
-                            <div className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800">
-                              <div className="text-[12px] leading-none text-gray-800 dark:text-gray-300 ">
-                                全{episode_count}集
                               </div>
                             </div>
                           </div>
@@ -142,7 +150,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                 </div>
               );
             })}
-          </div>
+          </ListView>
         </div>
       </div>
     </ScrollView>

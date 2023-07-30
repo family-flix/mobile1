@@ -83,7 +83,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { currentTime, thumbnail } = nextEpisode;
       player.setCurrentTime(currentTime);
-      player.setPoster(ImageCore.url(thumbnail));
+      player.setPoster(thumbnail);
       player.pause();
     });
     tv.onStateChange((nextProfile) => {
@@ -91,6 +91,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     tv.onTip((msg) => {
       app.tip(msg);
+    });
+    tv.onBeforeNextEpisode(() => {
+      player.pause();
     });
     tv.onSourceChange((mediaSource) => {
       const { width, height } = mediaSource;
@@ -112,7 +115,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       // console.log("[PAGE]play - player.onCanPlay");
       cover.hide();
-      // player.play();
+      if (!tv.canAutoPlay) {
+        return;
+      }
+      player.play();
     });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
@@ -150,7 +156,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
-      console.log("[PAGE]play - player.onError");
+      console.log("[PAGE]play - player.onError", error);
       // const token = "lg9lT9e03WPcmBn";
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
       app.tip({ text: ["视频加载错误", error.message] });
@@ -175,7 +181,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       player.load(url);
     });
-    tv.fetchProfile(view.params.id);
+    // console.log(view.query);
+    tv.fetchProfile(view.params.id, {
+      season_id: view.query.season_id,
+    });
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);

@@ -58,20 +58,20 @@ ListCore.commonProcessor = <T>(
   noMore: boolean;
   error: Error | null;
 } => {
+  if (originalResponse === null) {
+    return {
+      dataSource: [],
+      page: 1,
+      pageSize: 20,
+      total: 0,
+      noMore: false,
+      empty: false,
+      error: null,
+    };
+  }
   try {
-    if (originalResponse === null) {
-      return {
-        dataSource: [],
-        page: 1,
-        pageSize: 20,
-        total: 0,
-        noMore: false,
-        empty: false,
-        error: null,
-      };
-    }
     const data = originalResponse.data || originalResponse;
-    const { list, page, page_size, total, no_more } = data;
+    const { list, page, page_size, total, noMore, no_more } = data;
     const result = {
       dataSource: list,
       page,
@@ -84,10 +84,13 @@ ListCore.commonProcessor = <T>(
     if (total <= page_size * page) {
       result.noMore = true;
     }
+    if (noMore !== undefined) {
+      result.noMore = noMore;
+    }
     if (no_more !== undefined) {
       result.noMore = no_more;
     }
-    if (list.length === 0 && page >= 1) {
+    if (list.length === 0 && page === 1) {
       result.empty = true;
     }
     return result;

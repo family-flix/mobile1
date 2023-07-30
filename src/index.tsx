@@ -96,17 +96,8 @@ function ApplicationView() {
         rootView.appendSubView(subView);
       }
       subView.show();
-      // setTimeout(() => {
-      //   subView.checkMatch(router._pending);
-      // }, 200);
       if (prevView) {
         if (router._pending.type === "back") {
-          // const unlisten = prevView.onHidden(() => {
-          //   if (prevView === tvPlaying) {
-          //     rootView.removeSubView(prevView);
-          //     unlisten();
-          //   }
-          // });
           prevView.hide();
           subView.uncovered();
           setTimeout(() => {
@@ -115,12 +106,6 @@ function ApplicationView() {
           return;
         }
         prevView.layered();
-        // prevView.layered();
-        // prevView.state.layered = true;
-        // setTimeout(() => {
-        //   rootView.prevView = null;
-        //   rootView.removeSubView(prevView);
-        // }, 120);
       }
     });
     rootView.onNotFound(() => {
@@ -128,9 +113,9 @@ function ApplicationView() {
       rootView.curView = homeLayout;
       rootView.appendSubView(homeLayout);
     });
-    router.onPathnameChange(({ pathname, href, type }) => {
+    router.onPathnameChange(({ pathname, search, type }) => {
       // router.log("[]Application - pathname change", pathname);
-      rootView.checkMatch({ pathname, href, type });
+      rootView.checkMatch({ pathname, search, type });
     });
     // router.onRelaunch(() => {
     //   router.log("[]Application - router.onRelaunch");

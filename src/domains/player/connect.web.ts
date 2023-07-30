@@ -63,7 +63,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   };
   $video.onerror = (event) => {
     const msg = (() => {
-      console.log("[COMPONENT]VideoPlayer/connect - $video.onerror");
+      console.log("[COMPONENT]VideoPlayer/connect - $video.onerror", event);
       if (typeof event === "string") {
         return new Error(event);
       }

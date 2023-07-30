@@ -1,31 +1,59 @@
-import { useEffect, useRef, useState } from "react";
+import { Image, ImageOff } from "lucide-react";
 
-import { ImageCore } from "@/domains/ui/image";
-import { useInitialize, useInstance } from "@/hooks";
+import { ImageCore, ImageStep } from "@/domains/ui/image";
 import { connect } from "@/domains/ui/image/connect.web";
+import { cn } from "@/utils";
+import { useEffect, useState } from "react";
 
-export function LazyImage(props: {} & React.AllHTMLAttributes<HTMLImageElement>) {
-  const imgRef = useRef<HTMLImageElement>(null);
+export function LazyImage(props: { src?: string; alt?: string } & React.HTMLAttributes<HTMLImageElement>) {
+  let $img: HTMLImageElement | undefined = undefined;
 
-  const image = useInstance(() => {
-    return new ImageCore({ width: 200, height: 100, src: props.src!, alt: props.alt });
-  });
+  const image = new ImageCore({ width: 200, height: 100, src: props.src, alt: props.alt });
   const [state, setState] = useState(image.state);
-  useInitialize(() => {
-    image.onStateChange((nextState) => {
-      console.log("[COMPONENT]LazyImage - image.onStateChange", nextState);
-      setState(nextState);
-    });
+  image.onStateChange((nextState) => {
+    // console.log("[COMPONENT]LazyImage - image.onStateChange", nextState);
+    setState(nextState);
   });
   useEffect(() => {
-    const $img = imgRef.current;
-    if ($img === null) {
+    if (!$img) {
       return;
     }
     connect($img, image);
   }, []);
+  useEffect(() => {
+    if (!props.src) {
+      return;
+    }
+    image.updateSrc(props.src);
+  }, [props.src]);
 
-  const { src, alt, fit } = state;
+  if (state.step === ImageStep.Failed) {
+    return (
+      <div className={cn(props.className, "flex items-center justify-center bg-slate-200")}>
+        <ImageOff className="w-8 h-8 text-slate-500" />
+      </div>
+    );
+  }
+  if (state.step === ImageStep.Pending) {
+    return (
+      <div ref={$img} className={cn(props.className, "flex items-center justify-center bg-slate-200")}>
+        <Image className="w-8 h-8 text-slate-500" />
+      </div>
+    );
+  }
+  if ([ImageStep.Loading, ImageStep.Loaded].includes(state.step)) {
+    return (
+      <img
+        className={props.className}
+        style={{ objectFit: state.fit }}
+        src={state.src}
+        alt={state.alt}
+        onError={() => {
+          image.handleError();
+        }}
+      />
+    );
+  }
 
-  return <img ref={imgRef} className={props.className} style={{ objectFit: fit }} src={src} alt={alt} />;
+  return null;
 }

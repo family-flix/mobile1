@@ -62,7 +62,7 @@ function Button<T = unknown>(
       }}
     >
       <Show when={loading}>
-        <Loader className="animation animate-spin" width={12} height={12} />
+        <Loader className="w-4 h-4 mr-2 animation animate-spin" />
       </Show>
       {props.children}
     </button>
