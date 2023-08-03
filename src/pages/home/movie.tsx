@@ -88,7 +88,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       router.push(`/movie/play/${id}`);
                     }}
                   >
-                    <LazyImage className="w-full min-h-[384px] object-cover" src={poster_path} alt={name} />
+                    <LazyImage className="w-full h-[512px] object-cover" src={poster_path} alt={name} />
                     <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
                       <h2 className="truncate text-2xl">{name}</h2>
                     </div>

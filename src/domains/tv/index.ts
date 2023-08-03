@@ -17,6 +17,7 @@ import {
   fetch_episodes_of_season,
   TVSeasonProfile,
   TVEpisodeProfile,
+  fetch_source_play_info,
 } from "./services";
 
 enum Events {
@@ -31,6 +32,7 @@ enum Events {
   StateChange,
   BeforeNextEpisode,
   BeforePrevEpisode,
+  BeforeChangeSource,
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
@@ -40,9 +42,11 @@ type TheTypesOfEvents = {
   [Events.BeforeNextEpisode]: void;
   [Events.BeforePrevEpisode]: void;
   [Events.StateChange]: TVProps["profile"];
+  [Events.BeforeChangeSource]: void;
 };
 type TVState = {};
 type TVProps = {
+  resolution?: EpisodeResolutionTypes;
   profile: {
     id: TVAndEpisodesProfile["id"];
     name: TVAndEpisodesProfile["name"];
@@ -104,7 +108,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   curSource: MediaSourceProfile | null = null;
   /** 当前影片播放进度 */
   currentTime = 0;
-  curResolutionType: EpisodeResolutionTypes = "LD";
+  curResolutionType: EpisodeResolutionTypes = "SD";
   canAutoPlay = false;
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
@@ -112,7 +116,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   constructor(options: Partial<{ name: string } & TVProps> = {}) {
     super();
 
-    const { profile } = options;
+    const { resolution = "SD", profile } = options;
+    this.curResolutionType = resolution;
     // this.profile = profile;
     // this.curSeason = profile.curSeason;
     // this.curEpisode = profile.curEpisode;
@@ -175,6 +180,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     }
     const res = await fetch_episode_profile({
       id: episodeId,
+      type: this.curResolutionType,
     });
     if (res.error) {
       this.tip({
@@ -185,21 +191,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.profile.curEpisode = { ...episode, currentTime, thumbnail };
     this.curEpisode = { ...episode, currentTime, thumbnail };
     this.curSource = (() => {
-      const { file_id } = res.data;
-      if (this.curResolutionType === "LD") {
-        const { url, type, typeText, width, height, thumbnail, resolutions } = res.data;
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-        };
-      }
-      const { resolutions } = res.data;
+      const { file_id, resolutions } = res.data;
       const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
         const { url, type, typeText, width, height, thumbnail } = resolutions[0];
@@ -426,8 +418,70 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   setCurResolution(type: EpisodeResolutionTypes) {
     this.curResolutionType = type;
   }
+  async changeSource(source: { file_id: string }) {
+    const { file_id } = source;
+    if (this.profile === null || this.curEpisode === null || this.curSource === null) {
+      const msg = this.tip({ text: ["视频还未加载完成"] });
+      return Result.Err(msg);
+    }
+    if (file_id === this.curSource.file_id) {
+      return;
+    }
+    const r = await fetch_source_play_info({ episode_id: this.curEpisode.id, file_id });
+    if (r.error) {
+      this.tip({
+        text: ["获取源失败", r.error.message],
+      });
+      return;
+    }
+    this.canAutoPlay = true;
+    this.curSource = (() => {
+      const { file_id } = r.data;
+      if (this.curResolutionType === "LD") {
+        const { url, type, typeText, width, height, thumbnail, resolutions } = r.data;
+        return {
+          url,
+          file_id,
+          type,
+          typeText,
+          width,
+          height,
+          thumbnail,
+          resolutions,
+        };
+      }
+      const { resolutions } = r.data;
+      const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
+      if (!matched_resolution) {
+        const { url, type, typeText, width, height, thumbnail } = resolutions[0];
+        return {
+          url,
+          file_id,
+          type,
+          typeText,
+          width,
+          height,
+          thumbnail,
+          resolutions,
+        };
+      }
+      const { url, type, typeText, width, height, thumbnail } = matched_resolution;
+      return {
+        url,
+        file_id,
+        type,
+        typeText,
+        width,
+        height,
+        thumbnail,
+        resolutions,
+      };
+    })();
+    this.emit(Events.SourceChange, { ...this.curSource, currentTime: this.currentTime });
+    return Result.Ok(null);
+  }
   /** 切换分辨率 */
-  switchResolution(target_type: EpisodeResolutionTypes) {
+  changeResolution(target_type: EpisodeResolutionTypes) {
     // console.log("switchResolution 1");
     if (this.profile === null || this.curSource === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
@@ -525,6 +579,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
   onBeforePrevEpisode(handler: Handler<TheTypesOfEvents[Events.BeforePrevEpisode]>) {
     return this.on(Events.BeforePrevEpisode, handler);
+  }
+  onBeforeChangeSource(handler: Handler<TheTypesOfEvents[Events.BeforeChangeSource]>) {
+    return this.on(Events.BeforeChangeSource, handler);
   }
 }
 

@@ -14,6 +14,7 @@ import {
   Pause,
   Play,
   RotateCw,
+  Wand2,
 } from "lucide-react";
 
 import { cn } from "@/utils";
@@ -32,23 +33,40 @@ import { ToggleView } from "@/components/ui/toggle";
 import { Video } from "@/components/ui/video";
 import { Show } from "@/packages/ui/show";
 import { ImageCore } from "@/domains/ui/image";
-
-const aSheet = new DialogCore();
-const bSheet = new DialogCore();
-const cSheet = new DialogCore();
-const dSheet = new DialogCore();
+import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const tv = useInstance(() => new TVCore());
-  const player = useInstance(() => new PlayerCore({ app }));
+  const tv = useInstance(() => {
+    const { type: resolution } = app.cache.get<{
+      type: EpisodeResolutionTypes;
+    }>("player_settings", {
+      type: "SD",
+    });
+    return new TVCore({
+      resolution,
+    });
+  });
+  const player = useInstance(() => {
+    const { volume } = app.cache.get<{
+      volume: number;
+    }>("player_settings", {
+      volume: 0.5,
+    });
+    return new PlayerCore({ app, volume });
+  });
   const video = useInstance(() => new ElementCore({}));
+  const episodesSheet = useInstance(() => new DialogCore());
+  const sourcesSheet = useInstance(() => new DialogCore());
+  const bSheet = useInstance(() => new DialogCore());
+  const cSheet = useInstance(() => new DialogCore());
+  const dSheet = useInstance(() => new DialogCore());
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
   const [profile, setProfile] = useState(tv.profile);
-  const [source, setSource] = useState(tv.curSource);
+  const [curSource, setCurSource] = useState(tv.curSource);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -96,10 +114,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.pause();
     });
     tv.onSourceChange((mediaSource) => {
+      console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       const { width, height } = mediaSource;
-      // console.log("[PAGE]play - tv.onSourceChange", app.size);
       const h = Math.ceil((height / width) * app.size.width);
-      // player.setResolution(values.resolution);
       player.pause();
       player.loadSource(mediaSource);
       player.setSize({
@@ -107,7 +124,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         height: h,
       });
       player.setCurrentTime(mediaSource.currentTime);
-      setSource(mediaSource);
+      setCurSource(mediaSource);
     });
     player.onCanPlay(() => {
       if (!view.state.visible) {
@@ -119,6 +136,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
         return;
       }
       player.play();
+      // tv.canAutoPlay = false;
+    });
+    player.onVolumeChange(({ volume }) => {
+      app.cache.merge("player_settings", {
+        volume,
+      });
     });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
@@ -149,12 +172,23 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
       player.setCurrentTime(tv.currentTime);
     });
+    tv.onResolutionChange(({ type }) => {
+      console.log("[PAGE]play - player.onResolutionChange", type);
+      app.cache.merge("player_settings", {
+        type,
+      });
+    });
+    // tv.onBeforeChangeSource(() => {
+    //   player.pause();
+    // });
     player.onSourceLoaded(() => {
-      // console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
-      aSheet.hide();
+      console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+      player.setCurrentTime(tv.currentTime);
+      episodesSheet.hide();
+      sourcesSheet.hide();
       cSheet.hide();
     });
-    console.log("[PAGE]play - before player.onError");
+    // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
       console.log("[PAGE]play - player.onError", error);
       // const token = "lg9lT9e03WPcmBn";
@@ -164,7 +198,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
       const $video = player.node()!;
-      // console.log("[PAGE]play - player.onUrlChange", url);
       if (player.canPlayType("application/vnd.apple.mpegurl")) {
         player.load(url);
         return;
@@ -263,7 +296,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     </div> */}
             <div className="grid grid-cols-3 gap-4 mt-18">
               <div
-                className="flex flex-col items-center"
+                className="flex flex-col items-center dark:text-black-200"
                 onClick={async () => {
                   tv.playPrevEpisode();
                 }}
@@ -273,7 +306,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
               <div className="flex flex-col items-center"></div>
               <div
-                className="flex flex-col items-center"
+                className="flex flex-col items-center dark:text-black-200"
                 onClick={() => {
                   tv.playNextEpisode();
                 }}
@@ -282,18 +315,27 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 <p className="mt-2 text-sm ">下一集</p>
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
+            <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
               <div
-                className="flex flex-col items-center"
+                className="flex flex-col items-center dark:text-black-200"
                 onClick={() => {
-                  aSheet.show();
+                  episodesSheet.show();
                 }}
               >
                 <List className="w-6 h-6 " />
                 <p className="mt-2 text-sm ">选集</p>
               </div>
               <div
-                className="flex flex-col items-center"
+                className="flex flex-col items-center dark:text-black-200"
+                onClick={() => {
+                  sourcesSheet.show();
+                }}
+              >
+                <Wand2 className="w-6 h-6 " />
+                <p className="mt-2 text-sm ">切换源</p>
+              </div>
+              <div
+                className="flex flex-col items-center dark:text-black-200"
                 onClick={() => {
                   bSheet.show();
                 }}
@@ -302,7 +344,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 <p className="mt-2 text-sm ">倍速</p>
               </div>
               <div
-                className="flex flex-col items-center"
+                className="flex flex-col items-center dark:text-black-200"
                 onClick={() => {
                   cSheet.show();
                 }}
@@ -311,7 +353,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 <p className="mt-2 text-sm ">分辨率</p>
               </div>
               <div
-                className="flex flex-col items-center focus:outline-none focus:ring-0"
+                className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
                 onClick={() => {
                   dSheet.show();
                 }}
@@ -394,7 +436,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
 
         </div>
       </div> */}
-      <Sheet store={aSheet}>
+      <Sheet store={episodesSheet}>
         {(() => {
           if (profile === null) {
             return <div>Loading</div>;
@@ -456,6 +498,37 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
+      <Sheet store={sourcesSheet}>
+        {(() => {
+          if (profile === null) {
+            return <div>Loading</div>;
+          }
+          const { curEpisode } = profile;
+          return (
+            <div className="">
+              {curEpisode.sources.map((s) => {
+                const { id, file_id, file_name, parent_paths } = s;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => {
+                      tv.changeSource(s);
+                    }}
+                  >
+                    <div
+                      className={cn("p-4 rounded cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}
+                    >
+                      <div className="break-all">
+                        {parent_paths}/{file_name}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      </Sheet>
       <Sheet store={bSheet}>
         <p className="mt-8 text-center text-sm ">敬请期待</p>
         {/* {players.map((p) => {
@@ -470,10 +543,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
       </Sheet>
       <Sheet store={cSheet}>
         {(() => {
-          if (profile === null || source === null) {
+          if (profile === null || curSource === null) {
             return <div>Loading</div>;
           }
-          const { typeText: curTypeText, resolutions } = source;
+          const { typeText: curTypeText, resolutions } = curSource;
           return (
             <div className="overflow-y-auto mt-8 pb-12 h-full">
               {resolutions.map((r, i) => {
@@ -483,7 +556,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     <div
                       className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                       onClick={() => {
-                        tv.switchResolution(type);
+                        tv.changeResolution(type);
                       }}
                     >
                       {typeText}

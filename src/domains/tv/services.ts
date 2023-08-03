@@ -108,6 +108,7 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
           id: string;
           file_id: string;
           file_name: string;
+          parent_paths: string;
         }[];
       }[];
     }[];
@@ -130,6 +131,7 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
         id: string;
         file_id: string;
         file_name: string;
+        parent_paths: string;
       }[];
     };
     cur_season: {
@@ -309,6 +311,7 @@ export async function fetch_episodes_of_season(params: { tv_id: string; season_i
         id: string;
         file_id: string;
         file_name: string;
+        parent_paths: string;
       }[];
     }>
   >("/api/episode/list", {
@@ -338,11 +341,71 @@ export async function fetch_episodes_of_season(params: { tv_id: string; season_i
   });
 }
 
+export async function fetch_source_play_info(body: { episode_id: string; file_id: string }) {
+  const res = await request.get<{
+    id: string;
+    name: string;
+    // parent_file_id: string;
+    /** 缩略图 */
+    thumbnail: string;
+    season_number: string;
+    episode_number: string;
+    /** 影片阿里云盘文件 id */
+    file_id: string;
+    /** 影片分辨率 */
+    type: EpisodeResolutionTypes;
+    /** 影片播放地址 */
+    url: string;
+    /** 影片宽度 */
+    width: number;
+    /** 影片高度 */
+    height: number;
+    /** 该影片其他分辨率 */
+    other: {
+      id: string;
+      file_id: string;
+      /** 影片分辨率 */
+      type: EpisodeResolutionTypes;
+      thumbnail: string;
+      /** 影片播放地址 */
+      url: string;
+      /** 影片宽度 */
+      width: number;
+      /** 影片高度 */
+      height: number;
+    }[];
+  }>(`/api/episode/${body.episode_id}/source/${body.file_id}`);
+  if (res.error) {
+    return Result.Err(res.error);
+  }
+  const { url, file_id, width, height, thumbnail, type, other } = res.data;
+  return Result.Ok({
+    url,
+    file_id,
+    type,
+    typeText: EpisodeResolutionTypeTexts[type],
+    width,
+    height,
+    thumbnail,
+    resolutions: other.map((t) => {
+      const { url, width, height, thumbnail, type } = t;
+      return {
+        url,
+        type,
+        typeText: EpisodeResolutionTypeTexts[t.type],
+        width,
+        height,
+        thumbnail,
+      };
+    }),
+  });
+}
+
 /**
  * 获取影片播放地址
  */
 export async function fetch_episode_play_url(params: { tv_id: string; season: string; episode: string }) {
-  console.log("[]fetch_episode_play_url params", params);
+  // console.log("[]fetch_episode_play_url params", params);
   const { tv_id, season, episode } = params;
   const resp = await request.get<
     {
@@ -353,7 +416,7 @@ export async function fetch_episode_play_url(params: { tv_id: string; season: st
   if (resp.error) {
     return resp;
   }
-  console.log("[]fetch_episode_play_url success", resp.data);
+  // console.log("[]fetch_episode_play_url success", resp.data);
   return resp;
 }
 

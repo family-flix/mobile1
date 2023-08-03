@@ -104,6 +104,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   private _ended = false;
   private _duration = 0;
   private _currentTime = 0;
+  private _curVolume = 0.5;
   get currentTime() {
     return this._currentTime;
   }
@@ -134,15 +135,21 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(options: { app: Application }) {
+  constructor(options: { app: Application; volume?: number }) {
     super();
 
-    const { app } = options;
+    const { app, volume } = options;
+    if (volume) {
+      this._curVolume = volume;
+    }
     this._app = app;
   }
 
   bindAbstractNode(node: PlayerCore["_abstractNode"]) {
     this._abstractNode = node;
+    if (this._abstractNode) {
+      this._abstractNode.setVolume(this._curVolume);
+    }
   }
   /** 开始播放 */
   async play() {

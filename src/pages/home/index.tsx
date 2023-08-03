@@ -84,7 +84,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   >
                     <LazyImage className="w-full h-[512px] object-cover" src={poster_path} alt={name} />
                     <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
-                      <h2 className="truncate text-slate-900 text-2xl">{name}</h2>
+                      <h2 className="truncate text-2xl">{name}</h2>
                     </div>
                   </div>
                 );

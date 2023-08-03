@@ -8,16 +8,20 @@ export class LocalCache {
   constructor() {
     // @todo localStorage 是端相关 API，应该在外部传入
     this._values = JSON.parse(localStorage.getItem(GLOBAL_KEY) || "{}");
+    console.log('[DOMAIN]Cache - constructor', this._values);
   }
 
   get values() {
     return this._values;
   }
 
-  init(values: Record<string, unknown>) {
-    this._values = values;
+  get<T>(key: string, defaultValue?: T) {
+    const v = this._values[key];
+    if (v === undefined && defaultValue) {
+      return defaultValue;
+    }
+    return v as T;
   }
-
   set = debounce(100, (key: string, values: unknown) => {
     // console.log("cache set", key, values);
     const nextValues = {
@@ -28,13 +32,20 @@ export class LocalCache {
     localStorage.setItem(GLOBAL_KEY, JSON.stringify(this._values));
   }) as (key: string, value: unknown) => void;
 
-  get<T>(key: string, defaultValue?: T) {
-    const v = this._values[key];
-    if (v === undefined && defaultValue) {
-      return defaultValue;
+  merge = (key: string, values: unknown) => {
+    console.log("[]merge", key, values);
+    const prevValues = this.get(key) || {};
+    if (typeof prevValues === "object" && typeof values === "object") {
+      const nextValues = {
+        ...prevValues,
+        ...values,
+      };
+      this.set(key, nextValues);
+      return nextValues;
     }
-    return v as T;
-  }
+    console.warn("the params of merge must be object");
+    return prevValues;
+  };
 
   clear<T>(key: string) {
     const v = this._values[key];
