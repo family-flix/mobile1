@@ -230,6 +230,9 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.state.step = this.pullToRefresh.state;
     this.emit(Events.StateChange, { ...this.state });
   }
+  scrollTo(position: Partial<{ left: number; top: number }>) {
+    console.log("请在 connect 中实现该方法");
+  }
 
   onScroll(handler: Handler<TheTypesOfEvents[Events.Scroll]>) {
     this.on(Events.Scroll, handler);

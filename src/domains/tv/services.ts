@@ -52,6 +52,7 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
       tv_id: string;
       name: string;
       original_name: string;
+      season_text: string;
       overview: string;
       poster_path: string;
       backdrop_path: string;

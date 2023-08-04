@@ -9,15 +9,14 @@ import { useState } from "react";
 import { useInitialize, useInstance } from "@/hooks";
 import { KeepAliveRouteView } from "@/components/ui/keep-alive-route-view";
 import { Sheet } from "@/components/ui/sheet";
-import { DialogCore } from "@/domains/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DialogCore } from "@/domains/ui/dialog";
 import { ButtonCore } from "@/domains/ui/button";
-
-const dialog = new DialogCore();
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
 
+  const dialog = useInstance(() => new DialogCore());
   const logoutBtn = useInstance(
     () =>
       new ButtonCore({
@@ -102,7 +101,7 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <div className="h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
+        <div className="fixed left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
             className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
@@ -125,7 +124,7 @@ export const HomeLayout: ViewComponent = (props) => {
             </div>
             <div className="mt-2 text-sm text-center">电影</div>
           </div>
-          <div
+          {/* <div
             className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {
               router.push("/home/search");
@@ -135,7 +134,7 @@ export const HomeLayout: ViewComponent = (props) => {
               <Search className="w-5 h-5" />
             </div>
             <div className="mt-2 text-sm text-center">搜索</div>
-          </div>
+          </div> */}
           <div
             className="flex flex-col justify-center items-center dark:text-black-200"
             onClick={() => {

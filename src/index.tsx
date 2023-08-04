@@ -37,14 +37,14 @@ homeLayout.register("/home/index", () => {
 homeLayout.register("/home/movie", () => {
   return homeMoviePage;
 });
-homeLayout.register("/home/search", () => {
-  return homeSearchPage;
-});
 homeLayout.register("/home/history", () => {
   return cView;
 });
 homeLayout.register("/home/my", () => {
   return homeMyPage;
+});
+rootView.register("/search", () => {
+  return homeSearchPage;
 });
 rootView.register("/movie/play/:id", () => {
   return moviePlayingPage;

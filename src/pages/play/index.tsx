@@ -136,7 +136,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         return;
       }
       player.play();
-      // tv.canAutoPlay = false;
+      tv.canAutoPlay = false;
     });
     player.onVolumeChange(({ volume }) => {
       app.cache.merge("player_settings", {
@@ -183,7 +183,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
     // });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
-      player.setCurrentTime(tv.currentTime);
       episodesSheet.hide();
       sourcesSheet.hide();
       cSheet.hide();

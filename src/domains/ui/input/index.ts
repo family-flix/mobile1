@@ -5,10 +5,16 @@ import { BaseDomain } from "@/domains/base";
 enum Events {
   Change,
   StateChange,
+  Mounted,
+  Focus,
+  Blur,
 }
 type TheTypesOfEvents = {
   [Events.Change]: string;
   [Events.StateChange]: InputState;
+  [Events.Mounted]: void;
+  [Events.Focus]: void;
+  [Events.Blur]: void;
 };
 type InputState = {
   value: string;
@@ -61,7 +67,12 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       });
     }
   }
-
+  setMounted() {
+    this.emit(Events.Mounted);
+  }
+  focus() {
+    console.log("请在 connect 中实现该方法");
+  }
   change(value: string) {
     this.state.value = value;
     this.value = value;
@@ -86,9 +97,18 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   onChange(handler: Handler<TheTypesOfEvents[Events.Change]>) {
-    this.on(Events.Change, handler);
+    return this.on(Events.Change, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
-    this.on(Events.StateChange, handler);
+    return this.on(Events.StateChange, handler);
+  }
+  onMounted(handler: Handler<TheTypesOfEvents[Events.Mounted]>) {
+    return this.on(Events.Mounted, handler);
+  }
+  onFocus(handler: Handler<TheTypesOfEvents[Events.Focus]>) {
+    return this.on(Events.Focus, handler);
+  }
+  onBlur(handler: Handler<TheTypesOfEvents[Events.Blur]>) {
+    return this.on(Events.Blur, handler);
   }
 }

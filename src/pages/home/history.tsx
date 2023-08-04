@@ -3,7 +3,7 @@
  */
 import React, { useState } from "react";
 
-import { fetch_play_histories, PlayHistoryItem } from "@/domains/tv/services";
+import { fetch_play_histories } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { RequestCore } from "@/domains/client";
@@ -11,7 +11,6 @@ import { ViewComponent } from "@/types";
 import { useInitialize, useInstance } from "@/hooks";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { LazyImage } from "@/components/ui/image";
-import { sleep } from "@/utils";
 import { ListView } from "@/components/ui/list-view";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -70,11 +69,11 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                     <Skeleton className="w-[120px] h-[180px]" />
                   </div>
                   <div className="relative flex-1 mt-2">
-                    <Skeleton className="w-36 h-[32px]"></Skeleton>
+                    <Skeleton className="w-full h-[32px]"></Skeleton>
                     <div className="flex items-center mt-2 text-xl">
                       <Skeleton className="w-24 h-[28px]"></Skeleton>
                     </div>
-                    <Skeleton className="mt-2 w-12 h-[24px]"></Skeleton>
+                    <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
                   </div>
                 </div>
               </>
@@ -103,7 +102,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                   }}
                 >
                   <div className="relative mr-4">
-                    <LazyImage className="w-[120px] object-cover" src={poster_path} alt={name} />
+                    <LazyImage className="w-[120px] h-[180px] object-cover" src={poster_path} alt={name} />
                     {(() => {
                       if (episode_count && cur_episode_count !== episode_count) {
                         return (

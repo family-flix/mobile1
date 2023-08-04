@@ -8,7 +8,7 @@ import { LazyImage } from "@/components/ui/image";
 import { RequestCore } from "@/domains/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useInitialize } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks";
 import { ListCore } from "@/domains/list";
 import { ViewComponent } from "@/types";
 import { ButtonCore } from "@/domains/ui/button";
@@ -18,46 +18,60 @@ import { sleep } from "@/utils";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { ListView } from "@/components/ui/list-view";
 
-const helper = new ListCore(new RequestCore(search_tv_and_movie), {
-  onLoadingChange(loading) {
-    searchBtn.setLoading(loading);
-  },
-});
-const nameInput = new InputCore({
-  placeholder: "请输入关键字搜索",
-});
-const searchBtn = new ButtonCore({
-  onClick() {
-    if (!nameInput.value) {
-      return;
-    }
-    helper.search({ name: nameInput.value });
-  },
-});
-const scrollView = new ScrollViewCore();
-
 export const HomeSearchPage: ViewComponent = (props) => {
   const { router, view } = props;
+
+  const helper = useInstance(() => {
+    return new ListCore(new RequestCore(search_tv_and_movie), {
+      onLoadingChange(loading) {
+        searchBtn.setLoading(loading);
+      },
+    });
+  });
+  const nameInput = useInstance(
+    () =>
+      new InputCore({
+        placeholder: "请输入关键字搜索",
+      })
+  );
+  const searchBtn = useInstance(
+    () =>
+      new ButtonCore({
+        onClick() {
+          if (!nameInput.value) {
+            return;
+          }
+          helper.search({ name: nameInput.value });
+        },
+      })
+  );
+  const scrollView = useInstance(() => new ScrollViewCore());
+
   // const [response, helper] = useHelper<PartialSearchedTV>(fetch_tv_list);
   const [response, setResponse] = useState(helper.response);
 
   useInitialize(() => {
     console.log("home/search initialize");
-    view.onReady(() => {
-      console.log("home/search ready");
-    });
-    view.onMounted(() => {
-      console.log("home/search mounted");
-    });
-    view.onShow(() => {
-      console.log("home/search show");
-    });
-    view.onHidden(() => {
-      console.log("home/search hide");
-    });
+    // view.onReady(() => {
+    //   console.log("home/search ready");
+    // });
+    // view.onMounted(() => {
+    //   console.log("home/search mounted");
+    // });
+    // view.onShow(() => {
+    //   console.log("home/search show");
+    // });
+    // view.onHidden(() => {
+    //   console.log("home/search hide");
+    // });
     // view.onUnmounted(() => {
     //   console.log("home/search unmounted");
     // });
+    nameInput.onMounted(() => {
+      setTimeout(() => {
+        nameInput.focus();
+      }, 800);
+    });
     scrollView.onPullToRefresh(async () => {
       await (async () => {
         console.log(nameInput.value);
@@ -80,8 +94,7 @@ export const HomeSearchPage: ViewComponent = (props) => {
 
   return (
     <ScrollView store={scrollView}>
-      <div className="pt-4">
-        <h2 className="h2 pb-4 text-center">影片搜索</h2>
+      <div className="">
         <div className="m-auto space-y-2">
           <div className="">
             <div className="flex mt-4 px-4 space-x-2">

@@ -207,6 +207,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         };
       }
       const { url, type, typeText, width, height, thumbnail } = matched_resolution;
+      this.curResolutionType = type;
       return {
         url,
         file_id,
@@ -502,6 +503,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: [`没有 '${target_type}' 分辨率`] });
       return Result.Err(msg);
     }
+    this.canAutoPlay = true;
     // console.log("switchResolution 4");
     const { url, type: nextType, typeText, width, height, thumbnail } = matched_resolution;
     this.curSource = {

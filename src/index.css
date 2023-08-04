@@ -16,7 +16,9 @@
     @apply top-[24%];
   }
 }
-
+/* html {
+  scroll-behavior: smooth;
+} */
 .app__mask {
   transition: all 0.8s;
 }
