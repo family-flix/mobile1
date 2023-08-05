@@ -527,7 +527,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.currentTime = currentTime;
   }
   updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
-    const { currentTime = this.currentTime, duration } = values;
+    const { currentTime = this.currentTime, duration = 0 } = values;
     // console.log("[DOMAIN]TVPlay - update_play_progress", currentTime);
     if (!this.id) {
       return;
@@ -543,8 +543,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     update_play_history({
       tv_id: this.id,
       episode_id,
-      current_time: currentTime,
-      duration,
+      current_time: parseFloat(currentTime.toFixed(2)),
+      duration: parseFloat(duration.toFixed(2)),
       file_id,
     });
   }

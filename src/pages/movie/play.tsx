@@ -65,12 +65,12 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     movie.onSourceChange((mediaSource) => {
       const { width, height } = mediaSource;
       // console.log("[PAGE]play - tv.onSourceChange", width, height);
-      const h = Math.ceil((height / width) * app.size.width);
+      const h = Math.ceil((height / width) * app.screen.width);
       // player.setResolution(values.resolution);
       player.pause();
       player.loadSource(mediaSource);
       player.setSize({
-        width: app.size.width,
+        width: app.screen.width,
         height: h,
       });
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);

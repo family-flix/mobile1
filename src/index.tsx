@@ -12,7 +12,7 @@ import { ToastCore } from "./domains/ui/toast";
 import { useInitialize } from "./hooks";
 import {
   homeIndexPage,
-  homeSearchPage,
+  homeTVSearchPage,
   cView,
   homeMyPage,
   homeLayout,
@@ -22,6 +22,7 @@ import {
   outerPlayerPage,
   homeMoviePage,
   moviePlayingPage,
+  homeMovieSearchPage,
 } from "./store/views";
 import { app } from "./store/app";
 import { cn } from "./utils";
@@ -43,8 +44,11 @@ homeLayout.register("/home/history", () => {
 homeLayout.register("/home/my", () => {
   return homeMyPage;
 });
-rootView.register("/search", () => {
-  return homeSearchPage;
+rootView.register("/search_tv", () => {
+  return homeTVSearchPage;
+});
+rootView.register("/search_movie", () => {
+  return homeMovieSearchPage;
 });
 rootView.register("/movie/play/:id", () => {
   return moviePlayingPage;
@@ -134,8 +138,12 @@ function ApplicationView() {
       router.start();
     });
     console.log("[]Application - before start", window.history);
-    router.prepare(window.location);
-    app.start();
+    const { innerWidth, innerHeight, location } = window;
+    app.router.prepare(location);
+    app.start({
+      width: innerWidth,
+      height: innerHeight,
+    });
   });
 
   // console.log("[ROOT]renderer - render");

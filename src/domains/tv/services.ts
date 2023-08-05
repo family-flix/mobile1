@@ -562,7 +562,7 @@ export async function fetch_play_histories(params: FetchParams) {
         updated: relative_time_from_now(updated),
         has_update: !!has_update,
         currentTime: current_time,
-        percent: parseFloat((current_time / duration).toFixed(2)) * 100 + "%",
+        percent: ((current_time / duration) * 100).toFixed(2) + "%",
         thumbnail,
       };
     }),

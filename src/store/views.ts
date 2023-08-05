@@ -4,7 +4,8 @@ import { HomeLayout } from "@/pages/home/layout";
 import { HomeIndexPage } from "@/pages/home";
 import { HomeMoviePage } from "@/pages/home/movie";
 import { HomeHistoryPage } from "@/pages/home/history";
-import { HomeSearchPage } from "@/pages/home/search";
+import { HomeTVSearchPage } from "@/pages/home/search/tv";
+import { HomeMovieSearchPage } from "@/pages/home/search/movie";
 import { HomeMyPage } from "@/pages/home/my";
 /** 视频播放 */
 import { TVPlayingPage } from "@/pages/play";
@@ -38,9 +39,13 @@ export const homeMoviePage = new RouteViewCore({
   title: "电影",
   component: HomeMoviePage,
 });
-export const homeSearchPage = new RouteViewCore({
-  title: "搜索",
-  component: HomeSearchPage,
+export const homeTVSearchPage = new RouteViewCore({
+  title: "搜索电视剧",
+  component: HomeTVSearchPage,
+});
+export const homeMovieSearchPage = new RouteViewCore({
+  title: "搜索电影",
+  component: HomeMovieSearchPage,
 });
 export const cView = new RouteViewCore({
   title: "播放历史",

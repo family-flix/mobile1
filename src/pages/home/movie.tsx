@@ -87,9 +87,10 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
     return new CheckboxGroupCore({
       options: MovieGenresOptions,
       onChange(options) {
-        // app.cache.merge("tv_search", {
+        // app.cache.merge("movie_search", {
         //   genres: options,
         // });
+        setHasSearch(!!options.length);
         helper.search({
           genres: options.join("|"),
         });
@@ -147,7 +148,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                   <div
                     className="absolute inset-0"
                     onClick={() => {
-                      router.push("/search");
+                      router.push("/search_movie");
                     }}
                   ></div>
                   <Input store={fakeSearchInput} />

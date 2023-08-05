@@ -14,7 +14,7 @@ export function BackToTop(props: { store: ScrollViewCore }) {
   useInitialize(() => {
     store.onScroll((instance) => {
       let needShow = false;
-      if (instance.scrollTop >= app.size.height) {
+      if (instance.scrollTop >= app.screen.height) {
         needShow = true;
       }
       if (needShow === ref.current) {

@@ -116,11 +116,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
     tv.onSourceChange((mediaSource) => {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       const { width, height } = mediaSource;
-      const h = Math.ceil((height / width) * app.size.width);
+      const h = Math.ceil((height / width) * app.screen.width);
       player.pause();
       player.loadSource(mediaSource);
       player.setSize({
-        width: app.size.width,
+        width: app.screen.width,
         height: h,
       });
       player.setCurrentTime(mediaSource.currentTime);
@@ -466,34 +466,43 @@ export const TVPlayingPage: ViewComponent = (props) => {
             </div>
           );
           if (seasons.length === 1) {
-            return <div className="overflow-y-auto mt-8 pb-12 h-full">{episodes_elm}</div>;
+            return (
+              <div className="h-full safe-bottom">
+                <div className="overflow-y-auto mt-8 h-full pb-24">{episodes_elm}</div>
+              </div>
+            );
           }
           return (
-            <Tabs defaultValue="episode" className="overflow-y-auto pb-12 h-full">
-              <TabsList>
-                <TabsTrigger value="episode">集数</TabsTrigger>
-                <TabsTrigger value="season">季</TabsTrigger>
-              </TabsList>
-              <TabsContent value="episode">{episodes_elm}</TabsContent>
-              <TabsContent value="season">
-                <div className="">
-                  {seasons.map((season) => {
-                    const { id, name } = season;
-                    return (
-                      <div
-                        key={id}
-                        className={cn("p-4 rounded cursor-pointer", profile.curSeason.id === id ? "bg-slate-500" : "")}
-                        onClick={() => {
-                          tv.fetchEpisodesOfSeason(season);
-                        }}
-                      >
-                        <div>{name}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </TabsContent>
-            </Tabs>
+            <div className="h-full safe-bottom">
+              <Tabs defaultValue="episode" className="overflow-y-auto pb-24 h-full">
+                <TabsList>
+                  <TabsTrigger value="episode">集数</TabsTrigger>
+                  <TabsTrigger value="season">季</TabsTrigger>
+                </TabsList>
+                <TabsContent value="episode">{episodes_elm}</TabsContent>
+                <TabsContent value="season">
+                  <div className="">
+                    {seasons.map((season) => {
+                      const { id, name } = season;
+                      return (
+                        <div
+                          key={id}
+                          className={cn(
+                            "p-4 rounded cursor-pointer",
+                            profile.curSeason.id === id ? "bg-slate-500" : ""
+                          )}
+                          onClick={() => {
+                            tv.fetchEpisodesOfSeason(season);
+                          }}
+                        >
+                          <div>{name}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           );
         })()}
       </Sheet>
@@ -504,26 +513,31 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { curEpisode } = profile;
           return (
-            <div className="">
-              {curEpisode.sources.map((s) => {
-                const { id, file_id, file_name, parent_paths } = s;
-                return (
-                  <div
-                    key={id}
-                    onClick={() => {
-                      tv.changeSource(s);
-                    }}
-                  >
+            <div className="safe-bottom h-full">
+              <div className="overflow-y-auto mt-8 h-full pb-24">
+                {curEpisode.sources.map((s) => {
+                  const { id, file_id, file_name, parent_paths } = s;
+                  return (
                     <div
-                      className={cn("p-4 rounded cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}
+                      key={id}
+                      onClick={() => {
+                        tv.changeSource(s);
+                      }}
                     >
-                      <div className="break-all">
-                        {parent_paths}/{file_name}
+                      <div
+                        className={cn(
+                          "p-4 rounded cursor-pointer",
+                          curSource?.file_id === file_id ? "bg-slate-500" : ""
+                        )}
+                      >
+                        <div className="break-all">
+                          {parent_paths}/{file_name}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           );
         })()}
@@ -547,7 +561,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { typeText: curTypeText, resolutions } = curSource;
           return (
-            <div className="overflow-y-auto mt-8 pb-12 h-full">
+            <div className="overflow-y-auto mt-8 pb-24 h-full">
               {resolutions.map((r, i) => {
                 const { type, typeText } = r;
                 return (

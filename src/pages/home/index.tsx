@@ -66,6 +66,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         // app.cache.merge("tv_search", {
         //   genres: options,
         // });
+        setHasSearch(!!options.length);
         helper.search({
           genres: options.join("|"),
         });
@@ -100,18 +101,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
   );
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
-    // view.onReady(() => {
-    //   console.log("home/index ready");
-    // });
-    // view.onMounted(() => {
-    //   console.log("home/index mounted");
-    // });
-    // view.onShow(() => {
-    //   console.log("home/index show");
-    // });
-    // view.onHidden(() => {
-    //   console.log("home/index hide");
-    // });
     scrollView.onPullToRefresh(async () => {
       await helper.refresh();
       scrollView.stopPullToRefresh();
@@ -140,7 +129,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   <div
                     className="absolute inset-0"
                     onClick={() => {
-                      router.push("/search");
+                      router.push("/search_tv");
                     }}
                   ></div>
                   <Input store={fakeSearchInput} />
@@ -187,7 +176,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       <div className="mt-4 max-w-sm overflow-hidden flex items-center text-ellipsis">
                         <h2 className="truncate text-2xl">{name}</h2>
                         <p className="mx-2 text-gray-500">·</p>
-                        <p className="text-2xl text-gray-500">{season_text}</p>
+                        <p className="text-2xl text-gray-500 whitespace-nowrap">{season_text}</p>
                       </div>
                     </div>
                   );

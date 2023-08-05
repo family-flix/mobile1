@@ -22,17 +22,16 @@ export const CheckboxOption = (
   return (
     <div
       className={cn(
-        "py-2 px-4 mb-2 rounded-lg border",
-        state.checked ? "bg-slate-500 text-slate-200 dark:text-slate-600" : "",
-        {
-          "bg-slate-500": state.checked,
-        }
+        "flex justify-center items-center py-1 px-2 mb-2 rounded-lg border",
+        state.checked ? "bg-slate-500 text-slate-200 dark:text-slate-200 dark:bg-slate-600" : ""
       )}
       onClick={() => {
         store.toggle();
       }}
     >
-      <div className="text-sm">{label}</div>
+      <div className="text-sm leading-tight">
+        {label}
+      </div>
     </div>
   );
 };
