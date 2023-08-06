@@ -10,8 +10,14 @@ import { cn } from "@/utils";
 import { connect } from "@/domains/ui/scroll-view/connect.web";
 
 export const ScrollView = React.memo(
-  (props: { store: ScrollViewCore; className?: string; style?: React.CSSProperties; children: React.ReactElement }) => {
-    const { store, className, style = {}, children, ...restProps } = props;
+  (props: {
+    store: ScrollViewCore;
+    wrapClassName?: string;
+    className?: string;
+    style?: React.CSSProperties;
+    children: React.ReactElement;
+  }) => {
+    const { store, className, wrapClassName, style = {}, children, ...restProps } = props;
 
     const ref = useRef<HTMLDivElement>(null);
     const [state, setState] = useState(store.state);
@@ -48,13 +54,17 @@ export const ScrollView = React.memo(
     const Component = options[step];
 
     return (
-      <Root className={cn("overflow-hidden absolute inset-0 w-full h-full", className)} style={style} {...restProps}>
+      <Root
+        className={cn("overflow-hidden absolute inset-0 w-full h-full", wrapClassName)}
+        style={style}
+        {...restProps}
+      >
         <Indicator store={store}>
           <div className="flex items-center justify-center h-[80px]">
             <Component />
           </div>
         </Indicator>
-        <Content store={store} className="absolute inset-0 max-h-screen overflow-y-auto hide-scroll">
+        <Content store={store} className={cn("absolute inset-0 max-h-screen overflow-y-auto hide-scroll", className)}>
           {children}
         </Content>
       </Root>

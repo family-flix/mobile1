@@ -25,6 +25,7 @@ type ScrollViewProps = {
   pullToRefresh?: boolean;
   onScroll?: (pos: { scrollTop: number }) => void;
   onReachBottom?: () => void;
+  onPullToRefresh?: () => void;
 };
 type ScrollViewState = {
   top: number;
@@ -84,13 +85,16 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   constructor(options: Partial<{ _name: string }> & ScrollViewProps = {}) {
     super(options);
 
-    const { pullToRefresh = false, onScroll, onReachBottom } = options;
+    const { pullToRefresh = false, onScroll, onReachBottom, onPullToRefresh } = options;
     this.state.pullToRefresh = pullToRefresh;
     if (onScroll) {
       this.onScroll(onScroll);
     }
     if (onReachBottom) {
       this.onReachBottom(onReachBottom);
+    }
+    if (onPullToRefresh) {
+      this.onPullToRefresh(onPullToRefresh);
     }
   }
 

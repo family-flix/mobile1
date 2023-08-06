@@ -31,18 +31,14 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
   return Result.Ok({
     ...resp.data,
     list: resp.data.list.map((tv) => {
-      const { ...rest } = tv;
-      return {
-        ...rest,
-        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
-      };
+      return tv;
     }),
   });
 }
 export type TVItem = RequestedResource<typeof fetch_tv_list>["list"][0];
 
 /**
- * 获取电视剧列表
+ * 获取季列表
  */
 export async function fetch_season_list(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
@@ -68,19 +64,26 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
   }
   return Result.Ok({
     ...resp.data,
-    list: resp.data.list.map((tv) => {
-      const { ...rest } = tv;
-      return {
-        ...rest,
-        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
-      };
+    list: resp.data.list.map((season) => {
+      return season;
     }),
   });
 }
 export type SeasonItem = RequestedResource<typeof fetch_season_list>["list"][0];
 
+type MediaSourceProfileRes = {
+  id: string;
+  file_id: string;
+  file_name: string;
+  parent_paths: string;
+  drive: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+};
 /**
- * 获取电视剧及包含的剧集详情
+ * 获取电视剧及当前播放的剧集详情
  * @param params
  */
 export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_id?: string }) {
@@ -98,6 +101,7 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
       name: string;
       overview: string;
       air_date: string;
+      episode_no_more: boolean;
       episodes: {
         id: string;
         name: string;
@@ -105,12 +109,7 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
         season_number: string;
         episode_number: string;
         season_id: string;
-        sources: {
-          id: string;
-          file_id: string;
-          file_name: string;
-          parent_paths: string;
-        }[];
+        sources: MediaSourceProfileRes[];
       }[];
     }[];
     /** 会根据用户播放历史返回正在播放的剧集，或第一集 */
@@ -118,22 +117,12 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
       id: string;
       name: string;
       overview: string;
-      /** 第几季 */
       season_number: string;
-      /** 第几集 */
       episode_number: string;
       season_id: string;
-      /** 当前进度 */
       current_time: number;
-      /** 当前进度截图 */
       thumbnail: string | null;
-      /** 可播放的视频源 */
-      sources: {
-        id: string;
-        file_id: string;
-        file_name: string;
-        parent_paths: string;
-      }[];
+      sources: MediaSourceProfileRes[];
     };
     cur_season: {
       id: string;
@@ -141,7 +130,7 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
       overview: string;
       air_date: string;
     };
-  }>(`/api/tv/play/${tv_id}`, {
+  }>(`/api/tv/${tv_id}/playing`, {
     season_id,
   });
   if (r.error) {
@@ -159,6 +148,12 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
       ...(matchedSeason || cur_season),
       episodes: [],
     },
+    episodeNoMore: (() => {
+      if (matchedSeason) {
+        return matchedSeason.episode_no_more;
+      }
+      return true;
+    })(),
     curEpisodes: (() => {
       // 大概率会走这里
       if (matchedSeason) {
@@ -169,8 +164,8 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
             name,
             overview,
             season_id,
-            season: season_to_chinese_num(season_number),
-            episode: episode_to_chinese_num(episode_number),
+            season_text: season_to_chinese_num(season_number),
+            episode_text: episode_to_chinese_num(episode_number),
             sources,
           };
           return d;
@@ -191,8 +186,8 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
         currentTime: current_time,
         thumbnail,
         season_id,
-        season: season_to_chinese_num(season_number),
-        episode: episode_to_chinese_num(episode_number),
+        season_text: season_to_chinese_num(season_number),
+        episode_text: episode_to_chinese_num(episode_number),
         sources,
       };
       return d;
@@ -210,8 +205,8 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
             name,
             overview,
             season_id,
-            season: season_to_chinese_num(season_number),
-            episode: episode_to_chinese_num(episode_number),
+            season_text: season_to_chinese_num(season_number),
+            episode_text: episode_to_chinese_num(episode_number),
             sources,
           };
           return d;
@@ -300,7 +295,7 @@ export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch
  */
 export async function fetch_episodes_of_season(params: { tv_id: string; season_id: string } & FetchParams) {
   const { tv_id, season_id, page, pageSize } = params;
-  const resp = await request.get<
+  const r = await request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -308,24 +303,21 @@ export async function fetch_episodes_of_season(params: { tv_id: string; season_i
       season_number: string;
       episode_number: string;
       season_id: string;
-      sources: {
-        id: string;
-        file_id: string;
-        file_name: string;
-        parent_paths: string;
-      }[];
+      sources: MediaSourceProfileRes[];
     }>
-  >("/api/episode/list", {
-    tv_id,
-    season_id,
+  >(`/api/tv/${tv_id}/season/${season_id}/episode/list`, {
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { list } = resp.data;
+  const { list, total, page_size, no_more } = r.data;
   return Result.Ok({
+    page_size,
+    page,
+    total,
+    no_more,
     list: list.map((episode) => {
       const { id, name, overview, season_number, episode_number, sources, season_id } = episode;
       const d = {
@@ -333,8 +325,8 @@ export async function fetch_episodes_of_season(params: { tv_id: string; season_i
         name,
         overview,
         season_id,
-        season: season_to_chinese_num(season_number),
-        episode: episode_to_chinese_num(episode_number),
+        season_text: season_to_chinese_num(season_number),
+        episode_text: episode_to_chinese_num(episode_number),
         sources,
       };
       return d;
@@ -342,7 +334,10 @@ export async function fetch_episodes_of_season(params: { tv_id: string; season_i
   });
 }
 
-export async function fetch_source_play_info(body: { episode_id: string; file_id: string }) {
+/**
+ * 获取视频源播放信息
+ */
+export async function fetch_source_playing_info(body: { episode_id: string; file_id: string }) {
   const res = await request.get<{
     id: string;
     name: string;
@@ -403,36 +398,18 @@ export async function fetch_source_play_info(body: { episode_id: string; file_id
 }
 
 /**
- * 获取影片播放地址
- */
-export async function fetch_episode_play_url(params: { tv_id: string; season: string; episode: string }) {
-  // console.log("[]fetch_episode_play_url params", params);
-  const { tv_id, season, episode } = params;
-  const resp = await request.get<
-    {
-      type: string;
-      url: string;
-    }[]
-  >(`/api/tv/play/${tv_id}`, { season, episode });
-  if (resp.error) {
-    return resp;
-  }
-  // console.log("[]fetch_episode_play_url success", resp.data);
-  return resp;
-}
-
-/**
  * 更新播放记录
  */
-export async function update_play_history(params: {
+export async function update_play_history(body: {
   tv_id: string;
   episode_id: string;
   /** 视频当前时间 */
   current_time: number;
   duration?: number;
+  /** 视频源 */
   file_id: string;
 }) {
-  const { tv_id, episode_id, current_time, duration, file_id } = params;
+  const { tv_id, episode_id, current_time, duration, file_id } = body;
   return request.post<null>("/api/history/update", {
     tv_id,
     episode_id,
@@ -440,41 +417,6 @@ export async function update_play_history(params: {
     duration,
     file_id,
   });
-}
-
-/**
- * 获取播放记录
- */
-export async function fetch_play_history_of_tv(params: { tv_id: string }) {
-  const { tv_id } = params;
-  const r = await request.get<{
-    id: string;
-    tv_id: string;
-    episode_id: string;
-    season: string;
-    episode: string;
-    current_time: number;
-    duration: number;
-  }>("/api/history", { tv_id });
-  if (r.error) {
-    return r;
-  }
-  return Result.Ok({
-    ...r.data,
-    current_time: r.data.current_time || 0,
-    episode: episode_to_chinese_num(r.data.episode),
-  });
-}
-export type TVPlayHistory = RequestedResource<typeof fetch_play_history_of_tv>;
-
-/**
- * 隐藏指定 tv
- * @param body
- * @returns
- */
-export function hidden_tv(body: { id: string }) {
-  const { id } = body;
-  return request.get(`/api/tv/hidden/${id}`);
 }
 
 /**
@@ -527,10 +469,11 @@ export async function fetch_play_histories(params: FetchParams) {
   if (r.error) {
     return r;
   }
-  const { list, total } = r.data;
+  const { list, total, no_more, page_size } = r.data;
   return Result.Ok({
+    no_more,
     page,
-    pageSize,
+    page_size,
     total,
     list: list.map((history) => {
       const {
@@ -574,8 +517,10 @@ export enum MediaTypes {
   TV = 1,
   Movie = 2,
 }
+
 /**
  * 获取电视剧列表
+ * @deprecated
  */
 export async function search_tv_and_movie(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;

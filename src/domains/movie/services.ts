@@ -260,10 +260,11 @@ export async function fetch_play_histories(params: FetchParams) {
   if (r.error) {
     return r;
   }
-  const { list, total } = r.data;
+  const { list, total, no_more, page_size } = r.data;
   return Result.Ok({
     page,
-    pageSize,
+    page_size,
+    no_more,
     total,
     list: list.map((history) => {
       const {

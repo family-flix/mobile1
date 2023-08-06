@@ -342,24 +342,29 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           }
           const { sources } = profile;
           return (
-            <div className="overflow-y-auto mt-8 pb-12 h-full">
-              {sources.map((source) => {
-                const { file_id, file_name } = source;
-                return (
-                  <div
-                    key={file_id}
-                    onClick={() => {
-                      movie.changeSource(source);
-                    }}
-                  >
+            <div className="max-h-full overflow-y-auto pb-16">
+              <div className="pt-4 pb-24">
+                {sources.map((source) => {
+                  const { file_id, file_name } = source;
+                  return (
                     <div
-                      className={cn("p-4 rounded cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}
+                      key={file_id}
+                      onClick={() => {
+                        movie.changeSource(source);
+                      }}
                     >
-                      <div className="break-all">{file_name}</div>
+                      <div
+                        className={cn(
+                          "p-4 rounded cursor-pointer",
+                          curSource?.file_id === file_id ? "bg-slate-500" : ""
+                        )}
+                      >
+                        <div className="break-all">{file_name}</div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           );
         })()}

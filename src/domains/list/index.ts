@@ -85,6 +85,7 @@ const RESPONSE_PROCESSOR = <T>(
 enum Events {
   LoadingChange,
   ParamsChange,
+  DataSourceChange,
   DataSourceAdded,
   StateChange,
   Error,
@@ -92,7 +93,8 @@ enum Events {
 type TheTypesOfEvents<T> = {
   [Events.LoadingChange]: boolean;
   [Events.ParamsChange]: FetchParams;
-  [Events.DataSourceAdded]: unknown[];
+  [Events.DataSourceAdded]: T[];
+  [Events.DataSourceChange]: T[];
   [Events.StateChange]: ListState<T>;
   [Events.Error]: Error;
 };
@@ -229,7 +231,10 @@ export class ListCore<
    * @param {import('./typing').FetchParams} nextParams 查询参数或设置函数
    */
   setParams(nextParams: Partial<FetchParams> | ((p: FetchParams) => FetchParams)) {
-    let result = nextParams;
+    let result = {
+      ...this.params,
+      ...nextParams,
+    };
     if (typeof nextParams === "function") {
       result = nextParams(this.params);
     }
@@ -277,7 +282,6 @@ export class ListCore<
     if (params.page === 1 && response.dataSource.length === 0) {
       response.empty = true;
     }
-    // console.log(...this.log('3、afterProcessor', response));
     const responseIsEmpty = response.dataSource === undefined;
     if (responseIsEmpty) {
       response.dataSource = [];
@@ -305,6 +309,7 @@ export class ListCore<
     };
     this.emit(Events.StateChange, { ...this.response });
     this.emit(Events.DataSourceAdded, [...res.data.dataSource]);
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -328,6 +333,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -356,6 +362,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -383,8 +390,9 @@ export class ListCore<
       ...res.data,
     };
     this.response.dataSource = prevItems.concat(res.data.dataSource);
-    this.emit(Events.DataSourceAdded, [...res.data.dataSource]);
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceAdded, [...res.data.dataSource]);
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -421,6 +429,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   async search(params: Search) {
@@ -440,6 +449,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -461,6 +471,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   /**
@@ -493,6 +504,7 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
   clear() {
@@ -501,6 +513,7 @@ export class ListCore<
     };
     this.params = { ...DEFAULT_PARAMS };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   deleteItem(fn: (item: T) => boolean) {
     const { dataSource } = this.response;
@@ -510,6 +523,7 @@ export class ListCore<
     this.response.total = nextDataSource.length;
     this.response.dataSource = nextDataSource;
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   /**
    * 移除列表中的多项（用在删除场景）
@@ -523,6 +537,7 @@ export class ListCore<
     this.response.total = nextDataSource.length;
     this.response.dataSource = nextDataSource;
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   modifyItem(fn: (item: T) => T) {
     const { dataSource } = this.response;
@@ -538,6 +553,15 @@ export class ListCore<
     this.response.dataSource = nextDataSource;
     console.log("[DOMAIN]list/index - modifyItem", nextDataSource[0]);
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
+  }
+  /**
+   * 手动修改当前 dataSource
+   * @param fn
+   */
+  modifyDataSource(dataSource: T[]) {
+    this.response.dataSource = dataSource;
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   /**
    * 手动修改当前 response
@@ -546,6 +570,7 @@ export class ListCore<
   modifyResponse(fn: (v: Response<T>) => Response<T>) {
     this.response = fn({ ...this.response });
     this.emit(Events.StateChange, { ...this.response });
+    // this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   /**
    * 手动修改当前 params
@@ -571,6 +596,9 @@ export class ListCore<
   }
   onLoadingChange(handler: Handler<TheTypesOfEvents<T>[Events.LoadingChange]>) {
     return this.on(Events.LoadingChange, handler);
+  }
+  onDataSourceChange(handler: Handler<TheTypesOfEvents<T>[Events.DataSourceChange]>) {
+    return this.on(Events.DataSourceChange, handler);
   }
   onDataSourceAdded(handler: Handler<TheTypesOfEvents<T>[Events.DataSourceAdded]>) {
     return this.on(Events.DataSourceAdded, handler);

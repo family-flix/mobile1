@@ -31,6 +31,8 @@ import { ViewComponent } from "./types";
 import "./index.css";
 
 const { router } = app;
+// @ts-ignore
+window.__app__ = app;
 
 homeLayout.register("/home/index", () => {
   return homeIndexPage;

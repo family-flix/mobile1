@@ -34,6 +34,9 @@ import { Video } from "@/components/ui/video";
 import { Show } from "@/packages/ui/show";
 import { ImageCore } from "@/domains/ui/image";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
+import { ListView } from "@/components/ui/list-view";
+import { ScrollView } from "@/components/ui/scroll-view";
+import { ScrollViewCore } from "@/domains/ui/scroll-view";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -65,6 +68,18 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const cSheet = useInstance(() => new DialogCore());
   const dSheet = useInstance(() => new DialogCore());
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
+  const episodeScrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        async onPullToRefresh() {
+          await tv.episodeList.refresh();
+          episodeScrollView.stopPullToRefresh();
+        },
+        onReachBottom() {
+          tv.episodeList.loadMore();
+        },
+      })
+  );
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
 
@@ -442,9 +457,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { seasons, curEpisodes } = profile;
           const episodes_elm = (
-            <div className="">
+            <ListView className="pt-4 pb-24" store={tv.episodeList}>
               {curEpisodes.map((episode) => {
-                const { id, name, overview, episode: episode_number } = episode;
+                const { id, name, overview, episode_text: episode_number } = episode;
                 return (
                   <div
                     key={id}
@@ -463,42 +478,50 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   </div>
                 );
               })}
-            </div>
+            </ListView>
           );
           if (seasons.length === 1) {
             return (
-              <div className="h-full safe-bottom">
-                <div className="overflow-y-auto mt-8 h-full pb-24">{episodes_elm}</div>
+              <div className="max-h-full overflow-y-auto pb-16">
+                <ScrollView store={episodeScrollView} className="mt-8">
+                  {episodes_elm}
+                </ScrollView>
               </div>
             );
           }
           return (
-            <div className="h-full safe-bottom">
-              <Tabs defaultValue="episode" className="overflow-y-auto pb-24 h-full">
-                <TabsList>
+            <div className="relative box-border h-full safe-bottom">
+              <Tabs defaultValue="episode" className="h-full">
+                <TabsList className="relative z-10">
                   <TabsTrigger value="episode">集数</TabsTrigger>
                   <TabsTrigger value="season">季</TabsTrigger>
                 </TabsList>
-                <TabsContent value="episode">{episodes_elm}</TabsContent>
-                <TabsContent value="season">
-                  <div className="">
-                    {seasons.map((season) => {
-                      const { id, name } = season;
-                      return (
-                        <div
-                          key={id}
-                          className={cn(
-                            "p-4 rounded cursor-pointer",
-                            profile.curSeason.id === id ? "bg-slate-500" : ""
-                          )}
-                          onClick={() => {
-                            tv.fetchEpisodesOfSeason(season);
-                          }}
-                        >
-                          <div>{name}</div>
-                        </div>
-                      );
-                    })}
+                <TabsContent className="pt-8 border-0" value="episode">
+                  <ScrollView wrapClassName="top-12" store={episodeScrollView}>
+                    {episodes_elm}
+                  </ScrollView>
+                </TabsContent>
+                <TabsContent className="border-0 h-full" value="season">
+                  <div className="max-h-full overflow-y-auto pb-16">
+                    <div className="pt-4 pb-24">
+                      {seasons.map((season) => {
+                        const { id, name } = season;
+                        return (
+                          <div
+                            key={id}
+                            className={cn(
+                              "p-4 rounded cursor-pointer",
+                              profile.curSeason.id === id ? "bg-slate-500" : ""
+                            )}
+                            onClick={() => {
+                              tv.fetchEpisodesOfSeason(season);
+                            }}
+                          >
+                            <div>{name}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
@@ -513,8 +536,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { curEpisode } = profile;
           return (
-            <div className="safe-bottom h-full">
-              <div className="overflow-y-auto mt-8 h-full pb-24">
+            <div className="max-h-full overflow-y-auto pb-16">
+              <div className="pt-4 pb-24">
                 {curEpisode.sources.map((s) => {
                   const { id, file_id, file_name, parent_paths } = s;
                   return (

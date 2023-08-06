@@ -15,7 +15,6 @@ const mediaSizes = {
   xl: 1200, // 特大设备宽度阈值
   "2xl": 1536, // 特大设备宽度阈值
 };
-
 function getCurrentDeviceSize(width: number) {
   if (width >= mediaSizes["2xl"]) {
     return "2xl";
@@ -31,6 +30,7 @@ function getCurrentDeviceSize(width: number) {
   }
   return "sm";
 }
+export const MEDIA = "(prefers-color-scheme: dark)";
 
 enum Events {
   Ready,
@@ -78,7 +78,14 @@ type TheTypesOfEvents = {
   [Events.Hidden]: void;
   // [Events.DrivesChange]: Drive[];
 };
+type ApplicationState = {
+  ready: boolean;
+  env: JSONObject;
+  theme: ThemeTypes;
+  deviceSize: DeviceSizeTypes;
+};
 type DeviceSizeTypes = keyof typeof mediaSizes;
+type ThemeTypes = "dark" | "light" | "system";
 
 export class Application extends BaseDomain<TheTypesOfEvents> {
   user: UserCore;
@@ -88,6 +95,8 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     beforeReady: () => Promise<Result<null>>;
     onReady: () => void;
   }> = {};
+
+  ready = false;
   screen: {
     width: number;
     height: number;
@@ -95,19 +104,23 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     width: 0,
     height: 0,
   };
-  curDeviceSize: DeviceSizeTypes = "md";
-  safeArea = false;
   env: JSONObject = {};
+  curDeviceSize: DeviceSizeTypes = "md";
+  theme: ThemeTypes = "system";
+
+  safeArea = false;
   Events = Events;
 
   // @todo 怎么才能更方便地拓展 Application 类，给其添加许多的额外属性还能有类型提示呢？
 
-  /** 网盘列表 */
-  // drives: Drive[] = [];
-
-  state: Partial<{
-    ready: boolean;
-  }> = {};
+  get state(): ApplicationState {
+    return {
+      ready: this.ready,
+      theme: this.theme,
+      env: this.env,
+      deviceSize: this.curDeviceSize,
+    };
+  }
 
   static Events = Events;
 
@@ -142,9 +155,23 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
         return Result.Err(r.error);
       }
     }
+    this.ready = true;
     this.emit(Events.Ready);
     // console.log("[]Application - before start");
     return Result.Ok(null);
+  }
+  setTheme(theme?: string) {
+    let resolved = theme;
+    if (!resolved) {
+      return;
+    }
+    // If theme is system, resolve it before setting theme
+    if (theme === "system") {
+      resolved = this.getSystemTheme();
+    }
+  }
+  applyTheme() {
+    throw new Error("请在 connect.web 中实现 applyTheme 方法");
   }
   /** 手机震动 */
   vibrate() {}
@@ -162,6 +189,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
     throw new Error("请实现 getComputedStyle 方法");
+  }
+  getSystemTheme(e?: any): string {
+    return "";
   }
   disablePointer() {
     throw new Error("请实现 disablePointer 方法");

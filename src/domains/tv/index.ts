@@ -4,6 +4,8 @@
 import throttle from "lodash/fp/throttle";
 import { Handler } from "mitt";
 
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/client";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
 
@@ -17,7 +19,7 @@ import {
   fetch_episodes_of_season,
   TVSeasonProfile,
   TVEpisodeProfile,
-  fetch_source_play_info,
+  fetch_source_playing_info,
 } from "./services";
 
 enum Events {
@@ -25,6 +27,8 @@ enum Events {
   ProfileLoaded,
   /** 切换播放的剧集 */
   EpisodeChange,
+  /** 剧集列表改变 */
+  EpisodesChange,
   /** 切换播放的剧集 */
   SourceChange,
   /** 分辨率改变 */
@@ -37,7 +41,10 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
   [Events.SourceChange]: MediaSourceProfile & { currentTime: number };
-  [Events.EpisodeChange]: TVProps["profile"]["curEpisode"] & { currentTime: number };
+  [Events.EpisodeChange]: TVProps["profile"]["curEpisode"] & {
+    currentTime: number;
+  };
+  [Events.EpisodesChange]: TVEpisodeProfile[];
   [Events.ResolutionChange]: MediaSourceProfile & { currentTime: number };
   [Events.BeforeNextEpisode]: void;
   [Events.BeforePrevEpisode]: void;
@@ -54,11 +61,15 @@ type TVProps = {
     /** 如果存在播放记录，返回当前播放的集数对应季，如果没有播放记录，返回第一季 */
     curSeason: TVSeasonProfile;
     /** 如果存在播放记录，返回当前播放的集数，如果没有播放记录，返回第一季、第一集 */
-    curEpisode: TVEpisodeProfile & { currentTime: number; thumbnail: string | null };
+    curEpisode: TVEpisodeProfile & {
+      currentTime: number;
+      thumbnail: string | null;
+    };
     /** 电视剧下所有季 */
     seasons: TVSeasonProfile[];
     /** 当前播放剧集同一季的所有剧集 */
     curEpisodes: TVEpisodeProfile[];
+    episodeNoMore: boolean;
   };
 };
 
@@ -78,7 +89,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // const tv = res.data;
     // this.profile = tv;
     // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, curSeason, curEpisode, curEpisodes, seasons } = res.data;
+    const { name, overview, curSeason, curEpisode, curEpisodes, episodeNoMore, seasons } = res.data;
     if (curEpisode === null) {
       // const msg = this.tip({ text: ["该电视剧尚未收录影片"] });
       return Result.Err("该电视剧尚未收录影片");
@@ -92,6 +103,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         curEpisode,
         seasons,
         curEpisodes,
+        episodeNoMore,
       },
     });
     return Result.Ok(tv);
@@ -110,6 +122,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   currentTime = 0;
   curResolutionType: EpisodeResolutionTypes = "SD";
   canAutoPlay = false;
+  episodeList = new ListCore(new RequestCore(fetch_episodes_of_season), {
+    pageSize: 20,
+  });
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
 
@@ -118,19 +133,31 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
 
     const { resolution = "SD", profile } = options;
     this.curResolutionType = resolution;
+    this.episodeList.onDataSourceChange((nextDataSource) => {
+      // console.log("nextDataSource", nextDataSource.length);
+      if (!this.profile) {
+        return;
+      }
+      console.log("this.episodeList.onDataSourceChange", this.episodeList.response.noMore);
+      this.curEpisodes = nextDataSource;
+      this.profile.curEpisodes = nextDataSource;
+      this.profile.episodeNoMore = this.episodeList.response.noMore;
+      this.emit(Events.StateChange, { ...this.profile });
+    });
     // this.profile = profile;
     // this.curSeason = profile.curSeason;
     // this.curEpisode = profile.curEpisode;
   }
 
   async fetchProfile(id: string, extra: { season_id?: string } = {}) {
+    const { season_id } = extra;
     if (id === undefined) {
       const msg = this.tip({ text: ["缺少 tv id 参数"] });
       return Result.Err(msg);
       // return Result.Err("缺少电视剧 id");
     }
     this.id = id;
-    const res = await fetch_tv_and_cur_episode({ tv_id: id, season_id: extra.season_id });
+    const res = await fetch_tv_and_cur_episode({ tv_id: id, season_id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       // return Result.Err(res.error);
@@ -139,7 +166,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // const tv = res.data;
     // this.profile = tv;
     // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, curSeason, curEpisode, curEpisodes, seasons } = res.data;
+    const { name, overview, curSeason, curEpisode, curEpisodes, episodeNoMore, seasons } = res.data;
     if (curEpisode === null) {
       const msg = this.tip({ text: ["该电视剧尚未收录影片"] });
       // return Result.Err("该电视剧尚未收录影片");
@@ -149,14 +176,21 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       id,
       name,
       overview,
+      seasons,
       curSeason,
       curEpisode,
       curEpisodes,
-      seasons,
+      episodeNoMore,
     };
-    // this.currentTime = curEpisode.currentTime;
     this.curSeason = curSeason;
-    // this.curEpisode = curEpisode;
+    this.episodeList.modifyDataSource(curEpisodes);
+    this.episodeList.setParams((prev) => {
+      return {
+        ...prev,
+        tv_id: id,
+        season_id,
+      };
+    });
     this.emit(Events.ProfileLoaded, { ...this.profile });
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok({ ...this.profile });
@@ -174,7 +208,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     const { id: episodeId } = episode;
     if (this.curEpisode && episodeId === this.curEpisode.id) {
       this.tip({
-        text: [this.profile.name, this.curEpisode.episode],
+        text: [this.profile.name, this.curEpisode.episode_text],
       });
       return Result.Ok(this.curEpisode);
     }
@@ -382,31 +416,26 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (this.curSeason && this.curSeason.id === season.id) {
       return Result.Err("重复点击");
     }
-    const episodes_res = await fetch_episodes_of_season({
-      tv_id: this.id,
+    const episodes_res = await this.episodeList.search({
       season_id: season.id,
-      page: 1,
-      pageSize: 20,
     });
     if (episodes_res.error) {
       const msg = this.tip({
-        text: ["获取剧集列表，请刷新后重试"],
+        text: ["获取剧集列表失败，请刷新后重试"],
       });
       return Result.Err(msg);
     }
-    const { list } = episodes_res.data;
-    if (list.length === 0) {
+    const { dataSource } = episodes_res.data;
+    if (dataSource.length === 0) {
       const msg = this.tip({
         text: ["该季没有剧集"],
       });
       return Result.Err(msg);
     }
-    this.curEpisodes = list;
     this.curSeason = season;
     this.profile.curSeason = season;
-    this.profile.curEpisodes = list;
     this.emit(Events.StateChange, { ...this.profile });
-    return Result.Ok(list);
+    return Result.Ok(dataSource);
   }
   /** 预加载指定影片 */
   async preloadNextEpisode() {
@@ -428,7 +457,10 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (file_id === this.curSource.file_id) {
       return;
     }
-    const r = await fetch_source_play_info({ episode_id: this.curEpisode.id, file_id });
+    const r = await fetch_source_playing_info({
+      episode_id: this.curEpisode.id,
+      file_id,
+    });
     if (r.error) {
       this.tip({
         text: ["获取源失败", r.error.message],
@@ -478,7 +510,10 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         resolutions,
       };
     })();
-    this.emit(Events.SourceChange, { ...this.curSource, currentTime: this.currentTime });
+    this.emit(Events.SourceChange, {
+      ...this.curSource,
+      currentTime: this.currentTime,
+    });
     return Result.Ok(null);
   }
   /** 切换分辨率 */
@@ -516,7 +551,10 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       thumbnail,
       resolutions,
     };
-    this.emit(Events.SourceChange, { ...this.curSource, currentTime: this.currentTime });
+    this.emit(Events.SourceChange, {
+      ...this.curSource,
+      currentTime: this.currentTime,
+    });
     this.emit(Events.ResolutionChange, {
       ...this.curSource,
       currentTime: this.currentTime,
@@ -556,7 +594,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (this.profile === null || this.curEpisode === null) {
       return ["加载中", "", ""];
     }
-    const { episode, season } = this.curEpisode;
+    const { episode_text: episode, season_text: season } = this.curEpisode;
     const { name } = this.profile;
     return [episode, season, name];
   }

@@ -2,7 +2,7 @@
  * @file 首页布局
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
-import { Film, HardDrive, Home, Search, Users } from "lucide-react";
+import { Film, HardDrive, Moon, Sun, Home, Search, Users } from "lucide-react";
 
 import { ViewComponent } from "@/types";
 import { useState } from "react";
@@ -12,6 +12,8 @@ import { Sheet } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { DialogCore } from "@/domains/ui/dialog";
 import { ButtonCore } from "@/domains/ui/button";
+import { NavigatorCore } from "@/domains/navigator";
+import { cn } from "@/utils";
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -30,6 +32,8 @@ export const HomeLayout: ViewComponent = (props) => {
       })
   );
   const [subViews, setSubViews] = useState(view.subViews);
+  const [curPathname, setCurPathname] = useState(router.pathname);
+  const [state, setState] = useState(app.state);
 
   useInitialize(() => {
     view.onSubViewsChange((nextSubViews) => {
@@ -69,6 +73,7 @@ export const HomeLayout: ViewComponent = (props) => {
       // view.curView.show();
     });
     router.onPathnameChange(({ pathname, search, type }) => {
+      setCurPathname(pathname);
       console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
       if (view.state.layered) {
         return;
@@ -77,6 +82,8 @@ export const HomeLayout: ViewComponent = (props) => {
     });
     view.checkMatch(router._pending);
   });
+
+  console.log("[PAGE]home/layout - render", state);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -103,7 +110,10 @@ export const HomeLayout: ViewComponent = (props) => {
         <div className="w-full h-[68px] box-content safe-bottom"></div>
         <div className="fixed left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
-            className="flex flex-col justify-center items-center dark:text-black-200"
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
+              curPathname === `${NavigatorCore.prefix}/home/index` ? "text-blue-800 dark:text-green-600" : ""
+            )}
             onClick={() => {
               router.push("/home/index");
             }}
@@ -114,7 +124,10 @@ export const HomeLayout: ViewComponent = (props) => {
             <div className="mt-2 text-sm text-center">首页</div>
           </div>
           <div
-            className="flex flex-col justify-center items-center dark:text-black-200"
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
+              curPathname === `${NavigatorCore.prefix}/home/movie` ? "text-blue-800 dark:text-green-600" : ""
+            )}
             onClick={() => {
               router.push("/home/movie");
             }}
@@ -136,7 +149,10 @@ export const HomeLayout: ViewComponent = (props) => {
             <div className="mt-2 text-sm text-center">搜索</div>
           </div> */}
           <div
-            className="flex flex-col justify-center items-center dark:text-black-200"
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
+              curPathname === `${NavigatorCore.prefix}/home/history` ? "text-blue-800 dark:text-green-600" : ""
+            )}
             onClick={() => {
               router.push("/home/history");
             }}
@@ -162,6 +178,22 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <Sheet store={dialog}>
         <div className="p-4">
+          {/* <div>
+            {(() => {
+              if (state.theme === "light") {
+                return (
+                  <div className="p-2 cursor-pointer">
+                    <Moon className="w-8 h-8" />
+                  </div>
+                );
+              }
+              return (
+                <div className="p-2 cursor-pointer">
+                  <Sun className="w-8 h-8" />
+                </div>
+              );
+            })()}
+          </div> */}
           <div className="grid grid-cols-1">
             <Button store={logoutBtn}>重新登录</Button>
           </div>
