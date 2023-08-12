@@ -50,8 +50,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     // const tv = res.data;
     // this.profile = tv;
     // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, currentTime, thumbnail, sources, curSource } =
-      res.data;
+    const { name, overview, currentTime, thumbnail, sources, curSource } = res.data;
     const tv = new MovieCore({
       profile: {
         id,
@@ -102,8 +101,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     // const tv = res.data;
     // this.profile = tv;
     // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, currentTime, thumbnail, sources, curSource } =
-      res.data;
+    const { name, overview, currentTime, thumbnail, sources, curSource } = res.data;
     this.profile = {
       id,
       name,
@@ -140,28 +138,25 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(res.error);
     }
     this.curSource = (() => {
-      const { file_id } = res.data;
-      if (this.curResolutionType === "LD") {
-        const { url, type, typeText, width, height, thumbnail, resolutions } =
-          res.data;
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-        };
-      }
+      const { file_id, subtitles } = res.data;
+      // if (this.curResolutionType === "LD") {
+      //   const { url, type, typeText, width, height, thumbnail, resolutions, subtitles } = res.data;
+      //   return {
+      //     url,
+      //     file_id,
+      //     type,
+      //     typeText,
+      //     width,
+      //     height,
+      //     thumbnail,
+      //     resolutions,
+      //     subtitles,
+      //   };
+      // }
       const { resolutions } = res.data;
-      const matched_resolution = resolutions.find(
-        (e) => e.type === this.curResolutionType
-      );
+      const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
-        const { url, type, typeText, width, height, thumbnail } =
-          resolutions[0];
+        const { url, type, typeText, width, height, thumbnail } = resolutions[0];
         return {
           url,
           file_id,
@@ -171,10 +166,10 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
           height,
           thumbnail,
           resolutions,
+          subtitles,
         };
       }
-      const { url, type, typeText, width, height, thumbnail } =
-        matched_resolution;
+      const { url, type, typeText, width, height, thumbnail } = matched_resolution;
       return {
         url,
         file_id,
@@ -184,6 +179,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
         height,
         thumbnail,
         resolutions,
+        subtitles,
       };
     })();
     this.played = true;
@@ -208,28 +204,24 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(res.error);
     }
     this.curSource = (() => {
-      const { file_id } = res.data;
-      if (this.curResolutionType === "LD") {
-        const { url, type, typeText, width, height, thumbnail, resolutions } =
-          res.data;
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-        };
-      }
+      const { file_id, subtitles } = res.data;
+      // if (this.curResolutionType === "LD") {
+      //   const { url, type, typeText, width, height, thumbnail, resolutions } = res.data;
+      //   return {
+      //     url,
+      //     file_id,
+      //     type,
+      //     typeText,
+      //     width,
+      //     height,
+      //     thumbnail,
+      //     resolutions,
+      //   };
+      // }
       const { resolutions } = res.data;
-      const matched_resolution = resolutions.find(
-        (e) => e.type === this.curResolutionType
-      );
+      const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
-        const { url, type, typeText, width, height, thumbnail } =
-          resolutions[0];
+        const { url, type, typeText, width, height, thumbnail } = resolutions[0];
         return {
           url,
           file_id,
@@ -239,10 +231,10 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
           height,
           thumbnail,
           resolutions,
+          subtitles,
         };
       }
-      const { url, type, typeText, width, height, thumbnail } =
-        matched_resolution;
+      const { url, type, typeText, width, height, thumbnail } = matched_resolution;
       return {
         url,
         file_id,
@@ -252,6 +244,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
         height,
         thumbnail,
         resolutions,
+        subtitles,
       };
     })();
     console.log("[DOMAIN]Movie - changeSource", this.currentTime);
@@ -274,7 +267,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     // console.log("switchResolution 2");
-    const { type, resolutions } = this.curSource;
+    const { type, resolutions, subtitles } = this.curSource;
     if (type === target_type) {
       const msg = this.tip({
         text: [`当前已经是${MediaResolutionTypeTexts[target_type]}了`],
@@ -289,14 +282,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     // console.log("switchResolution 4");
-    const {
-      url,
-      type: nextType,
-      typeText,
-      width,
-      height,
-      thumbnail,
-    } = matched_resolution;
+    const { url, type: nextType, typeText, width, height, thumbnail } = matched_resolution;
     this.curSource = {
       url,
       file_id: this.curSource.file_id,
@@ -306,6 +292,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       height,
       thumbnail,
       resolutions,
+      subtitles,
     };
     this.emit(Events.SourceChange, {
       ...this.curSource,
@@ -320,9 +307,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   setCurrentTime(currentTime: number) {
     this.currentTime = currentTime;
   }
-  updatePlayProgressForce(
-    values: Partial<{ currentTime: number; duration: number }> = {}
-  ) {
+  updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
     const { currentTime = this.currentTime, duration } = values;
     // console.log("[DOMAIN]TVPlay - update_play_progress", currentTime);
     if (!this.id) {
@@ -340,12 +325,9 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     });
   }
   /** 更新观看进度 */
-  updatePlayProgress = throttle_1(
-    10 * 1000,
-    (values: Partial<{ currentTime: number; duration: number }> = {}) => {
-      this.updatePlayProgressForce(values);
-    }
-  );
+  updatePlayProgress = throttle_1(10 * 1000, (values: Partial<{ currentTime: number; duration: number }> = {}) => {
+    this.updatePlayProgressForce(values);
+  });
   getTitle(): [string] {
     if (this.profile === null) {
       return ["加载中"];
@@ -357,9 +339,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   onSourceChange(handler: Handler<TheTypesOfEvents[Events.SourceChange]>) {
     return this.on(Events.SourceChange, handler);
   }
-  onResolutionChange(
-    handler: Handler<TheTypesOfEvents[Events.ResolutionChange]>
-  ) {
+  onResolutionChange(handler: Handler<TheTypesOfEvents[Events.ResolutionChange]>) {
     return this.on(Events.ResolutionChange, handler);
   }
   onProfileLoaded(handler: Handler<TheTypesOfEvents[Events.ProfileLoaded]>) {

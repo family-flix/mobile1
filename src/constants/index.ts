@@ -17,6 +17,7 @@ export enum MediaSource {
   IN = "IN", // 印度 (India)
   RU = "RU", // 俄罗斯 (Russia)
   KR = "KR", // 韩国 (South Korea)
+  BE = "BE", // 比利时
   ES = "ES", // 西班牙 (Spain)
   MX = "MX", // 墨西哥 (Mexico)
   ID = "ID", // 印度尼西亚 (Indonesia)
@@ -36,7 +37,7 @@ export enum MediaSource {
   BD = "BD", // 孟加拉国 (Bangladesh)
 }
 
-export const MediaSourceTexts: Record<MediaSource, string> = {
+export const TVSourceTexts: Record<MediaSource, string> = {
   [MediaSource.CN]: "国产剧",
   [MediaSource.TW]: "台剧",
   [MediaSource.HK]: "港剧",
@@ -47,6 +48,7 @@ export const MediaSourceTexts: Record<MediaSource, string> = {
   [MediaSource.FR]: "法国",
   [MediaSource.IT]: "意大利",
   [MediaSource.BR]: "巴西",
+  [MediaSource.BE]: "比利时",
   [MediaSource.DE]: "德国",
   [MediaSource.CA]: "加拿大",
   [MediaSource.AU]: "澳大利亚",
@@ -70,12 +72,12 @@ export const MediaSourceTexts: Record<MediaSource, string> = {
   [MediaSource.MY]: "马来西亚",
   [MediaSource.BD]: "孟加拉国",
 };
-export const MediaSourceOptions = Object.keys(MediaSourceTexts)
+export const TVSourceOptions = Object.keys(TVSourceTexts)
   .slice(0, 7)
   .map((value) => {
     return {
       value,
-      label: MediaSourceTexts[value as MediaSource],
+      label: TVSourceTexts[value as MediaSource],
     };
   });
 export const TVGenres = [
@@ -96,12 +98,74 @@ export const TVGenres = [
   "War & Politics",
   "西部",
 ];
+export const TVGenresTexts: Record<string, string> = TVGenres.map((text) => {
+  return {
+    [text]: (() => {
+      if (text === "Sci-Fi & Fantasy") {
+        return "奇幻";
+      }
+      if (text === "War & Politics") {
+        return "战争/政治";
+      }
+      return text;
+    })(),
+  };
+}).reduce((r, c) => {
+  return {
+    ...r,
+    ...c,
+  };
+}, {});
 export const TVGenresOptions = TVGenres.map((text) => {
   return {
-    label: text,
+    label: TVGenresTexts[text],
     value: text,
   };
 });
+
+export const MovieSourceTexts: Record<MediaSource, string> = {
+  [MediaSource.CN]: "中国大陆",
+  [MediaSource.TW]: "中国台湾",
+  [MediaSource.HK]: "中国香港",
+  [MediaSource.JP]: "日本",
+  [MediaSource.KR]: "韩国",
+  [MediaSource.US]: "美国",
+  [MediaSource.GB]: "英国",
+  [MediaSource.FR]: "法国",
+  [MediaSource.IT]: "意大利",
+  [MediaSource.BR]: "巴西",
+  [MediaSource.DE]: "德国",
+  [MediaSource.CA]: "加拿大",
+  [MediaSource.AU]: "澳大利亚",
+  [MediaSource.IN]: "印度",
+  [MediaSource.RU]: "俄罗斯",
+  [MediaSource.BE]: "比利时",
+  [MediaSource.ES]: "西班牙",
+  [MediaSource.MX]: "墨西哥",
+  [MediaSource.ID]: "印度尼西亚",
+  [MediaSource.TR]: "土耳其",
+  [MediaSource.SA]: "沙特阿拉伯",
+  [MediaSource.ZA]: "南非",
+  [MediaSource.AR]: "阿根廷",
+  [MediaSource.TH]: "泰国",
+  [MediaSource.EG]: "埃及",
+  [MediaSource.NL]: "荷兰",
+  [MediaSource.CH]: "瑞士",
+  [MediaSource.SE]: "瑞典",
+  [MediaSource.PL]: "波兰",
+  [MediaSource.PK]: "巴基斯坦",
+  [MediaSource.NG]: "尼日利亚",
+  [MediaSource.MY]: "马来西亚",
+  [MediaSource.BD]: "孟加拉国",
+};
+export const MovieSourceOptions = Object.keys(MovieSourceTexts)
+  .slice(0, 7)
+  .map((value) => {
+    return {
+      value,
+      label: MovieSourceTexts[value as MediaSource],
+    };
+  });
 export const MovieGenres = [
   "动作",
   "冒险",
@@ -123,7 +187,17 @@ export const MovieGenres = [
   "战争",
   "西部",
 ];
-export const MovieGenresOptions = TVGenres.map((text) => {
+export const MovieGenresTexts: Record<string, string> = TVGenres.map((text) => {
+  return {
+    [text]: text,
+  };
+}).reduce((t, c) => {
+  return {
+    ...t,
+    ...c,
+  };
+}, {});
+export const MovieGenresOptions = MovieGenres.map((text) => {
   return {
     label: text,
     value: text,

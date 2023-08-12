@@ -84,6 +84,7 @@ export const HomeLayout: ViewComponent = (props) => {
   });
 
   console.log("[PAGE]home/layout - render", state);
+  const highlightColor = "text-green-600 dark:text-green-600";
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -112,7 +113,7 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/index` ? "text-blue-800 dark:text-green-600" : ""
+              curPathname === `${NavigatorCore.prefix}/home/index` ? highlightColor : ""
             )}
             onClick={() => {
               router.push("/home/index");
@@ -126,7 +127,7 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/movie` ? "text-blue-800 dark:text-green-600" : ""
+              curPathname === `${NavigatorCore.prefix}/home/movie` ? highlightColor : ""
             )}
             onClick={() => {
               router.push("/home/movie");
@@ -151,7 +152,7 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/history` ? "text-blue-800 dark:text-green-600" : ""
+              curPathname === `${NavigatorCore.prefix}/home/history` ? highlightColor : ""
             )}
             onClick={() => {
               router.push("/home/history");

@@ -18,7 +18,13 @@ type CheckboxGroupOption<T> = {
   checked?: boolean;
   disabled?: boolean;
 };
+enum SpecialOptionValues {
+  All = "__all__",
+}
 type CheckboxGroupProps<T> = {
+  /** 默认选中的 */
+  values?: T[];
+  /** 可选项 */
   options?: CheckboxGroupOption<T>[];
   checked?: boolean;
   disabled?: boolean;
@@ -61,9 +67,40 @@ export class CheckboxGroupCore<T extends any> extends BaseDomain<TheTypesOfEvent
   constructor(props: { _name?: string } & CheckboxGroupProps<T> = {}) {
     super(props);
 
-    const { options = [], disabled = false, onChange } = props;
+    const { values, options = [], disabled = false, onChange } = props;
+    if (values) {
+      this.values = values;
+    }
     this.disabled = disabled;
 
+    const extraOption = {
+      label: "全部",
+      // @ts-ignore
+      value: SpecialOptionValues.All as T,
+      core: new CheckboxCore({
+        label: "全部",
+        checked: false,
+        disabled: false,
+        onChange: (checked) => {
+          if (checked) {
+            this.values = [];
+            const checkedOptions = this.options.filter((o) => {
+              if (o.value === SpecialOptionValues.All) {
+                return false;
+              }
+              return o.core.state.checked;
+            });
+            for (let i = 0; i < checkedOptions.length; i += 1) {
+              const c = checkedOptions[i];
+              c.core.uncheck();
+            }
+            this.emit(Events.Change, [...this.values]);
+            this.emit(Events.StateChange, { ...this.state });
+            return;
+          }
+        },
+      }),
+    };
     this.options = options.map((opt) => {
       const { label, value, checked, disabled } = opt;
       const store = new CheckboxCore({
@@ -71,8 +108,12 @@ export class CheckboxGroupCore<T extends any> extends BaseDomain<TheTypesOfEvent
         checked,
         disabled,
         onChange: (checked) => {
+          // console.log("[DOMAIN]checkbox/group - onChange", checked, this.values, value);
           const existing = this.values.includes(value);
           if (checked && !existing) {
+            if (extraOption.core.checked) {
+              extraOption.core.uncheck();
+            }
             this.checkOption(value);
             return;
           }
@@ -87,6 +128,7 @@ export class CheckboxGroupCore<T extends any> extends BaseDomain<TheTypesOfEvent
         core: store,
       };
     });
+    this.options = [extraOption].concat(this.options);
     if (onChange) {
       this.onChange(onChange);
     }

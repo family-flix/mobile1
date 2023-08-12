@@ -1,8 +1,8 @@
 /**
  * @file 首页
  */
-import React, { useEffect, useState } from "react";
-import { ArrowUp, SlidersHorizontal } from "lucide-react";
+import React, { useState } from "react";
+import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import { fetch_season_list } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { InputCore } from "@/domains/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { DialogCore } from "@/domains/ui/dialog";
-import { MediaSourceOptions, TVGenresOptions } from "@/constants";
+import { TVSourceOptions, TVGenresOptions } from "@/constants";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { CheckboxGroupCore } from "@/domains/ui/checkbox/group";
 import { BackToTop } from "@/components/back-to-top";
@@ -28,10 +28,20 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   const scrollView = useInstance(() => new ScrollViewCore());
   const settingsSheet = useInstance(() => new DialogCore());
-  const fakeSearchInput = useInstance(
+  const searchInput = useInstance(
     () =>
       new InputCore({
         placeholder: "请输入关键字搜索电视剧",
+        onEnter(v) {
+          helper.search({
+            name: v,
+          });
+        },
+        onBlur(v) {
+          helper.search({
+            name: v,
+          });
+        },
       })
   );
   const sourceCheckboxGroup = useInstance(() => {
@@ -39,7 +49,10 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       language: [] as string[],
     });
     return new CheckboxGroupCore({
-      options: MediaSourceOptions.map((opt) => {
+      values: TVSourceOptions.filter((opt) => {
+        return language.includes(opt.value);
+      }).map((opt) => opt.value),
+      options: TVSourceOptions.map((opt) => {
         return {
           ...opt,
           checked: language.includes(opt.value),
@@ -50,13 +63,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
           language: options,
         });
         setHasSearch(!!options.length);
+        // settingsSheet.hide();
         helper.search({
           language: options.join("|"),
         });
       },
     });
   });
-  const tvGenresCheckboxGroup = useInstance(() => {
+  const genresCheckboxGroup = useInstance(() => {
     // const { genres = [] } = app.cache.get("tv_search", {
     //   genres: [] as string[],
     // });
@@ -67,6 +81,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         //   genres: options,
         // });
         setHasSearch(!!options.length);
+        // settingsSheet.hide();
         helper.search({
           genres: options.join("|"),
         });
@@ -77,6 +92,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
     () =>
       new ListCore(new RequestCore(fetch_season_list), {
         pageSize: 6,
+        onLoadingChange(loading) {
+          searchInput.setLoading(!helper.response.initial && loading);
+        },
         search: (() => {
           const { language = [] } = app.cache.get("tv_search", {
             language: [] as string[],
@@ -126,13 +144,13 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
             <div>
               <div className="fixed top-0 flex items-center justify-between w-full p-4 pb-0 space-x-4">
                 <div className="relative w-full">
-                  <div
+                  {/* <div
                     className="absolute inset-0"
                     onClick={() => {
                       router.push("/search_tv");
                     }}
-                  ></div>
-                  <Input store={fakeSearchInput} />
+                  ></div> */}
+                  <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
                 </div>
                 <div
                   className="relative p-2"
@@ -151,11 +169,25 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
               store={helper}
               className="relative grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
               skeleton={
-                <div className="w-full mx-auto">
-                  <div className="m-4 cursor-pointer">
-                    <Skeleton className="w-full h-[512px] dark:bg-gray-800" />
-                    <div className="mt-4 max-w-sm overflow-hidden text-ellipsis">
-                      <Skeleton className="w-[256px] h-[32px] dark:bg-gray-800"></Skeleton>
+                <div className="">
+                  <div className="flex p-4 cursor-pointer">
+                    <div className="relative w-[128px] h-[198px] mr-4">
+                      <Skeleton className="w-full h-full dark:bg-gray-800" />
+                    </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                    </div>
+                  </div>
+                  <div className="flex m-4 cursor-pointer">
+                    <div className="relative w-[128px] h-[198px] mr-4">
+                      <Skeleton className="w-full h-full dark:bg-gray-800" />
+                    </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
                 </div>
@@ -163,20 +195,52 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
             >
               {(() => {
                 return dataSource.map((season) => {
-                  const { id, tv_id, name, season_text, poster_path = "" } = season;
+                  const { id, tv_id, name, overview, season_text, vote, genres, air_date, poster_path = "" } = season;
                   return (
                     <div
                       key={id}
-                      className="m-4 cursor-pointer"
+                      className="flex p-4 cursor-pointer"
                       onClick={() => {
                         router.push(`/tv/play/${tv_id}?season_id=${id}`);
                       }}
                     >
-                      <LazyImage className="w-full h-[512px] object-cover" src={poster_path} alt={name} />
-                      <div className="mt-4 max-w-sm overflow-hidden flex items-center text-ellipsis">
-                        <h2 className="truncate text-2xl">{name}</h2>
-                        <p className="mx-2 text-gray-500">·</p>
-                        <p className="text-2xl text-gray-500 whitespace-nowrap">{season_text}</p>
+                      <div className="relative w-[128px] h-[198px] mr-4">
+                        <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
+                        <div className="absolute left-2 top-2">
+                          {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
+                          {/* <div className="absolute">{vote}</div> */}
+                        </div>
+                      </div>
+                      <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                        <div className="flex items-center">
+                          <h2 className="truncate text-2xl">{name}</h2>
+                        </div>
+                        <div className="flex items-center mt-1 text-gray-500">
+                          <div>{air_date}</div>
+                          <p className="mx-2 text-gray-500">·</p>
+                          <p className="text-gray-500 whitespace-nowrap">{season_text}</p>
+                          <p className="mx-2 text-gray-500">·</p>
+                          <div className="flex items-center">
+                            <Star className="mr-1 relative top-[-2px] w-4 h-4" />
+                            <div>{vote}</div>
+                          </div>
+                        </div>
+                        <div className="mt-2 flex items-center max-w-full break-keep overflow-x-auto text-ellipsis hide-scroll">
+                          {genres.map((g) => {
+                            return (
+                              <div
+                                key={g}
+                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border"
+                                style={{
+                                  lineHeight: "12px",
+                                }}
+                              >
+                                {g}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-4 truncate break-all whitespace-pre-wrap line-clamp-3">{overview}</div>
                       </div>
                     </div>
                   );
@@ -188,12 +252,22 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       </ScrollView>
       <BackToTop store={scrollView} />
       <Sheet store={settingsSheet}>
-        <div className="h-[320px] py-4 pb-8 px-2 overflow-y-auto">
+        <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
+          {response.loading && (
+            <>
+              <div className="absolute inset-0 bg-white opacity-50 dark:bg-black-900" />
+              <div className="absolute w-full h-[120px] flex items-center justify-center">
+                <Loader className="w-8 h-8 animate-spin" />
+              </div>
+            </>
+          )}
           <div>
-            <CheckboxGroup store={sourceCheckboxGroup} />
-          </div>
-          <div>
-            <CheckboxGroup store={tvGenresCheckboxGroup} />
+            <div>
+              <CheckboxGroup store={sourceCheckboxGroup} />
+            </div>
+            <div>
+              <CheckboxGroup store={genresCheckboxGroup} />
+            </div>
           </div>
         </div>
       </Sheet>

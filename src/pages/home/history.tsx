@@ -65,9 +65,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
             skeleton={
               <>
                 <div className="flex cursor-pointer">
-                  <div className="relative mr-4">
-                    <Skeleton className="w-[120px] h-[180px]" />
-                  </div>
+                  <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
                   <div className="relative flex-1 mt-2">
                     <Skeleton className="w-full h-[32px]"></Skeleton>
                     <div className="flex items-center mt-2 text-xl">
@@ -101,8 +99,8 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                     router.push(`/tv/play/${tv_id}`);
                   }}
                 >
-                  <div className="relative mr-4">
-                    <LazyImage className="w-[120px] h-[180px] object-cover" src={poster_path} alt={name} />
+                  <div className="relative w-[128px] h-[198px] mr-4">
+                    <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
                     {(() => {
                       if (episode_count && cur_episode_count !== episode_count) {
                         return (

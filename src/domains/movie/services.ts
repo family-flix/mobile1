@@ -6,6 +6,7 @@ import { request } from "@/utils/request";
 import { episode_to_chinese_num, relative_time_from_now, season_to_chinese_num } from "@/utils";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
+import { MediaSource, MovieGenresTexts, MovieSourceTexts } from "@/constants";
 
 /**
  * 获取电影和当前播放进度
@@ -88,13 +89,17 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
       /** 影片高度 */
       height: number;
     }[];
+    subtitles: {
+      language: string;
+      url: string;
+    }[];
   }>(`/api/movie/${id}`, {
     type: params.type,
   });
   if (res.error) {
     return Result.Err(res.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
   return Result.Ok({
     url,
     file_id,
@@ -114,6 +119,7 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
         thumbnail,
       };
     }),
+    subtitles,
   });
 }
 
@@ -152,13 +158,17 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
       /** 影片高度 */
       height: number;
     }[];
+    subtitles: {
+      url: string;
+      language: string;
+    }[];
   }>(`/api/media/${id}`, {
     type: params.type,
   });
   if (res.error) {
     return Result.Err(res.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
   return Result.Ok({
     url,
     file_id,
@@ -178,6 +188,7 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
         thumbnail,
       };
     }),
+    subtitles,
   });
 }
 export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_movie_profile>>>;
@@ -317,7 +328,10 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
       overview: string;
       poster_path: string;
       backdrop_path: string;
-      air_date: string;
+      first_air_date: string;
+      vote_average: number;
+      genres: string;
+      origin_country: string;
     }>
   >("/api/movie/list", {
     ...rest,
@@ -329,11 +343,34 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
   }
   return Result.Ok({
     ...resp.data,
-    list: resp.data.list.map((history) => {
-      const { ...rest } = history;
+    list: resp.data.list.map((movie) => {
+      const { id, name, original_name, overview, poster_path, first_air_date, vote_average, genres, origin_country } =
+        movie;
       return {
-        ...rest,
-        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
+        id,
+        name: name || original_name,
+        overview,
+        poster_path,
+        air_date: dayjs(first_air_date).year(),
+        vote: (() => {
+          if (vote_average === 0) {
+            return "N/A";
+          }
+          return vote_average.toFixed(1);
+        })(),
+        genres: origin_country
+          .split("|")
+          .map((country) => {
+            return MovieSourceTexts[country as MediaSource] ?? "unknown";
+          })
+          .concat(
+            genres
+              .split("|")
+              .map((g) => {
+                return MovieGenresTexts[g];
+              })
+              .filter(Boolean)
+          ),
       };
     }),
   });

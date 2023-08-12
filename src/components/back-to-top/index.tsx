@@ -30,9 +30,9 @@ export function BackToTop(props: { store: ScrollViewCore }) {
   }
 
   return (
-    <div className="z-index-200 fixed right-4 bottom-24">
+    <div className="z-index-200 fixed right-4 bottom-28">
       <div
-        className="flex items-center justify-center w-[64px] h-[64px] rounded-full bg-white-900 opacity-100 dark:bg-black-900 safe-bottom"
+        className="flex items-center justify-center w-[64px] h-[64px] rounded-full bg-white-900 opacity-100 dark:bg-black-900"
         onClick={() => {
           store.scrollTo({ top: 0 });
         }}

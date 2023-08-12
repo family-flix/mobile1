@@ -4,7 +4,7 @@
 import mitt, { EventType, Handler } from "mitt";
 
 let _uid = 0;
-function uid() {
+export function uid() {
   _uid += 1;
   return _uid;
 }

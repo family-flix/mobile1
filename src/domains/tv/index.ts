@@ -6,6 +6,7 @@ import { Handler } from "mitt";
 
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
+import { SubtitleCore, SubtitleState } from "@/domains/subtitle";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
 
@@ -37,6 +38,8 @@ enum Events {
   BeforeNextEpisode,
   BeforePrevEpisode,
   BeforeChangeSource,
+  /** 字幕改变 */
+  SubtitleChange,
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
@@ -50,6 +53,7 @@ type TheTypesOfEvents = {
   [Events.BeforePrevEpisode]: void;
   [Events.StateChange]: TVProps["profile"];
   [Events.BeforeChangeSource]: void;
+  [Events.SubtitleChange]: SubtitleState;
 };
 type TVState = {};
 type TVProps = {
@@ -127,6 +131,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   });
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
+  /** 字幕 */
+  subtitle: SubtitleCore | null = null;
 
   constructor(options: Partial<{ name: string } & TVProps> = {}) {
     super();
@@ -225,7 +231,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.profile.curEpisode = { ...episode, currentTime, thumbnail };
     this.curEpisode = { ...episode, currentTime, thumbnail };
     this.curSource = (() => {
-      const { file_id, resolutions } = res.data;
+      const { file_id, resolutions, subtitles } = res.data;
       const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
         const { url, type, typeText, width, height, thumbnail } = resolutions[0];
@@ -238,6 +244,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
           height,
           thumbnail,
           resolutions,
+          subtitles,
         };
       }
       const { url, type, typeText, width, height, thumbnail } = matched_resolution;
@@ -251,7 +258,42 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         height,
         thumbnail,
         resolutions,
+        subtitles,
       };
+    })();
+    (async () => {
+      if (!this.curSource) {
+        return;
+      }
+      if (this.subtitle) {
+        this.subtitle.destroy();
+      }
+      this.subtitle = null;
+      const subtitleFile = (() => {
+        const matched = this.curSource.subtitles.find((s) => {
+          return s.language === "chi";
+        });
+        if (matched) {
+          return matched;
+        }
+        const first = this.curSource.subtitles[0];
+        if (!first) {
+          return first;
+        }
+        return null;
+      })();
+      if (!subtitleFile) {
+        return;
+      }
+      const r = await SubtitleCore.New(subtitleFile);
+      if (r.error) {
+        return;
+      }
+      this.subtitle = r.data;
+      this.subtitle.changeTargetLine(currentTime);
+      this.subtitle.onStateChange((nextState) => {
+        this.emit(Events.SubtitleChange, nextState);
+      });
     })();
     // this.tip({
     //   text: [this.profile.name, this.curEpisode.episode],
@@ -470,20 +512,20 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.canAutoPlay = true;
     this.curSource = (() => {
       const { file_id } = r.data;
-      if (this.curResolutionType === "LD") {
-        const { url, type, typeText, width, height, thumbnail, resolutions } = r.data;
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-        };
-      }
-      const { resolutions } = r.data;
+      // if (this.curResolutionType === "LD") {
+      //   const { url, type, typeText, width, height, thumbnail, resolutions } = r.data;
+      //   return {
+      //     url,
+      //     file_id,
+      //     type,
+      //     typeText,
+      //     width,
+      //     height,
+      //     thumbnail,
+      //     resolutions,
+      //   };
+      // }
+      const { resolutions, subtitles } = r.data;
       const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
         const { url, type, typeText, width, height, thumbnail } = resolutions[0];
@@ -496,6 +538,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
           height,
           thumbnail,
           resolutions,
+          subtitles,
         };
       }
       const { url, type, typeText, width, height, thumbnail } = matched_resolution;
@@ -508,6 +551,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         height,
         thumbnail,
         resolutions,
+        subtitles,
       };
     })();
     this.emit(Events.SourceChange, {
@@ -524,7 +568,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     // console.log("switchResolution 2");
-    const { type, resolutions } = this.curSource;
+    const { type, resolutions, subtitles } = this.curSource;
     if (type === target_type) {
       const msg = this.tip({
         text: [`当前已经是${EpisodeResolutionTypeTexts[target_type]}了`],
@@ -550,6 +594,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       height,
       thumbnail,
       resolutions,
+      subtitles,
     };
     this.emit(Events.SourceChange, {
       ...this.curSource,
@@ -590,6 +635,14 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   updatePlayProgress = throttle_1(10 * 1000, (values: Partial<{ currentTime: number; duration: number }> = {}) => {
     this.updatePlayProgressForce(values);
   });
+  /** 当前进度改变 */
+  handleCurTimeChange(values: { currentTime: number; duration: number }) {
+    const { currentTime = 0 } = values;
+    if (this.subtitle) {
+      this.subtitle.handleTimeChange(currentTime);
+    }
+    this.updatePlayProgress(values);
+  }
   getTitle(): [string, string, string] {
     if (this.profile === null || this.curEpisode === null) {
       return ["加载中", "", ""];
@@ -622,6 +675,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
   onBeforeChangeSource(handler: Handler<TheTypesOfEvents[Events.BeforeChangeSource]>) {
     return this.on(Events.BeforeChangeSource, handler);
+  }
+  onSubtitleChange(handler: Handler<TheTypesOfEvents[Events.SubtitleChange]>) {
+    return this.on(Events.SubtitleChange, handler);
   }
 }
 

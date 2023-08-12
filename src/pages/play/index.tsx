@@ -37,11 +37,13 @@ import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { ListView } from "@/components/ui/list-view";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { SubtitleState } from "@/domains/subtitle";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [curSubtileState, setCurSubtitleState] = useState<SubtitleState | null>(null);
 
   const tv = useInstance(() => {
     const { type: resolution } = app.cache.get<{
@@ -59,7 +61,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
     }>("player_settings", {
       volume: 0.5,
     });
-    return new PlayerCore({ app, volume });
+    const player = new PlayerCore({ app, volume });
+    // @ts-ignore
+    window.__player__ = player;
+    return player;
   });
   const video = useInstance(() => new ElementCore({}));
   const episodesSheet = useInstance(() => new DialogCore());
@@ -122,6 +127,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     tv.onStateChange((nextProfile) => {
       setProfile(nextProfile);
     });
+    tv.onSubtitleChange((l) => {
+      setCurSubtitleState(l);
+    });
     tv.onTip((msg) => {
       app.tip(msg);
     });
@@ -141,6 +149,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
     });
+    // tv.onSubtitleChange((nextSubtitle) => {
+    //   setCurSubtitleState(nextSubtitle);
+    // });
     player.onCanPlay(() => {
       if (!view.state.visible) {
         return;
@@ -161,7 +172,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
       tv.setCurrentTime(currentTime);
-      tv.updatePlayProgress({
+      tv.handleCurTimeChange({
         currentTime,
         duration,
       });
@@ -399,6 +410,18 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       </div>
                     </ToggleView> */}
               <Video store={player} />
+              <div className="absolute bottom-12 text-center"></div>
+              {curSubtileState?.curLine ? (
+                <div className="mt-2 space-y-1">
+                  {curSubtileState.curLine.texts.map((text) => {
+                    return (
+                      <div key={text} className="text-center text-lg">
+                        {text}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
           );
         })()}
