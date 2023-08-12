@@ -6,6 +6,7 @@ import { Handler } from "mitt";
 import { pathToRegexp } from "path-to-regexp";
 import parse from "url-parse";
 
+import { app } from "@/store/app";
 import { BaseDomain } from "@/domains/base";
 import { PresenceCore } from "@/domains/ui/presence";
 import { RouteAction } from "@/domains/navigator";
@@ -334,6 +335,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 主动展示视图 */
   show() {
+    app.setTitle(this.title);
     // console.log("[ROUTE_VIEW]show", this._name, this.state.visible);
     if (this.state.visible) {
       // 为了让 presence 内部 hide 时判断 mounted 为 true

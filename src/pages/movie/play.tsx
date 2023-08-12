@@ -12,6 +12,8 @@ import { ViewComponent } from "@/types";
 import { DialogCore } from "@/domains/ui/dialog";
 import { Video } from "@/components/ui/video";
 import { MovieCore } from "@/domains/movie";
+import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { ScrollView } from "@/components/ui/scroll-view";
 
 const aSheet = new DialogCore();
 const bSheet = new DialogCore();
@@ -23,6 +25,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
 
   const movie = useInstance(() => new MovieCore());
   const player = useInstance(() => new PlayerCore({ app }));
+  const scrollView = useInstance(() => new ScrollViewCore({}));
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
 
@@ -160,31 +163,33 @@ export const MoviePlayingPage: ViewComponent = (props) => {
 
   return (
     <>
-      <div className="operations">
-        {/* <div
+      <ScrollView store={scrollView} className="fixed dark:text-black-200">
+        <div>
+          <div className="operations">
+            {/* <div
                 className={cn(
                   show_menus ? "hidden" : "block",
                   "absolute inset-0"
                 )}
                 onClick={toggleMenuVisible}
               /> */}
-        <div
-          className={cn(
-            // show_menus ? "block" : "hidden",
-            "z-10 absolute inset-0"
-          )}
-          // onClick={toggleMenuVisible}
-        >
-          <div
-            className="inline-block p-4"
-            onClick={() => {
-              router.back();
-            }}
-          >
-            <ArrowLeft className="w-6 h-6 dark:text-black-200" />
-          </div>
-          <div className="absolute bottom-12 w-full">
-            {/* <div className="flex items-center w-36 m-auto">
+            <div
+              className={cn(
+                // show_menus ? "block" : "hidden",
+                "z-10 absolute inset-0"
+              )}
+              // onClick={toggleMenuVisible}
+            >
+              <div
+                className="inline-block p-4"
+                onClick={() => {
+                  router.back();
+                }}
+              >
+                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+              </div>
+              <div className="absolute bottom-12 w-full">
+                {/* <div className="flex items-center w-36 m-auto">
                       <p className="text-2xl ">
                         {values.target_time}
                       </p>
@@ -195,7 +200,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         {values.duration}
                       </p>
                     </div> */}
-            {/* <div
+                {/* <div
                       className="flex items-center mt-4 px-4"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -222,56 +227,56 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         {values.duration}
                       </p>
                     </div> */}
-            <div className="grid grid-cols-3 gap-4 mt-18"></div>
-            <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
-              <div
-                className="flex flex-col items-center"
-                onClick={() => {
-                  aSheet.show();
-                }}
-              >
-                <List className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">切换源</p>
-              </div>
-              <div
-                className="flex flex-col items-center"
-                onClick={() => {
-                  bSheet.show();
-                }}
-              >
-                <Gauge className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">倍速</p>
-              </div>
-              <div
-                className="flex flex-col items-center"
-                onClick={() => {
-                  cSheet.show();
-                }}
-              >
-                <Glasses className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">分辨率</p>
-              </div>
-              <div
-                className="flex flex-col items-center focus:outline-none focus:ring-0"
-                onClick={() => {
-                  dSheet.show();
-                }}
-              >
-                <MoreHorizontal className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">更多</p>
+                <div className="grid grid-cols-3 gap-4 mt-18"></div>
+                <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
+                  <div
+                    className="flex flex-col items-center"
+                    onClick={() => {
+                      aSheet.show();
+                    }}
+                  >
+                    <List className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">切换源</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center"
+                    onClick={() => {
+                      bSheet.show();
+                    }}
+                  >
+                    <Gauge className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">倍速</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center"
+                    onClick={() => {
+                      cSheet.show();
+                    }}
+                  >
+                    <Glasses className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">分辨率</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center focus:outline-none focus:ring-0"
+                    onClick={() => {
+                      dSheet.show();
+                    }}
+                  >
+                    <MoreHorizontal className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">更多</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="video z-20 absolute top-[20%]">
-        {(() => {
-          if (profile === null) {
-            return null;
-          }
-          return (
-            <div className="">
-              {/* <ToggleView store={cover}>
+          <div className="video z-20 absolute top-[20%]">
+            {(() => {
+              if (profile === null) {
+                return null;
+              }
+              return (
+                <div className="">
+                  {/* <ToggleView store={cover}>
                       <Show when={!!profile.curEpisode.thumbnail}>
                         <LazyImage
                           className="absolute left-0 top-0 z-20"
@@ -283,11 +288,11 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         <Loader className="inline-block w-8 h-8 text-white animate-spin" />
                       </div>
                     </ToggleView> */}
-              <Video store={player} />
-            </div>
-          );
-        })()}
-        {/* <div className={cn("absolute inset-0")}>
+                  <Video store={player} />
+                </div>
+              );
+            })()}
+            {/* <div className={cn("absolute inset-0")}>
                   <div
                     className={cn(
                       show_menus ? "hidden" : "block",
@@ -328,7 +333,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     )}
                   </div>
                 </div> */}
-      </div>
+          </div>
+        </div>
+      </ScrollView>
       {/* <div className="h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
         <div className="fixed left-0 bottom-0 box-content w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
@@ -342,8 +349,8 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           }
           const { sources } = profile;
           return (
-            <div className="max-h-full overflow-y-auto pb-16">
-              <div className="pt-4 pb-24">
+            <div className="max-h-full overflow-y-auto">
+              <div className="pt-4 pb-24 dark:text-black-200">
                 {sources.map((source) => {
                   const { file_id, file_name } = source;
                   return (
@@ -370,8 +377,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={bSheet}>
-        <p className="mt-8 text-center text-sm ">敬请期待</p>
-        {/* {players.map((p) => {
+        <div className="dark:text-black-200">
+          <p className="mt-8 text-center text-sm ">敬请期待</p>
+          {/* {players.map((p) => {
           const { name, icon, scheme } = p;
           return (
             <a className="block py-2" href={`vlc://${source?.url}`}>
@@ -380,6 +388,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
             </a>
           );
         })} */}
+        </div>
       </Sheet>
       <Sheet store={cSheet}>
         {(() => {
@@ -388,29 +397,29 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           }
           const { typeText: curTypeText, resolutions } = curSource;
           return (
-            <div className="overflow-y-auto mt-8 pb-12 h-full">
-              {resolutions.map((r, i) => {
-                const { type, typeText } = r;
-                return (
-                  <div key={i} className="px-4">
-                    <div
-                      className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
-                      onClick={() => {
-                        movie.switchResolution(type);
-                      }}
-                    >
-                      {typeText}
+            <div className="max-h-full overflow-y-auto">
+              <div className="pt-4 pb-24 dark:text-black-200">
+                {resolutions.map((r, i) => {
+                  const { type, typeText } = r;
+                  return (
+                    <div key={i}>
+                      <div
+                        className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        onClick={() => {
+                          movie.switchResolution(type);
+                        }}
+                      >
+                        {typeText}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           );
         })()}
-        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
       </Sheet>
       <Sheet store={dSheet}>
-        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
         {(() => {
           if (profile === null) {
             return (
@@ -421,9 +430,13 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           }
           const { name, overview } = profile;
           return (
-            <div className="p-4 pb-12 h-full overflow-y-auto">
-              <div className="text-2xl">{name}</div>
-              <div className="text-sm">{overview}</div>
+            <div className="max-h-full overflow-y-auto">
+              <div className="pb-24 dark:text-black-200">
+                <div className="px-4">
+                  <div className="text-xl">{name}</div>
+                  <div className="text-sm">{overview}</div>
+                </div>
+              </div>
             </div>
           );
         })()}

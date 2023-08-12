@@ -159,8 +159,16 @@ const Content = (
     <Portal store={store} position={position}>
       <Overlay store={store} />
       <DialogPrimitive.Content store={store} className={cn(sheetVariants({ position, size }), className)}>
-        <Header className="h-[32px]">
-          <div className="mt-2 mx-auto w-[64px] h-[4px] bg-slate-400 rounded-lg"></div>
+        <Header className="flex">
+          {/* <div className="mt-2 mx-auto w-[64px] h-[4px] bg-slate-400 rounded-lg"></div> */}
+          <div
+            className="p-4 self-end"
+            onClick={() => {
+              store.hide();
+            }}
+          >
+            <X className="w-5 h-5 dark:text-black-200" />
+          </div>
         </Header>
         {children}
       </DialogPrimitive.Content>

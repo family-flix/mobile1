@@ -330,7 +330,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   });
   getTitle(): [string] {
     if (this.profile === null) {
-      return ["加载中"];
+      return ["加载中..."];
     }
     const { name } = this.profile;
     return [name];

@@ -27,7 +27,7 @@ export function Video(props: { store: PlayerCore }) {
 
   const { width, height, ready, poster } = state;
 
-  console.log("[COMPONENT]Video - render", width, height, poster);
+  // console.log("[COMPONENT]Video - render", width, height, poster);
 
   return (
     <div

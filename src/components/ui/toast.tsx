@@ -67,7 +67,7 @@ const Content = (props: { store: ToastCore } & React.AllHTMLAttributes<HTMLDivEl
     <ToastPrimitive.Content
       store={store}
       className={cn(
-        "grid gap-4 rounded-b-lg bg-black text-white p-6 sm:max-w-lg sm:rounded-lg",
+        "grid gap-4 rounded-lg bg-black text-white p-6 sm:max-w-lg sm:rounded-lg",
         "dark:bg-slate-900",
         "animate-in sm:zoom-in-90",
         "data-[state=open]:fade-in-90",

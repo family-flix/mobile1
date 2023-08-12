@@ -88,7 +88,7 @@ export const HomeLayout: ViewComponent = (props) => {
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="flex-1 h-full">
+      <div className="relative z-90 flex-1 h-full">
         <div className="relative w-full h-full">
           {subViews.map((subView, i) => {
             const PageContent = subView.component as ViewComponent;
@@ -107,9 +107,9 @@ export const HomeLayout: ViewComponent = (props) => {
           })}
         </div>
       </div>
-      <div className="h-[68px] box-content safe-bottom">
+      <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
+        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
@@ -164,10 +164,12 @@ export const HomeLayout: ViewComponent = (props) => {
             <div className="mt-2 text-sm text-center">观看记录</div>
           </div>
           <div
-            className="flex flex-col justify-center items-center dark:text-black-200"
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
+              curPathname === `${NavigatorCore.prefix}/home/mine` ? highlightColor : ""
+            )}
             onClick={() => {
-              // router.push("/home/my");
-              dialog.show();
+              router.push("/home/mine");
             }}
           >
             <div>

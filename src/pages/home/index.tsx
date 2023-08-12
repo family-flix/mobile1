@@ -138,7 +138,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView}>
+      <ScrollView store={scrollView} className="dark:text-black-200">
         <div className="">
           <div className="">
             <div>
@@ -167,10 +167,10 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
             </div>
             <ListView
               store={helper}
-              className="relative grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+              className="relative mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-4"
               skeleton={
-                <div className="">
-                  <div className="flex p-4 cursor-pointer">
+                <>
+                  <div className="flex px-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -180,7 +180,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                  <div className="flex m-4 cursor-pointer">
+                  <div className="flex mx-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -190,16 +190,27 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                </div>
+                </>
               }
             >
               {(() => {
                 return dataSource.map((season) => {
-                  const { id, tv_id, name, overview, season_text, vote, genres, air_date, poster_path = "" } = season;
+                  const {
+                    id,
+                    tv_id,
+                    name,
+                    overview,
+                    season_text,
+                    episode_count_text,
+                    vote,
+                    genres,
+                    air_date,
+                    poster_path = "",
+                  } = season;
                   return (
                     <div
                       key={id}
-                      className="flex p-4 cursor-pointer"
+                      className="flex px-4 cursor-pointer"
                       onClick={() => {
                         router.push(`/tv/play/${tv_id}?season_id=${id}`);
                       }}
@@ -210,16 +221,25 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                           {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
                           {/* <div className="absolute">{vote}</div> */}
                         </div>
+                        {episode_count_text && (
+                          <div className="absolute bottom-1 right-1">
+                            <div className="inline-flex items-center py-1 px-2 rounded-sm">
+                              <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                                {episode_count_text}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
                         <div className="flex items-center">
-                          <h2 className="truncate text-2xl">{name}</h2>
+                          <h2 className="truncate text-2xl dark:text-white">{name}</h2>
                         </div>
-                        <div className="flex items-center mt-1 text-gray-500">
+                        <div className="flex items-center mt-1 ">
                           <div>{air_date}</div>
-                          <p className="mx-2 text-gray-500">·</p>
+                          <p className="mx-2 ">·</p>
                           <p className="text-gray-500 whitespace-nowrap">{season_text}</p>
-                          <p className="mx-2 text-gray-500">·</p>
+                          <p className="mx-2 ">·</p>
                           <div className="flex items-center">
                             <Star className="mr-1 relative top-[-2px] w-4 h-4" />
                             <div>{vote}</div>
@@ -230,7 +250,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                             return (
                               <div
                                 key={g}
-                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border"
+                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}

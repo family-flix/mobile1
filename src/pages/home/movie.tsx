@@ -155,7 +155,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView}>
+      <ScrollView store={scrollView} className="dark:text-black-200">
         <div className="">
           <div className="">
             <div>
@@ -177,10 +177,10 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
             </div>
             <ListView
               store={helper}
-              className="relative grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+              className="relative mt-6 grid grid-cols-1 space-y-4 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
               skeleton={
-                <div className="">
-                  <div className="flex p-4 cursor-pointer">
+                <>
+                  <div className="flex px-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -190,7 +190,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                  <div className="flex m-4 cursor-pointer">
+                  <div className="flex px-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -200,16 +200,16 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                </div>
+                </>
               }
             >
               {(() => {
-                return dataSource.map((season) => {
-                  const { id, name, overview, vote, genres, air_date, poster_path = "" } = season;
+                return dataSource.map((movie) => {
+                  const { id, name, overview, vote, genres, air_date, poster_path = "" } = movie;
                   return (
                     <div
                       key={id}
-                      className="flex p-4 cursor-pointer"
+                      className="flex px-4 cursor-pointer"
                       onClick={() => {
                         router.push(`/movie/play/${id}`);
                       }}
@@ -223,11 +223,11 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       </div>
                       <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
                         <div className="flex items-center">
-                          <h2 className="truncate text-2xl">{name}</h2>
+                          <h2 className="truncate text-2xl text-white">{name}</h2>
                         </div>
-                        <div className="flex items-center mt-1 text-gray-500">
+                        <div className="flex items-center mt-1 ">
                           <div>{air_date}</div>
-                          <p className="mx-2 text-gray-500">·</p>
+                          <p className="mx-2 ">·</p>
                           <div className="flex items-center">
                             <Star className="mr-1 relative top-[-2px] w-4 h-4" />
                             <div>{vote}</div>
@@ -238,7 +238,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             return (
                               <div
                                 key={g}
-                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border"
+                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}

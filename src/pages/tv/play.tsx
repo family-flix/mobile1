@@ -1,5 +1,5 @@
 /**
- * @file 视频播放页面
+ * @file 电视剧播放页面
  */
 import { useRef, useState } from "react";
 import {
@@ -11,9 +11,7 @@ import {
   List,
   Loader,
   MoreHorizontal,
-  Pause,
-  Play,
-  RotateCw,
+  Subtitles,
   Wand2,
 } from "lucide-react";
 
@@ -37,14 +35,13 @@ import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { ListView } from "@/components/ui/list-view";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { SubtitleState } from "@/domains/subtitle";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [curSubtileState, setCurSubtitleState] = useState<SubtitleState | null>(null);
 
+  const scrollView = useInstance(() => new ScrollViewCore({}));
   const tv = useInstance(() => {
     const { type: resolution } = app.cache.get<{
       type: EpisodeResolutionTypes;
@@ -87,6 +84,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   );
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
+  const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -149,9 +147,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
     });
-    // tv.onSubtitleChange((nextSubtitle) => {
-    //   setCurSubtitleState(nextSubtitle);
-    // });
     player.onCanPlay(() => {
       if (!view.state.visible) {
         return;
@@ -209,6 +204,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     // });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+      if (!tv.canAutoPlay) {
+        return;
+      }
       episodesSheet.hide();
       sourcesSheet.hide();
       cSheet.hide();
@@ -257,31 +255,33 @@ export const TVPlayingPage: ViewComponent = (props) => {
 
   return (
     <>
-      <div className="operations">
-        {/* <div
+      <ScrollView store={scrollView} className="fixed dark:text-black-200">
+        <div>
+          <div className="operations">
+            {/* <div
                 className={cn(
                   show_menus ? "hidden" : "block",
                   "absolute inset-0"
                 )}
                 onClick={toggleMenuVisible}
               /> */}
-        <div
-          className={cn(
-            // show_menus ? "block" : "hidden",
-            "z-10 absolute inset-0"
-          )}
-          // onClick={toggleMenuVisible}
-        >
-          <div
-            className="inline-block p-4"
-            onClick={() => {
-              router.back();
-            }}
-          >
-            <ArrowLeft className="w-6 h-6 dark:text-black-200" />
-          </div>
-          <div className="absolute bottom-12 w-full">
-            {/* <div className="flex items-center w-36 m-auto">
+            <div
+              className={cn(
+                // show_menus ? "block" : "hidden",
+                "z-10 absolute inset-0"
+              )}
+              // onClick={toggleMenuVisible}
+            >
+              <div
+                className="inline-block p-4"
+                onClick={() => {
+                  router.back();
+                }}
+              >
+                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+              </div>
+              <div className="absolute bottom-12 w-full">
+                {/* <div className="flex items-center w-36 m-auto">
                       <p className="text-2xl ">
                         {values.target_time}
                       </p>
@@ -292,7 +292,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         {values.duration}
                       </p>
                     </div> */}
-            {/* <div
+                {/* <div
                       className="flex items-center mt-4 px-4"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -319,85 +319,85 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         {values.duration}
                       </p>
                     </div> */}
-            <div className="grid grid-cols-3 gap-4 mt-18">
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={async () => {
-                  tv.playPrevEpisode();
-                }}
-              >
-                <ArrowBigLeft className="w-8 h-8" />
-                <p className="mt-2 text-sm">上一集</p>
-              </div>
-              <div className="flex flex-col items-center"></div>
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={() => {
-                  tv.playNextEpisode();
-                }}
-              >
-                <ArrowBigRight className="w-8 h-8 " />
-                <p className="mt-2 text-sm ">下一集</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={() => {
-                  episodesSheet.show();
-                }}
-              >
-                <List className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">选集</p>
-              </div>
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={() => {
-                  sourcesSheet.show();
-                }}
-              >
-                <Wand2 className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">切换源</p>
-              </div>
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={() => {
-                  bSheet.show();
-                }}
-              >
-                <Gauge className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">倍速</p>
-              </div>
-              <div
-                className="flex flex-col items-center dark:text-black-200"
-                onClick={() => {
-                  cSheet.show();
-                }}
-              >
-                <Glasses className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">分辨率</p>
-              </div>
-              <div
-                className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
-                onClick={() => {
-                  dSheet.show();
-                }}
-              >
-                <MoreHorizontal className="w-6 h-6 " />
-                <p className="mt-2 text-sm ">更多</p>
+                <div className="grid grid-cols-3 gap-4 mt-18">
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={async () => {
+                      tv.playPrevEpisode();
+                    }}
+                  >
+                    <ArrowBigLeft className="w-8 h-8" />
+                    <p className="mt-2 text-sm">上一集</p>
+                  </div>
+                  <div className="flex flex-col items-center"></div>
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={() => {
+                      tv.playNextEpisode();
+                    }}
+                  >
+                    <ArrowBigRight className="w-8 h-8 " />
+                    <p className="mt-2 text-sm ">下一集</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={() => {
+                      episodesSheet.show();
+                    }}
+                  >
+                    <List className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">选集</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={() => {
+                      sourcesSheet.show();
+                    }}
+                  >
+                    <Wand2 className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">切换源</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={() => {
+                      bSheet.show();
+                    }}
+                  >
+                    <Gauge className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">倍速</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center dark:text-black-200"
+                    onClick={() => {
+                      cSheet.show();
+                    }}
+                  >
+                    <Glasses className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">分辨率</p>
+                  </div>
+                  <div
+                    className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
+                    onClick={() => {
+                      dSheet.show();
+                    }}
+                  >
+                    <MoreHorizontal className="w-6 h-6 " />
+                    <p className="mt-2 text-sm ">更多</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="video z-20 absolute top-[20%]">
-        {(() => {
-          if (profile === null || profile.curEpisode === null) {
-            return null;
-          }
-          return (
-            <div className="">
-              {/* <ToggleView store={cover}>
+          <div className="video z-20 absolute top-[20%]">
+            {(() => {
+              if (profile === null || profile.curEpisode === null) {
+                return null;
+              }
+              return (
+                <div className="">
+                  {/* <ToggleView store={cover}>
                       <Show when={!!profile.curEpisode.thumbnail}>
                         <LazyImage
                           className="absolute left-0 top-0 z-20"
@@ -409,23 +409,22 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <Loader className="inline-block w-8 h-8 text-white animate-spin" />
                       </div>
                     </ToggleView> */}
-              <Video store={player} />
-              <div className="absolute bottom-12 text-center"></div>
-              {curSubtileState?.curLine ? (
-                <div className="mt-2 space-y-1">
-                  {curSubtileState.curLine.texts.map((text) => {
-                    return (
-                      <div key={text} className="text-center text-lg">
-                        {text}
-                      </div>
-                    );
-                  })}
+                  <Video store={player} />
+                  {!subtileState.visible ? (
+                    <div className="mt-2 space-y-1">
+                      {subtileState.texts.map((text) => {
+                        return (
+                          <div key={text} className="text-center text-lg">
+                            {text}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          );
-        })()}
-        {/* <div className={cn("absolute inset-0")}>
+              );
+            })()}
+            {/* <div className={cn("absolute inset-0")}>
                   <div
                     className={cn(
                       show_menus ? "hidden" : "block",
@@ -466,27 +465,24 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     )}
                   </div>
                 </div> */}
-      </div>
-      {/* <div className="h-[68px] box-content safe-bottom">
-        <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed left-0 bottom-0 box-content w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
-
+          </div>
         </div>
-      </div> */}
-      <Sheet store={episodesSheet}>
+      </ScrollView>
+      <Sheet store={episodesSheet} className="">
         {(() => {
           if (profile === null) {
             return <div>Loading</div>;
           }
           const { seasons, curEpisodes } = profile;
           const episodes_elm = (
-            <ListView className="pt-4 pb-24" store={tv.episodeList}>
+            <ListView className="pb-24" store={tv.episodeList}>
               {curEpisodes.map((episode) => {
-                const { id, name, overview, episode_text: episode_number } = episode;
+                const { id, name, episode_text: episode_number } = episode;
                 return (
                   <div
                     key={id}
                     onClick={() => {
+                      tv.canAutoPlay = true;
                       tv.playEpisode(episode, { currentTime: 0, thumbnail: null });
                     }}
                   >
@@ -505,15 +501,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
           if (seasons.length === 1) {
             return (
-              <div className="max-h-full overflow-y-auto pb-16">
-                <ScrollView store={episodeScrollView} className="mt-8">
-                  {episodes_elm}
-                </ScrollView>
-              </div>
+              <ScrollView store={episodeScrollView} className="top-14 fixed dark:text-black-200">
+                {episodes_elm}
+              </ScrollView>
             );
           }
           return (
-            <div className="relative box-border h-full safe-bottom">
+            <div className="relative box-border h-full safe-bottom dark:text-black-200">
               <Tabs defaultValue="episode" className="h-full">
                 <TabsList className="relative z-10">
                   <TabsTrigger value="episode">集数</TabsTrigger>
@@ -559,8 +553,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { curEpisode } = profile;
           return (
-            <div className="max-h-full overflow-y-auto pb-16">
-              <div className="pt-4 pb-24">
+            <div className="max-h-full overflow-y-auto">
+              <div className="pt-4 pb-24 dark:text-black-200">
                 {curEpisode.sources.map((s) => {
                   const { id, file_id, file_name, parent_paths } = s;
                   return (
@@ -589,8 +583,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={bSheet}>
-        <p className="mt-8 text-center text-sm ">敬请期待</p>
-        {/* {players.map((p) => {
+        <div className="dark:text-black-200">
+          <p className="mt-8 text-center text-sm ">敬请期待</p>
+          {/* {players.map((p) => {
           const { name, icon, scheme } = p;
           return (
             <a className="block py-2" href={`vlc://${source?.url}`}>
@@ -599,6 +594,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
             </a>
           );
         })} */}
+        </div>
       </Sheet>
       <Sheet store={cSheet}>
         {(() => {
@@ -607,29 +603,29 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { typeText: curTypeText, resolutions } = curSource;
           return (
-            <div className="overflow-y-auto mt-8 pb-24 h-full">
-              {resolutions.map((r, i) => {
-                const { type, typeText } = r;
-                return (
-                  <div key={i} className="px-4">
-                    <div
-                      className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
-                      onClick={() => {
-                        tv.changeResolution(type);
-                      }}
-                    >
-                      {typeText}
+            <div className="max-h-full overflow-y-auto">
+              <div className="pt-4 pb-24 dark:text-black-200">
+                {resolutions.map((r, i) => {
+                  const { type, typeText } = r;
+                  return (
+                    <div key={i}>
+                      <div
+                        className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        onClick={() => {
+                          tv.changeResolution(type);
+                        }}
+                      >
+                        {typeText}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           );
         })()}
-        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
       </Sheet>
       <Sheet store={dSheet}>
-        {/* <p className="mt-8 text-center text-sm ">敬请期待</p> */}
         {(() => {
           if (profile === null) {
             return (
@@ -640,9 +636,45 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { name, overview } = profile;
           return (
-            <div className="p-4 pb-12 h-full overflow-y-auto">
-              <div className="text-2xl">{name}</div>
-              <div className="text-sm">{overview}</div>
+            <div className="max-h-full overflow-y-auto">
+              <div className="pb-24 dark:text-black-200">
+                <div className="px-4">
+                  <div className="text-xl">{name}</div>
+                  <div className="text-sm">{overview}</div>
+                  <div className="mt-4 text-lg underline-offset-1">其他</div>
+                  <div className=""></div>
+                  {(() => {
+                    let node = null;
+                    if (!subtileState.visible) {
+                      node = <div>隐藏字幕</div>;
+                    }
+                    if (subtileState.visible) {
+                      node = <div>显示字幕</div>;
+                    }
+                    if (!subtileState.enabled) {
+                      node = null;
+                    }
+                    if (node === null) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        className="mt-2 flex items-center"
+                        onClick={() => {
+                          if (subtileState.visible) {
+                            tv.showSubtitle();
+                            return;
+                          }
+                          tv.hideSubtitle();
+                        }}
+                      >
+                        <Subtitles className="mr-2 w-4 h-4" />
+                        <div className="text-sm">{node}</div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
           );
         })()}

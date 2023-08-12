@@ -39,7 +39,7 @@ function Button<T = unknown>(
   props: {
     store: ButtonCore<T>;
   } & VariantProps<typeof buttonVariants> &
-    React.AllHTMLAttributes<HTMLElement>
+    Omit<React.HTMLAttributes<HTMLElement>, "size">
 ) {
   const { store, variant, size } = props;
 
@@ -50,10 +50,12 @@ function Button<T = unknown>(
   });
 
   const { disabled, loading } = state;
+  const c = buttonVariants({ variant, size, class: cn(props.className, "space-x-2") });
+  console.log(c);
 
   return (
     <button
-      className={buttonVariants({ variant, size, class: cn(props.className, "space-x-2") })}
+      className={c}
       role="button"
       disabled={disabled}
       onClick={(event) => {

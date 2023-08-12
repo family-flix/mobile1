@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
-import { ThemeProvider } from "./components/Theme";
+import { ThemeProvider, useTheme } from "./components/Theme";
 import { connect } from "./domains/app/connect.web";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
@@ -14,7 +14,7 @@ import {
   homeIndexPage,
   homeTVSearchPage,
   cView,
-  homeMyPage,
+  homeMinePage,
   homeLayout,
   rootView,
   testView,
@@ -43,8 +43,8 @@ homeLayout.register("/home/movie", () => {
 homeLayout.register("/home/history", () => {
   return cView;
 });
-homeLayout.register("/home/my", () => {
-  return homeMyPage;
+homeLayout.register("/home/mine", () => {
+  return homeMinePage;
 });
 rootView.register("/search_tv", () => {
   return homeTVSearchPage;

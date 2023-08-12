@@ -20,7 +20,7 @@ type SubtitleProps = {
   suffix?: string;
   lines: SubtitleLine[];
 };
-export type SubtitleState = {
+type SubtitleState = {
   curLine: SubtitleLine | null;
 };
 
@@ -48,7 +48,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  static async New(subtitle: { url: string; language: string }) {
+  static async New(subtitle: { url: string; language: string }, extra: Partial<{ currentTime: number }> = {}) {
     const { url, language } = subtitle;
     const r = await (async () => {
       try {
@@ -76,6 +76,9 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       suffix,
       lines: paragraphs,
     });
+    if (extra.currentTime) {
+      store.handleTimeChange(extra.currentTime);
+    }
     return Result.Ok(store);
   }
 
@@ -115,7 +118,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
   handleTimeChange(currentTime: number) {
     //     if (currentTime < 2) {
     //     }
-    // console.log("[DOMAIN]subtitle/index - handleTimeChange", currentTime, this.curTime, this.targetLine);
+    console.log("[DOMAIN]subtitle/index - handleTimeChange", currentTime, this.curTime, this.targetLine);
     if (Math.abs(currentTime - this.curTime) > 1) {
       this.changeTargetLine(currentTime);
     }

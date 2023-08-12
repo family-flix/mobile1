@@ -94,6 +94,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       this.onReachBottom(onReachBottom);
     }
     if (onPullToRefresh) {
+      this.state.pullToRefresh = true;
       this.onPullToRefresh(onPullToRefresh);
     }
   }
@@ -255,6 +256,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.on(Events.ReachBottom, handler);
   }
   onPullToRefresh(handler: Handler<TheTypesOfEvents[Events.PullToRefresh]>) {
+    this.state.pullToRefresh = true;
     this.on(Events.PullToRefresh, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {

@@ -6,9 +6,9 @@ import { HomeMoviePage } from "@/pages/home/movie";
 import { HomeHistoryPage } from "@/pages/home/history";
 import { HomeTVSearchPage } from "@/pages/home/search/tv";
 import { HomeMovieSearchPage } from "@/pages/home/search/movie";
-import { HomeMyPage } from "@/pages/home/my";
+import { HomeMinePage } from "@/pages/home/mine";
 /** 视频播放 */
-import { TVPlayingPage } from "@/pages/play";
+import { TVPlayingPage } from "@/pages/tv/play";
 import { MoviePlayingPage } from "@/pages/movie/play";
 import { OuterPlayersPage } from "@/pages/outplayers";
 /** 其他 */
@@ -51,9 +51,9 @@ export const cView = new RouteViewCore({
   title: "播放历史",
   component: HomeHistoryPage,
 });
-export const homeMyPage = new RouteViewCore({
+export const homeMinePage = new RouteViewCore({
   title: "我的",
-  component: HomeMyPage,
+  component: HomeMinePage,
 });
 export const authLayoutView = new RouteViewCore({
   title: "EmptyLayout",

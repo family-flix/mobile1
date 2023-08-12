@@ -50,21 +50,23 @@ export const ScrollView = React.memo(
       ),
     };
     //   const step = () => state().step;
-    const { step } = state;
+    const { step, pullToRefresh } = state;
     const Component = options[step];
 
     return (
       <Root
-        className={cn("overflow-hidden absolute inset-0 w-full h-full", wrapClassName)}
+        className={cn("overflow-hidden absolute z-80 inset-0 w-full h-full", className)}
         style={style}
         {...restProps}
       >
-        <Indicator store={store}>
-          <div className="flex items-center justify-center h-[80px]">
-            <Component />
-          </div>
-        </Indicator>
-        <Content store={store} className={cn("absolute inset-0 max-h-screen overflow-y-auto hide-scroll", className)}>
+        {pullToRefresh && (
+          <Indicator store={store}>
+            <div className="flex items-center justify-center h-[80px]">
+              <Component />
+            </div>
+          </Indicator>
+        )}
+        <Content store={store} className={cn("absolute inset-0 max-h-screen overflow-y-auto hide-scroll")}>
           {children}
         </Content>
       </Root>
@@ -134,7 +136,7 @@ const Content = (props: { store: ScrollViewCore; className?: string; children: R
   });
 
   //   const top = () => state().top;
-  const { top } = state;
+  const { top, pullToRefresh } = state;
 
   return (
     <div
@@ -142,6 +144,9 @@ const Content = (props: { store: ScrollViewCore; className?: string; children: R
       className={props.className}
       style={{ transform: `translateY(${top}px)` }}
       onTouchStart={(event) => {
+        if (!pullToRefresh) {
+          return;
+        }
         // console.log('start');
         const { pageX, pageY } = event.touches[0];
         const position = { x: pageX, y: pageY };

@@ -57,7 +57,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
   return (
     <ScrollView store={scrollView}>
       <div className="pt-4">
-        <h2 className="h2 pb-4 text-center">我的所有播放记录</h2>
+        <h2 className="h2 pb-4 text-center">播放记录</h2>
         <div className="">
           <ListView
             store={helper}
@@ -88,6 +88,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                 updated,
                 cur_episode_count,
                 episode_count,
+                episode_count_text,
                 has_update,
                 percent,
               } = history;
@@ -99,15 +100,19 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                     router.push(`/tv/play/${tv_id}`);
                   }}
                 >
-                  <div className="relative w-[128px] h-[198px] mr-4">
-                    <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
+                  <div className="relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
+                    <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                    <div className="absolute bottom-0 h-full bg-gray-600 opacity-50" style={{ width: `${percent}%` }}></div>
                     {(() => {
-                      if (episode_count && cur_episode_count !== episode_count) {
+                      if (episode_count_text) {
                         return (
-                          <div className="absolute top-1 left-1">
-                            <div className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800">
-                              <div className="text-[12px] leading-none text-gray-800 dark:text-gray-300 ">
-                                更新到第{cur_episode_count}集
+                          <div className="absolute bottom-1 right-1">
+                            <div className="inline-flex items-center py-1 px-2 rounded-sm">
+                              <div
+                                className="text-[12px] text-white-900 dark:text-gray-300 "
+                                style={{ lineHeight: "12px" }}
+                              >
+                                {episode_count_text}
                               </div>
                             </div>
                           </div>
@@ -122,9 +127,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                       <p className="mx-2 text-gray-500">·</p>
                       <p className="text-gray-500">{season}</p>
                     </div>
-                    <div className="mt-2">
-                      {updated} 看到 {percent}
-                    </div>
+                    <div className="mt-2">{updated} 看过</div>
                     <div className="flex items-center mt-4 space-x-2">
                       {(() => {
                         const nodes: React.ReactNode[] = [];

@@ -50,6 +50,8 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
       tv_id: string;
       name: string;
       original_name: string;
+      episode_count: string;
+      cur_episode_count: string;
       season_text: string;
       overview: string;
       poster_path: string;
@@ -82,6 +84,8 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
         first_air_date,
         genres,
         origin_country,
+        episode_count,
+        cur_episode_count,
       } = season;
       return {
         id,
@@ -89,6 +93,17 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
         name: name || original_name,
         season_text,
         air_date: dayjs(first_air_date).year(),
+        episode_count,
+        cur_episode_count,
+        episode_count_text: (() => {
+          if (!episode_count) {
+            return null;
+          }
+          if (cur_episode_count === episode_count) {
+            return `全${episode_count}集`;
+          }
+          return `更新至${cur_episode_count}集`;
+        })(),
         overview,
         poster_path,
         vote: (() => {
@@ -555,12 +570,21 @@ export async function fetch_play_histories(params: FetchParams) {
         poster_path,
         cur_episode_count,
         episode_count,
+        episode_count_text: (() => {
+          if (!episode_count) {
+            return null;
+          }
+          if (cur_episode_count === episode_count) {
+            return `全${episode_count}集`;
+          }
+          return `更新至${cur_episode_count}集`;
+        })(),
         episode: episode_to_chinese_num(episode_number),
         season: season_to_chinese_num(season_number),
         updated: relative_time_from_now(updated),
         has_update: !!has_update,
         currentTime: current_time,
-        percent: ((current_time / duration) * 100).toFixed(2) + "%",
+        percent: parseFloat(((current_time / duration) * 100).toFixed(2)),
         thumbnail,
       };
     }),
