@@ -2,7 +2,7 @@
  * @file 电影列表页
  */
 import React, { useEffect, useState } from "react";
-import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
+import { Clock, Clock1, Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import { fetch_movie_list } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
@@ -21,6 +21,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { CheckboxGroup } from "@/components/ui/checkbox-group";
 import { CheckboxGroupCore } from "@/domains/ui/checkbox/group";
 import { TVSourceOptions, MovieGenresOptions, MovieSourceOptions } from "@/constants";
+import { BackToTop } from "@/components/back-to-top";
 
 export const HomeMoviePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -177,10 +178,10 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
             </div>
             <ListView
               store={helper}
-              className="relative mt-6 grid grid-cols-1 space-y-4 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+              className="relative mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
               skeleton={
                 <>
-                  <div className="flex px-4 cursor-pointer">
+                  <div className="flex px-4 pb-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -190,7 +191,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                  <div className="flex px-4 cursor-pointer">
+                  <div className="flex px-4 pb-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -205,11 +206,11 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
             >
               {(() => {
                 return dataSource.map((movie) => {
-                  const { id, name, overview, vote, genres, air_date, poster_path = "" } = movie;
+                  const { id, name, overview, vote, genres, air_date, poster_path = "", runtime } = movie;
                   return (
                     <div
                       key={id}
-                      className="flex px-4 cursor-pointer"
+                      className="flex px-4 pb-4 cursor-pointer"
                       onClick={() => {
                         router.push(`/movie/play/${id}`);
                       }}
@@ -223,7 +224,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       </div>
                       <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
                         <div className="flex items-center">
-                          <h2 className="truncate text-2xl text-white">{name}</h2>
+                          <h2 className="truncate text-2xl dark:text-white">{name}</h2>
                         </div>
                         <div className="flex items-center mt-1 ">
                           <div>{air_date}</div>
@@ -232,6 +233,14 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             <Star className="mr-1 relative top-[-2px] w-4 h-4" />
                             <div>{vote}</div>
                           </div>
+                          {runtime ? (
+                            <>
+                              <p className="mx-2 ">·</p>
+                              <div className="flex items-center">
+                                <div>{runtime}</div>
+                              </div>
+                            </>
+                          ) : null}
                         </div>
                         <div className="mt-2 flex items-center max-w-full break-keep overflow-x-auto text-ellipsis hide-scroll">
                           {genres.map((g) => {
@@ -258,6 +267,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
           </div>
         </div>
       </ScrollView>
+      <BackToTop store={scrollView} />
       <Sheet store={settingsSheet}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
           {response.loading && (

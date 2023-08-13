@@ -8,6 +8,7 @@ import { BaseDomain } from "@/domains/base";
 import { MediaSourceProfile } from "@/domains/tv/services";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { Application } from "@/domains/app";
+import { app } from "@/store/app";
 
 enum Events {
   Mounted,
@@ -84,6 +85,7 @@ type TheTypesOfEvents = {
 
 type PlayerProps = {};
 type PlayerState = {
+  playing: boolean;
   poster?: string;
   width: number;
   height: number;
@@ -96,11 +98,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
 
   private _timer: null | number = null;
-  private _playing = false;
   private _canPlay = false;
-  get playing() {
-    return this._playing;
-  }
   private _ended = false;
   private _duration = 0;
   private _currentTime = 0;
@@ -108,6 +106,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   get currentTime() {
     return this._currentTime;
   }
+  playing = false;
   _mounted = false;
   poster?: string;
   /** 默认是不能播放的，只有用户交互后可以播放 */
@@ -128,6 +127,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
 
   get state(): PlayerState {
     return {
+      playing: this.playing,
       poster: this.poster,
       width: this._size.width,
       height: this._size.height,
@@ -160,6 +160,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._abstractNode.play();
+    this.playing = true;
+    this.emit(Events.StateChange, { ...this.state });
   }
   /** 暂停播放 */
   async pause() {
@@ -167,6 +169,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._abstractNode.pause();
+    this.playing = false;
+    this.emit(Events.StateChange, { ...this.state });
   }
   /** 改变音量 */
   changeVolume(v: number) {
@@ -199,8 +203,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     ) {
       return;
     }
-    this._size = size;
-    this.emit(Events.SizeChange, size);
+    const { width, height } = size;
+    const h = Math.ceil((height / width) * app.screen.width);
+    this._size = {
+      width: app.screen.width,
+      height: h,
+    };
+    this.emit(Events.SizeChange, { ...this._size });
     this.emit(Events.StateChange, { ...this.state });
   }
   setResolution(values: { type: EpisodeResolutionTypes; text: string }) {
@@ -233,9 +242,6 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     return this._abstractNode.$node;
   }
   handleTimeUpdate({ currentTime, duration }: { currentTime: number; duration: number }) {
-    if (currentTime === 0) {
-      return;
-    }
     if (this._currentTime === currentTime) {
       return;
     }
@@ -283,14 +289,15 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 视频播放结束 */
   handleEnd() {
-    this._playing = false;
+    this.playing = false;
     this._ended = true;
     this.emit(Events.End, {
       current_time: this._currentTime,
       duration: this._duration,
     });
   }
-  handleLoadedmetadata() {
+  handleLoadedmetadata(size: { width: number; height: number }) {
+    this.setSize(size);
     this.emit(Events.SourceLoaded);
   }
   handleLoad() {

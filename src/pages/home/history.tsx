@@ -3,7 +3,7 @@
  */
 import React, { useState } from "react";
 
-import { fetch_play_histories } from "@/domains/tv/services";
+import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { RequestCore } from "@/domains/client";
@@ -13,12 +13,74 @@ import { ScrollView } from "@/components/ui/scroll-view";
 import { LazyImage } from "@/components/ui/image";
 import { ListView } from "@/components/ui/list-view";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BackToTop } from "@/components/back-to-top";
+import { Node } from "@/components/ui/node";
+import { NodeInListCore } from "@/domains/ui/node";
+import { MoreVertical } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { DialogCore } from "@/domains/ui/dialog";
+import { SelectionCore } from "@/domains/cur";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
-  const { router, view } = props;
+  const { app, router, view } = props;
   // const [response, helper] = useHelper<PlayHistoryItem>(fetch_play_histories);
+  const cur = useInstance(() => new SelectionCore<PlayHistoryItem>());
+  const deletingRequest = useInstance(
+    () =>
+      new RequestCore(delete_history, {
+        onLoading(loading) {
+          deletingConfirmDialog.okBtn.setLoading(loading);
+        },
+        onFailed(error) {
+          app.tip({
+            text: ["删除失败", error.message],
+          });
+        },
+        onSuccess(v) {
+          app.tip({
+            text: ["删除成功"],
+          });
+          deletingConfirmDialog.hide();
+          helper.deleteItem((history) => {
+            if (history.id === cur.value?.id) {
+              return true;
+            }
+            return false;
+          });
+          cur.clear();
+        },
+      })
+  );
+  const deletingConfirmDialog = useInstance(
+    () =>
+      new DialogCore({
+        onOk() {
+          if (!cur.value) {
+            return;
+          }
+          deletingRequest.run({ history_id: cur.value.id });
+        },
+      })
+  );
   const helper = useInstance(() => new ListCore(new RequestCore(fetch_play_histories)));
   const scrollView = useInstance(() => new ScrollViewCore({}));
+  const historyCard = useInstance(
+    () =>
+      new NodeInListCore<PlayHistoryItem>({
+        onClick(history) {
+          if (!history) {
+            return;
+          }
+          const { tv_id } = history;
+          router.push(`/tv/play/${tv_id}`);
+        },
+        // onLongPress(record) {
+        //   console.log("123");
+        //   alert(record?.name);
+        // },
+      })
+  );
+
   const [response, setResponse] = useState(helper.response);
 
   useInitialize(() => {
@@ -55,104 +117,116 @@ export const HomeHistoryPage: ViewComponent = (props) => {
   const { dataSource } = response;
 
   return (
-    <ScrollView store={scrollView}>
-      <div className="pt-4">
-        <h2 className="h2 pb-4 text-center">播放记录</h2>
-        <div className="">
-          <ListView
-            store={helper}
-            className="grid grid-cols-1 space-y-4 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
-            skeleton={
-              <>
-                <div className="flex cursor-pointer">
-                  <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
-                  <div className="relative flex-1 mt-2">
-                    <Skeleton className="w-full h-[32px]"></Skeleton>
-                    <div className="flex items-center mt-2 text-xl">
-                      <Skeleton className="w-24 h-[28px]"></Skeleton>
+    <>
+      <ScrollView store={scrollView} className="dark:text-black-200">
+        <div className="pt-4">
+          <div className="">
+            <ListView
+              store={helper}
+              className="grid grid-cols-1 space-y-4 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+              skeleton={
+                <>
+                  <div className="flex cursor-pointer">
+                    <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
+                    <div className="relative flex-1 mt-2">
+                      <Skeleton className="w-full h-[32px]"></Skeleton>
+                      <div className="flex items-center mt-2 text-xl">
+                        <Skeleton className="w-24 h-[28px]"></Skeleton>
+                      </div>
+                      <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
                     </div>
-                    <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
                   </div>
-                </div>
-              </>
-            }
-          >
-            {dataSource.map((history) => {
-              const {
-                id,
-                tv_id,
-                name,
-                poster_path,
-                episode,
-                season,
-                updated,
-                cur_episode_count,
-                episode_count,
-                episode_count_text,
-                has_update,
-                percent,
-              } = history;
-              return (
-                <div
-                  key={tv_id}
-                  className="flex cursor-pointer"
-                  onClick={() => {
-                    router.push(`/tv/play/${tv_id}`);
-                  }}
-                >
-                  <div className="relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
-                    <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                    <div className="absolute bottom-0 h-full bg-gray-600 opacity-50" style={{ width: `${percent}%` }}></div>
-                    {(() => {
-                      if (episode_count_text) {
-                        return (
-                          <div className="absolute bottom-1 right-1">
-                            <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                              <div
-                                className="text-[12px] text-white-900 dark:text-gray-300 "
-                                style={{ lineHeight: "12px" }}
-                              >
-                                {episode_count_text}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-                    })()}
-                  </div>
-                  <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis mt-2">
-                    <h2 className="text-2xl">{name}</h2>
-                    <div className="flex items-center mt-2 text-xl">
-                      <p className="">{episode}</p>
-                      <p className="mx-2 text-gray-500">·</p>
-                      <p className="text-gray-500">{season}</p>
+                </>
+              }
+            >
+              {dataSource.map((history) => {
+                const {
+                  id,
+                  tv_id,
+                  name,
+                  poster_path,
+                  episode,
+                  season,
+                  updated,
+                  episode_count_text,
+                  has_update,
+                  percent,
+                } = history;
+                return (
+                  <Node key={id} store={historyCard.bind(history)} className="relative flex cursor-pointer select-none">
+                    <div className="z-50 absolute right-0 bottom-0">
+                      <div
+                        className="p-2"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          cur.select(history);
+                          deletingConfirmDialog.show();
+                        }}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </div>
                     </div>
-                    <div className="mt-2">{updated} 看过</div>
-                    <div className="flex items-center mt-4 space-x-2">
+                    <div className="z-10 relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
+                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                      <div
+                        className="absolute bottom-0 h-full bg-gray-600 opacity-50"
+                        style={{ width: `${percent}%` }}
+                      ></div>
                       {(() => {
-                        const nodes: React.ReactNode[] = [];
-                        if (has_update) {
-                          nodes.push(
-                            <div
-                              key="update_1"
-                              className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800"
-                            >
-                              <div className="text-[14px] leading-none text-gray-800 dark:text-gray-300 ">
-                                在你看过后有更新
+                        if (episode_count_text) {
+                          return (
+                            <div className="absolute bottom-1 right-1">
+                              <div className="inline-flex items-center py-1 px-2 rounded-sm">
+                                <div
+                                  className="text-[12px] text-white-900 dark:text-gray-300 "
+                                  style={{ lineHeight: "12px" }}
+                                >
+                                  {episode_count_text}
+                                </div>
                               </div>
                             </div>
                           );
                         }
-                        return nodes;
                       })()}
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </ListView>
+                    <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis mt-2">
+                      <h2 className="text-2xl dark:text-white">{name}</h2>
+                      <div className="flex items-center mt-2 text-xl">
+                        <p className="">{episode}</p>
+                        <p className="mx-2">·</p>
+                        <p className="">{season}</p>
+                      </div>
+                      <div className="mt-2">{updated} 看过</div>
+                      <div className="flex items-center mt-4 space-x-2">
+                        {(() => {
+                          const nodes: React.ReactNode[] = [];
+                          if (has_update) {
+                            nodes.push(
+                              <div
+                                key="update_1"
+                                className="inline-flex items-center py-1 px-2 rounded-sm bg-green-300 dark:bg-green-800"
+                              >
+                                <div className="text-[14px] leading-none text-gray-800 dark:text-gray-300 ">
+                                  在你看过后有更新
+                                </div>
+                              </div>
+                            );
+                          }
+                          return nodes;
+                        })()}
+                      </div>
+                    </div>
+                  </Node>
+                );
+              })}
+            </ListView>
+          </div>
         </div>
-      </div>
-    </ScrollView>
+      </ScrollView>
+      <BackToTop store={scrollView} />
+      <Dialog store={deletingConfirmDialog}>
+        <div>确认删除吗？</div>
+      </Dialog>
+    </>
   );
 };

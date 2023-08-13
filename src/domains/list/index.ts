@@ -89,14 +89,17 @@ enum Events {
   DataSourceAdded,
   StateChange,
   Error,
+  /** 一次请求结束 */
+  Completed,
 }
 type TheTypesOfEvents<T> = {
   [Events.LoadingChange]: boolean;
   [Events.ParamsChange]: FetchParams;
-  [Events.DataSourceAdded]: T[];
+  [Events.DataSourceAdded]: unknown[];
   [Events.DataSourceChange]: T[];
   [Events.StateChange]: ListState<T>;
   [Events.Error]: Error;
+  [Events.Completed]: void;
 };
 interface ListState<T> extends Response<T> {}
 
@@ -126,7 +129,7 @@ export class ListCore<
   /** 初始查询参数 */
   private initialParams: FetchParams;
   private extraResponse: Record<string, unknown>;
-  private params: FetchParams = { ...DEFAULT_PARAMS };
+  params: FetchParams = { ...DEFAULT_PARAMS };
 
   // 响应数据
   response: Response<T> = { ...DEFAULT_RESPONSE };
@@ -274,6 +277,7 @@ export class ListCore<
     this.params = { ...processedParams };
     this.emit(Events.LoadingChange, false);
     this.emit(Events.ParamsChange, { ...this.params });
+    this.emit(Events.Completed);
     if (res.error) {
       return Result.Err(res.error);
     }
@@ -282,6 +286,7 @@ export class ListCore<
     if (params.page === 1 && response.dataSource.length === 0) {
       response.empty = true;
     }
+    // console.log(...this.log('3、afterProcessor', response));
     const responseIsEmpty = response.dataSource === undefined;
     if (responseIsEmpty) {
       response.dataSource = [];
@@ -582,9 +587,9 @@ export class ListCore<
   /**
    * 手动修改当前 search
    */
-  modifySearch(fn: (v: Partial<FetchParams>) => FetchParams) {
+  modifySearch(fn: (v: FetchParams) => FetchParams) {
     this.params = {
-      ...fn(omit(this.params, ["page", "pageSize"])),
+      ...fn(this.params),
       page: this.params.page,
       pageSize: this.params.pageSize,
     };
@@ -605,5 +610,8 @@ export class ListCore<
   }
   onError(handler: Handler<TheTypesOfEvents<T>[Events.Error]>) {
     return this.on(Events.Error, handler);
+  }
+  onComplete(handler: Handler<TheTypesOfEvents<T>[Events.Completed]>) {
+    return this.on(Events.Completed, handler);
   }
 }

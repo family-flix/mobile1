@@ -10,14 +10,14 @@ enum Events {
   PresentChange,
   Show,
   Hidden,
-  Destroy,
+  Unmounted,
 }
 type TheTypesOfEvents = {
   [Events.StateChange]: PresenceState;
   [Events.PresentChange]: boolean;
   [Events.Show]: void;
   [Events.Hidden]: void;
-  [Events.Destroy]: void;
+  [Events.Unmounted]: void;
 };
 const PresenceEventMap = {
   mounted: {
@@ -38,12 +38,12 @@ type PresenceState = {
   unmounted: boolean;
 };
 export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "PresenceCore";
+  name = "PresenceCore";
   debug = false;
 
   /** 之前是否可见状态 */
   private prevPresent = false;
-  styles: Partial<CSSStyleDeclaration> = {};
+  // styles: CSSStyleDeclaration;
   animationName = "none";
   // private state = "unmounted";
 
@@ -92,11 +92,10 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
     return this.state.open;
     // return ["mounted", "unmountSuspended"].includes(this.state);
   }
-  setStyles(styles: CSSStyleDeclaration) {
-    this.styles = styles;
-  }
+  // setStyles(styles: CSSStyleDeclaration) {
+  //   this.styles = styles;
+  // }
   show() {
-    // console.log("[]presence show");
     // this.log("show");
     // this.calc(true);
     this.state.open = true;
@@ -105,7 +104,6 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   hide() {
-    // console.log("[]presence hide", this.state.mounted);
     // console.log(...this.log("hide"));
     // this.calc(false);
     this.state.open = false;
@@ -129,13 +127,13 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 将 DOM 从页面卸载 */
   unmount() {
-    // console.log("[]PresenceCore - destroy", this.state.open, this.state.unmounted);
+    console.log("[]PresenceCore - destroy", this.state.open, this.state.unmounted);
     if (this.state.open) {
       // this.emit(Events.Show);
       return;
     }
     this.state.mounted = false;
-    this.emit(Events.Destroy);
+    this.emit(Events.Unmounted);
     this.emit(Events.StateChange, { ...this.state });
   }
   reset() {
@@ -152,8 +150,8 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   onHidden(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
     return this.on(Events.Hidden, handler);
   }
-  onDestroy(handler: Handler<TheTypesOfEvents[Events.Destroy]>) {
-    return this.on(Events.Destroy, handler);
+  onUnmounted(handler: Handler<TheTypesOfEvents[Events.Unmounted]>) {
+    return this.on(Events.Unmounted, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);

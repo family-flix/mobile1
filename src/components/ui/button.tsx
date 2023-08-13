@@ -51,7 +51,6 @@ function Button<T = unknown>(
 
   const { disabled, loading } = state;
   const c = buttonVariants({ variant, size, class: cn(props.className, "space-x-2") });
-  console.log(c);
 
   return (
     <button

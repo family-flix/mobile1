@@ -15,6 +15,13 @@ export function Video(props: { store: PlayerCore }) {
     store.onStateChange((nextState) => {
       setState(nextState);
     });
+    store.onSourceLoaded(() => {
+      const $video = videoRef.current;
+      if ($video === null) {
+        return;
+      }
+      console.log("[COMPONENT]video - store.onSourceLoaded", $video.width, $video.height);
+    });
   });
   useEffect(() => {
     const $video = videoRef.current;

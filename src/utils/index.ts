@@ -1227,6 +1227,14 @@ export function seconds_to_hour(value: number) {
   }
   return padding_zero(minutes) + ":" + padding_zero(seconds);
 }
+export function minute_to_hour(value: number) {
+  const hours = Math.floor(value / 60);
+  const minutes = Math.floor(value - hours * 60);
+  if (hours > 0) {
+    return [hours, minutes];
+  }
+  return [null, minutes];
+}
 
 export function relative_time_from_now(time: string) {
   const date = dayjs(time);

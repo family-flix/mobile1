@@ -7,15 +7,18 @@ import { AlertCircle, ArrowDown, Bird, Loader } from "lucide-react";
 import { ListCore } from "@/domains/list";
 import { Show } from "./show";
 import { cn } from "@/utils";
+import { useInitialize } from "@/hooks";
 
 export const ListView = React.memo(
   (props: { store: ListCore<any, any>; skeleton?: React.ReactElement } & React.HTMLAttributes<HTMLDivElement>) => {
     const { store, skeleton = null } = props;
     const [response, setResponse] = useState(store.response);
 
-    store.onStateChange((nextState) => {
-      console.log("[COMPONENT]ListView - store.onStateChange", nextState);
-      setResponse(nextState);
+    useInitialize(() => {
+      store.onStateChange((nextState) => {
+        console.log("[COMPONENT]ListView - store.onStateChange", nextState);
+        setResponse(nextState);
+      });
     });
 
     return (
@@ -23,7 +26,7 @@ export const ListView = React.memo(
         <Show
           when={!response.error}
           fallback={
-            <div className="w-full h-[480px] center flex items-center justify-center">
+            <div className="w-full h-[240px] center flex items-center justify-center">
               <div className="flex flex-col items-center justify-center text-slate-500">
                 <AlertCircle className="w-24 h-24" />
                 <div className="mt-4 flex items-center space-x-2">

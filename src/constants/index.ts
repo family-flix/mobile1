@@ -203,3 +203,17 @@ export const MovieGenresOptions = MovieGenres.map((text) => {
     value: text,
   };
 });
+
+export enum ReportTypes {
+  /** 电视剧问题 */
+  TV,
+  /** 电影问题 */
+  Movie,
+  /** 问题与建议 */
+  Question,
+  /** 想看什么剧 */
+  Want,
+}
+export const TVReportList = ["信息有误", "无法播放", "重复", "缺少字幕", "集/季数不全"];
+export const MovieReportList = ["信息有误", "无法播放", "重复", "缺少字幕"];
+export const CommonReportList = [""];

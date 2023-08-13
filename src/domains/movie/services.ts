@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { FetchParams } from "@/domains/list/typing";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
-import { episode_to_chinese_num, relative_time_from_now, season_to_chinese_num } from "@/utils";
+import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import { MediaSource, MovieGenresTexts, MovieSourceTexts } from "@/constants";
@@ -332,6 +332,7 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
       vote_average: number;
       genres: string;
       origin_country: string;
+      runtime: number;
     }>
   >("/api/movie/list", {
     ...rest,
@@ -344,8 +345,18 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
   return Result.Ok({
     ...resp.data,
     list: resp.data.list.map((movie) => {
-      const { id, name, original_name, overview, poster_path, first_air_date, vote_average, genres, origin_country } =
-        movie;
+      const {
+        id,
+        name,
+        original_name,
+        overview,
+        runtime,
+        poster_path,
+        first_air_date,
+        vote_average,
+        genres,
+        origin_country,
+      } = movie;
       return {
         id,
         name: name || original_name,
@@ -371,6 +382,16 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
               })
               .filter(Boolean)
           ),
+        runtime: (() => {
+          if (!runtime) {
+            return null;
+          }
+          const [hour, minute] = minute_to_hour(runtime);
+          if (hour) {
+            return `${hour}h${minute}m`;
+          }
+          return `${minute}m`;
+        })(),
       };
     }),
   });

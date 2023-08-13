@@ -13,6 +13,7 @@ enum Events {
   Show,
   BeforeHidden,
   Hidden,
+  Unmounted,
   VisibleChange,
   Cancel,
   OK,
@@ -25,6 +26,7 @@ type TheTypesOfEvents = {
   [Events.Show]: void;
   [Events.BeforeHidden]: void;
   [Events.Hidden]: void;
+  [Events.Unmounted]: void;
   [Events.VisibleChange]: boolean;
   [Events.OK]: void;
   [Events.Cancel]: void;
@@ -38,62 +40,81 @@ type DialogState = {
   footer?: boolean;
 };
 type DialogProps = {
-  title: string;
+  title?: string;
   footer?: boolean;
-  onCancel: () => void;
-  onOk: () => void;
+  onCancel?: () => void;
+  onOk?: () => void;
+  onUnmounted?: () => void;
 };
 
 export class DialogCore extends BaseDomain<TheTypesOfEvents> {
-  visible = false;
+  open = false;
+  title: string = "";
+  footer: boolean = true;
+
   present = new PresenceCore();
   okBtn = new ButtonCore();
   cancelBtn = new ButtonCore();
 
-  state: DialogState = {
-    open: false,
-    footer: true,
-    title: "",
-  };
+  get state(): DialogState {
+    return {
+      open: this.open,
+      title: this.title,
+      footer: this.footer,
+    };
+  }
 
-  constructor(options: Partial<{ _name: string } & DialogProps> = {}) {
+  constructor(options: Partial<{ _name: string }> & DialogProps = {}) {
     super(options);
 
-    const { title, footer = true, onOk, onCancel } = options;
+    const { title, footer = true, onOk, onCancel, onUnmounted } = options;
     if (title) {
-      this.state.title = title;
+      this.title = title;
     }
-    this.state.footer = footer;
+    this.footer = footer;
     if (onOk) {
       this.onOk(onOk);
     }
     if (onCancel) {
       this.onCancel(onCancel);
     }
+    if (onUnmounted) {
+      this.onUnmounted(onUnmounted);
+    }
     this.present.onShow(async () => {
-      this.state.open = true;
+      this.open = true;
       this.emit(Events.VisibleChange, true);
       this.emit(Events.StateChange, { ...this.state });
     });
     this.present.onHidden(async () => {
-      this.state.open = false;
+      this.open = false;
+      this.emit(Events.Cancel);
       this.emit(Events.VisibleChange, false);
       this.emit(Events.StateChange, { ...this.state });
+    });
+    this.present.onUnmounted(() => {
+      this.emit(Events.Unmounted);
     });
     this.okBtn.onClick(() => {
       this.ok();
     });
     this.cancelBtn.onClick(() => {
-      this.cancel();
+      this.hide();
     });
   }
   /** 显示弹窗 */
   show() {
+    if (this.open) {
+      return;
+    }
     // this.emit(Events.BeforeShow);
     this.present.show();
   }
   /** 隐藏弹窗 */
   hide() {
+    if (this.open === false) {
+      return;
+    }
     // this.emit(Events.Cancel);
     this.present.hide();
   }
@@ -103,24 +124,31 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
   cancel() {
     this.emit(Events.Cancel);
   }
+  setTitle(title: string) {
+    this.title = title;
+    this.emit(Events.StateChange, { ...this.state });
+  }
 
   onShow(handler: Handler<TheTypesOfEvents[Events.Show]>) {
-    this.on(Events.Show, handler);
+    return this.on(Events.Show, handler);
   }
-  onHide(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
-    this.on(Events.Hidden, handler);
+  onHidden(handler: Handler<TheTypesOfEvents[Events.Hidden]>) {
+    return this.on(Events.Hidden, handler);
+  }
+  onUnmounted(handler: Handler<TheTypesOfEvents[Events.Unmounted]>) {
+    return this.on(Events.Unmounted, handler);
   }
   onVisibleChange(handler: Handler<TheTypesOfEvents[Events.VisibleChange]>) {
-    this.on(Events.VisibleChange, handler);
+    return this.on(Events.VisibleChange, handler);
   }
   onOk(handler: Handler<TheTypesOfEvents[Events.OK]>) {
-    this.on(Events.OK, handler);
+    return this.on(Events.OK, handler);
   }
   onCancel(handler: Handler<TheTypesOfEvents[Events.Cancel]>) {
-    this.on(Events.Cancel, handler);
+    return this.on(Events.Cancel, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
-    this.on(Events.StateChange, handler);
+    return this.on(Events.StateChange, handler);
   }
 
   get [Symbol.toStringTag]() {

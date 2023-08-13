@@ -11,6 +11,7 @@ import {
   List,
   Loader,
   MoreHorizontal,
+  Send,
   Subtitles,
   Wand2,
 } from "lucide-react";
@@ -35,6 +36,11 @@ import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { ListView } from "@/components/ui/list-view";
 import { ScrollView } from "@/components/ui/scroll-view";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
+import { RequestCore } from "@/domains/client";
+import { reportSomething } from "@/services";
+import { ReportTypes, TVReportList } from "@/constants";
+import { Dialog } from "@/components/ui/dialog";
+import { SelectionCore } from "@/domains/cur";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -48,9 +54,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
     }>("player_settings", {
       type: "SD",
     });
-    return new TVCore({
+    const tv = new TVCore({
       resolution,
     });
+    // @ts-ignore
+    window.__tv__ = tv;
+    return tv;
   });
   const player = useInstance(() => {
     const { volume } = app.cache.get<{
@@ -63,12 +72,56 @@ export const TVPlayingPage: ViewComponent = (props) => {
     window.__player__ = player;
     return player;
   });
+  const curReport = useInstance(() => new SelectionCore<string>());
+  const reportRequest = useInstance(
+    () =>
+      new RequestCore(reportSomething, {
+        onLoading(loading) {
+          reportConfirmDialog.okBtn.setLoading(loading);
+        },
+        onSuccess() {
+          app.tip({
+            text: ["提交成功"],
+          });
+          reportConfirmDialog.hide();
+          reportSheet.hide();
+        },
+        onFailed(error) {
+          app.tip({
+            text: ["提交失败", error.message],
+          });
+        },
+      })
+  );
   const video = useInstance(() => new ElementCore({}));
   const episodesSheet = useInstance(() => new DialogCore());
   const sourcesSheet = useInstance(() => new DialogCore());
   const bSheet = useInstance(() => new DialogCore());
   const cSheet = useInstance(() => new DialogCore());
   const dSheet = useInstance(() => new DialogCore());
+  const reportConfirmDialog = useInstance(
+    () =>
+      new DialogCore({
+        onOk() {
+          if (!curReport.value) {
+            app.tip({
+              text: ["请先选择问题"],
+            });
+            return;
+          }
+          reportRequest.run({
+            type: ReportTypes.TV,
+            data: JSON.stringify({
+              content: curReport.value,
+              tv_id: tv.profile?.id,
+              season_id: tv.curSeason?.id,
+              episode_id: tv.curEpisode?.id,
+            }),
+          });
+        },
+      })
+  );
+  const reportSheet = useInstance(() => new DialogCore());
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
   const episodeScrollView = useInstance(
     () =>
@@ -136,14 +189,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     tv.onSourceChange((mediaSource) => {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
-      const { width, height } = mediaSource;
-      const h = Math.ceil((height / width) * app.screen.width);
       player.pause();
+      player.setSize({ width: mediaSource.width, height: mediaSource.height });
       player.loadSource(mediaSource);
-      player.setSize({
-        width: app.screen.width,
-        height: h,
-      });
       player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
     });
@@ -272,13 +320,23 @@ export const TVPlayingPage: ViewComponent = (props) => {
               )}
               // onClick={toggleMenuVisible}
             >
-              <div
-                className="inline-block p-4"
-                onClick={() => {
-                  router.back();
-                }}
-              >
-                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+              <div className="flex items-center justify-between">
+                <div
+                  className="inline-block p-4"
+                  onClick={() => {
+                    router.back();
+                  }}
+                >
+                  <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                </div>
+                <div
+                  className="inline-block p-4"
+                  onClick={() => {
+                    reportSheet.show();
+                  }}
+                >
+                  <Send className="w-4 h-4 dark:text-black-200" />
+                </div>
               </div>
               <div className="absolute bottom-12 w-full">
                 {/* <div className="flex items-center w-36 m-auto">
@@ -411,7 +469,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     </ToggleView> */}
                   <Video store={player} />
                   {!subtileState.visible ? (
-                    <div className="mt-2 space-y-1">
+                    <div key={subtileState.index} className="mt-2 space-y-1">
                       {subtileState.texts.map((text) => {
                         return (
                           <div key={text} className="text-center text-lg">
@@ -477,7 +535,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
           const episodes_elm = (
             <ListView className="pb-24" store={tv.episodeList}>
               {curEpisodes.map((episode) => {
-                const { id, name, episode_text: episode_number } = episode;
+                const { id, name, episode_text, runtime } = episode;
                 return (
                   <div
                     key={id}
@@ -490,7 +548,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       className={cn("p-4 rounded cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}
                     >
                       <div>
-                        {episode_number}、{name}
+                        {episode_text}
+                        {runtime ? <span className="text-sm">({runtime})</span> : null}
                       </div>
                       {/* <div className="text-sm">{overview}</div> */}
                     </div>
@@ -508,9 +567,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           return (
             <div className="relative box-border h-full safe-bottom dark:text-black-200">
-              <Tabs defaultValue="episode" className="h-full">
-                <TabsList className="relative z-10">
-                  <TabsTrigger value="episode">集数</TabsTrigger>
+              <Tabs defaultValue="episode" className="">
+                <TabsList className="absolute top-[-50px] left-4 z-10">
+                  <TabsTrigger value="episode">集</TabsTrigger>
                   <TabsTrigger value="season">季</TabsTrigger>
                 </TabsList>
                 <TabsContent className="pt-8 border-0" value="episode">
@@ -679,6 +738,29 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
+      <Sheet store={reportSheet}>
+        <div className="max-h-full overflow-y-auto">
+          <div className="pt-4 pb-24 dark:text-black-200">
+            {TVReportList.map((question, i) => {
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    curReport.select(question);
+                    reportConfirmDialog.setTitle(`确认 ${question} 吗？`);
+                    reportConfirmDialog.show();
+                  }}
+                >
+                  <div className={cn("p-4 rounded cursor-pointer")} onClick={() => {}}>
+                    {question}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Sheet>
+      <Dialog store={reportConfirmDialog}></Dialog>
     </>
   );
 };

@@ -31,6 +31,11 @@ import { ButtonCore } from "@/domains/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { DialogCore } from "@/domains/ui/dialog";
 import { getSystemTheme, useTheme } from "@/components/Theme";
+import { SelectionCore } from "@/domains/cur";
+import { reportSomething } from "@/services";
+import { ReportTypes } from "@/constants";
+import { InputCore } from "@/domains/ui/input";
+import { Input } from "@/components/ui/input";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -52,6 +57,85 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
     () =>
       new DialogCore({
         footer: false,
+      })
+  );
+  const reportInput = useInstance(
+    () =>
+      new InputCore({
+        placeholder: "请输入问题",
+      })
+  );
+  const wantInput = useInstance(
+    () =>
+      new InputCore({
+        placeholder: "请输入想看的电视剧/电影",
+      })
+  );
+  const reportRequest = useInstance(
+    () =>
+      new RequestCore(reportSomething, {
+        onLoading(loading) {
+          if (reportConfirmDialog.open) {
+            reportConfirmDialog.okBtn.setLoading(loading);
+          }
+          if (wantDialog.open) {
+            wantDialog.okBtn.setLoading(loading);
+          }
+        },
+        onSuccess() {
+          app.tip({
+            text: ["提交成功"],
+          });
+          if (wantDialog.open) {
+            wantDialog.hide();
+          }
+          if (reportConfirmDialog.open) {
+            reportConfirmDialog.hide();
+          }
+        },
+        onFailed(error) {
+          app.tip({
+            text: ["提交失败", error.message],
+          });
+        },
+      })
+  );
+  const reportConfirmDialog = useInstance(
+    () =>
+      new DialogCore({
+        onOk() {
+          if (!reportInput.value) {
+            app.tip({
+              text: ["请先输入问题"],
+            });
+            return;
+          }
+          reportRequest.run({
+            type: ReportTypes.Question,
+            data: JSON.stringify({
+              content: reportInput.value,
+            }),
+          });
+        },
+      })
+  );
+  const wantDialog = useInstance(
+    () =>
+      new DialogCore({
+        onOk() {
+          if (!wantInput.value) {
+            app.tip({
+              text: ["请先输入电视剧/电影"],
+            });
+            return;
+          }
+          reportRequest.run({
+            type: ReportTypes.Want,
+            data: JSON.stringify({
+              content: wantInput.value,
+            }),
+          });
+        },
       })
   );
 
@@ -139,7 +223,8 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div
               className=""
               onClick={() => {
-                app.tip({ text: ["敬请期待"] });
+                // app.tip({ text: ["敬请期待"] });
+                reportConfirmDialog.show();
               }}
             >
               <div className="flex">
@@ -154,8 +239,8 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div
               className=""
               onClick={() => {
-                app.tip({ text: ["敬请期待"] });
-                // dialog.show();
+                // app.tip({ text: ["敬请期待"] });
+                wantDialog.show();
               }}
             >
               <div className="flex">
@@ -194,6 +279,12 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
       </ScrollView>
       <Dialog store={dialog}>
         <div>敬请期待</div>
+      </Dialog>
+      <Dialog store={reportConfirmDialog}>
+        <Input store={reportInput} />
+      </Dialog>
+      <Dialog store={wantDialog}>
+        <Input store={wantInput} />
       </Dialog>
     </>
   );

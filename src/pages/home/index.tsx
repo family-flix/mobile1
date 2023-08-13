@@ -139,10 +139,10 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
   return (
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="">
-          <div className="">
+        <div className="w-full h-full">
+          <div className="w-full h-full">
             <div>
-              <div className="fixed top-0 flex items-center justify-between w-full p-4 pb-0 space-x-4">
+              <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
                 <div className="relative w-full">
                   {/* <div
                     className="absolute inset-0"
@@ -163,14 +163,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
                 </div>
               </div>
-              <div className="h-[56px]"></div>
+              {/* <div className="h-[56px]"></div> */}
             </div>
             <ListView
               store={helper}
-              className="relative mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-4"
+              className="relative h-[50%] mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
               skeleton={
                 <>
-                  <div className="flex px-4 cursor-pointer">
+                  <div className="flex px-4 pb-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -180,7 +180,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
-                  <div className="flex mx-4 cursor-pointer">
+                  <div className="flex px-4 pb-4 cursor-pointer">
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <Skeleton className="w-full h-full dark:bg-gray-800" />
                     </div>
@@ -210,7 +210,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   return (
                     <div
                       key={id}
-                      className="flex px-4 cursor-pointer"
+                      className="flex px-4 pb-4 cursor-pointer"
                       onClick={() => {
                         router.push(`/tv/play/${tv_id}?season_id=${id}`);
                       }}

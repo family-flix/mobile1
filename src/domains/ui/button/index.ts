@@ -100,7 +100,7 @@ export class ButtonInListCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
       return btn.cur.value === v;
     });
     if (existing) {
-      return;
+      return existing;
     }
     const btn = new ButtonCore<T>({
       onClick: (record) => {

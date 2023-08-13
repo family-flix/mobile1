@@ -5,9 +5,16 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   $video.onloadstart = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onloadstart");
   };
-  $video.onloadedmetadata = (event) => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata");
-    player.handleLoadedmetadata();
+  $video.onloadedmetadata = function (event) {
+    // console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata", this.videoWidth, this.videoHeight, this);
+    // @ts-ignore
+    const width = this.videoWidth;
+    // @ts-ignore
+    const height = this.videoHeight;
+    player.handleLoadedmetadata({
+      width,
+      height,
+    });
   };
   $video.onload = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onload");

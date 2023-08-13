@@ -118,10 +118,14 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
   handleTimeChange(currentTime: number) {
     //     if (currentTime < 2) {
     //     }
-    console.log("[DOMAIN]subtitle/index - handleTimeChange", currentTime, this.curTime, this.targetLine);
+    // console.log("[DOMAIN]subtitle/index - handleTimeChange", currentTime, this.curTime, this.targetLine);
     if (Math.abs(currentTime - this.curTime) > 1) {
+      this.curLine = null;
+      this.curLineIndex = null;
+      this.emit(Events.StateChange, { ...this.state });
       this.changeTargetLine(currentTime);
     }
+    // console.log("[DOMAIN]subtitle/index - handleTimeChange after this.changeTargetLine", this.targetLine);
     this.curTime = currentTime;
     if (!this.targetLine) {
       return;
@@ -134,6 +138,8 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       if (this.curLine && currentTime > this.curLine.endTime) {
         this.curLineIndex = null;
       }
+      console.log("[DOMAIN]subtitle/index - handleTimeChange check show subtitle");
+      console.log(currentTime, startSecond, endSecond, this.targetLine.line);
       if (currentTime > startSecond && currentTime <= endSecond) {
         this.curLineIndex = this.lines.findIndex((line) => line === this.targetLine);
         this.targetLine = this.lines[this.curLineIndex + 1] ?? null;
@@ -141,6 +147,12 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       }
     })();
     // console.log("prev line with cur line", prevLineIndex, this.curLineIndex);
+    console.log(
+      "[DOMAIN]subtitle/index - handleTimeChange before prevLineIndex === this.curLineIndex",
+      prevLineIndex,
+      this.curLineIndex,
+      this.targetLine
+    );
     if (prevLineIndex === this.curLineIndex) {
       return;
     }
