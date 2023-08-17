@@ -215,14 +215,15 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                         router.push(`/tv/play/${tv_id}?season_id=${id}`);
                       }}
                     >
-                      <div className="relative w-[128px] h-[198px] mr-4">
-                        <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
-                        <div className="absolute left-2 top-2">
-                          {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
-                          {/* <div className="absolute">{vote}</div> */}
-                        </div>
+                      <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
+                        <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                        {/* <div className="absolute left-2 top-2">
+                          <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} />
+                          <div className="absolute">{vote}</div>
+                        </div> */}
+                        <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
                         {episode_count_text && (
-                          <div className="absolute bottom-1 right-1">
+                          <div className="z-20 absolute bottom-1 right-1">
                             <div className="inline-flex items-center py-1 px-2 rounded-sm">
                               <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
                                 {episode_count_text}
@@ -238,19 +239,19 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                         <div className="flex items-center mt-1 ">
                           <div>{air_date}</div>
                           <p className="mx-2 ">·</p>
-                          <p className="text-gray-500 whitespace-nowrap">{season_text}</p>
+                          <p className="whitespace-nowrap">{season_text}</p>
                           <p className="mx-2 ">·</p>
                           <div className="flex items-center">
                             <Star className="mr-1 relative top-[-2px] w-4 h-4" />
                             <div>{vote}</div>
                           </div>
                         </div>
-                        <div className="mt-2 flex items-center max-w-full break-keep overflow-x-auto text-ellipsis hide-scroll">
+                        <div className="mt-2 flex items-center flex-wrap max-w-full">
                           {genres.map((g) => {
                             return (
                               <div
                                 key={g}
-                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                                className="mr-2 py-1 px-2 mb-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}
@@ -260,7 +261,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                             );
                           })}
                         </div>
-                        <div className="mt-4 truncate break-all whitespace-pre-wrap line-clamp-3">{overview}</div>
                       </div>
                     </div>
                   );

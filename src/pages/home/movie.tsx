@@ -242,12 +242,12 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             </>
                           ) : null}
                         </div>
-                        <div className="mt-2 flex items-center max-w-full break-keep overflow-x-auto text-ellipsis hide-scroll">
+                        <div className="mt-2 flex items-center gap-2 max-w-full">
                           {genres.map((g) => {
                             return (
                               <div
                                 key={g}
-                                className="mr-2 py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                                className="mr-2 py-1 px-2 mb-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}
@@ -257,7 +257,6 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             );
                           })}
                         </div>
-                        <div className="mt-4 truncate break-all whitespace-pre-wrap line-clamp-3">{overview}</div>
                       </div>
                     </div>
                   );

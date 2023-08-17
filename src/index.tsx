@@ -87,7 +87,7 @@ function ApplicationView() {
 
   useInitialize(() => {
     rootView.onSubViewsChange((nextSubViews) => {
-      console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
+      // console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
       setSubViews(nextSubViews);
     });
     rootView.onMatched((subView) => {
