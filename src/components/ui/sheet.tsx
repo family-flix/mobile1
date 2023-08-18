@@ -193,4 +193,4 @@ const Title = React.forwardRef<
     {...props}
   />
 ));
-export { Root, Content, Header, Footer, Title };
+// export { Root, Content, Header, Footer, Title };

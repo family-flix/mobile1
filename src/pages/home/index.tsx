@@ -4,24 +4,14 @@
 import React, { useState } from "react";
 import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
+import { Skeleton, ListView, Input, ScrollView, LazyImage, Sheet, CheckboxGroup, BackToTop } from "@/components/ui";
+import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore } from "@/domains/ui";
 import { fetch_season_list } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { LazyImage } from "@/components/ui/image";
-import { ListView } from "@/components/ui/list-view";
 import { useInitialize, useInstance } from "@/hooks";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ViewComponent } from "@/types";
-import { Input } from "@/components/ui/input";
-import { InputCore } from "@/domains/ui/input";
-import { Sheet } from "@/components/ui/sheet";
-import { DialogCore } from "@/domains/ui/dialog";
 import { TVSourceOptions, TVGenresOptions } from "@/constants";
-import { CheckboxGroup } from "@/components/ui/checkbox-group";
-import { CheckboxGroupCore } from "@/domains/ui/checkbox/group";
-import { BackToTop } from "@/components/back-to-top";
+import { ViewComponent } from "@/types";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;

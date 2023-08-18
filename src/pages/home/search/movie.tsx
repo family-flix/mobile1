@@ -3,22 +3,14 @@
  */
 import { useState } from "react";
 
-import { fetch_season_list } from "@/domains/tv/services";
-import { LazyImage } from "@/components/ui/image";
+import { BackToTop, Button, Input, ScrollView, ListView, LazyImage } from "@/components/ui";
+import { ButtonCore, InputCore, ScrollViewCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/client";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useInitialize, useInstance } from "@/hooks";
-import { ListCore } from "@/domains/list";
-import { ViewComponent } from "@/types";
-import { ButtonCore } from "@/domains/ui/button";
-import { InputCore } from "@/domains/ui/input";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { sleep } from "@/utils";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { ListView } from "@/components/ui/list-view";
-import { BackToTop } from "@/components/back-to-top";
 import { fetch_movie_list } from "@/domains/movie/services";
+import { ListCore } from "@/domains/list";
+import { useInitialize, useInstance } from "@/hooks";
+import { ViewComponent } from "@/types";
+import { sleep } from "@/utils";
 
 export const HomeMovieSearchPage: ViewComponent = (props) => {
   const { router, view } = props;

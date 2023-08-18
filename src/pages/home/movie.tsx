@@ -2,26 +2,16 @@
  * @file 电影列表页
  */
 import React, { useEffect, useState } from "react";
-import { Clock, Clock1, Loader, Search, SlidersHorizontal, Star } from "lucide-react";
+import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
+import { BackToTop, ScrollView, Sheet, ListView, Skeleton, Input, LazyImage, CheckboxGroup } from "@/components/ui";
+import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { fetch_movie_list } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { LazyImage } from "@/components/ui/image";
 import { useInitialize, useInstance } from "@/hooks";
+import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
 import { ViewComponent } from "@/types";
-import { ListView } from "@/components/ui/list-view";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { InputCore } from "@/domains/ui/input";
-import { DialogCore } from "@/domains/ui/dialog";
-import { Sheet } from "@/components/ui/sheet";
-import { CheckboxGroup } from "@/components/ui/checkbox-group";
-import { CheckboxGroupCore } from "@/domains/ui/checkbox/group";
-import { TVSourceOptions, MovieGenresOptions, MovieSourceOptions } from "@/constants";
-import { BackToTop } from "@/components/back-to-top";
 
 export const HomeMoviePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;

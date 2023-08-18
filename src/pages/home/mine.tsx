@@ -1,41 +1,17 @@
 /**
  * @file 个人中心页
  */
-import React, { useEffect, useState } from "react";
-import {
-  HelpCircle,
-  HelpingHand,
-  List,
-  Loader,
-  MailQuestion,
-  Moon,
-  Search,
-  Settings2,
-  SlidersHorizontal,
-  Star,
-  Sun,
-  Tv,
-} from "lucide-react";
+import React, { useState } from "react";
+import { HelpCircle, HelpingHand, MailQuestion, Moon, Settings2, Sun, Tv } from "lucide-react";
 
-import { fetch_movie_list } from "@/domains/movie/services";
-import { ListCore } from "@/domains/list";
+import { reportSomething } from "@/services";
+import { getSystemTheme, useTheme } from "@/components/Theme";
+import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
+import { ButtonCore, DialogCore, ScrollViewCore, InputCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/client";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { LazyImage } from "@/components/ui/image";
+import { ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { sleep } from "@/utils";
-import { Button } from "@/components/ui/button";
-import { ButtonCore } from "@/domains/ui/button";
-import { Dialog } from "@/components/ui/dialog";
-import { DialogCore } from "@/domains/ui/dialog";
-import { getSystemTheme, useTheme } from "@/components/Theme";
-import { SelectionCore } from "@/domains/cur";
-import { reportSomething } from "@/services";
-import { ReportTypes } from "@/constants";
-import { InputCore } from "@/domains/ui/input";
-import { Input } from "@/components/ui/input";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;

@@ -2,17 +2,14 @@
  * @file 首页布局
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
-import { Film, HardDrive, Moon, Sun, Home, Search, Users } from "lucide-react";
-
-import { ViewComponent } from "@/types";
 import { useState } from "react";
-import { useInitialize, useInstance } from "@/hooks";
-import { KeepAliveRouteView } from "@/components/ui/keep-alive-route-view";
-import { Sheet } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { DialogCore } from "@/domains/ui/dialog";
-import { ButtonCore } from "@/domains/ui/button";
+import { Film, HardDrive, Home, Users } from "lucide-react";
+
+import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
+import { ButtonCore, DialogCore } from "@/domains/ui";
 import { NavigatorCore } from "@/domains/navigator";
+import { useInitialize, useInstance } from "@/hooks";
+import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
 
 export const HomeLayout: ViewComponent = (props) => {

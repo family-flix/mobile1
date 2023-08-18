@@ -2,24 +2,16 @@
  * @file 我的播放历史页面
  */
 import React, { useState } from "react";
-
-import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
-import { ListCore } from "@/domains/list";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { RequestCore } from "@/domains/client";
-import { ViewComponent } from "@/types";
-import { useInitialize, useInstance } from "@/hooks";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { LazyImage } from "@/components/ui/image";
-import { ListView } from "@/components/ui/list-view";
-import { Skeleton } from "@/components/ui/skeleton";
-import { BackToTop } from "@/components/back-to-top";
-import { Node } from "@/components/ui/node";
-import { NodeInListCore } from "@/domains/ui/node";
 import { MoreVertical } from "lucide-react";
-import { Dialog } from "@/components/ui/dialog";
-import { DialogCore } from "@/domains/ui/dialog";
+
+import { ScrollView, Skeleton, LazyImage, ListView, BackToTop, Dialog, Node } from "@/components/ui";
+import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
+import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
 import { SelectionCore } from "@/domains/cur";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/client";
+import { useInitialize, useInstance } from "@/hooks";
+import { ViewComponent } from "@/types";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { app, router, view } = props;

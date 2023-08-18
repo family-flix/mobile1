@@ -4,21 +4,13 @@
 import { useRef, useState } from "react";
 import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw } from "lucide-react";
 
-import { cn } from "@/utils";
+import { Video, Sheet, ScrollView } from "@/components/ui";
+import { ScrollViewCore, DialogCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
-import { Sheet } from "@/components/ui/sheet";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { DialogCore } from "@/domains/ui/dialog";
-import { Video } from "@/components/ui/video";
 import { MovieCore } from "@/domains/movie";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { ScrollView } from "@/components/ui/scroll-view";
-
-const aSheet = new DialogCore();
-const bSheet = new DialogCore();
-const cSheet = new DialogCore();
-const dSheet = new DialogCore();
+import { cn } from "@/utils";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -26,6 +18,11 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const movie = useInstance(() => new MovieCore());
   const player = useInstance(() => new PlayerCore({ app }));
   const scrollView = useInstance(() => new ScrollViewCore({}));
+  const sourceSheet = useInstance(() => new DialogCore());
+  const bSheet = useInstance(() => new DialogCore());
+  const resolutionSheet = useInstance(() => new DialogCore());
+  const infoSheet = useInstance(() => new DialogCore());
+
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
 
@@ -229,7 +226,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   <div
                     className="flex flex-col items-center"
                     onClick={() => {
-                      aSheet.show();
+                      sourceSheet.show();
                     }}
                   >
                     <List className="w-6 h-6 " />
@@ -247,7 +244,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   <div
                     className="flex flex-col items-center"
                     onClick={() => {
-                      cSheet.show();
+                      resolutionSheet.show();
                     }}
                   >
                     <Glasses className="w-6 h-6 " />
@@ -256,7 +253,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   <div
                     className="flex flex-col items-center focus:outline-none focus:ring-0"
                     onClick={() => {
-                      dSheet.show();
+                      infoSheet.show();
                     }}
                   >
                     <MoreHorizontal className="w-6 h-6 " />
@@ -339,7 +336,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
 
         </div>
       </div> */}
-      <Sheet store={aSheet}>
+      <Sheet store={sourceSheet}>
         {(() => {
           if (profile === null) {
             return <div>Loading</div>;
@@ -387,7 +384,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         })} */}
         </div>
       </Sheet>
-      <Sheet store={cSheet}>
+      <Sheet store={resolutionSheet}>
         {(() => {
           if (profile === null || curSource === null) {
             return <div>Loading</div>;
@@ -416,7 +413,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
-      <Sheet store={dSheet}>
+      <Sheet store={infoSheet}>
         {(() => {
           if (profile === null) {
             return (

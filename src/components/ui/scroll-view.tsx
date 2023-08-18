@@ -178,4 +178,4 @@ const Content = (props: { store: ScrollViewCore; className?: string; children: R
   );
 };
 
-export { Root, Indicator, Content };
+// export { Root, Indicator, Content };

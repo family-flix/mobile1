@@ -16,31 +16,21 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { cn } from "@/utils";
+import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
+import { ScrollViewCore, DialogCore, ToggleCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
+import { EpisodeResolutionTypes } from "@/domains/tv/constants";
+import { RequestCore } from "@/domains/client";
+import { SelectionCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
-import { Sheet } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ElementCore } from "@/domains/ui/element";
 import { connect } from "@/domains/player/connect.web";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { DialogCore } from "@/domains/ui/dialog";
-import { ToggleCore } from "@/domains/ui/toggle";
-import { LazyImage } from "@/components/ui/image";
-import { ToggleView } from "@/components/ui/toggle";
-import { Video } from "@/components/ui/video";
-import { Show } from "@/packages/ui/show";
-import { ImageCore } from "@/domains/ui/image";
-import { EpisodeResolutionTypes } from "@/domains/tv/constants";
-import { ListView } from "@/components/ui/list-view";
-import { ScrollView } from "@/components/ui/scroll-view";
-import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { RequestCore } from "@/domains/client";
 import { reportSomething } from "@/services";
 import { ReportTypes, TVReportList } from "@/constants";
-import { Dialog } from "@/components/ui/dialog";
-import { SelectionCore } from "@/domains/cur";
+import { cn } from "@/utils";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, router, view } = props;

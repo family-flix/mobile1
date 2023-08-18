@@ -6,7 +6,6 @@ import { useState } from "react";
 import { TVCore } from "@/domains/tv";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { LazyImage } from "@/components/ui/image";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },
