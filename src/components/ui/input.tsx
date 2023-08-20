@@ -1,10 +1,10 @@
 import React, { ReactElement, useEffect, useRef, useState } from "react";
-
-import { cn } from "@/utils";
-import { InputCore } from "@/domains/ui/input";
-import { useInitialize } from "@/hooks";
-import { connect } from "@/domains/ui/input/connect.web";
 import { Loader2 } from "lucide-react";
+
+import { InputCore } from "@/domains/ui/input";
+import { connect } from "@/domains/ui/input/connect.web";
+import { useInitialize } from "@/hooks";
+import { cn } from "@/utils";
 
 const Input = (props: { store: InputCore; prefix?: ReactElement; className?: string }) => {
   const { store, prefix } = props;

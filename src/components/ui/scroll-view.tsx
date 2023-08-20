@@ -49,8 +49,7 @@ export const ScrollView = React.memo(
         </div>
       ),
     };
-    //   const step = () => state().step;
-    const { step, pullToRefresh } = state;
+    const { step, pullToRefresh, scrollable } = state;
     const Component = options[step];
 
     return (
@@ -66,9 +65,23 @@ export const ScrollView = React.memo(
             </div>
           </Indicator>
         )}
-        <Content store={store} className={cn("absolute inset-0 max-h-screen overflow-y-auto hide-scroll")}>
-          {children}
-        </Content>
+        <div className={cn("z-10 absolute inset-0")}>
+          <BackIndicator className="z-20 absolute left-0 bottom-[120px]" store={store} />
+          <Content
+            store={store}
+            className={cn("max-h-full overflow-y-auto hide-scroll", scrollable ? "" : "")}
+            style={(() => {
+              if (scrollable) {
+                return {};
+              }
+              return {
+                overflow: "hidden",
+              };
+            })()}
+          >
+            {children}
+          </Content>
+        </div>
       </Root>
     );
   }
@@ -105,7 +118,29 @@ const Indicator = (props: { store: ScrollViewCore; children: React.ReactElement 
     </div>
   );
 };
-const Content = (props: { store: ScrollViewCore; className?: string; children: React.ReactElement }) => {
+
+const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
+  const { store } = props;
+  const [state, setState] = useState(store.state);
+
+  useInitialize(() => {
+    store.onStateChange((nextState) => {
+      setState(nextState);
+    });
+  });
+
+  return (
+    <div
+      className={cn("h-48 return-prev-indicator", props.className)}
+      style={{
+        width: state.pullToBack.width,
+        height: state.pullToBack.height,
+      }}
+    />
+  );
+};
+
+const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   //   let $page: HTMLDivElement;
   const $page = useRef<HTMLDivElement>(null);
@@ -142,7 +177,7 @@ const Content = (props: { store: ScrollViewCore; className?: string; children: R
     <div
       ref={$page}
       className={props.className}
-      style={{ transform: `translateY(${top}px)` }}
+      style={{ ...(props.style || {}), transform: `translateY(${top}px)` }}
       onTouchStart={(event) => {
         if (!pullToRefresh) {
           return;

@@ -30,14 +30,22 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { reportSomething } from "@/services";
 import { ReportTypes, TVReportList } from "@/constants";
+import { rootView } from "@/store";
 import { cn } from "@/utils";
 
 export const TVPlayingPage: ViewComponent = (props) => {
-  const { app, router, view } = props;
+  const { app, view } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const scrollView = useInstance(() => new ScrollViewCore({}));
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        onPullToBack() {
+          console.log("bingo");
+        },
+      })
+  );
   const tv = useInstance(() => {
     const { type: resolution } = app.cache.get<{
       type: EpisodeResolutionTypes;
@@ -314,7 +322,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 <div
                   className="inline-block p-4"
                   onClick={() => {
-                    router.back();
+                    rootView.curView?.hide();
+                    rootView.prevView?.show();
+                    rootView.curView = rootView.prevView;
+                    rootView.prevView = null;
                   }}
                 >
                   <ArrowLeft className="w-6 h-6 dark:text-black-200" />

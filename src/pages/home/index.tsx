@@ -12,6 +12,7 @@ import { RequestCore } from "@/domains/client";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions } from "@/constants";
 import { ViewComponent } from "@/types";
+import { rootView, tvPlayingPage } from "@/store";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -130,134 +131,128 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
         <div className="w-full h-full">
-          <div className="w-full h-full">
-            <div>
-              <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
-                <div className="relative w-full">
-                  {/* <div
-                    className="absolute inset-0"
-                    onClick={() => {
-                      router.push("/search_tv");
-                    }}
-                  ></div> */}
-                  <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
-                </div>
-                <div
-                  className="relative p-2"
-                  onClick={() => {
-                    console.log("click");
-                    settingsSheet.show();
-                  }}
-                >
-                  <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
-                  {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
-                </div>
-              </div>
-              {/* <div className="h-[56px]"></div> */}
+          <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
+            <div className="relative w-full">
+              <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
             </div>
-            <ListView
-              store={helper}
-              className="relative h-[50%] mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
-              skeleton={
-                <>
-                  <div className="flex px-4 pb-4 cursor-pointer">
-                    <div className="relative w-[128px] h-[198px] mr-4">
-                      <Skeleton className="w-full h-full dark:bg-gray-800" />
-                    </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
-                    </div>
-                  </div>
-                  <div className="flex px-4 pb-4 cursor-pointer">
-                    <div className="relative w-[128px] h-[198px] mr-4">
-                      <Skeleton className="w-full h-full dark:bg-gray-800" />
-                    </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
-                    </div>
-                  </div>
-                </>
-              }
+            <div
+              className="relative p-2"
+              onClick={() => {
+                settingsSheet.show();
+              }}
             >
-              {(() => {
-                return dataSource.map((season) => {
-                  const {
-                    id,
-                    tv_id,
-                    name,
-                    overview,
-                    season_text,
-                    episode_count_text,
-                    vote,
-                    genres,
-                    air_date,
-                    poster_path = "",
-                  } = season;
-                  return (
-                    <div
-                      key={id}
-                      className="flex px-4 pb-4 cursor-pointer"
-                      onClick={() => {
-                        router.push(`/tv/play/${tv_id}?season_id=${id}`);
-                      }}
-                    >
-                      <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                        <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                        {/* <div className="absolute left-2 top-2">
+              <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
+              {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
+            </div>
+          </div>
+          <ListView
+            store={helper}
+            className="relative h-[50%] mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            skeleton={
+              <>
+                <div className="flex px-4 pb-4 cursor-pointer">
+                  <div className="relative w-[128px] h-[198px] mr-4">
+                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                  </div>
+                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                </div>
+                <div className="flex px-4 pb-4 cursor-pointer">
+                  <div className="relative w-[128px] h-[198px] mr-4">
+                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                  </div>
+                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                </div>
+              </>
+            }
+          >
+            {(() => {
+              return dataSource.map((season) => {
+                const {
+                  id,
+                  tv_id,
+                  name,
+                  overview,
+                  season_text,
+                  episode_count_text,
+                  vote,
+                  genres,
+                  air_date,
+                  poster_path = "",
+                } = season;
+                return (
+                  <div
+                    key={id}
+                    className="flex px-4 pb-4 cursor-pointer"
+                    onClick={() => {
+                      tvPlayingPage.params = {
+                        id: tv_id,
+                      };
+                      tvPlayingPage.query = {
+                        season_id: id,
+                      };
+                      rootView.layerSubView(tvPlayingPage);
+                    }}
+                  >
+                    <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
+                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                      {/* <div className="absolute left-2 top-2">
                           <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} />
                           <div className="absolute">{vote}</div>
                         </div> */}
-                        <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
-                        {episode_count_text && (
-                          <div className="z-20 absolute bottom-1 right-1">
-                            <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                              <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
-                                {episode_count_text}
-                              </div>
+                      <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
+                      {episode_count_text && (
+                        <div className="z-20 absolute bottom-1 right-1">
+                          <div className="inline-flex items-center py-1 px-2 rounded-sm">
+                            <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                              {episode_count_text}
                             </div>
                           </div>
-                        )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                      <div className="flex items-center">
+                        <h2 className="truncate text-2xl dark:text-white">{name}</h2>
                       </div>
-                      <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                      <div className="flex items-center mt-1 ">
+                        <div>{air_date}</div>
+                        <p className="mx-2 ">·</p>
+                        <p className="whitespace-nowrap">{season_text}</p>
+                        <p className="mx-2 ">·</p>
                         <div className="flex items-center">
-                          <h2 className="truncate text-2xl dark:text-white">{name}</h2>
+                          <Star className="mr-1 relative top-[-2px] w-4 h-4" />
+                          <div>{vote}</div>
                         </div>
-                        <div className="flex items-center mt-1 ">
-                          <div>{air_date}</div>
-                          <p className="mx-2 ">·</p>
-                          <p className="whitespace-nowrap">{season_text}</p>
-                          <p className="mx-2 ">·</p>
-                          <div className="flex items-center">
-                            <Star className="mr-1 relative top-[-2px] w-4 h-4" />
-                            <div>{vote}</div>
-                          </div>
-                        </div>
-                        <div className="mt-2 flex items-center flex-wrap max-w-full">
-                          {genres.map((g) => {
-                            return (
-                              <div
-                                key={g}
-                                className="mr-2 py-1 px-2 mb-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
-                                style={{
-                                  lineHeight: "12px",
-                                }}
-                              >
-                                {g}
-                              </div>
-                            );
-                          })}
-                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
+                        {genres.map((g) => {
+                          return (
+                            <div
+                              key={g}
+                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                              style={{
+                                lineHeight: "12px",
+                              }}
+                            >
+                              {g}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                });
-              })()}
-            </ListView>
-          </div>
+                  </div>
+                );
+              });
+            })()}
+          </ListView>
         </div>
       </ScrollView>
       <BackToTop store={scrollView} />

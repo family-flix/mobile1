@@ -4,16 +4,16 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
-import { ThemeProvider, useTheme } from "./components/Theme";
-import { connect } from "./domains/app/connect.web";
+import { ThemeProvider } from "./components/Theme";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
 import { ToastCore } from "./domains/ui/toast";
+import { connect } from "./domains/app/connect.web";
 import { useInitialize } from "./hooks";
 import {
   homeIndexPage,
   homeTVSearchPage,
-  cView,
+  homeHistoriesPage,
   homeMinePage,
   homeLayout,
   rootView,
@@ -24,9 +24,9 @@ import {
   moviePlayingPage,
   homeMovieSearchPage,
 } from "./store/views";
-import { app } from "./store/app";
-import { cn } from "./utils";
+import { app } from "./store";
 import { ViewComponent } from "./types";
+import { cn } from "./utils";
 
 import "./index.css";
 
@@ -41,7 +41,7 @@ homeLayout.register("/home/movie", () => {
   return homeMoviePage;
 });
 homeLayout.register("/home/history", () => {
-  return cView;
+  return homeHistoriesPage;
 });
 homeLayout.register("/home/mine", () => {
   return homeMinePage;
@@ -84,48 +84,40 @@ function ApplicationView() {
   // const [showMask, setShowMask] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [subViews, setSubViews] = useState(rootView.subViews);
-
   useInitialize(() => {
     rootView.onSubViewsChange((nextSubViews) => {
-      // console.log(...rootView.log("[]Application - subViews changed", nextSubViews));
       setSubViews(nextSubViews);
     });
-    rootView.onMatched((subView) => {
-      console.log("[Application]rootView.onMatched", rootView.curView?._name, subView._name, router._pending.type);
-      if (subView === rootView.curView) {
-        return;
-      }
-      const prevView = rootView.curView;
-      rootView.prevView = prevView;
-      rootView.curView = subView;
-      if (!rootView.subViews.includes(subView)) {
-        rootView.appendSubView(subView);
-      }
-      subView.show();
-      if (prevView) {
-        if (router._pending.type === "back") {
-          prevView.hide();
-          subView.uncovered();
-          setTimeout(() => {
-            rootView.removeSubView(prevView);
-          }, 800);
-          return;
-        }
-        prevView.layered();
-      }
-    });
-    rootView.onNotFound(() => {
-      console.log("[Application]rootView.onNotFound");
-      rootView.curView = homeLayout;
-      rootView.appendSubView(homeLayout);
-    });
-    router.onPathnameChange(({ pathname, search, type }) => {
-      // router.log("[]Application - pathname change", pathname);
-      rootView.checkMatch({ pathname, search, type });
-    });
-    // router.onRelaunch(() => {
-    //   router.log("[]Application - router.onRelaunch");
-    //   rootView.relaunch(mainLayout);
+    // rootView.onMatched((subView) => {
+    //   console.log("[Application]rootView.onMatched", rootView.curView?._name, subView._name, router._pending.type);
+    //   if (subView === rootView.curView) {
+    //     return;
+    //   }
+    //   const prevView = rootView.curView;
+    //   rootView.prevView = prevView;
+    //   rootView.curView = subView;
+    //   if (!rootView.subViews.includes(subView)) {
+    //     rootView.appendSubView(subView);
+    //   }
+    //   subView.show();
+    //   if (prevView) {
+    //     if (router._pending.type === "back") {
+    //       prevView.hide();
+    //       subView.uncovered();
+    //       setTimeout(() => {
+    //         rootView.removeSubView(prevView);
+    //       }, 800);
+    //       return;
+    //     }
+    //     prevView.layered();
+    //   }
+    // });
+    // rootView.onNotFound(() => {
+    //   rootView.curView = homeLayout;
+    //   rootView.appendSubView(homeLayout);
+    // });
+    // router.onPathnameChange(({ pathname, search, type }) => {
+    //   rootView.checkMatch({ pathname, search, type });
     // });
     app.onTip((msg) => {
       const { text } = msg;
@@ -139,7 +131,7 @@ function ApplicationView() {
     app.onReady(() => {
       router.start();
     });
-    console.log("[]Application - before start", window.history);
+    // console.log("[]Application - before start", window.history);
     const { innerWidth, innerHeight, location } = window;
     app.router.prepare(location);
     app.start({
@@ -148,7 +140,8 @@ function ApplicationView() {
     });
   });
 
-  // console.log("[ROOT]renderer - render");
+  // console.log("[ROOT]renderer - render", subViews);
+
   if (error) {
     return (
       <div
@@ -191,7 +184,7 @@ function ApplicationView() {
             <StackRouteView
               key={subView.id}
               className={cn(
-                "absolute inset-0 bg-white opacity-100 dark:bg-black",
+                "fixed inset-0 bg-white opacity-100 dark:bg-black",
                 "animate-in slide-in-from-right",
                 "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
               )}

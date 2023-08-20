@@ -143,22 +143,6 @@ const Theme: React.FC<ThemeProviderProps> = ({
 
   return (
     <ThemeContext.Provider value={providerValue}>
-      <ThemeScript
-        {...{
-          forcedTheme,
-          disableTransitionOnChange,
-          enableSystem,
-          enableColorScheme,
-          storageKey,
-          themes,
-          defaultTheme,
-          attribute,
-          value,
-          children,
-          attrs,
-          nonce,
-        }}
-      />
       {children}
     </ThemeContext.Provider>
   );

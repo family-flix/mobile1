@@ -11,6 +11,7 @@ import { SelectionCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
 import { useInitialize, useInstance } from "@/hooks";
+import { rootView, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
@@ -64,7 +65,10 @@ export const HomeHistoryPage: ViewComponent = (props) => {
             return;
           }
           const { tv_id } = history;
-          router.push(`/tv/play/${tv_id}`);
+          tvPlayingPage.params = {
+            id: tv_id,
+          };
+          rootView.layerSubView(tvPlayingPage);
         },
         // onLongPress(record) {
         //   console.log("123");
@@ -161,8 +165,8 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                     <div className="z-10 relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
                       <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
                       <div
-                        className="absolute bottom-0 h-full bg-gray-600 opacity-50"
-                        style={{ width: `${percent}%` }}
+                        className="absolute w-full bottom-0 bg-gray-600 opacity-50"
+                        style={{ height: `${percent}%` }}
                       ></div>
                       {(() => {
                         if (episode_count_text) {

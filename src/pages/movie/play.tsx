@@ -1,23 +1,31 @@
 /**
  * @file 视频播放页面
  */
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw } from "lucide-react";
 
 import { Video, Sheet, ScrollView } from "@/components/ui";
 import { ScrollViewCore, DialogCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
+import { MovieCore } from "@/domains/movie";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { MovieCore } from "@/domains/movie";
+import { rootView } from "@/store";
 import { cn } from "@/utils";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
-  const { app, router, view } = props;
+  const { app, view } = props;
 
   const movie = useInstance(() => new MovieCore());
   const player = useInstance(() => new PlayerCore({ app }));
-  const scrollView = useInstance(() => new ScrollViewCore({}));
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        onPullToBack() {
+          console.log("bingo");
+        },
+      })
+  );
   const sourceSheet = useInstance(() => new DialogCore());
   const bSheet = useInstance(() => new DialogCore());
   const resolutionSheet = useInstance(() => new DialogCore());
@@ -177,7 +185,10 @@ export const MoviePlayingPage: ViewComponent = (props) => {
               <div
                 className="inline-block p-4"
                 onClick={() => {
-                  router.back();
+                  rootView.curView?.hide();
+                  rootView.prevView?.show();
+                  rootView.curView = rootView.prevView;
+                  rootView.prevView = null;
                 }}
               >
                 <ArrowLeft className="w-6 h-6 dark:text-black-200" />

@@ -24,7 +24,7 @@ export function StackRouteView(
     if (store.isMounted) {
       return;
     }
-    console.log("[COMPONENT]stack-route-view - useEffect");
+    // console.log("[COMPONENT]stack-route-view - useEffect");
     store.mounted();
     store.showed();
     return () => {

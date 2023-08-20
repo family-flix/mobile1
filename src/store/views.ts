@@ -1,3 +1,6 @@
+/**
+ * @file 进行中的异步任务
+ */
 import { RouteViewCore } from "@/domains/route_view";
 /** 首页 */
 import { HomeLayout } from "@/pages/home/layout";
@@ -47,7 +50,7 @@ export const homeMovieSearchPage = new RouteViewCore({
   title: "搜索电影",
   component: HomeMovieSearchPage,
 });
-export const cView = new RouteViewCore({
+export const homeHistoriesPage = new RouteViewCore({
   title: "播放历史",
   component: HomeHistoryPage,
 });
@@ -79,3 +82,6 @@ export const notFoundView = new RouteViewCore({
   title: "页面没有找到",
   component: NotFoundPage,
 });
+
+rootView.showSubView(homeLayout);
+homeLayout.showSubView(homeIndexPage);

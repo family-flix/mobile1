@@ -11,6 +11,7 @@ import { NavigatorCore } from "@/domains/navigator";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
+import { homeHistoriesPage, homeIndexPage, homeLayout, homeMinePage, homeMoviePage } from "@/store";
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -29,6 +30,7 @@ export const HomeLayout: ViewComponent = (props) => {
       })
   );
   const [subViews, setSubViews] = useState(view.subViews);
+  const [curView, setCurView] = useState(view.curView);
   const [curPathname, setCurPathname] = useState(router.pathname);
   const [state, setState] = useState(app.state);
 
@@ -36,51 +38,51 @@ export const HomeLayout: ViewComponent = (props) => {
     view.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
-    view.onMatched((subView) => {
-      console.log("[LAYOUT]home/layout - view.onMatched", view.curView?._name, view.prevView?._name, subView._name);
-      if (subView === view.curView) {
-        return;
-      }
-      const prevView = view.curView;
-      view.prevView = prevView;
-      view.curView = subView;
-      if (!view.subViews.includes(subView)) {
-        view.appendSubView(subView);
-      }
-      subView.show();
-      if (view.prevView) {
-        view.prevView.hide();
-        // setTimeout(() => {
-        //   view.removeSubView(prevView);
-        // }, 120);
-      }
+    view.onCurViewChange((nextCurView) => {
+      setCurView(nextCurView);
     });
-    view.onLayered(() => {
-      console.log("[LAYOUT]home/layout - view.onLayered");
-    });
-    view.onUncover(() => {
-      console.log("[LAYOUT]home/layout - view.onUncover");
-    });
-    // 因为 home layout 和 playing page 是共存的，所以切换到 playing page 时，home layout 也会检查是否匹配，结果是不匹配
-    // 所以给 home layout 加了个 index
-    view.onNotFound(() => {
-      console.log("[LAYOUT]home/layout - view.onNotFound", view.subViews);
-      // view.appendSubView(aView);
-      // view.curView = aView;
-      // view.curView.show();
-    });
-    router.onPathnameChange(({ pathname, search, type }) => {
-      setCurPathname(pathname);
-      console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
-      if (view.state.layered) {
-        return;
-      }
-      view.checkMatch({ pathname, search, type });
-    });
-    view.checkMatch(router._pending);
+    // view.onMatched((subView) => {
+    //   console.log("[LAYOUT]home/layout - view.onMatched", view.curView?._name, view.prevView?._name, subView._name);
+    //   if (subView === view.curView) {
+    //     return;
+    //   }
+    //   const prevView = view.curView;
+    //   view.prevView = prevView;
+    //   view.curView = subView;
+    //   if (!view.subViews.includes(subView)) {
+    //     view.appendSubView(subView);
+    //   }
+    //   subView.show();
+    //   if (view.prevView) {
+    //     view.prevView.hide();
+    //     // setTimeout(() => {
+    //     //   view.removeSubView(prevView);
+    //     // }, 120);
+    //   }
+    // });
+    // view.onLayered(() => {
+    //   console.log("[LAYOUT]home/layout - view.onLayered");
+    // });
+    // view.onUncover(() => {
+    //   console.log("[LAYOUT]home/layout - view.onUncover");
+    // });
+    // // 因为 home layout 和 playing page 是共存的，所以切换到 playing page 时，home layout 也会检查是否匹配，结果是不匹配
+    // // 所以给 home layout 加了个 index
+    // view.onNotFound(() => {
+    //   console.log("[LAYOUT]home/layout - view.onNotFound", view.subViews);
+    // });
+    // router.onPathnameChange(({ pathname, search, type }) => {
+    //   setCurPathname(pathname);
+    //   console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
+    //   if (view.state.layered) {
+    //     return;
+    //   }
+    //   view.checkMatch({ pathname, search, type });
+    // });
+    // view.checkMatch(router._pending);
   });
 
-  console.log("[PAGE]home/layout - render", state);
+  // console.log("[PAGE]home/layout - render", view);
   const highlightColor = "text-green-600 dark:text-green-600";
 
   return (
@@ -110,10 +112,10 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/index` ? highlightColor : ""
+              curView === homeIndexPage ? highlightColor : ""
             )}
             onClick={() => {
-              router.push("/home/index");
+              homeLayout.showSubView(homeIndexPage);
             }}
           >
             <div>
@@ -124,10 +126,11 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/movie` ? highlightColor : ""
+              curView === homeMoviePage ? highlightColor : ""
             )}
             onClick={() => {
-              router.push("/home/movie");
+              // router.push("/home/movie");
+              homeLayout.showSubView(homeMoviePage);
             }}
           >
             <div>
@@ -149,10 +152,10 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/history` ? highlightColor : ""
+              curView === homeHistoriesPage ? highlightColor : ""
             )}
             onClick={() => {
-              router.push("/home/history");
+              homeLayout.showSubView(homeHistoriesPage);
             }}
           >
             <div>
@@ -163,10 +166,10 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curPathname === `${NavigatorCore.prefix}/home/mine` ? highlightColor : ""
+              curView === homeMinePage ? highlightColor : ""
             )}
             onClick={() => {
-              router.push("/home/mine");
+              homeLayout.showSubView(homeMinePage);
             }}
           >
             <div>

@@ -335,7 +335,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 主动展示视图 */
   show() {
-    app.setTitle(this.title);
+    // app.setTitle(this.title);
     // console.log("[ROUTE_VIEW]show", this._name, this.state.visible);
     if (this.state.visible) {
       // 为了让 presence 内部 hide 时判断 mounted 为 true
@@ -343,6 +343,34 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this.presence.show();
+  }
+  showSubView(subView: RouteViewCore) {
+    this.curView?.hide();
+    this.appendSubView(subView);
+    this.prevView = this.curView;
+    this.curView = subView;
+    this.curView.show();
+    this.emit(Events.CurViewChange, this.curView);
+  }
+  layerSubView(subView: RouteViewCore) {
+    this.curView?.layered();
+    this.appendSubView(subView);
+    this.prevView = this.curView;
+    this.curView = subView;
+    this.curView.show();
+    this.emit(Events.CurViewChange, this.curView);
+  }
+  showPrevView() {
+    this.curView?.hide();
+    this.prevView?.show();
+    this.curView = this.prevView;
+    this.prevView = null;
+  }
+  uncoverPrevView() {
+    this.curView?.hide();
+    this.prevView?.uncovered();
+    this.curView = this.prevView;
+    this.prevView = null;
   }
   _showed = false;
   /** 视图被展示 */

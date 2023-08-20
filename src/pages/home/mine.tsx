@@ -12,11 +12,20 @@ import { RequestCore } from "@/domains/client";
 import { ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
+import { sleep } from "@/utils";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
 
-  const scrollView = useInstance(() => new ScrollViewCore());
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        async onPullToRefresh() {
+          await sleep(2000);
+          scrollView.stopPullToRefresh();
+        },
+      })
+  );
   const logoutBtn = useInstance(
     () =>
       new ButtonCore({

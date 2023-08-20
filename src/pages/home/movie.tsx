@@ -11,6 +11,7 @@ import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/client";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
+import { moviePlayingPage, rootView } from "@/store";
 import { ViewComponent } from "@/types";
 
 export const HomeMoviePage: ViewComponent = React.memo((props) => {
@@ -202,7 +203,10 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                       key={id}
                       className="flex px-4 pb-4 cursor-pointer"
                       onClick={() => {
-                        router.push(`/movie/play/${id}`);
+                        moviePlayingPage.params = {
+                          id,
+                        };
+                        rootView.layerSubView(moviePlayingPage);
                       }}
                     >
                       <div className="relative w-[128px] h-[198px] mr-4">
@@ -232,12 +236,12 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             </>
                           ) : null}
                         </div>
-                        <div className="mt-2 flex items-center gap-2 max-w-full">
+                        <div className="mt-2 flex items-center gap-2 flex-wrap max-w-full">
                           {genres.map((g) => {
                             return (
                               <div
                                 key={g}
-                                className="mr-2 py-1 px-2 mb-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                                className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}
