@@ -241,7 +241,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                             return (
                               <div
                                 key={g}
-                                className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                                className="py-1 px-2 mb-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
                                 style={{
                                   lineHeight: "12px",
                                 }}

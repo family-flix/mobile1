@@ -13,6 +13,7 @@ type TheTypesOfEvents<T = unknown> = {
 type ButtonState = {
   loading: boolean;
   disabled: boolean;
+  text: string;
 };
 type ButtonProps<T = unknown> = {
   onClick: (record: T | null) => void;
@@ -24,6 +25,7 @@ export class ButtonCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   state: ButtonState = {
     loading: false,
     disabled: false,
+    text: "确定",
   };
 
   constructor(options: Partial<{ _name: string } & ButtonProps<T>> = {}) {
@@ -68,6 +70,10 @@ export class ButtonCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
       return;
     }
     this.state.loading = loading;
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  setText(text: string) {
+    this.state.text = text;
     this.emit(Events.StateChange, { ...this.state });
   }
 

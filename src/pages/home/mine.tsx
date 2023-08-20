@@ -88,6 +88,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const reportConfirmDialog = useInstance(
     () =>
       new DialogCore({
+        title: "问题与建议",
         onOk() {
           if (!reportInput.value) {
             app.tip({
@@ -107,6 +108,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const wantDialog = useInstance(
     () =>
       new DialogCore({
+        title: "想看",
         onOk() {
           if (!wantInput.value) {
             app.tip({
@@ -266,10 +268,16 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         <div>敬请期待</div>
       </Dialog>
       <Dialog store={reportConfirmDialog}>
-        <Input store={reportInput} />
+        <p>提交你认为存在问题或需要改进的地方</p>
+        <div className="mt-4">
+          <Input store={reportInput} />
+        </div>
       </Dialog>
       <Dialog store={wantDialog}>
-        <Input store={wantInput} />
+        <p>你可以提交想看的电视剧或电影</p>
+        <div className="mt-4">
+          <Input store={wantInput} />
+        </div>
       </Dialog>
     </>
   );

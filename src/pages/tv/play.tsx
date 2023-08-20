@@ -42,7 +42,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          console.log("bingo");
+          rootView.uncoverPrevView();
         },
       })
   );
@@ -70,7 +70,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
     window.__player__ = player;
     return player;
   });
-  const curReport = useInstance(() => new SelectionCore<string>());
+  const curReport = useInstance(
+    () =>
+      new SelectionCore<string>({
+        onChange(v) {
+          setCurReportValue(v);
+        },
+      })
+  );
   const reportRequest = useInstance(
     () =>
       new RequestCore(reportSomething, {
@@ -97,9 +104,21 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const bSheet = useInstance(() => new DialogCore());
   const cSheet = useInstance(() => new DialogCore());
   const dSheet = useInstance(() => new DialogCore());
+  const errorTipDialog = useInstance(() => {
+    const dialog = new DialogCore({
+      title: "视频加载错误",
+      cancel: false,
+      onOk() {
+        dialog.hide();
+      },
+    });
+    dialog.okBtn.setText("我知道了");
+    return dialog;
+  });
   const reportConfirmDialog = useInstance(
     () =>
       new DialogCore({
+        title: "发现问题",
         onOk() {
           if (!curReport.value) {
             app.tip({
@@ -136,6 +155,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
   const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
+  const [curReportValue, setCurReportValue] = useState(curReport.value);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -158,7 +178,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
     video.onMounted(() => {
       connect(videoRef.current!, player);
     });
-
     tv.onProfileLoaded((profile) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { curEpisode } = profile;
@@ -262,7 +281,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - player.onError", error);
       // const token = "lg9lT9e03WPcmBn";
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      app.tip({ text: ["视频加载错误", error.message] });
+      // app.tip({ text: ["视频加载错误", error.message] });
+      errorTipDialog.show();
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
@@ -302,7 +322,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   return (
     <>
       <ScrollView store={scrollView} className="fixed dark:text-black-200">
-        <div>
+        <div className="h-screen">
           <div className="operations">
             {/* <div
                 className={cn(
@@ -322,21 +342,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 <div
                   className="inline-block p-4"
                   onClick={() => {
-                    rootView.curView?.hide();
-                    rootView.prevView?.show();
-                    rootView.curView = rootView.prevView;
-                    rootView.prevView = null;
+                    rootView.uncoverPrevView();
+                    // rootView.curView?.hide();
+                    // rootView.prevView?.show();
+                    // rootView.curView = rootView.prevView;
+                    // rootView.prevView = null;
                   }}
                 >
                   <ArrowLeft className="w-6 h-6 dark:text-black-200" />
-                </div>
-                <div
-                  className="inline-block p-4"
-                  onClick={() => {
-                    reportSheet.show();
-                  }}
-                >
-                  <Send className="w-4 h-4 dark:text-black-200" />
                 </div>
               </div>
               <div className="absolute bottom-12 w-full">
@@ -733,6 +746,17 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       </div>
                     );
                   })()}
+                  <div>
+                    <div
+                      className="mt-2 flex items-center"
+                      onClick={() => {
+                        reportSheet.show();
+                      }}
+                    >
+                      <Send className="mr-2 w-4 h-4" />
+                      <div className="text-sm">提交问题</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -748,11 +772,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   key={i}
                   onClick={() => {
                     curReport.select(question);
-                    reportConfirmDialog.setTitle(`确认 ${question} 吗？`);
                     reportConfirmDialog.show();
                   }}
                 >
-                  <div className={cn("p-4 rounded cursor-pointer")} onClick={() => {}}>
+                  <div className={cn("py-2 px-4 rounded cursor-pointer")} onClick={() => {}}>
                     {question}
                   </div>
                 </div>
@@ -761,7 +784,19 @@ export const TVPlayingPage: ViewComponent = (props) => {
           </div>
         </div>
       </Sheet>
-      <Dialog store={reportConfirmDialog}></Dialog>
+      <Dialog store={reportConfirmDialog}>
+        <p>提交你发现的该电视剧的问题</p>
+        <p className="mt-2">「{curReportValue}」</p>
+      </Dialog>
+      <Dialog store={errorTipDialog}>
+        <div>该问题是因为手机无法解析视频</div>
+        <div>可以尝试如下解决方案</div>
+        <div className="mt-4 text-left">
+          <div>1、「切换源」或者「分辨率」</div>
+          <div>2、使用电脑观看</div>
+          <div>3、使用手机外部播放器(开发中)</div>
+        </div>
+      </Dialog>
     </>
   );
 };

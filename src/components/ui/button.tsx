@@ -50,7 +50,7 @@ function Button<T = unknown>(
   });
 
   const { disabled, loading } = state;
-  const c = buttonVariants({ variant, size, class: cn(props.className, "space-x-2") });
+  const c = buttonVariants({ variant, size, class: cn(props.className, "w-full space-x-2") });
 
   return (
     <button
@@ -65,7 +65,15 @@ function Button<T = unknown>(
       <Show when={loading}>
         <Loader className="w-4 h-4 mr-2 animation animate-spin" />
       </Show>
-      {props.children}
+      {(() => {
+        if (props.children) {
+          return props.children;
+        }
+        if (state.text) {
+          return state.text;
+        }
+        return "确定";
+      })()}
     </button>
   );
 }

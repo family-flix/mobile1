@@ -40,6 +40,7 @@ type ScrollViewState = {
   pullToRefresh: boolean;
   pullToBack: {
     enabled: boolean;
+    canBack: boolean;
     width: number;
     height: number;
   };
@@ -105,6 +106,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     pullToRefresh: false,
     pullToBack: {
       enabled: false,
+      canBack: false,
       width: 0,
       height: 192,
     },
@@ -130,6 +132,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     }
     if (onPullToBack) {
       this.state.pullToBack.enabled = true;
+      this.onPullToBack(onPullToBack);
     }
   }
 
@@ -145,17 +148,16 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     (() => {
       if (x < 30) {
         this.state.scrollable = false;
-        this.state.pullToRefresh = false;
         this.emit(Events.StateChange, { ...this.state });
       }
     })();
-    if (this.canPullToRefresh === false) {
+    if (this.state.pullToRefresh === false) {
       this._pullToRefresh = false;
     }
     if (state !== "pending") {
       this._pullToRefresh = false;
     }
-    console.log("[DOMAIN]ui/scroll-view - start pulling", this.rect.scrollTop);
+    console.log("[DOMAIN]ui/scroll-view - start pulling", { x, y });
     // y 方向滚动了一定距离，不可能可以下拉刷新
     if (this.rect.scrollTop) {
       this._pullToRefresh = false;
@@ -165,6 +167,8 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   _disablePullToBack = false;
   _disablePullToRefresh = false;
+  isPullToRefresh = false;
+  isPullToBack = false;
   pulling(
     pos: { x: number; y: number },
     lifetimes: Partial<{
@@ -182,38 +186,52 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       distance.x = curX - pullStartX;
       return distance;
     })();
-    let isPullToRefresh = false;
-    let isPullToBack = false;
-    if (pullingDistance.x > 10 && this.state.pullToBack.enabled) {
-      if (!this._disablePullToBack) {
-        isPullToBack = true;
-        this._disablePullToRefresh = true;
+    (() => {
+      if (this.isPullToBack || this.isPullToBack) {
+        return;
       }
-    }
-    console.log("[DOMAIN]ui/scroll-view - pulling", this.rect.scrollTop, this._pullToRefresh);
-    if (Math.abs(pullingDistance.y) > 10) {
-      if (!this._disablePullToRefresh) {
-        if (this._pullToRefresh && pullingDistance.y > 10) {
-          isPullToRefresh = true;
+      if (pullingDistance.x > 10 && this.state.pullToBack.enabled) {
+        if (!this._disablePullToBack) {
+          this.isPullToBack = true;
+          this._disablePullToRefresh = true;
         }
-        this._disablePullToBack = true;
       }
-    }
-    console.log("[DOMAIN]ui/scroll-view - pulling", isPullToRefresh);
-    if (isPullToBack) {
+      if (Math.abs(pullingDistance.y) > 10) {
+        if (!this._disablePullToRefresh) {
+          this._disablePullToBack = true;
+          if (this._pullToRefresh && pullingDistance.y > 10) {
+            this.isPullToRefresh = true;
+          }
+        }
+      }
+    })();
+
+    // console.log("[DOMAIN]ui/scroll-view - pulling", isPullToRefresh);
+    if (this.isPullToBack) {
       this.state.scrollable = false;
       this.pullToRefresh.distX = pullingDistance.x;
       const distance = this.pullToRefresh.distX;
-      const h = this.state.pullToBack.height;
+      // const h = this.state.pullToBack.height;
+      this.state.pullToBack.canBack = false;
+      if (distance >= 62) {
+        this.state.pullToBack.canBack = true;
+      }
       const scaleFactor = 0.008;
       const scaledDistance = distance / (1 + Math.abs(distance) * scaleFactor);
-      this.state.pullToBack.width = scaledDistance;
-      this.state.pullToBack.height = h / (1 + Math.abs(h) * scaleFactor);
-      console.log("[DOMAIN]ui/scroll-view - pulling", this.pullToRefresh.distX, scaledDistance);
+      const distanceX = scaledDistance >= 0 ? scaledDistance : 0;
+      this.state.pullToBack.width = distanceX;
+      this.state.pullToBack.height = (() => {
+        const i = 192 - distance;
+        if (i <= 58) {
+          return 58;
+        }
+        return i;
+      })();
+      console.log("[DOMAIN]ui/scroll-view - pulling", distanceX);
       this.emit(Events.StateChange, { ...this.state });
       return;
     }
-    if (!isPullToRefresh) {
+    if (!this.isPullToRefresh) {
       return;
     }
     if (this.canPullToRefresh === false) {
@@ -246,9 +264,13 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   async endPulling() {
+    // console.log("[DOMAIN]ui/scroll-view - endPulling", this.state.left);
+    if (this.state.pullToBack.canBack) {
+      this.emit(Events.PullToBack);
+    }
+    this.state.pullToBack.canBack = false;
     this.state.pullToBack.width = 0;
     this.state.pullToBack.height = 192;
-    this.state.pullToRefresh = true;
     this.state.scrollable = true;
     this.pullToRefresh.pullStartX = 0;
     this.pullToRefresh.pullMoveX = 0;
@@ -256,6 +278,8 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this._disablePullToRefresh = false;
     this._disablePullToBack = false;
     this._pullToRefresh = true;
+    this.isPullToBack = false;
+    this.isPullToRefresh = false;
     this.emit(Events.StateChange, { ...this.state });
     if (this.canPullToRefresh === false) {
       return;

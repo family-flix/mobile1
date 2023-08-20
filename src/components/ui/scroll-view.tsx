@@ -2,7 +2,7 @@
  * @file 可滚动容器，支持下拉刷新、滚动监听等
  */
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronLeft, Loader2 } from "lucide-react";
 
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { useInitialize } from "@/hooks";
@@ -65,8 +65,12 @@ export const ScrollView = React.memo(
             </div>
           </Indicator>
         )}
-        <div className={cn("z-10 absolute inset-0")}>
-          <BackIndicator className="z-20 absolute left-0 bottom-[120px]" store={store} />
+        <div className={cn("z-10 absolute inset-0 max-h-full")}>
+          <div className="z-20 absolute left-0 bottom-[180px] flex items-center h-[200px]">
+            <BackIndicator store={store}>
+              <ChevronLeft className="w-6 h-6 text-black-200" />
+            </BackIndicator>
+          </div>
           <Content
             store={store}
             className={cn("max-h-full overflow-y-auto hide-scroll", scrollable ? "" : "")}
@@ -131,12 +135,19 @@ const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<H
 
   return (
     <div
-      className={cn("h-48 return-prev-indicator", props.className)}
+      className={cn("flex items-center justify-center h-48 return-prev-indicator", props.className)}
       style={{
         width: state.pullToBack.width,
         height: state.pullToBack.height,
       }}
-    />
+    >
+      {(() => {
+        if (!state.pullToBack.canBack) {
+          return null;
+        }
+        return props.children;
+      })()}
+    </div>
   );
 };
 
@@ -179,10 +190,6 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
       className={props.className}
       style={{ ...(props.style || {}), transform: `translateY(${top}px)` }}
       onTouchStart={(event) => {
-        if (!pullToRefresh) {
-          return;
-        }
-        // console.log('start');
         const { pageX, pageY } = event.touches[0];
         const position = { x: pageX, y: pageY };
         store.startPull(position);

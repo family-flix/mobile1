@@ -7,11 +7,10 @@ import { Film, HardDrive, Home, Users } from "lucide-react";
 
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { ButtonCore, DialogCore } from "@/domains/ui";
-import { NavigatorCore } from "@/domains/navigator";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { cn } from "@/utils";
 import { homeHistoriesPage, homeIndexPage, homeLayout, homeMinePage, homeMoviePage } from "@/store";
+import { cn } from "@/utils";
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -31,8 +30,6 @@ export const HomeLayout: ViewComponent = (props) => {
   );
   const [subViews, setSubViews] = useState(view.subViews);
   const [curView, setCurView] = useState(view.curView);
-  const [curPathname, setCurPathname] = useState(router.pathname);
-  const [state, setState] = useState(app.state);
 
   useInitialize(() => {
     view.onSubViewsChange((nextSubViews) => {
@@ -41,45 +38,6 @@ export const HomeLayout: ViewComponent = (props) => {
     view.onCurViewChange((nextCurView) => {
       setCurView(nextCurView);
     });
-    // view.onMatched((subView) => {
-    //   console.log("[LAYOUT]home/layout - view.onMatched", view.curView?._name, view.prevView?._name, subView._name);
-    //   if (subView === view.curView) {
-    //     return;
-    //   }
-    //   const prevView = view.curView;
-    //   view.prevView = prevView;
-    //   view.curView = subView;
-    //   if (!view.subViews.includes(subView)) {
-    //     view.appendSubView(subView);
-    //   }
-    //   subView.show();
-    //   if (view.prevView) {
-    //     view.prevView.hide();
-    //     // setTimeout(() => {
-    //     //   view.removeSubView(prevView);
-    //     // }, 120);
-    //   }
-    // });
-    // view.onLayered(() => {
-    //   console.log("[LAYOUT]home/layout - view.onLayered");
-    // });
-    // view.onUncover(() => {
-    //   console.log("[LAYOUT]home/layout - view.onUncover");
-    // });
-    // // 因为 home layout 和 playing page 是共存的，所以切换到 playing page 时，home layout 也会检查是否匹配，结果是不匹配
-    // // 所以给 home layout 加了个 index
-    // view.onNotFound(() => {
-    //   console.log("[LAYOUT]home/layout - view.onNotFound", view.subViews);
-    // });
-    // router.onPathnameChange(({ pathname, search, type }) => {
-    //   setCurPathname(pathname);
-    //   console.log("[LAYOUT]home/layout - router.onPathnameChange", view.state.visible, view.state.layered);
-    //   if (view.state.layered) {
-    //     return;
-    //   }
-    //   view.checkMatch({ pathname, search, type });
-    // });
-    // view.checkMatch(router._pending);
   });
 
   // console.log("[PAGE]home/layout - render", view);

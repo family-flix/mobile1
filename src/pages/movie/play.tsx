@@ -2,12 +2,16 @@
  * @file 视频播放页面
  */
 import { useState } from "react";
-import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw } from "lucide-react";
+import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw, Send } from "lucide-react";
 
-import { Video, Sheet, ScrollView } from "@/components/ui";
+import { Video, Sheet, ScrollView, Dialog } from "@/components/ui";
 import { ScrollViewCore, DialogCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
 import { MovieCore } from "@/domains/movie";
+import { SelectionCore } from "@/domains/cur";
+import { RequestCore } from "@/domains/client";
+import { reportSomething } from "@/services";
+import { MovieReportList, ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { rootView } from "@/store";
@@ -22,7 +26,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          console.log("bingo");
+          rootView.uncoverPrevView();
         },
       })
   );
@@ -30,9 +34,71 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const bSheet = useInstance(() => new DialogCore());
   const resolutionSheet = useInstance(() => new DialogCore());
   const infoSheet = useInstance(() => new DialogCore());
+  const curReport = useInstance(
+    () =>
+      new SelectionCore<string>({
+        onChange(v) {
+          setCurReportValue(v);
+        },
+      })
+  );
+  const reportRequest = useInstance(
+    () =>
+      new RequestCore(reportSomething, {
+        onLoading(loading) {
+          reportConfirmDialog.okBtn.setLoading(loading);
+        },
+        onSuccess() {
+          app.tip({
+            text: ["提交成功"],
+          });
+          reportConfirmDialog.hide();
+          reportSheet.hide();
+        },
+        onFailed(error) {
+          app.tip({
+            text: ["提交失败", error.message],
+          });
+        },
+      })
+  );
+  const reportSheet = useInstance(() => new DialogCore());
+  const errorTipDialog = useInstance(() => {
+    const dialog = new DialogCore({
+      title: "视频加载错误",
+      cancel: false,
+      onOk() {
+        dialog.hide();
+      },
+    });
+    dialog.okBtn.setText("我知道了");
+    return dialog;
+  });
+  const reportConfirmDialog = useInstance(
+    () =>
+      new DialogCore({
+        title: "发现问题",
+        onOk() {
+          if (!curReport.value) {
+            app.tip({
+              text: ["请先选择问题"],
+            });
+            return;
+          }
+          reportRequest.run({
+            type: ReportTypes.Movie,
+            data: JSON.stringify({
+              content: curReport.value,
+              movie_id: movie.profile?.id,
+            }),
+          });
+        },
+      })
+  );
 
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
+  const [curReportValue, setCurReportValue] = useState(curReport.value);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -88,6 +154,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       }
       // console.log("[PAGE]play - player.onCanPlay");
       // cover.hide();
+      if (!movie.canAutoPlay) {
+        return;
+      }
       player.play();
     });
     player.onProgress(({ currentTime, duration }) => {
@@ -122,10 +191,11 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - player.onSourceLoaded", player.currentTime);
       player.setCurrentTime(player.currentTime);
     });
-    console.log("[PAGE]play - before player.onError");
+    // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
       console.log("[PAGE]play - player.onError");
-      app.tip({ text: ["视频加载错误", error.message] });
+      // app.tip({ text: ["视频加载错误", error.message] });
+      errorTipDialog.show();
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
@@ -166,7 +236,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   return (
     <>
       <ScrollView store={scrollView} className="fixed dark:text-black-200">
-        <div>
+        <div className="h-screen">
           <div className="operations">
             {/* <div
                 className={cn(
@@ -411,7 +481,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                       <div
                         className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                         onClick={() => {
-                          movie.switchResolution(type);
+                          movie.changeResolution(type);
                         }}
                       >
                         {typeText}
@@ -440,12 +510,57 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                 <div className="px-4">
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
+                  <div>
+                    <div
+                      className="mt-2 flex items-center"
+                      onClick={() => {
+                        reportSheet.show();
+                      }}
+                    >
+                      <Send className="mr-2 w-4 h-4" />
+                      <div className="text-sm">提交问题</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           );
         })()}
       </Sheet>
+      <Sheet store={reportSheet}>
+        <div className="max-h-full overflow-y-auto">
+          <div className="pt-4 pb-24 dark:text-black-200">
+            {MovieReportList.map((question, i) => {
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    curReport.select(question);
+                    reportConfirmDialog.show();
+                  }}
+                >
+                  <div className={cn("py-2 px-4 rounded cursor-pointer")} onClick={() => {}}>
+                    {question}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Sheet>
+      <Dialog store={reportConfirmDialog}>
+        <p>提交你发现的该电视剧的问题</p>
+        <p className="mt-2">「{curReportValue}」</p>
+      </Dialog>
+      <Dialog store={errorTipDialog}>
+        <div>该问题是因为手机无法解析视频</div>
+        <div>可以尝试如下解决方案</div>
+        <div className="mt-4 text-left">
+          <div>1、「切换源」或者「分辨率」</div>
+          <div>2、使用电脑观看</div>
+          <div>3、使用手机外部播放器(开发中)</div>
+        </div>
+      </Dialog>
     </>
   );
 };

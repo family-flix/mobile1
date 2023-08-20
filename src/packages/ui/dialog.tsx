@@ -60,11 +60,11 @@ const Portal = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLEleme
   const { store } = props;
 
   return (
-    <PortalPrimitive>
-      <Presence store={store.present}>
+    <Presence store={store.present}>
+      <PortalPrimitive>
         <div className={props.className}>{props.children}</div>
-      </Presence>
-    </PortalPrimitive>
+      </PortalPrimitive>
+    </Presence>
   );
 };
 
@@ -111,6 +111,10 @@ const Content = (
   );
 };
 
+const Description = (props: {} & React.AllHTMLAttributes<HTMLElement>) => {
+  return <div className={props.className} {...props} />;
+};
+
 const Close = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
@@ -150,17 +154,25 @@ const Title = (props: {} & React.AllHTMLAttributes<HTMLElement>) => {
 const Submit = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
   const { store } = props;
 
-  return <Button store={store.okBtn}>{props.children}</Button>;
+  return (
+    <Button variant="default" store={store.okBtn}>
+      {props.children}
+    </Button>
+  );
 };
 
 const Cancel = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
   const { store } = props;
 
-  return <Button store={store.cancelBtn}>{props.children}</Button>;
+  return (
+    <Button variant="outline" className={props.className} store={store.cancelBtn}>
+      {props.children}
+    </Button>
+  );
 };
 
 function getState(open: boolean) {
   return open ? "open" : "closed";
 }
 
-export { Root, Portal, Header, Title, Content, Close, Overlay, Footer, Submit, Cancel };
+export { Root, Portal, Header, Title, Content, Description, Close, Overlay, Footer, Submit, Cancel };

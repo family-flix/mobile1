@@ -18,10 +18,10 @@ export function RouteView(props: { store: RouteViewCore } & React.AllHTMLAttribu
       return;
     }
     console.log("[COMPONENT]route-view - useEffect");
-    store.mounted();
+    store.setMounted();
     store.showed();
     return () => {
-      store.unmounted();
+      store.setUnmounted();
     };
   }, []);
 

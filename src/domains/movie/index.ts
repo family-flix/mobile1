@@ -77,6 +77,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
   played = false;
+  canAutoPlay = false;
 
   constructor(options: Partial<{ name: string } & MovieProps> = {}) {
     super();
@@ -203,6 +204,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(res.error);
     }
+    this.canAutoPlay = true;
     this.curSource = (() => {
       const { file_id, subtitles } = res.data;
       // if (this.curResolutionType === "LD") {
@@ -260,7 +262,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.curResolutionType = type;
   }
   /** 切换分辨率 */
-  switchResolution(target_type: MediaResolutionTypes) {
+  changeResolution(target_type: MediaResolutionTypes) {
     // console.log("switchResolution 1");
     if (this.profile === null || this.curSource === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
@@ -274,6 +276,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(msg);
     }
+    this.canAutoPlay = true;
     // console.log("switchResolution 3");
     this.curResolutionType = target_type;
     const matched_resolution = resolutions.find((e) => e.type === target_type);

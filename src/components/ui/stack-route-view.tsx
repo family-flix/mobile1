@@ -25,10 +25,10 @@ export function StackRouteView(
       return;
     }
     // console.log("[COMPONENT]stack-route-view - useEffect");
-    store.mounted();
+    store.setMounted();
     store.showed();
     return () => {
-      store.unmounted();
+      store.setUnmounted();
     };
   }, []);
 
@@ -41,6 +41,8 @@ export function StackRouteView(
   if (!mounted) {
     return null;
   }
+
+  // console.log("[COMPONENT]stack-route-view - render", store.title, visible, mounted);
 
   return (
     <div

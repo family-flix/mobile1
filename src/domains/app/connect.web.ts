@@ -151,17 +151,18 @@ export function connect(app: Application) {
     event.preventDefault();
     app.emit(app.Events.ClickLink, { href });
   });
-  router.onBack(() => {
+  router.back = () => {
     window.history.back();
-  });
-  router.onReload(() => {
+  };
+  router.reload = () => {
     window.location.reload();
-  });
-  router.onPushState(({ from, path }) => {
+  };
+  router.onPushState(({ from, to, path }) => {
     // router.log("[Application ]- onPushState", path);
     window.history.pushState(
       {
         from,
+        to,
       },
       "",
       path

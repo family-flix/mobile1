@@ -4,27 +4,15 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
+// store 必须第一个
+import { app, homeIndexPage, homeLayout, pages } from "./store";
 import { ThemeProvider } from "./components/Theme";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
 import { ToastCore } from "./domains/ui/toast";
 import { connect } from "./domains/app/connect.web";
 import { useInitialize } from "./hooks";
-import {
-  homeIndexPage,
-  homeTVSearchPage,
-  homeHistoriesPage,
-  homeMinePage,
-  homeLayout,
-  rootView,
-  testView,
-  tvPlayingPage,
-  outerPlayerPage,
-  homeMoviePage,
-  moviePlayingPage,
-  homeMovieSearchPage,
-} from "./store/views";
-import { app } from "./store";
+import { rootView } from "./store/views";
 import { ViewComponent } from "./types";
 import { cn } from "./utils";
 
@@ -34,39 +22,6 @@ const { router } = app;
 // @ts-ignore
 window.__app__ = app;
 
-homeLayout.register("/home/index", () => {
-  return homeIndexPage;
-});
-homeLayout.register("/home/movie", () => {
-  return homeMoviePage;
-});
-homeLayout.register("/home/history", () => {
-  return homeHistoriesPage;
-});
-homeLayout.register("/home/mine", () => {
-  return homeMinePage;
-});
-rootView.register("/search_tv", () => {
-  return homeTVSearchPage;
-});
-rootView.register("/search_movie", () => {
-  return homeMovieSearchPage;
-});
-rootView.register("/movie/play/:id", () => {
-  return moviePlayingPage;
-});
-rootView.register("/tv/play/:id", () => {
-  return tvPlayingPage;
-});
-rootView.register("/out_players", () => {
-  return outerPlayerPage;
-});
-rootView.register("/test", () => {
-  return testView;
-});
-rootView.register("/", () => {
-  return homeLayout;
-});
 // router.onPathnameChange(({ pathname, type }) => {
 //   // router.log("[]Application - pathname change", pathname);
 //   rootView.checkMatch({ pathname, type });
@@ -88,37 +43,6 @@ function ApplicationView() {
     rootView.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
-    // rootView.onMatched((subView) => {
-    //   console.log("[Application]rootView.onMatched", rootView.curView?._name, subView._name, router._pending.type);
-    //   if (subView === rootView.curView) {
-    //     return;
-    //   }
-    //   const prevView = rootView.curView;
-    //   rootView.prevView = prevView;
-    //   rootView.curView = subView;
-    //   if (!rootView.subViews.includes(subView)) {
-    //     rootView.appendSubView(subView);
-    //   }
-    //   subView.show();
-    //   if (prevView) {
-    //     if (router._pending.type === "back") {
-    //       prevView.hide();
-    //       subView.uncovered();
-    //       setTimeout(() => {
-    //         rootView.removeSubView(prevView);
-    //       }, 800);
-    //       return;
-    //     }
-    //     prevView.layered();
-    //   }
-    // });
-    // rootView.onNotFound(() => {
-    //   rootView.curView = homeLayout;
-    //   rootView.appendSubView(homeLayout);
-    // });
-    // router.onPathnameChange(({ pathname, search, type }) => {
-    //   rootView.checkMatch({ pathname, search, type });
-    // });
     app.onTip((msg) => {
       const { text } = msg;
       toast.show({
@@ -128,12 +52,23 @@ function ApplicationView() {
     app.onError((err) => {
       setError(err);
     });
-    app.onReady(() => {
-      router.start();
-    });
     // console.log("[]Application - before start", window.history);
     const { innerWidth, innerHeight, location } = window;
     app.router.prepare(location);
+    (() => {
+      const matched = pages.find((v) => {
+        return v.checkMatchRegexp(router.pathname);
+      });
+      if (matched) {
+        matched.query = router.query;
+        // @todo 这样写只能展示 /home/xxx 路由，应该根据路由，找到多层级视图，即 rootView,homeLayout,homeIndexPage 这样
+        rootView.showSubView(homeLayout);
+        homeLayout.showSubView(matched);
+        return;
+      }
+      rootView.showSubView(homeLayout);
+      homeLayout.showSubView(homeIndexPage);
+    })();
     app.start({
       width: innerWidth,
       height: innerHeight,

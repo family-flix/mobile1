@@ -1,9 +1,9 @@
+import { useEffect, useState } from "react";
 import { Image, ImageOff } from "lucide-react";
 
 import { ImageCore, ImageStep } from "@/domains/ui/image";
 import { connect } from "@/domains/ui/image/connect.web";
 import { cn } from "@/utils";
-import { useEffect, useState } from "react";
 
 export function LazyImage(props: { src?: string; alt?: string } & React.HTMLAttributes<HTMLImageElement>) {
   let $img: HTMLImageElement | undefined = undefined;
@@ -29,15 +29,15 @@ export function LazyImage(props: { src?: string; alt?: string } & React.HTMLAttr
 
   if (state.step === ImageStep.Failed) {
     return (
-      <div className={cn(props.className, "flex items-center justify-center bg-slate-200")}>
-        <ImageOff className="w-8 h-8 text-slate-500" />
+      <div className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-black")}>
+        <ImageOff className="w-8 h-8 text-slate-500 dark:text-black-200" />
       </div>
     );
   }
   if (state.step === ImageStep.Pending) {
     return (
-      <div ref={$img} className={cn(props.className, "flex items-center justify-center bg-slate-200")}>
-        <Image className="w-8 h-8 text-slate-500" />
+      <div ref={$img} className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-black")}>
+        <Image className="w-8 h-8 text-slate-500 dark:text-black-200" />
       </div>
     );
   }
