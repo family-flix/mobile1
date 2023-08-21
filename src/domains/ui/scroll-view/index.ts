@@ -147,6 +147,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     const { state } = this.pullToRefresh;
     (() => {
       if (x < 30) {
+        // this._pullToRefresh = false;
         this.state.scrollable = false;
         this.emit(Events.StateChange, { ...this.state });
       }

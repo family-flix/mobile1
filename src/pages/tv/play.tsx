@@ -352,7 +352,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <ArrowLeft className="w-6 h-6 dark:text-black-200" />
                 </div>
               </div>
-              <div className="absolute bottom-12 w-full">
+              <div className="absolute bottom-12 w-full safe-bottom">
                 {/* <div className="flex items-center w-36 m-auto">
                       <p className="text-2xl ">
                         {values.target_time}

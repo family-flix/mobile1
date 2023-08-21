@@ -107,11 +107,16 @@ const portalVariants = cva("fixed inset-0 z-50 flex", {
   defaultVariants: { position: "right" },
 });
 
-export const Sheet = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
-  const { store } = props;
+export const Sheet = (
+  props: {
+    store: DialogCore;
+    size?: VariantProps<typeof sheetVariants>["size"];
+  } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
+) => {
+  const { store, size = "lg" } = props;
   return (
     <Root store={store}>
-      <Content store={store} position="bottom" size="lg">
+      <Content store={store} position="bottom" size={size}>
         {props.children}
       </Content>
     </Root>

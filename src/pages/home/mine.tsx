@@ -261,7 +261,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               退出登录
             </Button>
           </div>
-          <div className="text-center text-sm">V1.7.1</div>
+          <div className="text-center text-sm">V1.8.0</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>

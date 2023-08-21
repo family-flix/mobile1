@@ -218,9 +218,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
-                        <h2 className="truncate text-2xl dark:text-white">{name}</h2>
+                        <h2 className="text-2xl dark:text-white">{name}</h2>
                       </div>
                       <div className="flex items-center mt-1 ">
                         <div>{air_date}</div>

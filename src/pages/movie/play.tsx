@@ -263,7 +263,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
               >
                 <ArrowLeft className="w-6 h-6 dark:text-black-200" />
               </div>
-              <div className="absolute bottom-12 w-full">
+              <div className="absolute bottom-12 w-full safe-bottom">
                 {/* <div className="flex items-center w-36 m-auto">
                       <p className="text-2xl ">
                         {values.target_time}
@@ -510,6 +510,8 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                 <div className="px-4">
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
+                  <div className="mt-4 text-lg underline-offset-1">其他</div>
+                  <div className=""></div>
                   <div>
                     <div
                       className="mt-2 flex items-center"
