@@ -1,7 +1,6 @@
 /**
  * @file 电视剧
  */
-import throttle from "lodash/fp/throttle";
 import { Handler } from "mitt";
 
 import { ListCore } from "@/domains/list";
@@ -226,7 +225,6 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
 
   /** 播放该电视剧下指定影片 */
   async playEpisode(episode: TVEpisodeProfile, extra: { currentTime?: number; thumbnail?: string | null } = {}) {
-    // 只有继续播放时，才有这两个参数
     const { currentTime = 0, thumbnail = null } = extra;
     console.log("[PAGE](play/index) - play episode");
     if (!this.profile) {

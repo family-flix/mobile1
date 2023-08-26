@@ -26,7 +26,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const logoutBtn = useInstance(
+  const logintBtn = useInstance(
     () =>
       new ButtonCore({
         async onClick() {
@@ -257,11 +257,11 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             </div>
           </div>
           <div>
-            <Button className="w-full py-3 text-lg bg-red-600" size="lg" store={logoutBtn}>
-              退出登录
+            <Button className="w-full py-3 text-lg bg-red-600" size="lg" store={logintBtn}>
+              刷新登录信息
             </Button>
           </div>
-          <div className="text-center text-sm">V1.8.0</div>
+          <div className="text-center text-sm">V1.9.0</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>

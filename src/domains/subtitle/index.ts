@@ -7,6 +7,7 @@ import { parseSubtitleContent, parseSubtitleUrl, srtTimeToSeconds } from "./util
 import { request } from "@/utils/request";
 import { Result } from "@/types";
 import { SubtitleParagraph } from "./types";
+import { fetch_subtitle_url } from "@/services";
 
 enum Events {
   StateChange,
@@ -48,30 +49,62 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  static async New(subtitle: { url: string; language: string }, extra: Partial<{ currentTime: number }> = {}) {
-    const { url, language } = subtitle;
-    const r = await (async () => {
-      try {
-        const r = await axios.get(url);
-        return Result.Ok(r.data);
-      } catch (err) {
-        const e = err as Error;
-        return Result.Err(e.message);
+  static async New(
+    subtitle: { type: number; url: string; name: string; language: string },
+    extra: Partial<{ currentTime: number }> = {}
+  ) {
+    const { type, url, name, language } = subtitle;
+    const content_res = await (async () => {
+      if (type === 1) {
+        const r = await (async () => {
+          try {
+            const r = await axios.get(url);
+            return Result.Ok(r.data);
+          } catch (err) {
+            const e = err as Error;
+            return Result.Err(e.message);
+          }
+        })();
+        if (r.error) {
+          return Result.Err(r.error);
+        }
+        return Result.Ok({
+          name: url,
+          content: r.data,
+        });
       }
+      if (type === 2) {
+        const r1 = await fetch_subtitle_url({ id: url });
+        if (r1.error) {
+          return Result.Err(r1.error);
+        }
+        const { url: download_url } = r1.data;
+        const r = await (async () => {
+          try {
+            const r = await axios.get(download_url);
+            return Result.Ok(r.data);
+          } catch (err) {
+            const e = err as Error;
+            return Result.Err(e.message);
+          }
+        })();
+        if (r.error) {
+          return Result.Err(r.error);
+        }
+        return Result.Ok({
+          name,
+          content: r.data,
+        });
+      }
+      return Result.Err("未知字幕类型");
     })();
-    if (r.error) {
-      return Result.Err(r.error);
+    if (content_res.error) {
+      return Result.Err(content_res.error);
     }
-    const suffix = parseSubtitleUrl(url);
-    const paragraphs = parseSubtitleContent(r.data, suffix);
-    //     const f = {
-    //       id: uid(),
-    //       url,
-    //       language,
-    //       paragraphs,
-    //     };
+    const { content, name: subtitle_name } = content_res.data;
+    const suffix = parseSubtitleUrl(subtitle_name);
+    const paragraphs = parseSubtitleContent(content, suffix);
     const store = new SubtitleCore({
-      //       url,
       language,
       suffix,
       lines: paragraphs,
