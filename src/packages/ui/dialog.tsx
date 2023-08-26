@@ -165,7 +165,7 @@ const Cancel = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButto
   const { store } = props;
 
   return (
-    <Button variant="outline" className={props.className} store={store.cancelBtn}>
+    <Button variant="subtle" className={props.className} store={store.cancelBtn}>
       {props.children}
     </Button>
   );

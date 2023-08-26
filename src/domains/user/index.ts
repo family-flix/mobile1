@@ -2,6 +2,7 @@ import { Handler } from "mitt";
 
 import { Result } from "@/types";
 import { BaseDomain } from "@/domains/base";
+import { sleep } from "@/utils";
 
 import { fetch_user_profile, login, validate_member_token } from "./services";
 
@@ -69,7 +70,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     this.token = token;
   }
   logout() {
-    // this.validate()
+    this.emit(Events.Logout);
   }
   /**
    * 以成员身份登录
@@ -93,6 +94,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Login, {
       ...this.state,
     });
+    await sleep(800);
     return Result.Ok({ ...this.state });
   }
   async fetchProfile() {

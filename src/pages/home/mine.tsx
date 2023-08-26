@@ -26,10 +26,11 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const logintBtn = useInstance(
+  const loginBtn = useInstance(
     () =>
       new ButtonCore({
         async onClick() {
+          app.user.logout();
           const r = await app.user.validate(router.query.token, "1");
           if (r.error) {
             return;
@@ -257,7 +258,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             </div>
           </div>
           <div>
-            <Button className="w-full py-3 text-lg bg-red-600" size="lg" store={logintBtn}>
+            <Button className="w-full py-3 text-lg bg-red-600" size="lg" variant="subtle" store={loginBtn}>
               刷新登录信息
             </Button>
           </div>

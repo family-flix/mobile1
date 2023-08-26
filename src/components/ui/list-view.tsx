@@ -22,6 +22,7 @@ export const ListView = React.memo(
       () =>
         new ButtonCore({
           async onClick() {
+            app.cache.clear("user");
             const r = await app.user.validate(app.router.query.token, "1");
             if (r.error) {
               return;
@@ -88,7 +89,7 @@ export const ListView = React.memo(
                 <div className="text-center text-xl">{response.error?.message}</div>
               </div>
               <Show when={!!response.error?.message.includes("timestamp check failed")}>
-                <Button store={logintBtn} variant="subtle" size="sm" className="mt-4 py-4 px-4" onClick={() => {}}>
+                <Button store={logintBtn} variant="subtle" size="sm" className="mt-4 py-4 px-4">
                   点击刷新
                 </Button>
               </Show>
