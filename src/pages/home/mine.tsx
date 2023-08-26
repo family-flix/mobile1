@@ -8,7 +8,7 @@ import { reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore } from "@/domains/ui";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";

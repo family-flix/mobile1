@@ -4,7 +4,7 @@
 import { Handler } from "mitt";
 
 import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { SubtitleCore } from "@/domains/subtitle";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";

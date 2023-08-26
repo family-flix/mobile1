@@ -20,7 +20,7 @@ import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { SelectionCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

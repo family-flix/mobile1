@@ -349,6 +349,8 @@ export async function fetch_episode_profile(params: { id: string; type?: Episode
       height: number;
     }[];
     subtitles: {
+      type: number;
+      name: string;
       language: string;
       url: string;
     }[];
@@ -480,6 +482,8 @@ export async function fetch_source_playing_info(body: { episode_id: string; file
       height: number;
     }[];
     subtitles: {
+      type: number;
+      name: string;
       language: string;
       url: string;
     }[];

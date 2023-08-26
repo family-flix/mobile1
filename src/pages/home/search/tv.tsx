@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button, BackToTop, ListView, ScrollView, Input, LazyImage } from "@/components/ui";
 import { ButtonCore, InputCore, ScrollViewCore } from "@/domains/ui";
 import { fetch_season_list } from "@/domains/tv/services";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";

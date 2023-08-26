@@ -90,6 +90,8 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
       height: number;
     }[];
     subtitles: {
+      type: number;
+      name: string;
       language: string;
       url: string;
     }[];
@@ -159,6 +161,8 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
       height: number;
     }[];
     subtitles: {
+      type: number;
+      name: string;
       url: string;
       language: string;
     }[];

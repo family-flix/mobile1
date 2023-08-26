@@ -5,7 +5,7 @@ import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { omit } from "./utils";
@@ -17,7 +17,7 @@ import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListP
  * @returns
  */
 const RESPONSE_PROCESSOR = <T>(
-  originalResponse: OriginalResponse
+  originalResponse: OriginalResponse | null
 ): {
   dataSource: T[];
   page: number;
@@ -27,6 +27,17 @@ const RESPONSE_PROCESSOR = <T>(
   noMore: boolean;
   error: Error | null;
 } => {
+  if (originalResponse === null) {
+    return {
+      dataSource: [],
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+      total: DEFAULT_TOTAL,
+      noMore: false,
+      empty: false,
+      error: new Error(`process response fail, because response is null`),
+    };
+  }
   try {
     const data = (() => {
       if (originalResponse.data) {
@@ -125,7 +136,7 @@ export class ListCore<
     return { ...prevParams, ...currentParams };
   };
   /** 响应处理器 */
-  private processor: (response: OriginalResponse) => Response<T>;
+  private processor: (response: OriginalResponse | null) => Response<T>;
   /** 初始查询参数 */
   private initialParams: FetchParams;
   private extraResponse: Record<string, unknown>;
@@ -316,6 +327,12 @@ export class ListCore<
     this.emit(Events.DataSourceAdded, [...res.data.dataSource]);
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
+  }
+  async initIfInitial() {
+    if (!this.response.initial) {
+      return Result.Ok(this.response);
+    }
+    return this.init();
   }
   /**
    * 下一页

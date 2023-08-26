@@ -8,7 +8,7 @@ import { Skeleton, ListView, Input, ScrollView, LazyImage, Sheet, CheckboxGroup,
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore } from "@/domains/ui";
 import { fetch_season_list } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions } from "@/constants";
 import { ViewComponent } from "@/types";

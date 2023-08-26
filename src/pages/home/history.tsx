@@ -9,7 +9,7 @@ import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
 import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
 import { SelectionCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { rootView, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";

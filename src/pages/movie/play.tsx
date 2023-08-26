@@ -9,7 +9,7 @@ import { ScrollViewCore, DialogCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
 import { MovieCore } from "@/domains/movie";
 import { SelectionCore } from "@/domains/cur";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { reportSomething } from "@/services";
 import { MovieReportList, ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";

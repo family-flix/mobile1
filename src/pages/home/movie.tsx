@@ -8,7 +8,7 @@ import { BackToTop, ScrollView, Sheet, ListView, Skeleton, Input, LazyImage, Che
 import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { fetch_movie_list } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/client";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
 import { moviePlayingPage, rootView } from "@/store";
