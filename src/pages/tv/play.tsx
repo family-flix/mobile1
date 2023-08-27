@@ -98,7 +98,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         },
       })
   );
-  const video = useInstance(() => new ElementCore({}));
+  // const video = useInstance(() => new ElementCore({}));
   const episodesSheet = useInstance(() => new DialogCore());
   const sourcesSheet = useInstance(() => new DialogCore());
   const bSheet = useInstance(() => new DialogCore());
@@ -152,6 +152,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
         },
       })
   );
+  const subtitleSheet = useInstance(() => new DialogCore({}));
+
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
   const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
@@ -170,13 +172,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     view.onHidden(() => {
       player.pause();
-      // tv.updatePlayProgress();
-    });
-    // view.onUnmounted(() => {
-    //   player.destroy();
-    // });
-    video.onMounted(() => {
-      connect(videoRef.current!, player);
     });
     tv.onProfileLoaded((profile) => {
       app.setTitle(tv.getTitle().join(" - "));
@@ -203,6 +198,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     tv.onBeforeNextEpisode(() => {
       player.pause();
+    });
+    tv.onResolutionChange(({ type }) => {
+      console.log("[PAGE]play - player.onResolutionChange", type);
+      app.cache.merge("player_settings", {
+        type,
+      });
     });
     tv.onSourceChange((mediaSource) => {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
@@ -248,25 +249,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - player.onEnd");
       tv.playNextEpisode();
     });
-    player.onVolumeChange(({ volume }) => {
-      console.log("[PAGE]play - player.onVolumeChange", volume);
-    });
-    player.onSizeChange(({ height }) => {
-      console.log("[PAGE]play - player.onSizeChange");
-    });
     player.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
       player.setCurrentTime(tv.currentTime);
     });
-    tv.onResolutionChange(({ type }) => {
-      console.log("[PAGE]play - player.onResolutionChange", type);
-      app.cache.merge("player_settings", {
-        type,
-      });
-    });
-    // tv.onBeforeChangeSource(() => {
-    //   player.pause();
-    // });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
       if (!tv.canAutoPlay) {
@@ -281,7 +267,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - player.onError", error);
       // const token = "lg9lT9e03WPcmBn";
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      // app.tip({ text: ["视频加载错误", error.message] });
+      app.tip({ text: ["视频加载错误", error.message] });
       errorTipDialog.show();
       player.pause();
     });
@@ -482,7 +468,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       </div>
                     </ToggleView> */}
                   <Video store={player} />
-                  {!subtileState.visible ? (
+                  {subtileState.visible ? (
                     <div key={subtileState.index} className="mt-2 space-y-1">
                       {subtileState.texts.map((text) => {
                         return (
@@ -554,8 +540,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <div
                     key={id}
                     onClick={() => {
-                      tv.canAutoPlay = true;
-                      tv.playEpisode(episode, { currentTime: 0, thumbnail: null });
+                      tv.switchEpisode(episode);
                     }}
                   >
                     <div
@@ -717,32 +702,18 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <div className="mt-4 text-lg underline-offset-1">其他</div>
                   <div className=""></div>
                   {(() => {
-                    let node = null;
-                    if (!subtileState.visible) {
-                      node = <div>隐藏字幕</div>;
-                    }
-                    if (subtileState.visible) {
-                      node = <div>显示字幕</div>;
-                    }
                     if (!subtileState.enabled) {
-                      node = null;
-                    }
-                    if (node === null) {
                       return null;
                     }
                     return (
                       <div
                         className="mt-2 flex items-center"
                         onClick={() => {
-                          if (subtileState.visible) {
-                            tv.showSubtitle();
-                            return;
-                          }
-                          tv.hideSubtitle();
+                          subtitleSheet.show();
                         }}
                       >
                         <Subtitles className="mr-2 w-4 h-4" />
-                        <div className="text-sm">{node}</div>
+                        <div className="text-sm">字幕</div>
                       </div>
                     );
                   })()}
@@ -777,6 +748,38 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 >
                   <div className={cn("py-2 px-4 rounded cursor-pointer")} onClick={() => {}}>
                     {question}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Sheet>
+      <Sheet store={subtitleSheet}>
+        <div className="max-h-full overflow-y-auto">
+          {(() => {
+            return (
+              <div
+                className="px-4"
+                onClick={() => {
+                  tv.toggleSubtitleVisible();
+                }}
+              >
+                {subtileState.visible ? "隐藏字幕" : "显示字幕"}
+              </div>
+            );
+          })()}
+          <div className="pt-4 pb-24 dark:text-black-200">
+            {subtileState.others.map((subtitle, i) => {
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    tv.loadSubtitleFile(subtitle, tv.currentTime);
+                  }}
+                >
+                  <div className={cn("py-2 px-4 rounded cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                    {subtitle.name}
                   </div>
                 </div>
               );

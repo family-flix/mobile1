@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
+import { SubtitleResp } from "@/domains/subtitle/types";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
@@ -24,7 +25,9 @@ export async function fetch_movie_and_cur_source(params: { movie_id: string }) {
     sources: {
       file_id: string;
       file_name: string;
+      parent_paths: string;
     }[];
+    subtitles: SubtitleResp[];
     cur_source: {
       file_id: string;
       file_name: string;
@@ -37,7 +40,7 @@ export async function fetch_movie_and_cur_source(params: { movie_id: string }) {
   if (r.error) {
     return Result.Err(r.error);
   }
-  const { id, name, overview, current_time, thumbnail, sources, cur_source } = r.data;
+  const { id, name, overview, current_time, thumbnail, sources, subtitles, cur_source } = r.data;
   return Result.Ok({
     id,
     name,
@@ -46,6 +49,7 @@ export async function fetch_movie_and_cur_source(params: { movie_id: string }) {
     thumbnail,
     sources,
     curSource: cur_source,
+    subtitles,
   });
 }
 /** 电影详情 */
@@ -89,12 +93,7 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
       /** 影片高度 */
       height: number;
     }[];
-    subtitles: {
-      type: number;
-      name: string;
-      language: string;
-      url: string;
-    }[];
+    subtitles: SubtitleResp[];
   }>(`/api/movie/${id}`, {
     type: params.type,
   });
@@ -161,10 +160,11 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
       height: number;
     }[];
     subtitles: {
+      id: string;
       type: number;
       name: string;
       url: string;
-      language: string;
+      lang: string;
     }[];
   }>(`/api/media/${id}`, {
     type: params.type,

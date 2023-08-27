@@ -52,23 +52,25 @@ function ApplicationView() {
     app.onError((err) => {
       setError(err);
     });
-    // console.log("[]Application - before start", window.history);
+    app.onReady(() => {
+      // console.log("[]Application - before start", window.history);
+      (() => {
+        const matched = pages.find((v) => {
+          return v.checkMatchRegexp(router.pathname);
+        });
+        if (matched) {
+          matched.query = router.query;
+          // @todo 这样写只能展示 /home/xxx 路由，应该根据路由，找到多层级视图，即 rootView,homeLayout,homeIndexPage 这样
+          rootView.showSubView(homeLayout);
+          homeLayout.showSubView(matched);
+          return;
+        }
+        rootView.showSubView(homeLayout);
+        homeLayout.showSubView(homeIndexPage);
+      })();
+    });
     const { innerWidth, innerHeight, location } = window;
     app.router.prepare(location);
-    (() => {
-      const matched = pages.find((v) => {
-        return v.checkMatchRegexp(router.pathname);
-      });
-      if (matched) {
-        matched.query = router.query;
-        // @todo 这样写只能展示 /home/xxx 路由，应该根据路由，找到多层级视图，即 rootView,homeLayout,homeIndexPage 这样
-        rootView.showSubView(homeLayout);
-        homeLayout.showSubView(matched);
-        return;
-      }
-      rootView.showSubView(homeLayout);
-      homeLayout.showSubView(homeIndexPage);
-    })();
     app.start({
       width: innerWidth,
       height: innerHeight,

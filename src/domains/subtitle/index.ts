@@ -1,13 +1,12 @@
 import { Handler } from "mitt";
 import axios from "axios";
 
-import { BaseDomain, uid } from "@/domains/base";
-
-import { parseSubtitleContent, parseSubtitleUrl, srtTimeToSeconds } from "./utils";
-import { request } from "@/utils/request";
+import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
+
+// import { fetch_subtitle_url } from "./services";
+import { parseSubtitleContent, parseSubtitleUrl, timeStrToSeconds } from "./utils";
 import { SubtitleParagraph } from "./types";
-import { fetch_subtitle_url } from "@/services";
 
 enum Events {
   StateChange,
@@ -17,7 +16,7 @@ type TheTypesOfEvents = {
 };
 type SubtitleLine = SubtitleParagraph;
 type SubtitleProps = {
-  language?: string;
+  lang?: string;
   suffix?: string;
   lines: SubtitleLine[];
 };
@@ -26,34 +25,11 @@ type SubtitleState = {
 };
 
 export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
-  /** 字幕文件列表 */
-  files: {
-    language: string;
-    url: string;
-  }[] = [];
-  /** 台词列表 */
-  lines: SubtitleLine[] = [];
-  /** 准备展示的台词 */
-  targetLine: SubtitleLine;
-  curLine: SubtitleLine | null = null;
-  /** 当前展示第几行，如果是 null 表示不展示字幕 */
-  curLineIndex: number | null = null;
-  /** 视频当前进度 */
-  curTime = 0;
-  /** 基准时间 */
-  baseStep = 0;
-
-  get state(): SubtitleState {
-    return {
-      curLine: this.curLine,
-    };
-  }
-
   static async New(
-    subtitle: { type: number; url: string; name: string; language: string },
+    subtitle: { id: string; type: number; url: string; name: string; lang: string },
     extra: Partial<{ currentTime: number }> = {}
   ) {
-    const { type, url, name, language } = subtitle;
+    const { id, type, url, lang } = subtitle;
     const content_res = await (async () => {
       if (type === 1) {
         const r = await (async () => {
@@ -74,11 +50,12 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
         });
       }
       if (type === 2) {
-        const r1 = await fetch_subtitle_url({ id: url });
+        const mod = await import("./services");
+        const r1 = await mod.fetch_subtitle_url({ id });
         if (r1.error) {
           return Result.Err(r1.error);
         }
-        const { url: download_url } = r1.data;
+        const { name, url: download_url } = r1.data;
         const r = await (async () => {
           try {
             const r = await axios.get(download_url);
@@ -105,7 +82,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     const suffix = parseSubtitleUrl(subtitle_name);
     const paragraphs = parseSubtitleContent(content, suffix);
     const store = new SubtitleCore({
-      language,
+      lang,
       suffix,
       lines: paragraphs,
     });
@@ -115,19 +92,46 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     return Result.Ok(store);
   }
 
+  lang?: string;
+  suffix?: string;
+  /** 字幕文件列表 */
+  files: {
+    language: string;
+    url: string;
+  }[] = [];
+  /** 台词列表 */
+  lines: SubtitleLine[] = [];
+  /** 准备展示的台词 */
+  targetLine: SubtitleLine;
+  curLine: SubtitleLine | null = null;
+  /** 当前展示第几行，如果是 null 表示不展示字幕 */
+  curLineIndex: number | null = null;
+  /** 视频当前进度 */
+  curTime = 0;
+  /** 基准时间 */
+  baseStep = 0;
+
+  get state(): SubtitleState {
+    return {
+      curLine: this.curLine,
+    };
+  }
+
   constructor(props: Partial<{ _name: string }> & SubtitleProps) {
     super(props);
 
-    const { lines } = props;
+    const { lines, suffix, lang } = props;
     this.lines = lines;
+    this.suffix = suffix;
+    this.lang = lang;
     this.targetLine = lines[0];
   }
 
   changeTargetLine(currentTime: number) {
     let nextTargetLine = this.lines.find((l) => {
       const { start, end } = l;
-      const startSecond = srtTimeToSeconds(start);
-      const endSecond = srtTimeToSeconds(end);
+      const startSecond = timeStrToSeconds(start);
+      const endSecond = timeStrToSeconds(end);
       if (currentTime > startSecond && currentTime <= endSecond) {
         return true;
       }
@@ -136,7 +140,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     if (!nextTargetLine) {
       nextTargetLine = this.lines.find((l) => {
         const { start, end } = l;
-        const startSecond = srtTimeToSeconds(start);
+        const startSecond = timeStrToSeconds(start);
         if (currentTime < startSecond) {
           return true;
         }
@@ -171,8 +175,8 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       if (this.curLine && currentTime > this.curLine.endTime) {
         this.curLineIndex = null;
       }
-      console.log("[DOMAIN]subtitle/index - handleTimeChange check show subtitle");
-      console.log(currentTime, startSecond, endSecond, this.targetLine.line);
+      // console.log("[DOMAIN]subtitle/index - handleTimeChange check show subtitle");
+      // console.log(currentTime, startSecond, endSecond, this.targetLine.line);
       if (currentTime > startSecond && currentTime <= endSecond) {
         this.curLineIndex = this.lines.findIndex((line) => line === this.targetLine);
         this.targetLine = this.lines[this.curLineIndex + 1] ?? null;
@@ -180,12 +184,12 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       }
     })();
     // console.log("prev line with cur line", prevLineIndex, this.curLineIndex);
-    console.log(
-      "[DOMAIN]subtitle/index - handleTimeChange before prevLineIndex === this.curLineIndex",
-      prevLineIndex,
-      this.curLineIndex,
-      this.targetLine
-    );
+    // console.log(
+    //   "[DOMAIN]subtitle/index - handleTimeChange before prevLineIndex === this.curLineIndex",
+    //   prevLineIndex,
+    //   this.curLineIndex,
+    //   this.targetLine
+    // );
     if (prevLineIndex === this.curLineIndex) {
       return;
     }

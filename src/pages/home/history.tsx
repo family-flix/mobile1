@@ -16,7 +16,7 @@ import { ViewComponent } from "@/types";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { app, router, view } = props;
-  // const [response, helper] = useHelper<PlayHistoryItem>(fetch_play_histories);
+
   const cur = useInstance(() => new SelectionCore<PlayHistoryItem>());
   const deletingRequest = useInstance(
     () =>
@@ -56,7 +56,18 @@ export const HomeHistoryPage: ViewComponent = (props) => {
       })
   );
   const helper = useInstance(() => new ListCore(new RequestCore(fetch_play_histories)));
-  const scrollView = useInstance(() => new ScrollViewCore({}));
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        async onPullToRefresh() {
+          await helper.refresh();
+          scrollView.stopPullToRefresh();
+        },
+        onReachBottom() {
+          helper.loadMore();
+        },
+      })
+  );
   const historyCard = useInstance(
     () =>
       new NodeInListCore<PlayHistoryItem>({
@@ -81,29 +92,6 @@ export const HomeHistoryPage: ViewComponent = (props) => {
 
   useInitialize(() => {
     // console.log("[PAGE]history - useInitialize");
-    // page.onReady(() => {
-    //   helper.init();
-    // });
-    view.onReady(() => {
-      console.log("home/history ready");
-    });
-    view.onMounted(() => {
-      console.log("home/history mounted");
-    });
-    view.onShow(() => {
-      console.log("home/history show");
-      // helper.refresh();
-    });
-    view.onHidden(() => {
-      console.log("home/history hide");
-    });
-    scrollView.onPullToRefresh(async () => {
-      await helper.refresh();
-      scrollView.stopPullToRefresh();
-    });
-    scrollView.onReachBottom(() => {
-      helper.loadMore();
-    });
     helper.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
@@ -219,7 +207,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
           </div>
         </div>
       </ScrollView>
-      <BackToTop store={scrollView} />
+      {/* <BackToTop store={scrollView} /> */}
       <Dialog store={deletingConfirmDialog}>
         <div>确认删除吗？</div>
       </Dialog>

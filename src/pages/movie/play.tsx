@@ -2,7 +2,19 @@
  * @file 视频播放页面
  */
 import { useState } from "react";
-import { ArrowLeft, Gauge, Glasses, List, Loader, MoreHorizontal, Pause, Play, RotateCw, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  Gauge,
+  Glasses,
+  List,
+  Loader,
+  MoreHorizontal,
+  Pause,
+  Play,
+  RotateCw,
+  Send,
+  Subtitles,
+} from "lucide-react";
 
 import { Video, Sheet, ScrollView, Dialog } from "@/components/ui";
 import { ScrollViewCore, DialogCore } from "@/domains/ui";
@@ -95,18 +107,18 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         },
       })
   );
+  const subtitleSheet = useInstance(() => new DialogCore({}));
 
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
+  const [subtileState, setCurSubtitleState] = useState(movie.subtitle);
   const [curReportValue, setCurReportValue] = useState(curReport.value);
 
   useInitialize(() => {
-    console.log("[PAGE]play - useInitialize");
-
     // console.log("[PAGE]play - useInitialize");
+
     app.onHidden(() => {
       player.pause();
-      // tv.updatePlayProgress();
     });
     app.onShow(() => {
       console.log("[PAGE]play - app.onShow", player.currentTime);
@@ -115,18 +127,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     });
     view.onHidden(() => {
       player.pause();
-      // tv.updatePlayProgress();
     });
-    // view.onUnmounted(() => {
-    //   player.destroy();
-    // });
-    // video.onMounted(() => {
-    //   connect(videoRef.current!, player);
-    // });
-
     movie.onProfileLoaded((profile) => {
       app.setTitle(movie.getTitle().join(" - "));
-      // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
       movie.play();
       player.setCurrentTime(profile.currentTime);
     });
@@ -136,6 +139,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     movie.onTip((msg) => {
       app.tip(msg);
     });
+    movie.onSubtitleChange((l) => {
+      setCurSubtitleState(l);
+    });
     movie.onSourceChange((mediaSource) => {
       const { width, height } = mediaSource;
       player.pause();
@@ -144,7 +150,6 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         width,
         height,
       });
-      // console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
     });
@@ -152,8 +157,6 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       if (!view.state.visible) {
         return;
       }
-      // console.log("[PAGE]play - player.onCanPlay");
-      // cover.hide();
       if (!movie.canAutoPlay) {
         return;
       }
@@ -162,7 +165,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
       movie.setCurrentTime(currentTime);
-      movie.updatePlayProgress({
+      movie.handleCurTimeChange({
         currentTime,
         duration,
       });
@@ -174,14 +177,10 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         duration,
       });
     });
-    player.onEnd(() => {
-      console.log("[PAGE]play - player.onEnd");
-    });
     player.onVolumeChange(({ volume }) => {
-      console.log("[PAGE]play - player.onVolumeChange", volume);
-    });
-    player.onSizeChange(({ height }) => {
-      console.log("[PAGE]play - player.onSizeChange");
+      app.cache.merge("player_settings", {
+        volume,
+      });
     });
     player.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
@@ -219,12 +218,11 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       }
       player.load(url);
     });
-    console.log("[PAGE]tv/play - before fetch tv profile", view.params.id);
+    // console.log("[PAGE]tv/play - before fetch tv profile", view.params.id);
     movie.fetchProfile(view.params.id);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
-
   // if (error) {
   //   return (
   //     <div className="w-full h-[100vh]">
@@ -364,6 +362,17 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                       </div>
                     </ToggleView> */}
                   <Video store={player} />
+                  {subtileState.visible ? (
+                    <div key={subtileState.index} className="mt-2 space-y-1">
+                      {subtileState.texts.map((text) => {
+                        return (
+                          <div key={text} className="text-center text-sm">
+                            {text}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                 </div>
               );
             })()}
@@ -427,7 +436,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
             <div className="max-h-full overflow-y-auto">
               <div className="pt-4 pb-24 dark:text-black-200">
                 {sources.map((source) => {
-                  const { file_id, file_name } = source;
+                  const { file_id, file_name, parent_paths } = source;
                   return (
                     <div
                       key={file_id}
@@ -441,7 +450,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                           curSource?.file_id === file_id ? "bg-slate-500" : ""
                         )}
                       >
-                        <div className="break-all">{file_name}</div>
+                        <div className="break-all">
+                          {parent_paths}/{file_name}
+                        </div>
                       </div>
                     </div>
                   );
@@ -512,6 +523,22 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   <div className="text-sm">{overview}</div>
                   <div className="mt-4 text-lg underline-offset-1">其他</div>
                   <div className=""></div>
+                  {(() => {
+                    if (!subtileState.enabled) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        className="mt-2 flex items-center"
+                        onClick={() => {
+                          subtitleSheet.show();
+                        }}
+                      >
+                        <Subtitles className="mr-2 w-4 h-4" />
+                        <div className="text-sm">字幕</div>
+                      </div>
+                    );
+                  })()}
                   <div>
                     <div
                       className="mt-2 flex items-center"
@@ -541,8 +568,38 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     reportConfirmDialog.show();
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer")} onClick={() => {}}>
-                    {question}
+                  <div className={cn("py-2 px-4 rounded cursor-pointer")}>{question}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Sheet>
+      <Sheet store={subtitleSheet}>
+        <div className="max-h-full overflow-y-auto">
+          {(() => {
+            return (
+              <div
+                className="px-4"
+                onClick={() => {
+                  movie.toggleSubtitleVisible();
+                }}
+              >
+                {subtileState.visible ? "隐藏字幕" : "显示字幕"}
+              </div>
+            );
+          })()}
+          <div className="pt-4 pb-24 dark:text-black-200">
+            {subtileState.others.map((subtitle, i) => {
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    movie.loadSubtitleFile(subtitle, movie.currentTime);
+                  }}
+                >
+                  <div className={cn("py-2 px-4 rounded cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                    {subtitle.name}
                   </div>
                 </div>
               );

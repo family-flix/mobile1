@@ -4,6 +4,8 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
+import { SubtitleCore } from "@/domains/subtitle";
+import { SubtitleResp } from "@/domains/subtitle/types";
 import { Result } from "@/types";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
@@ -12,7 +14,6 @@ import {
   fetch_movie_and_cur_source,
   update_play_history,
   MediaSourceProfile,
-  fetch_movie_profile,
   fetch_media_profile,
 } from "./services";
 
@@ -23,11 +24,20 @@ enum Events {
   /** 分辨率改变 */
   ResolutionChange,
   StateChange,
+  SubtitleChange,
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: MovieProps["profile"];
   [Events.SourceChange]: MediaSourceProfile & { currentTime: number };
   [Events.ResolutionChange]: MediaSourceProfile & { currentTime: number };
+  [Events.SubtitleChange]: {
+    url: string | null;
+    index: string;
+    enabled: boolean;
+    visible: boolean;
+    texts: string[];
+    others: (SubtitleResp & { selected: boolean })[];
+  };
   [Events.StateChange]: MovieProps["profile"];
 };
 type MovieState = {};
@@ -50,7 +60,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     // const tv = res.data;
     // this.profile = tv;
     // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, currentTime, thumbnail, sources, curSource } = res.data;
+    const { name, overview, currentTime, thumbnail, sources, subtitles, curSource } = res.data;
     const tv = new MovieCore({
       profile: {
         id,
@@ -60,6 +70,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
         thumbnail,
         sources,
         curSource,
+        subtitles,
       },
     });
     return Result.Ok(tv);
@@ -78,6 +89,25 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   private _pending = false;
   played = false;
   canAutoPlay = false;
+  _subtitleStore: SubtitleCore | null = null;
+  /** 字幕文件列表 */
+  _subtitles: SubtitleResp[] = [];
+  /** 字幕 */
+  subtitle: {
+    url: string | null;
+    index: string;
+    enabled: boolean;
+    visible: boolean;
+    texts: string[];
+    others: (SubtitleResp & { selected: boolean })[];
+  } = {
+    url: null,
+    index: "0",
+    enabled: false,
+    visible: false,
+    texts: [],
+    others: [],
+  };
 
   constructor(options: Partial<{ name: string } & MovieProps> = {}) {
     super();
@@ -90,19 +120,14 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     if (id === undefined) {
       const msg = this.tip({ text: ["缺少电影 id 参数"] });
       return Result.Err(msg);
-      // return Result.Err("缺少电视剧 id");
     }
     this.id = id;
     const res = await fetch_movie_and_cur_source({ movie_id: id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
-      // return Result.Err(res.error);
       return Result.Err(msg);
     }
-    // const tv = res.data;
-    // this.profile = tv;
-    // this.emit(Events.ProfileLoaded, { ...this.profile });
-    const { name, overview, currentTime, thumbnail, sources, curSource } = res.data;
+    const { name, overview, currentTime, thumbnail, sources, subtitles, curSource } = res.data;
     this.profile = {
       id,
       name,
@@ -111,6 +136,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       thumbnail,
       sources,
       curSource,
+      subtitles,
     };
     this.emit(Events.ProfileLoaded, { ...this.profile });
     this.emit(Events.StateChange, { ...this.profile });
@@ -119,6 +145,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
 
   /** 开始播放 */
   async play() {
+    console.log("[DOMAIN]movie/index - play");
     if (!this.profile) {
       const msg = this.tip({ text: ["请先调用 fetchProfile 获取详情"] });
       return Result.Err(msg);
@@ -128,7 +155,6 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["没有可播放的视频源"] });
       return Result.Err(msg);
     }
-    console.log("[PAGE](play/index) - play movie");
     const res = await fetch_media_profile({
       id: curSource.file_id,
     });
@@ -140,20 +166,6 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.curSource = (() => {
       const { file_id, subtitles } = res.data;
-      // if (this.curResolutionType === "LD") {
-      //   const { url, type, typeText, width, height, thumbnail, resolutions, subtitles } = res.data;
-      //   return {
-      //     url,
-      //     file_id,
-      //     type,
-      //     typeText,
-      //     width,
-      //     height,
-      //     thumbnail,
-      //     resolutions,
-      //     subtitles,
-      //   };
-      // }
       const { resolutions } = res.data;
       const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
@@ -183,6 +195,8 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
         subtitles,
       };
     })();
+    this.loadSubtitle({ currentTime });
+    this.currentTime = currentTime;
     this.played = true;
     this.emit(Events.SourceChange, { ...this.curSource, currentTime });
     this.emit(Events.StateChange, { ...this.profile });
@@ -207,19 +221,6 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.canAutoPlay = true;
     this.curSource = (() => {
       const { file_id, subtitles } = res.data;
-      // if (this.curResolutionType === "LD") {
-      //   const { url, type, typeText, width, height, thumbnail, resolutions } = res.data;
-      //   return {
-      //     url,
-      //     file_id,
-      //     type,
-      //     typeText,
-      //     width,
-      //     height,
-      //     thumbnail,
-      //     resolutions,
-      //   };
-      // }
       const { resolutions } = res.data;
       const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
       if (!matched_resolution) {
@@ -249,7 +250,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
         subtitles,
       };
     })();
-    console.log("[DOMAIN]Movie - changeSource", this.currentTime);
+    // console.log("[DOMAIN]Movie - changeSource", this.currentTime);
     this.emit(Events.SourceChange, {
       ...this.curSource,
       currentTime: this.played ? this.currentTime : this.profile.currentTime,
@@ -257,7 +258,78 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok(null);
   }
-
+  async loadSubtitle(options: { currentTime: number }) {
+    // console.log("[DOMAIN]tv/index - loadSubtitle", this.curSource, this._subtitleStore);
+    const { currentTime } = options;
+    if (!this.profile) {
+      return;
+    }
+    if (!this.curSource) {
+      return;
+    }
+    const subtitles = this.curSource.subtitles.concat(this.profile.subtitles);
+    this._subtitles = subtitles;
+    const subtitleFile = (() => {
+      const matched = subtitles.find((s) => {
+        return s.lang === "chi";
+      });
+      if (matched) {
+        return matched;
+      }
+      const first = subtitles[0];
+      if (!first) {
+        return first;
+      }
+      return null;
+    })();
+    if (!subtitleFile) {
+      return;
+    }
+    this.loadSubtitleFile(subtitleFile, currentTime);
+  }
+  async loadSubtitleFile(subtitleFile: SubtitleResp, currentTime: number) {
+    // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this._subtitles);
+    if (subtitleFile.url === this.subtitle.url) {
+      return;
+    }
+    if (this._subtitleStore) {
+      this._subtitleStore.destroy();
+    }
+    this._subtitleStore = null;
+    const r = await SubtitleCore.New(subtitleFile, {
+      currentTime,
+    });
+    if (r.error) {
+      return;
+    }
+    const { curLine } = r.data;
+    this.subtitle.others = this._subtitles.map((sub) => {
+      const { id, name, url, lang, type } = sub;
+      return {
+        id,
+        name: name || lang || url,
+        url,
+        lang,
+        type,
+        selected: url === subtitleFile.url,
+      };
+    });
+    this.subtitle.url = subtitleFile.url;
+    this.subtitle.enabled = true;
+    this.subtitle.visible = true;
+    this.subtitle.index = curLine?.line ?? "0";
+    this.subtitle.texts = curLine?.texts ?? [];
+    this.emit(Events.SubtitleChange, { ...this.subtitle });
+    this._subtitleStore = r.data;
+    console.log("[DOMAIN]movie/index - after SubtitleCore.New", r.data, curLine);
+    this._subtitleStore.onStateChange((nextState) => {
+      const { curLine } = nextState;
+      this.subtitle.index = curLine?.line ?? "0";
+      this.subtitle.texts = curLine?.texts ?? [];
+      console.log("[DOMAIN]tv/index - subtitleStore.onStateChange", this.subtitle, curLine);
+      this.emit(Events.SubtitleChange, { ...this.subtitle });
+    });
+  }
   setCurResolution(type: MediaResolutionTypes) {
     this.curResolutionType = type;
   }
@@ -327,16 +399,39 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       file_id,
     });
   }
-  /** 更新观看进度 */
   updatePlayProgress = throttle_1(10 * 1000, (values: Partial<{ currentTime: number; duration: number }> = {}) => {
     this.updatePlayProgressForce(values);
   });
+  /** 更新观看进度 */
+  handleCurTimeChange = (values: Partial<{ currentTime: number; duration: number }> = {}) => {
+    const { currentTime = 0 } = values;
+    this.currentTime = currentTime;
+    if (this._subtitleStore && this.subtitle.visible) {
+      this._subtitleStore.handleTimeChange(currentTime);
+    }
+    this.updatePlayProgress(values);
+  };
   getTitle(): [string] {
     if (this.profile === null) {
       return ["加载中..."];
     }
     const { name } = this.profile;
     return [name];
+  }
+  toggleSubtitleVisible() {
+    if (this.subtitle.visible) {
+      this.hideSubtitle();
+      return;
+    }
+    this.showSubtitle();
+  }
+  hideSubtitle() {
+    this.subtitle.visible = false;
+    this.emit(Events.SubtitleChange, { ...this.subtitle });
+  }
+  showSubtitle() {
+    this.subtitle.visible = true;
+    this.emit(Events.SubtitleChange, { ...this.subtitle });
   }
 
   onSourceChange(handler: Handler<TheTypesOfEvents[Events.SourceChange]>) {
@@ -347,6 +442,9 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   }
   onProfileLoaded(handler: Handler<TheTypesOfEvents[Events.ProfileLoaded]>) {
     return this.on(Events.ProfileLoaded, handler);
+  }
+  onSubtitleChange(handler: Handler<TheTypesOfEvents[Events.SubtitleChange]>) {
+    return this.on(Events.SubtitleChange, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);

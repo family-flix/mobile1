@@ -2,45 +2,82 @@ import parse from "url-parse";
 
 import { SubtitleFile, SubtitleFileType, SubtitleParagraph } from "./types";
 
-export function srtTimeToSeconds(durationStr: string) {
-  const timeParts = durationStr.split(":");
-  const minutes = parseInt(timeParts[0]);
-  const seconds = parseFloat(timeParts[1].replace(",", ".")); // 处理逗号分隔的秒和毫秒部分
-  return minutes * 60 + seconds;
+export function timeStrToSeconds(durationStr: string) {
+  if (durationStr.match(/[0-9]{1,2}:[0-9]{2}:[0-9]{2}[\.,]/)) {
+    const timeParts = durationStr.split(":");
+    const hours = parseInt(timeParts[0]);
+    const minutes = parseInt(timeParts[1]);
+    const seconds = parseFloat(timeParts[2].replace(",", ".")); // 处理逗号分隔的秒和毫秒部分
+    return hours * 60 * 60 + minutes * 60 + seconds;
+  }
+  if (durationStr.match(/[0-9]{2}:[0-9]{2}[\.,]/)) {
+    const timeParts = durationStr.split(":");
+    const minutes = parseInt(timeParts[0]);
+    const seconds = parseFloat(timeParts[1].replace(",", ".")); // 处理逗号分隔的秒和毫秒部分
+    return minutes * 60 + seconds;
+  }
+  return 0;
 }
 
 export function parseSubtitleUrl(url: string): SubtitleFileType {
+  if (!url) {
+    return "srt";
+  }
   const { pathname } = parse(url);
-  const [, suffix] = pathname.split(".");
-  // @ts-ignore
-  return suffix || "vtt";
+  const suffix = pathname.split(".").pop();
+  if (suffix) {
+    return suffix.toLowerCase() as SubtitleFileType;
+  }
+  return "srt";
 }
 
 const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => SubtitleParagraph[]> = {
   srt: (content: string) => {
-    const oriParagraphs = content.split("\r\n\r\n").filter(Boolean);
+    let oriParagraphs = content.split("\r\n\r\n").filter(Boolean);
+    if (oriParagraphs.length === 1) {
+      oriParagraphs = oriParagraphs[0].split("\n\n").filter(Boolean);
+    }
     return oriParagraphs
       .map((paragraph, i) => {
-        const [startAndEnd, ...texts] = paragraph.split("\n").filter(Boolean);
-        const [start, end] = startAndEnd.split(" --> ");
-        const s = start.split(",")[0];
-        const e = end.split(",")[0];
+        const r: [string, string, string[]] | null = (() => {
+          let [startAndEnd, ...texts] = paragraph.split("\r\n").filter(Boolean);
+          if (startAndEnd.includes("-->")) {
+            const [start, end] = startAndEnd.split(" --> ");
+            return [start, end, texts];
+          }
+          [startAndEnd, ...texts] = texts;
+          if (startAndEnd.includes("-->")) {
+            const [start, end] = startAndEnd.split(" --> ");
+            return [start, end, texts];
+          }
+          return null;
+        })();
+        if (r === null) {
+          return null;
+        }
+        const [start, end, texts] = r;
+        const s = start.replace(/,/, ".");
+        const e = end.replace(/,/, ".");
         return {
           start: s,
           end: e,
-          startTime: srtTimeToSeconds(s),
-          endTime: srtTimeToSeconds(e),
+          startTime: timeStrToSeconds(s),
+          endTime: timeStrToSeconds(e),
           texts,
         };
       })
+      .filter(Boolean)
       .filter((line) => {
+        if (line === null) {
+          return false;
+        }
         if (Math.abs(line.endTime - line.startTime) < 0.1) {
           return false;
         }
         return true;
       })
       .map((line, index) => {
-        const { start, end, startTime, endTime, texts } = line;
+        const { start, end, startTime, endTime, texts } = line!;
         return {
           line: String(index),
           start,
@@ -64,8 +101,8 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => Subtitl
         return {
           start: s,
           end: e,
-          startTime: srtTimeToSeconds(s),
-          endTime: srtTimeToSeconds(e),
+          startTime: timeStrToSeconds(s),
+          endTime: timeStrToSeconds(e),
           texts,
         };
       })
@@ -88,21 +125,26 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => Subtitl
       });
   },
   ass: (content: string) => {
-    const lines = content.match(/Dialogue:.*\n?/g);
+    const lines = content.match(/Dialogue:[^\n]{1,}\n{0,}/g);
     if (!lines) {
       return [];
     }
     return lines
       .map((line) => {
-        const removeTextModifier = line.replace(/{.*?}/g, "");
-        const [, start, end, style, name, ml, mr, mv, effect, ...text] = removeTextModifier.split(",");
-        const [text1 = "", text2 = ""] = text.join(",").split("\\N");
+        const removeTextModifier = line.replace(/{[^}]{1,}}/g, "");
+        const [, start, end, style, name, ml, mr, mv, effect, ...texts] = removeTextModifier.split(",");
+        const [text1 = "", text2 = ""] = texts
+          .map((text) => {
+            return text.replace(/\n$/, "");
+          })
+          .join(",")
+          .split("\\N");
         return {
           start,
           end,
-          startTime: srtTimeToSeconds(start),
-          endTime: srtTimeToSeconds(end),
-          texts: [text1, text2],
+          startTime: timeStrToSeconds(start),
+          endTime: timeStrToSeconds(end),
+          texts: [text1, text2].filter(Boolean),
         };
       })
       .filter((line) => {

@@ -6,6 +6,7 @@ import { Handler } from "mitt";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { SubtitleCore } from "@/domains/subtitle";
+import { SubtitleResp } from "@/domains/subtitle/types";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
 
@@ -21,6 +22,7 @@ import {
   TVEpisodeProfile,
   fetch_source_playing_info,
 } from "./services";
+import { debounce } from "lodash/fp";
 
 enum Events {
   /** 电视剧详情加载完成 */
@@ -53,12 +55,12 @@ type TheTypesOfEvents = {
   [Events.StateChange]: TVProps["profile"];
   [Events.BeforeChangeSource]: void;
   [Events.SubtitleChange]: {
+    url: string | null;
     index: string;
-    /** 是否有字幕 */
     enabled: boolean;
-    /** 手动展示/隐藏字幕 */
     visible: boolean;
     texts: string[];
+    others: (SubtitleResp & { selected: boolean })[];
   };
 };
 type TVState = {};
@@ -131,25 +133,35 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   /** 当前影片播放进度 */
   currentTime = 0;
   curResolutionType: EpisodeResolutionTypes = "SD";
-  canAutoPlay = false;
   episodeList = new ListCore(new RequestCore(fetch_episodes_of_season), {
     pageSize: 20,
   });
   /** 正在请求中（获取详情、视频源信息等） */
   private _pending = false;
+  /** 正在播放中 */
+  playing = false;
+  canAutoPlay = false;
+  _subtitleStore: SubtitleCore | null = null;
+  /** 字幕文件列表 */
+  _subtitles: SubtitleResp[] = [];
   /** 字幕 */
   subtitle: {
+    url: string | null;
     index: string;
     enabled: boolean;
     visible: boolean;
     texts: string[];
+    others: (SubtitleResp & { selected: boolean })[];
   } = {
+    url: null,
     index: "0",
+    /** 是否有字幕 */
     enabled: false,
-    visible: true,
+    /** 手动展示/隐藏字幕 */
+    visible: false,
     texts: [],
+    others: [],
   };
-  _subtitleStore: SubtitleCore | null = null;
 
   constructor(options: Partial<{ name: string } & TVProps> = {}) {
     super();
@@ -226,7 +238,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   /** 播放该电视剧下指定影片 */
   async playEpisode(episode: TVEpisodeProfile, extra: { currentTime?: number; thumbnail?: string | null } = {}) {
     const { currentTime = 0, thumbnail = null } = extra;
-    console.log("[PAGE](play/index) - play episode");
+    console.log("[DOMAIN]tv/index - playEpisode", this.curSource, this._subtitleStore);
     if (!this.profile) {
       const msg = this.tip({ text: ["请先调用 fetchProfile 获取详情"] });
       return Result.Err(msg);
@@ -282,10 +294,6 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       };
     })();
     this.loadSubtitle({ currentTime });
-    // this.tip({
-    //   text: [this.profile.name, this.curEpisode.episode],
-    // });
-    // console.log("[DOMAIN]TV - playEpisode");
     if (!this.curEpisode.thumbnail && this.curSource.thumbnail) {
       this.curEpisode.thumbnail = this.curSource.thumbnail;
     }
@@ -294,23 +302,33 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok(this.curEpisode);
   }
+  /** 切换剧集 */
+  switchEpisode(episode: TVEpisodeProfile) {
+    if (this.playing) {
+      this.canAutoPlay = true;
+    }
+    this.playEpisode(episode, { currentTime: 0, thumbnail: null });
+  }
   async loadSubtitle(options: { currentTime: number }) {
+    // console.log("[DOMAIN]tv/index - loadSubtitle", this.curSource, this._subtitleStore);
     const { currentTime } = options;
+    if (!this.curEpisode) {
+      return;
+    }
     if (!this.curSource) {
       return;
     }
-    if (this._subtitleStore) {
-      this._subtitleStore.destroy();
-    }
-    this._subtitleStore = null;
+    console.log("[DOMAIN]tv/index - loadSubtitle", this.curSource.subtitles, this.curEpisode.subtitles);
+    const subtitles = this.curSource.subtitles.concat(this.curEpisode.subtitles).filter(Boolean);
+    this._subtitles = subtitles;
     const subtitleFile = (() => {
-      const matched = this.curSource.subtitles.find((s) => {
-        return s.language === "chi";
+      const matched = subtitles.find((s) => {
+        return s.lang === "chi";
       });
       if (matched) {
         return matched;
       }
-      const first = this.curSource.subtitles[0];
+      const first = subtitles[0];
       if (!first) {
         return first;
       }
@@ -319,6 +337,17 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (!subtitleFile) {
       return;
     }
+    this.loadSubtitleFile(subtitleFile, currentTime);
+  }
+  async loadSubtitleFile(subtitleFile: SubtitleResp, currentTime: number) {
+    // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this._subtitles);
+    if (subtitleFile.url === this.subtitle.url) {
+      return;
+    }
+    if (this._subtitleStore) {
+      this._subtitleStore.destroy();
+    }
+    this._subtitleStore = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
     });
@@ -326,13 +355,25 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const { curLine } = r.data;
+    this.subtitle.others = this._subtitles.map((sub) => {
+      const { id, name, url, lang, type } = sub;
+      return {
+        id,
+        name: name || lang || url,
+        url,
+        lang,
+        type,
+        selected: url === subtitleFile.url,
+      };
+    });
+    this.subtitle.url = subtitleFile.url;
     this.subtitle.enabled = true;
-    this.subtitle.visible = false;
+    this.subtitle.visible = true;
     this.subtitle.index = curLine?.line ?? "0";
     this.subtitle.texts = curLine?.texts ?? [];
-    console.log("[DOMAIN]tv/index - after SubtitleCore.New", this.currentTime, this.subtitle, curLine);
     this.emit(Events.SubtitleChange, { ...this.subtitle });
     this._subtitleStore = r.data;
+    console.log("[DOMAIN]movie/index - after SubtitleCore.New", r.data, curLine);
     this._subtitleStore.onStateChange((nextState) => {
       const { curLine } = nextState;
       this.subtitle.index = curLine?.line ?? "0";
@@ -667,12 +708,17 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   });
   /** 当前进度改变 */
   handleCurTimeChange(values: { currentTime: number; duration: number }) {
+    this.playing = true;
+    this._pause();
     const { currentTime = 0 } = values;
-    if (this._subtitleStore && !this.subtitle.visible) {
+    if (this._subtitleStore && this.subtitle.visible) {
       this._subtitleStore.handleTimeChange(currentTime);
     }
     this.updatePlayProgress(values);
   }
+  _pause = debounce(800, () => {
+    this.playing = false;
+  });
   getTitle(): [string, string, string] {
     if (this.profile === null || this.curEpisode === null) {
       // @ts-ignore
@@ -682,12 +728,19 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     const { name } = this.profile;
     return [episode, season, name];
   }
+  toggleSubtitleVisible() {
+    if (this.subtitle.visible) {
+      this.hideSubtitle();
+      return;
+    }
+    this.showSubtitle();
+  }
   hideSubtitle() {
-    this.subtitle.visible = true;
+    this.subtitle.visible = false;
     this.emit(Events.SubtitleChange, { ...this.subtitle });
   }
   showSubtitle() {
-    this.subtitle.visible = false;
+    this.subtitle.visible = true;
     this.emit(Events.SubtitleChange, { ...this.subtitle });
   }
 

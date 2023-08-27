@@ -1,3 +1,12 @@
+/** 后端返回的字幕文件 */
+export type SubtitleResp = {
+  id: string;
+  type: number;
+  name: string;
+  lang: string;
+  url: string;
+};
+
 /**
  * 句子
  */
