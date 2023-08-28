@@ -37,22 +37,42 @@ type PresenceState = {
   open: boolean;
   unmounted: boolean;
 };
+type PresenceProps = {
+  open?: boolean;
+  mounted?: boolean;
+};
+
 export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   name = "PresenceCore";
   debug = false;
 
-  // styles: CSSStyleDeclaration;
   animationName = "none";
-  // private state = "unmounted";
 
-  state: PresenceState = {
-    open: false,
-    mounted: false,
-    unmounted: false,
-  };
+  open = false;
+  mounted = false;
+  unmounted = false;
 
-  constructor(options: Partial<{ _name: string }> = {}) {
-    super(options);
+  get state(): PresenceState {
+    return {
+      open: this.open,
+      mounted: this.mounted,
+      unmounted: this.unmounted,
+    };
+  }
+
+  constructor(props: Partial<{ _name: string }> & PresenceProps = {}) {
+    super(props);
+
+    const { open, mounted } = props;
+    if (mounted !== undefined) {
+      this.mounted = mounted;
+    }
+    if (open !== undefined) {
+      this.open = open;
+      if (open) {
+        this.mounted = true;
+      }
+    }
   }
 
   calc() {
@@ -87,28 +107,35 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 是否可见 */
   get isPresent() {
-    return this.state.open;
+    return this.open;
     // return ["mounted", "unmountSuspended"].includes(this.state);
   }
   // setStyles(styles: CSSStyleDeclaration) {
   //   this.styles = styles;
   // }
+  toggle() {
+    if (this.open) {
+      this.hide();
+      return;
+    }
+    this.show();
+  }
   show() {
     // this.log("show");
     // this.calc(true);
-    this.state.open = true;
-    this.state.mounted = true;
+    this.open = true;
+    this.mounted = true;
     this.emit(Events.Show);
     this.emit(Events.StateChange, { ...this.state });
   }
   hide() {
     // console.log(...this.log("hide"));
     // console.log("[DOMAIN]ui/presence - hide", new Date().valueOf());
-    this.state.open = false;
+    this.open = false;
     this.emit(Events.Hidden);
     this.emit(Events.StateChange, { ...this.state });
     setTimeout(() => {
-      if (this.state.mounted === false) {
+      if (this.mounted === false) {
         return;
       }
       // console.log("[DOMAIN]ui/presence - hide before unmounted", new Date().valueOf());
@@ -126,21 +153,19 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 将 DOM 从页面卸载 */
   unmount() {
-    console.log("[]PresenceCore - destroy", this.state.open, this.state.unmounted);
-    if (this.state.open) {
+    console.log("[]PresenceCore - destroy", this.open, this.unmounted);
+    if (this.open) {
       // this.emit(Events.Show);
       return;
     }
-    this.state.mounted = false;
+    this.mounted = false;
     this.emit(Events.Unmounted);
     this.emit(Events.StateChange, { ...this.state });
   }
   reset() {
-    this.state = {
-      mounted: false,
-      open: false,
-      unmounted: false,
-    };
+    this.open = false;
+    this.mounted = false;
+    this.unmounted = false;
   }
 
   onShow(handler: Handler<TheTypesOfEvents[Events.Show]>) {

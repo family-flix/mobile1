@@ -95,7 +95,8 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     distY: 0,
     distResisted: 0,
   };
-
+  /** 滚动到底部的阈值 */
+  threshold = 120;
   private _pullToRefresh = false;
 
   state: ScrollViewState = {
@@ -149,6 +150,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       if (x < 30) {
         // this._pullToRefresh = false;
         this.state.scrollable = false;
+        this._pullToRefresh = false;
         this.emit(Events.StateChange, { ...this.state });
       }
     })();
@@ -158,7 +160,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     if (state !== "pending") {
       this._pullToRefresh = false;
     }
-    console.log("[DOMAIN]ui/scroll-view - start pulling", { x, y });
+    // console.log("[DOMAIN]ui/scroll-view - start pulling", { x, y });
     // y 方向滚动了一定距离，不可能可以下拉刷新
     if (this.rect.scrollTop) {
       this._pullToRefresh = false;
@@ -307,12 +309,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.startPullToRefresh();
   }
   /** 页面滚动时调用 */
-  scroll(event: { scrollTop: number }) {
+  handleScroll(event: { scrollTop: number }) {
     const { scrollTop } = event;
     this.emit(Events.Scroll, { scrollTop });
     const { height = 0, contentHeight = 0 } = this.rect;
-
-    if (scrollTop + height + 120 >= contentHeight) {
+    // console.log("[DOMAIN]ui/scroll-view - scroll", scrollTop, height, contentHeight);
+    if (scrollTop + height + this.threshold >= contentHeight) {
       if (this.canReachBottom === false) {
         this.emit(Events.ReachBottom);
       }

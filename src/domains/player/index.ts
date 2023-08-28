@@ -20,6 +20,8 @@ enum Events {
   ResolutionChange,
   /** 音量改变 */
   VolumeChange,
+  /** 播放倍率改变 */
+  RateChange,
   /** 宽高改变 */
   SizeChange,
   /** 预加载 */
@@ -54,6 +56,7 @@ type TheTypesOfEvents = {
     text: string;
   };
   [Events.VolumeChange]: { volume: number };
+  [Events.RateChange]: { rate: number };
   [Events.SizeChange]: { width: number; height: number };
   [Events.Ready]: void;
   // EpisodeProfile
@@ -90,6 +93,9 @@ type PlayerState = {
   width: number;
   height: number;
   ready: boolean;
+  rate: number;
+  volume: number;
+  currentTime: number;
 };
 
 export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
@@ -102,7 +108,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   private _ended = false;
   private _duration = 0;
   private _currentTime = 0;
-  private _curVolume = 0.5;
+  _curVolume = 0.5;
+  _curRate = 1;
   get currentTime() {
     return this._currentTime;
   }
@@ -122,6 +129,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     canPlayType: (type: string) => boolean;
     setCurrentTime: (v: number) => void;
     setVolume: (v: number) => void;
+    setRate: (v: number) => void;
   } | null = null;
   private _app: Application;
 
@@ -132,15 +140,21 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       width: this._size.width,
       height: this._size.height,
       ready: this._canPlay,
+      rate: this._curRate,
+      volume: this._curVolume,
+      currentTime: this._currentTime,
     };
   }
 
-  constructor(options: { app: Application; volume?: number }) {
+  constructor(options: { app: Application; volume?: number; rate?: number }) {
     super();
 
-    const { app, volume } = options;
+    const { app, volume, rate } = options;
     if (volume) {
       this._curVolume = volume;
+    }
+    if (rate) {
+      this._curRate = rate;
     }
     this._app = app;
   }
@@ -149,6 +163,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._abstractNode = node;
     if (this._abstractNode) {
       this._abstractNode.setVolume(this._curVolume);
+      this._abstractNode.setVolume(this._curRate);
     }
   }
   /** 开始播放 */
@@ -177,7 +192,17 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     if (this._abstractNode === null) {
       return;
     }
+    this._curVolume = v;
     this._abstractNode.setVolume(v);
+    this.emit(Events.VolumeChange, { volume: v });
+  }
+  changeRate(v: number) {
+    if (this._abstractNode === null) {
+      return;
+    }
+    this._curRate = v;
+    this._abstractNode.setRate(v);
+    this.emit(Events.RateChange, { rate: v });
   }
   setPoster(url: string | null) {
     if (url === null) {
@@ -275,6 +300,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Pause, { currentTime, duration });
   }
   handleVolumeChange(cur_volume: number) {
+    this._curVolume = cur_volume;
     this.emit(Events.VolumeChange, { volume: cur_volume });
   }
   handleResize(size: { width: number; height: number }) {
@@ -345,6 +371,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   onVolumeChange(handler: Handler<TheTypesOfEvents[Events.VolumeChange]>) {
     return this.on(Events.VolumeChange, handler);
+  }
+  onRateChange(handler: Handler<TheTypesOfEvents[Events.RateChange]>) {
+    return this.on(Events.RateChange, handler);
   }
   onPause(handler: Handler<TheTypesOfEvents[Events.Pause]>) {
     return this.on(Events.Pause, handler);

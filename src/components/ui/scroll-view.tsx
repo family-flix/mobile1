@@ -174,6 +174,7 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
       return;
     }
     const { clientWidth, clientHeight, scrollHeight } = $page.current;
+    // console.log("[COMPONENT]ui/scroll-view - initialize", $page, $page.current.clientHeight);
     store.setRect({
       width: clientWidth,
       height: clientHeight,
@@ -181,7 +182,6 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
     });
   });
 
-  //   const top = () => state().top;
   const { top, pullToRefresh } = state;
 
   return (
@@ -207,10 +207,24 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
         store.endPulling();
       }}
       onScroll={(event) => {
-        store.setRect({
-          contentHeight: $page.current?.scrollHeight,
-        });
-        store.scroll({
+        const { scrollHeight, clientHeight } = event.currentTarget;
+        let needUpdateRect = false;
+        const nextRect: Partial<{
+          height: number;
+          contentHeight: number;
+        }> = {};
+        if (clientHeight !== store.rect.height) {
+          nextRect.height = clientHeight;
+          needUpdateRect = true;
+        }
+        if (scrollHeight !== store.rect.contentHeight) {
+          nextRect.contentHeight = scrollHeight;
+          needUpdateRect = true;
+        }
+        if (needUpdateRect) {
+          store.setRect(nextRect);
+        }
+        store.handleScroll({
           scrollTop: event.currentTarget.scrollTop,
         });
       }}

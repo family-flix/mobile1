@@ -99,6 +99,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         })(),
       })
   );
+
   const [response, setResponse] = useState(helper.response);
   const [hasSearch, setHasSearch] = useState(
     (() => {
@@ -108,6 +109,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       return language.length !== 0;
     })()
   );
+
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
     scrollView.onPullToRefresh(async () => {
@@ -147,7 +149,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
           </div>
           <ListView
             store={helper}
-            className="relative h-[50%] mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative h-[50%] mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
                 <div className="flex px-4 pb-4 cursor-pointer">

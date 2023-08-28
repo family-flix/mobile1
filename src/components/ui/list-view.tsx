@@ -66,7 +66,7 @@ export const ListView = React.memo(
           when={!!response.error}
           fallback={
             <Show when={!response.noMore && !response.initial}>
-              <div className="mt-4 flex justify-center py-4 text-slate-500">
+              <div className="flex justify-center py-8 text-slate-500">
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
                   onClick={() => {
@@ -82,14 +82,14 @@ export const ListView = React.memo(
             </Show>
           }
         >
-          <div className="w-full h-[240px] flex items-center justify-center">
+          <div className="w-full h-[240px] flex items-center justify-center py-24">
             <div className="flex flex-col items-center justify-center px-8 text-slate-500">
               <AlertCircle className="w-24 h-24" />
               <div className="mt-4 flex items-center space-x-2">
                 <div className="text-center text-xl">{response.error?.message}</div>
               </div>
               <Show when={!!response.error?.message.includes("timestamp check failed")}>
-                <Button store={logintBtn} variant="subtle" size="sm" className="mt-4 py-4 px-4">
+                <Button store={logintBtn} variant="subtle" size="sm" className="mt-4 py-8 px-4">
                   点击刷新
                 </Button>
               </Show>
@@ -97,7 +97,7 @@ export const ListView = React.memo(
           </div>
         </Show>
         <Show when={response.noMore && !response.empty}>
-          <div className="mt-4 flex justify-center py-4 text-slate-500">
+          <div className="flex justify-center py-8 text-slate-500">
             <div className="flex items-center space-x-2">
               <Show when={response.loading}>
                 <Loader className="w-6 h-6 animate-spin" />

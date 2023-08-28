@@ -103,7 +103,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
   return (
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="pt-4">
+        <div className="h-full w-full">
           <div className="">
             <ListView
               store={helper}
@@ -111,13 +111,13 @@ export const HomeHistoryPage: ViewComponent = (props) => {
               skeleton={
                 <>
                   <div className="flex cursor-pointer">
-                    <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
+                    <Skeleton className="relative w-[128px] h-[198px] mr-4 dark:bg-gray-800"></Skeleton>
                     <div className="relative flex-1 mt-2">
-                      <Skeleton className="w-full h-[32px]"></Skeleton>
+                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
                       <div className="flex items-center mt-2 text-xl">
-                        <Skeleton className="w-24 h-[28px]"></Skeleton>
+                        <Skeleton className="w-24 h-[28px] dark:bg-gray-800"></Skeleton>
                       </div>
-                      <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
+                      <Skeleton className="mt-2 w-36 h-[24px] dark:bg-gray-800"></Skeleton>
                     </div>
                   </div>
                 </>

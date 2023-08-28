@@ -17,15 +17,14 @@ import {
 } from "lucide-react";
 
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
-import { ScrollViewCore, DialogCore, ToggleCore } from "@/domains/ui";
+import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { RequestCore } from "@/domains/request";
 import { SelectionCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ElementCore } from "@/domains/ui/element";
-import { connect } from "@/domains/player/connect.web";
+import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { reportSomething } from "@/services";
@@ -101,8 +100,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
   // const video = useInstance(() => new ElementCore({}));
   const episodesSheet = useInstance(() => new DialogCore());
   const sourcesSheet = useInstance(() => new DialogCore());
-  const bSheet = useInstance(() => new DialogCore());
-  const cSheet = useInstance(() => new DialogCore());
+  const rateSheet = useInstance(() => new DialogCore());
+  const resolutionSheet = useInstance(() => new DialogCore());
   const dSheet = useInstance(() => new DialogCore());
   const errorTipDialog = useInstance(() => {
     const dialog = new DialogCore({
@@ -153,11 +152,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
+  const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
+  const bottomOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
 
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
   const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
   const [curReportValue, setCurReportValue] = useState(curReport.value);
+  const [rate, setRate] = useState(player.state.rate);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -230,6 +232,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
         volume,
       });
     });
+    player.onRateChange(({ rate }) => {
+      setRate(rate);
+    });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
       tv.setCurrentTime(currentTime);
@@ -260,7 +265,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       episodesSheet.hide();
       sourcesSheet.hide();
-      cSheet.hide();
+      resolutionSheet.hide();
     });
     // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
@@ -310,141 +315,108 @@ export const TVPlayingPage: ViewComponent = (props) => {
       <ScrollView store={scrollView} className="fixed dark:text-black-200">
         <div className="h-screen">
           <div className="operations">
-            {/* <div
-                className={cn(
-                  show_menus ? "hidden" : "block",
-                  "absolute inset-0"
-                )}
-                onClick={toggleMenuVisible}
-              /> */}
             <div
-              className={cn(
-                // show_menus ? "block" : "hidden",
-                "z-10 absolute inset-0"
-              )}
-              // onClick={toggleMenuVisible}
+              className={cn("z-10 absolute inset-0")}
+              onClick={() => {
+                topOperation.toggle();
+                bottomOperation.toggle();
+              }}
             >
               <div className="flex items-center justify-between">
-                <div
-                  className="inline-block p-4"
-                  onClick={() => {
-                    rootView.uncoverPrevView();
-                    // rootView.curView?.hide();
-                    // rootView.prevView?.show();
-                    // rootView.curView = rootView.prevView;
-                    // rootView.prevView = null;
-                  }}
+                <Presence
+                  store={topOperation}
+                  className={cn(
+                    "animate-in fade-in slide-in-from-top",
+                    "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
+                  )}
                 >
-                  <ArrowLeft className="w-6 h-6 dark:text-black-200" />
-                </div>
+                  <div
+                    className="inline-block p-4"
+                    onClick={() => {
+                      rootView.uncoverPrevView();
+                    }}
+                  >
+                    <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                  </div>
+                </Presence>
               </div>
               <div className="absolute bottom-12 w-full safe-bottom">
-                {/* <div className="flex items-center w-36 m-auto">
-                      <p className="text-2xl ">
-                        {values.target_time}
-                      </p>
-                      <p className="mx-2 text-2xl ">
-                        /
-                      </p>
-                      <p className="text-2xl ">
-                        {values.duration}
-                      </p>
-                    </div> */}
-                {/* <div
-                      className="flex items-center mt-4 px-4"
-                      onClick={(event) => {
-                        event.stopPropagation();
+                <Presence
+                  store={bottomOperation}
+                  className={cn(
+                    "animate-in fade-in slide-in-from-bottom",
+                    "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
+                  )}
+                >
+                  <div className="grid grid-cols-3 gap-4 mt-18">
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={async () => {
+                        tv.playPrevEpisode();
                       }}
                     >
-                      <p className="mr-2 ">
-                        {values.current_time}
-                      </p>
-                      <Slider
-                        className=""
-                        value={[target_progress]}
-                        step={1}
-                        max={100}
-                        onValueChange={(v) => {
-                          set_target_progress(v[0]);
-                          player_ref.current.set_target_progress(v[0]);
-                        }}
-                        onValueCommit={() => {
-                          player_ref.current.commit_target_progress();
-                          hide_menus();
-                        }}
-                      />
-                      <p className="ml-4 ">
-                        {values.duration}
-                      </p>
-                    </div> */}
-                <div className="grid grid-cols-3 gap-4 mt-18">
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={async () => {
-                      tv.playPrevEpisode();
-                    }}
-                  >
-                    <ArrowBigLeft className="w-8 h-8" />
-                    <p className="mt-2 text-sm">上一集</p>
+                      <ArrowBigLeft className="w-8 h-8" />
+                      <p className="mt-2 text-sm">上一集</p>
+                    </div>
+                    <div className="flex flex-col items-center"></div>
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={() => {
+                        tv.playNextEpisode();
+                      }}
+                    >
+                      <ArrowBigRight className="w-8 h-8 " />
+                      <p className="mt-2 text-sm ">下一集</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-center"></div>
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={() => {
-                      tv.playNextEpisode();
-                    }}
-                  >
-                    <ArrowBigRight className="w-8 h-8 " />
-                    <p className="mt-2 text-sm ">下一集</p>
+                  <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={() => {
+                        episodesSheet.show();
+                      }}
+                    >
+                      <List className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">选集</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={() => {
+                        sourcesSheet.show();
+                      }}
+                    >
+                      <Wand2 className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">切换源</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={() => {
+                        rateSheet.show();
+                      }}
+                    >
+                      <Gauge className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">{rate}x</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center dark:text-black-200"
+                      onClick={() => {
+                        resolutionSheet.show();
+                      }}
+                    >
+                      <Glasses className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
+                    </div>
+                    <div
+                      className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
+                      onClick={() => {
+                        dSheet.show();
+                      }}
+                    >
+                      <MoreHorizontal className="w-6 h-6 " />
+                      <p className="mt-2 text-sm ">更多</p>
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={() => {
-                      episodesSheet.show();
-                    }}
-                  >
-                    <List className="w-6 h-6 " />
-                    <p className="mt-2 text-sm ">选集</p>
-                  </div>
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={() => {
-                      sourcesSheet.show();
-                    }}
-                  >
-                    <Wand2 className="w-6 h-6 " />
-                    <p className="mt-2 text-sm ">切换源</p>
-                  </div>
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={() => {
-                      bSheet.show();
-                    }}
-                  >
-                    <Gauge className="w-6 h-6 " />
-                    <p className="mt-2 text-sm ">倍速</p>
-                  </div>
-                  <div
-                    className="flex flex-col items-center dark:text-black-200"
-                    onClick={() => {
-                      cSheet.show();
-                    }}
-                  >
-                    <Glasses className="w-6 h-6 " />
-                    <p className="mt-2 text-sm ">分辨率</p>
-                  </div>
-                  <div
-                    className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
-                    onClick={() => {
-                      dSheet.show();
-                    }}
-                  >
-                    <MoreHorizontal className="w-6 h-6 " />
-                    <p className="mt-2 text-sm ">更多</p>
-                  </div>
-                </div>
+                </Presence>
               </div>
             </div>
           </div>
@@ -455,18 +427,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
               }
               return (
                 <div className="">
-                  {/* <ToggleView store={cover}>
-                      <Show when={!!profile.curEpisode.thumbnail}>
-                        <LazyImage
-                          className="absolute left-0 top-0 z-20"
-                          src={profile.curEpisode.thumbnail ?? undefined}
-                          alt={profile.name}
-                        />
-                      </Show>
-                      <div className="center z-30 top-20">
-                        <Loader className="inline-block w-8 h-8 text-white animate-spin" />
-                      </div>
-                    </ToggleView> */}
                   <Video store={player} />
                   {subtileState.visible ? (
                     <div key={subtileState.index} className="mt-2 space-y-1">
@@ -482,47 +442,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 </div>
               );
             })()}
-            {/* <div className={cn("absolute inset-0")}>
-                  <div
-                    className={cn(
-                      show_menus ? "hidden" : "block",
-                      "absolute inset-0"
-                    )}
-                    onClick={toggle_menu_visible}
-                  />
-                  <div
-                    className={cn(
-                      show_menus ? "block" : "hidden",
-                      "absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]"
-                    )}
-                    onClick={toggle_menu_visible}
-                  >
-                    {values.playing ? (
-                      <div className="p4">
-                        <Pause
-                          className="w-16 h-16 "
-                          onClick={async () => {
-                            await player_ref.current.pause();
-                            set_values(player_ref.current.values);
-                            toggle_menu_visible();
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="p-4">
-                        <div className="absolute p-2 z-10 inset-0 rounded-full bg-black opacity-50" />
-                        <Play
-                          className="relative z-20 left-1 w-16 h-16 "
-                          onClick={async () => {
-                            await player_ref.current.play();
-                            set_values(player_ref.current.values);
-                            set_show_menus(false);
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div> */}
           </div>
         </div>
       </ScrollView>
@@ -640,21 +559,27 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
-      <Sheet store={bSheet}>
-        <div className="dark:text-black-200">
-          <p className="mt-8 text-center text-sm ">敬请期待</p>
-          {/* {players.map((p) => {
-          const { name, icon, scheme } = p;
-          return (
-            <a className="block py-2" href={`vlc://${source?.url}`}>
-              {name}
-              {`vlc://${source?.url}`}
-            </a>
-          );
-        })} */}
+      <Sheet store={rateSheet}>
+        <div className="max-h-full overflow-y-auto">
+          <div className="pt-4 pb-24 dark:text-black-200">
+            {[0.5, 0.75, 1, 1.25, 1.5, 2, 3].map((rateOpt, index) => {
+              return (
+                <div
+                  key={index}
+                  onClick={() => {
+                    player.changeRate(rateOpt);
+                  }}
+                >
+                  <div className={cn("p-4 rounded cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
+                    <div className="break-all">{rateOpt}x</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Sheet>
-      <Sheet store={cSheet}>
+      <Sheet store={resolutionSheet}>
         {(() => {
           if (profile === null || curSource === null) {
             return <div>Loading</div>;

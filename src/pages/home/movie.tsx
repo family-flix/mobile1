@@ -55,14 +55,6 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const [hasSearch, setHasSearch] = useState(
-    (() => {
-      const { language = [] } = app.cache.get("movie_search", {
-        language: [] as string[],
-      });
-      return language.length !== 0;
-    })()
-  );
   const sourceCheckboxGroup = useInstance(() => {
     const { language = [] } = app.cache.get("movie_search", {
       language: [] as string[],
@@ -106,7 +98,16 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
     });
   });
 
+  const [hasSearch, setHasSearch] = useState(
+    (() => {
+      const { language = [] } = app.cache.get("movie_search", {
+        language: [] as string[],
+      });
+      return language.length !== 0;
+    })()
+  );
   const [response, setResponse] = useState(helper.response);
+
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
     view.onReady(() => {
@@ -169,7 +170,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
             </div>
             <ListView
               store={helper}
-              className="relative mt-6 grid grid-cols-1 pb-[24px] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+              className="relative mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
               skeleton={
                 <>
                   <div className="flex px-4 pb-4 cursor-pointer">
