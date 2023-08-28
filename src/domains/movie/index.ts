@@ -307,7 +307,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       const { id, name, url, lang, type } = sub;
       return {
         id,
-        name: name || lang || url,
+        name: lang || name || url,
         url,
         lang,
         type,

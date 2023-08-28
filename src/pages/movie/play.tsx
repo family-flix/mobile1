@@ -110,7 +110,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
   const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
-  const bottomOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
+  const bottomOperation = useInstance(() => new PresenceCore({}));
 
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
@@ -136,6 +136,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       app.setTitle(movie.getTitle().join(" - "));
       movie.play();
       player.setCurrentTime(profile.currentTime);
+      bottomOperation.show();
     });
     movie.onStateChange((nextProfile) => {
       setProfile(nextProfile);

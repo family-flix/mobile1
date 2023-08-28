@@ -152,8 +152,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
-  const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
-  const bottomOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
+  const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
+  const bottomOperation = useInstance(() => new PresenceCore({}));
 
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
@@ -181,6 +181,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
       tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
       player.setCurrentTime(curEpisode.currentTime);
+      bottomOperation.show();
     });
     tv.onEpisodeChange((nextEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
