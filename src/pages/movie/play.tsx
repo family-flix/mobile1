@@ -260,12 +260,18 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   )}
                 >
                   <div
-                    className="inline-block p-4"
-                    onClick={() => {
-                      rootView.uncoverPrevView();
+                    onClick={(event) => {
+                      event.stopPropagation();
                     }}
                   >
-                    <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                    <div
+                      className="inline-block p-4"
+                      onClick={() => {
+                        rootView.uncoverPrevView();
+                      }}
+                    >
+                      <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                    </div>
                   </div>
                 </Presence>
               </div>
@@ -277,43 +283,49 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
                   )}
                 >
-                  <div className="grid grid-cols-3 gap-4 mt-18"></div>
-                  <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
-                    <div
-                      className="flex flex-col items-center"
-                      onClick={() => {
-                        sourceSheet.show();
-                      }}
-                    >
-                      <List className="w-6 h-6 " />
-                      <p className="mt-2 text-sm ">切换源</p>
-                    </div>
-                    <div
-                      className="flex flex-col items-center dark:text-black-200"
-                      onClick={() => {
-                        rateSheet.show();
-                      }}
-                    >
-                      <Gauge className="w-6 h-6 " />
-                      <p className="mt-2 text-sm ">{rate}x</p>
-                    </div>
-                    <div
-                      className="flex flex-col items-center dark:text-black-200"
-                      onClick={() => {
-                        resolutionSheet.show();
-                      }}
-                    >
-                      <Glasses className="w-6 h-6 " />
-                      <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
-                    </div>
-                    <div
-                      className="flex flex-col items-center focus:outline-none focus:ring-0"
-                      onClick={() => {
-                        infoSheet.show();
-                      }}
-                    >
-                      <MoreHorizontal className="w-6 h-6 " />
-                      <p className="mt-2 text-sm ">更多</p>
+                  <div
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
+                    <div className="grid grid-cols-3 gap-4 mt-18"></div>
+                    <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
+                      <div
+                        className="flex flex-col items-center"
+                        onClick={() => {
+                          sourceSheet.show();
+                        }}
+                      >
+                        <List className="w-6 h-6 " />
+                        <p className="mt-2 text-sm ">切换源</p>
+                      </div>
+                      <div
+                        className="flex flex-col items-center dark:text-black-200"
+                        onClick={() => {
+                          rateSheet.show();
+                        }}
+                      >
+                        <Gauge className="w-6 h-6 " />
+                        <p className="mt-2 text-sm ">{rate}x</p>
+                      </div>
+                      <div
+                        className="flex flex-col items-center dark:text-black-200"
+                        onClick={() => {
+                          resolutionSheet.show();
+                        }}
+                      >
+                        <Glasses className="w-6 h-6 " />
+                        <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
+                      </div>
+                      <div
+                        className="flex flex-col items-center focus:outline-none focus:ring-0"
+                        onClick={() => {
+                          infoSheet.show();
+                        }}
+                      >
+                        <MoreHorizontal className="w-6 h-6 " />
+                        <p className="mt-2 text-sm ">更多</p>
+                      </div>
                     </div>
                   </div>
                 </Presence>
@@ -384,7 +396,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       <Sheet store={rateSheet}>
         <div className="max-h-full overflow-y-auto">
           <div className="pt-4 pb-24 dark:text-black-200">
-            {[0.5, 0.75, 1, 1.25, 1.5, 2, 3].map((rateOpt, index) => {
+            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
               return (
                 <div
                   key={index}

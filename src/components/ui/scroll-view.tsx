@@ -228,6 +228,16 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
           scrollTop: event.currentTarget.scrollTop,
         });
       }}
+      // onAnimationEnd={(event) => {
+      //   const $page = event.currentTarget;
+      //   connect(store, $page);
+      //   const { clientWidth, clientHeight, scrollHeight } = $page;
+      //   store.setRect({
+      //     width: clientWidth,
+      //     height: clientHeight,
+      //     contentHeight: scrollHeight,
+      //   });
+      // }}
     >
       {props.children}
     </div>
