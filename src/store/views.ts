@@ -7,6 +7,7 @@ import { HomeLayout } from "@/pages/home/layout";
 import { HomeIndexPage } from "@/pages/home";
 import { HomeMoviePage } from "@/pages/home/movie";
 import { HomeHistoryPage } from "@/pages/home/history";
+import { HomeMessagePage } from "@/pages/home/message";
 import { HomeTVSearchPage } from "@/pages/home/search/tv";
 import { HomeMovieSearchPage } from "@/pages/home/search/movie";
 import { HomeMinePage } from "@/pages/home/mine";
@@ -17,6 +18,7 @@ import { OuterPlayersPage } from "@/pages/outplayers";
 /** 其他 */
 import { Test1Page } from "@/pages/test1";
 import { NotFoundPage } from "@/pages/not-found";
+import { InviteeListPage } from "@/pages/invitee";
 
 export const pages: RouteViewCore[] = [];
 onViewCreated((created) => {
@@ -54,6 +56,11 @@ export const homeHistoriesPage = new RouteViewCore({
   title: "播放历史",
   component: HomeHistoryPage,
 });
+export const homeMessagesPage = new RouteViewCore({
+  key: "/home/message",
+  title: "未读消息",
+  component: HomeMessagePage,
+});
 export const homeMinePage = new RouteViewCore({
   key: "/home/mine",
   title: "我的",
@@ -73,6 +80,11 @@ export const moviePlayingPage = new RouteViewCore({
   key: "/movie/play/:id",
   title: "播放电影",
   component: MoviePlayingPage,
+});
+export const inviteeListPage = new RouteViewCore({
+  key: "/invitee",
+  title: "邀请的成员",
+  component: InviteeListPage,
 });
 export const outerPlayerPage = new RouteViewCore({
   key: "/out_players",

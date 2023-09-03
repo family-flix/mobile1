@@ -3,14 +3,23 @@
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
 import { useState } from "react";
-import { Film, HardDrive, Home, Users } from "lucide-react";
+import { Film, HardDrive, Home, MessageCircle, MessageSquare, Users } from "lucide-react";
 
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { ButtonCore, DialogCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { homeHistoriesPage, homeIndexPage, homeLayout, homeMinePage, homeMoviePage } from "@/store";
+import {
+  homeHistoriesPage,
+  homeIndexPage,
+  homeLayout,
+  homeMessagesPage,
+  homeMinePage,
+  homeMoviePage,
+  messageList,
+} from "@/store";
 import { cn } from "@/utils";
+import { Show } from "@/components/ui/show";
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -30,6 +39,7 @@ export const HomeLayout: ViewComponent = (props) => {
   );
   const [subViews, setSubViews] = useState(view.subViews);
   const [curView, setCurView] = useState(view.curView);
+  const [messageResponse, setMessageResponse] = useState(messageList.response);
 
   useInitialize(() => {
     view.onSubViewsChange((nextSubViews) => {
@@ -38,6 +48,10 @@ export const HomeLayout: ViewComponent = (props) => {
     view.onCurViewChange((nextCurView) => {
       setCurView(nextCurView);
     });
+    messageList.onStateChange((nextState) => {
+      setMessageResponse(nextState);
+    });
+    messageList.initIfInitial();
   });
 
   // console.log("[PAGE]home/layout - render", view);
@@ -66,7 +80,7 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-4 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
+        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
@@ -120,6 +134,23 @@ export const HomeLayout: ViewComponent = (props) => {
               <HardDrive className="w-5 h-5" />
             </div>
             <div className="mt-2 text-sm text-center">观看记录</div>
+          </div>
+          <div
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
+              curView === homeMessagesPage ? highlightColor : ""
+            )}
+            onClick={() => {
+              homeLayout.showSubView(homeMessagesPage);
+            }}
+          >
+            <div className="relative">
+              <MessageSquare className="w-5 h-5" />
+              <Show when={!!messageResponse.total}>
+                <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
+              </Show>
+            </div>
+            <div className="mt-2 text-sm text-center">消息</div>
           </div>
           <div
             className={cn(

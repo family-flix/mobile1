@@ -14,6 +14,22 @@ export function fetch_subtitle_url(params: { id: string }) {
   return request.get<{ name: string; url: string }>(`/api/subtitle/${id}/url`);
 }
 
+type AnswerPayload = Partial<{
+  content: string;
+  season: {
+    id: string;
+    tv_id: string;
+    name: string;
+    first_air_date: string;
+    poster_path: string;
+  };
+  movie: {
+    id: string;
+    name: string;
+    first_air_date: string;
+    poster_path: string;
+  };
+}>;
 /**
  * 获取消息通知
  */
@@ -22,6 +38,7 @@ export async function fetchNotifications(params: FetchParams) {
     ListResponse<{
       id: string;
       content: string;
+      status: number;
       created: string;
     }>
   >("/api/notification/list", params);
@@ -35,16 +52,66 @@ export async function fetchNotifications(params: FetchParams) {
     total,
     no_more,
     list: list.map((notify) => {
-      const { id, content, created } = notify;
-      const { tv_id, name, poster_path, msg } = JSON.parse(content);
+      const { id, content, status, created } = notify;
+      const { msg, movie, season } = JSON.parse(content) as {
+        msg: string;
+      } & AnswerPayload;
       return {
         id,
-        tv_id,
-        name,
-        poster_path,
+        status,
+        movie,
+        season,
         msg,
         created: dayjs(created).format("YYYY-MM-DD HH:mm"),
       };
     }),
   });
+}
+
+export function readNotification(params: { id: string }) {
+  const { id } = params;
+  return request.get(`/api/notification/${id}/read`);
+}
+
+export function readAllNotification() {
+  return request.get(`/api/notification/read`);
+}
+
+export function fetchInfo() {
+  return request.get<{
+    id: string;
+    permissions: string[];
+  }>("/api/info");
+}
+
+/**
+ * 邀请成员
+ */
+export function inviteMember(values: { remark: string }) {
+  const { remark } = values;
+  return request.post<{
+    id: string;
+    remark: string;
+    tokens: {
+      id: string;
+      token: string;
+      used: number;
+    }[];
+  }>("/api/invitee/add", {
+    remark,
+  });
+}
+
+export function fetchInviteeList(params: FetchParams) {
+  return request.get<
+    ListResponse<{
+      id: string;
+      remark: string;
+      tokens: {
+        id: string;
+        token: string;
+        used: number;
+      }[];
+    }>
+  >("/api/invitee/list", params);
 }

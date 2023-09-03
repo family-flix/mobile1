@@ -187,6 +187,10 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
       ...extra,
     };
   }
+  /** 复制文本到粘贴板 */
+  copy(text: string) {
+    throw new Error("请实现 copy 方法");
+  }
   getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
     throw new Error("请实现 getComputedStyle 方法");
   }

@@ -1,10 +1,10 @@
 /**
  * @file 个人中心页
  */
-import React, { useState } from "react";
-import { HelpCircle, HelpingHand, MailQuestion, Moon, Settings2, Sun, Tv } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Copy, HelpCircle, HelpingHand, MailQuestion, Moon, Settings2, Sun, Tv } from "lucide-react";
 
-import { reportSomething } from "@/services";
+import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore } from "@/domains/ui";
@@ -13,6 +13,8 @@ import { ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
+import { Show } from "@/components/ui/show";
+import { infoRequest, inviteeListPage, rootView } from "@/store";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -31,7 +33,9 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
       new ButtonCore({
         async onClick() {
           app.user.logout();
+          loginBtn.setLoading(true);
           const r = await app.user.validate(router.query.token, "1");
+          loginBtn.setLoading(false);
           if (r.error) {
             return;
           }
@@ -132,6 +136,10 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const [t, setT] = useState(theme);
   const [profile, setProfile] = useState(app.user);
   // const [history_response] = useState(history_helper.response);
+
+  useEffect(() => {
+    infoRequest.run();
+  }, []);
   useInitialize(() => {
     if (theme !== "system") {
       return;
@@ -187,7 +195,9 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             </div>
           </div>
           <div className="relative flex p-4 h-24 rounded-lg">
-            <LazyImage className="mr-4 w-16 h-16 rounded-full" src={profile.avatar} />
+            <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
+              <LazyImage className="w-full h-full" src={profile.avatar} />
+            </div>
             <div className="mt-2 text-xl">{profile.id}</div>
             <div></div>
           </div>
@@ -243,8 +253,19 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div
               className=""
               onClick={() => {
-                app.tip({ text: ["敬请期待"] });
-                // dialog.show();
+                if (!infoRequest.response) {
+                  app.tip({
+                    text: ["网络不佳，请刷新后重试"],
+                  });
+                  return;
+                }
+                if (!infoRequest.response.permissions.includes("001")) {
+                  app.tip({
+                    text: ["该功能暂未开放"],
+                  });
+                  return;
+                }
+                rootView.layerSubView(inviteeListPage);
               }}
             >
               <div className="flex">
@@ -262,7 +283,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               刷新登录信息
             </Button>
           </div>
-          <div className="text-center text-sm">V1.9.0-alpha.2</div>
+          <div className="text-center text-sm">V1.11.0</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>

@@ -29,14 +29,14 @@ export function LazyImage(props: { src?: string; alt?: string } & React.HTMLAttr
 
   if (state.step === ImageStep.Failed) {
     return (
-      <div className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-black")}>
+      <div className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-gray-800")}>
         <ImageOff className="w-8 h-8 text-slate-500 dark:text-black-200" />
       </div>
     );
   }
   if (state.step === ImageStep.Pending) {
     return (
-      <div ref={$img} className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-black")}>
+      <div ref={$img} className={cn(props.className, "flex items-center justify-center bg-slate-200 dark:bg-gray-800")}>
         <Image className="w-8 h-8 text-slate-500 dark:text-black-200" />
       </div>
     );
