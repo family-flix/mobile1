@@ -562,6 +562,7 @@ export async function fetch_play_histories(params: FetchParams) {
       tv_id: string;
       /** 影片id */
       episode_id: string;
+      movie_id: string;
       /** 该集总时长 */
       duration: number;
       /** 看到该电视剧第几集 */
@@ -606,6 +607,7 @@ export async function fetch_play_histories(params: FetchParams) {
         name,
         tv_id,
         episode_id,
+        movie_id,
         poster_path,
         updated,
         has_update,
@@ -617,6 +619,18 @@ export async function fetch_play_histories(params: FetchParams) {
         current_time,
         thumbnail,
       } = history;
+      if (movie_id) {
+        return {
+          id,
+          movie_id,
+          name,
+          poster_path,
+          updated: relative_time_from_now(updated),
+          currentTime: current_time,
+          percent: parseFloat(((current_time / duration) * 100).toFixed(2)),
+          thumbnail,
+        };
+      }
       return {
         id,
         name,

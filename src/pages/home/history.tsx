@@ -4,15 +4,16 @@
 import React, { useState } from "react";
 import { MoreVertical } from "lucide-react";
 
-import { ScrollView, Skeleton, LazyImage, ListView, BackToTop, Dialog, Node } from "@/components/ui";
+import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
 import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
 import { SelectionCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { rootView, tvPlayingPage } from "@/store";
+import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
+import { Show } from "@/components/ui/show";
 
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { app, router, view } = props;
@@ -75,11 +76,21 @@ export const HomeHistoryPage: ViewComponent = (props) => {
           if (!history) {
             return;
           }
-          const { tv_id } = history;
-          tvPlayingPage.params = {
-            id: tv_id,
-          };
-          rootView.layerSubView(tvPlayingPage);
+          const { tv_id, movie_id } = history;
+          if (tv_id) {
+            tvPlayingPage.params = {
+              id: tv_id,
+            };
+            rootView.layerSubView(tvPlayingPage);
+            return;
+          }
+          if (movie_id) {
+            moviePlayingPage.params = {
+              id: movie_id,
+            };
+            rootView.layerSubView(moviePlayingPage);
+            return;
+          }
         },
         // onLongPress(record) {
         //   console.log("123");
@@ -103,7 +114,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
   return (
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="h-full w-full">
+        <div className="min-h-screen w-full">
           <div className="">
             <ListView
               store={helper}
@@ -127,6 +138,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                 const {
                   id,
                   tv_id,
+                  movie_id,
                   name,
                   poster_path,
                   episode,
@@ -174,14 +186,45 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                       })()}
                     </div>
                     <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis mt-2">
-                      <h2 className="text-2xl dark:text-white">{name}</h2>
-                      <div className="flex items-center mt-2 text-xl">
-                        <p className="">{episode}</p>
-                        <p className="mx-2">·</p>
-                        <p className="">{season}</p>
-                      </div>
+                      <h2 className="text-2xl dark:text-white">
+                        {/* <span className="mr-2">
+                          {(() => {
+                            if (tv_id) {
+                              return (
+                                <span className="text-[14px] leading-none text-gray-800 dark:text-gray-300">
+                                  电视剧
+                                </span>
+                              );
+                            }
+                            if (movie_id) {
+                              return (
+                                <span className="text-[14px] leading-none text-gray-800 dark:text-gray-300">电影</span>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </span> */}
+                        <span className="">{name}</span>
+                      </h2>
+                      <Show when={!!episode}>
+                        <div className="flex items-center mt-2">
+                          <p className="">{episode}</p>
+                          <p className="mx-2">·</p>
+                          <p className="">{season}</p>
+                        </div>
+                      </Show>
                       <div className="mt-2">{updated} 看过</div>
-                      <div className="flex items-center mt-4 space-x-2">
+                      <div className="mt-2 flex items-center gap-2 flex-wrap max-w-full">
+                        <div
+                          className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                          style={{
+                            lineHeight: "12px",
+                          }}
+                        >
+                          {tv_id ? "电视剧" : "电影"}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
                         {(() => {
                           const nodes: React.ReactNode[] = [];
                           if (has_update) {
@@ -196,7 +239,10 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                               </div>
                             );
                           }
-                          return nodes;
+                          if (!nodes.length) {
+                            return null;
+                          }
+                          return <div className="mt-4">{nodes}</div>;
                         })()}
                       </div>
                     </div>
