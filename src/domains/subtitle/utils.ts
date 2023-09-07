@@ -41,12 +41,12 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => Subtitl
       .map((paragraph, i) => {
         const r: [string, string, string[]] | null = (() => {
           let [startAndEnd, ...texts] = paragraph.split("\r\n").filter(Boolean);
-          if (startAndEnd.includes("-->")) {
+          if (startAndEnd && startAndEnd.includes("-->")) {
             const [start, end] = startAndEnd.split(" --> ");
             return [start, end, texts];
           }
           [startAndEnd, ...texts] = texts;
-          if (startAndEnd.includes("-->")) {
+          if (startAndEnd && startAndEnd.includes("-->")) {
             const [start, end] = startAndEnd.split(" --> ");
             return [start, end, texts];
           }

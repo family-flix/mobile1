@@ -321,6 +321,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     console.log("[DOMAIN]tv/index - loadSubtitle", this.curSource.subtitles, this.curEpisode.subtitles);
     const subtitles = this.curSource.subtitles.concat(this.curEpisode.subtitles).filter(Boolean);
     this._subtitles = subtitles;
+    // console.log("[DOMAIN]tv/index - loadSubtitle2 ", subtitles);
     const subtitleFile = (() => {
       const matched = subtitles.find((s) => {
         return s.lang === "chi";
@@ -329,18 +330,21 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
         return matched;
       }
       const first = subtitles[0];
-      if (!first) {
+      // console.log("[DOMAIN]tv/index - first", first, subtitles);
+      if (first) {
         return first;
       }
       return null;
     })();
+    // console.log("[DOMAIN]tv/index - no matched subtitle?", subtitleFile);
     if (!subtitleFile) {
       return;
     }
+    // console.log("[DOMAIN]tv/index - before loadSubtitleFile", subtitleFile);
     this.loadSubtitleFile(subtitleFile, currentTime);
   }
   async loadSubtitleFile(subtitleFile: SubtitleResp, currentTime: number) {
-    // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this._subtitles);
+    // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this.subtitle);
     if (subtitleFile.url === this.subtitle.url) {
       return;
     }
