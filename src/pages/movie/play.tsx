@@ -200,9 +200,14 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     });
     // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
-      console.log("[PAGE]play - player.onError");
-      // app.tip({ text: ["视频加载错误", error.message] });
-      errorTipDialog.show();
+      // console.log("[PAGE]play - player.onError");
+      (() => {
+        if (error.message.includes("格式")) {
+          errorTipDialog.show();
+          return;
+        }
+        app.tip({ text: ["视频加载错误", error.message] });
+      })();
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {

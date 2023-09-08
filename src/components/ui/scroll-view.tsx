@@ -109,13 +109,13 @@ const Indicator = (props: { store: ScrollViewCore; children: React.ReactElement 
     });
     store.enablePullToRefresh();
   });
-  //   const top = () => state().top - 60;
-  const top = state.top - 60;
+  const top = state.top;
+  const opacity = top / 80;
 
   return (
     <div
       style={{
-        transform: `translateY(${top}px)`,
+        opacity,
       }}
     >
       {props.children}
@@ -188,7 +188,8 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
     <div
       ref={$page}
       className={props.className}
-      style={{ ...(props.style || {}), transform: `translateY(${top}px)` }}
+      // style={{ ...(props.style || {}), transform: `translateY(${top}px)` }}
+      style={{ ...(props.style || {}) }}
       onTouchStart={(event) => {
         const { pageX, pageY } = event.touches[0];
         const position = { x: pageX, y: pageY };

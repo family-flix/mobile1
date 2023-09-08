@@ -44,6 +44,15 @@ export function Video(props: { store: PlayerCore }) {
         overflow: "hidden",
         // backgroundColor: "red",
       }}
+      onTouchStart={(event) => {
+        event.stopPropagation();
+      }}
+      onTouchMove={(event) => {
+        event.stopPropagation();
+      }}
+      onTouchEnd={(event) => {
+        event.stopPropagation();
+      }}
     >
       <video
         ref={videoRef}

@@ -271,10 +271,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
     // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
       console.log("[PAGE]play - player.onError", error);
-      // const token = "lg9lT9e03WPcmBn";
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      app.tip({ text: ["视频加载错误", error.message] });
-      errorTipDialog.show();
+      (() => {
+        if (error.message.includes("格式")) {
+          errorTipDialog.show();
+          return;
+        }
+        app.tip({ text: ["视频加载错误", error.message] });
+      })();
       player.pause();
     });
     player.onUrlChange(async ({ url, thumbnail }) => {
@@ -433,7 +437,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
           </div>
-          <div className="video z-20 absolute top-[20%]">
+          <div
+            className="video z-20 absolute top-[20%]"
+            // onTouchStart={(event) => {
+            //   event.stopPropagation();
+            // }}
+          >
             {(() => {
               if (profile === null || profile.curEpisode === null) {
                 return null;

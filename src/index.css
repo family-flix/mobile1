@@ -25,6 +25,7 @@
 
 .hide-scroll {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .hide-scroll::-webkit-scrollbar {
   display: none;

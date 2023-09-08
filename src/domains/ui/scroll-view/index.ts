@@ -11,6 +11,7 @@ enum Events {
   ReachBottom,
   Scroll,
   PullToRefresh,
+  // CancelPullToRefresh,
   PullToBack,
   Refreshing,
   StateChange,
@@ -19,6 +20,7 @@ type TheTypesOfEvents = {
   [Events.ReachBottom]: void;
   [Events.Scroll]: { scrollTop: number };
   [Events.PullToRefresh]: void;
+  // [Events.CancelPullToRefresh]: void;
   [Events.PullToBack]: void;
   [Events.StateChange]: ScrollViewState;
   [Events.Refreshing]: void;
@@ -143,6 +145,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       ...rect,
     };
   }
+  // isPulling = false;
   startPull(pos: { x: number; y: number }) {
     const { x, y } = pos;
     const { state } = this.pullToRefresh;
@@ -208,7 +211,6 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
         }
       }
     })();
-
     // console.log("[DOMAIN]ui/scroll-view - pulling", isPullToRefresh);
     if (this.isPullToBack) {
       this.state.scrollable = false;
@@ -251,6 +253,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     if (this.pullToRefresh.distY <= 0) {
       return;
     }
+    // this.isPulling = true;
     const distThreshold = 60;
     const distMax = 80;
     const distResisted =
@@ -287,6 +290,10 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     if (this.canPullToRefresh === false) {
       return;
     }
+    // if (!this.isPulling) {
+    //   return;
+    // }
+    // this.isPulling = false;
     if (["refreshing"].includes(this.pullToRefresh.state)) {
       return;
     }
@@ -298,6 +305,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       this.pullToRefresh.state = "pending";
       this.state.top = 0;
       this.state.step = this.pullToRefresh.state;
+      // this.emit(Events.CancelPullToRefresh);
       this.emit(Events.StateChange, { ...this.state });
       return;
     }
@@ -383,6 +391,9 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.state.pullToRefresh = true;
     return this.on(Events.PullToRefresh, handler);
   }
+  // onCancelPullToRefresh(handler: Handler<TheTypesOfEvents[Events.CancelPullToRefresh]>) {
+  //   return this.on(Events.CancelPullToRefresh, handler);
+  // }
   onPullToBack(handler: Handler<TheTypesOfEvents[Events.PullToBack]>) {
     this.state.pullToBack.enabled = true;
     return this.on(Events.PullToBack, handler);
