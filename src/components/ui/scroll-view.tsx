@@ -13,6 +13,7 @@ export const ScrollView = React.memo(
   (props: {
     store: ScrollViewCore;
     wrapClassName?: string;
+    contentClassName?: string;
     className?: string;
     style?: React.CSSProperties;
     children: React.ReactElement;
@@ -31,21 +32,18 @@ export const ScrollView = React.memo(
     const options = {
       pending: () => null,
       pulling: () => (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
           <ArrowDown width={18} height={18} />
-          <div>下拉刷新</div>
         </div>
       ),
       releasing: () => (
-        <div className="flex items-center justify-center space-x-2">
-          <ArrowUp width={18} height={18} />
-          <div>松手刷新</div>
+        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
+          <Loader2 width={18} height={18} />
         </div>
       ),
       refreshing: () => (
-        <div className="flex items-center justify-center space-x-2">
+        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
           <Loader2 className="animate animate-spin" width={18} height={18} />
-          <div>正在刷新</div>
         </div>
       ),
     };
@@ -58,13 +56,6 @@ export const ScrollView = React.memo(
         style={style}
         {...restProps}
       >
-        {pullToRefresh && (
-          <Indicator store={store}>
-            <div className="flex items-center justify-center h-[80px]">
-              <Component />
-            </div>
-          </Indicator>
-        )}
         <div className={cn("z-10 absolute inset-0 max-h-full")}>
           <div className="z-20 absolute left-0 bottom-[180px] flex items-center h-[200px]">
             <BackIndicator store={store}>
@@ -73,7 +64,7 @@ export const ScrollView = React.memo(
           </div>
           <Content
             store={store}
-            className={cn("max-h-full overflow-y-auto hide-scroll", scrollable ? "" : "")}
+            className={cn("max-h-full overflow-y-auto hide-scroll", props.contentClassName, scrollable ? "" : "")}
             style={(() => {
               if (scrollable) {
                 return {};
@@ -85,6 +76,11 @@ export const ScrollView = React.memo(
           >
             {children}
           </Content>
+          {pullToRefresh && (
+            <Indicator className="z-100 absolute w-full top-4 flex justify-center" store={store}>
+              <Component />
+            </Indicator>
+          )}
         </div>
       </Root>
     );
@@ -99,7 +95,7 @@ const Root = (props: { className?: string; style: React.CSSProperties; children:
     </div>
   );
 };
-const Indicator = (props: { store: ScrollViewCore; children: React.ReactElement }) => {
+const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
 
@@ -114,7 +110,9 @@ const Indicator = (props: { store: ScrollViewCore; children: React.ReactElement 
 
   return (
     <div
+      className={props.className}
       style={{
+        top,
         opacity,
       }}
     >

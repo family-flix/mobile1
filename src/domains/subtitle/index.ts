@@ -16,6 +16,7 @@ type TheTypesOfEvents = {
 };
 type SubtitleLine = SubtitleParagraph;
 type SubtitleProps = {
+  filename: string;
   lang?: string;
   suffix?: string;
   lines: SubtitleLine[];
@@ -82,6 +83,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     const suffix = parseSubtitleUrl(subtitle_name);
     const paragraphs = parseSubtitleContent(content, suffix);
     const store = new SubtitleCore({
+      filename: subtitle_name,
       lang,
       suffix,
       lines: paragraphs,
@@ -92,6 +94,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     return Result.Ok(store);
   }
 
+  filename: string = "";
   lang?: string;
   suffix?: string;
   /** 字幕文件列表 */
@@ -120,7 +123,8 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ _name: string }> & SubtitleProps) {
     super(props);
 
-    const { lines, suffix, lang } = props;
+    const { filename, lines, suffix, lang } = props;
+    this.filename = filename;
     this.lines = lines;
     this.suffix = suffix;
     this.lang = lang;

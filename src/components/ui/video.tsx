@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { PlayerCore } from "@/domains/player";
 import { connect } from "@/domains/player/connect.web";
@@ -32,7 +32,7 @@ export function Video(props: { store: PlayerCore }) {
     connect($video, store);
   }, []);
 
-  const { width, height, ready, poster } = state;
+  const { width, height, ready, poster, subtitle } = state;
 
   // console.log("[COMPONENT]Video - render", width, height, poster);
 
@@ -63,7 +63,26 @@ export function Video(props: { store: PlayerCore }) {
         playsInline
         preload="none"
         height={height}
-      />
+      >
+        {subtitle ? (
+          <track src={subtitle.src} kind="subtitles" label={subtitle.label} srcLang={subtitle.lang}></track>
+        ) : null}
+      </video>
     </div>
   );
+}
+
+function VideoTrack(props: { store: PlayerCore } & React.TrackHTMLAttributes<HTMLTrackElement>) {
+  const { store, src, kind, label, srcLang } = props;
+
+  const ref = useRef<HTMLTrackElement | null>(null);
+
+  // useInitialize(() => {
+  //   const $track = ref.current;
+  //   if (!$track) {
+  //     return;
+  //   }
+  // });
+
+  return <track ref={ref} src={src} kind={kind} label={label} srcLang={srcLang}></track>;
 }

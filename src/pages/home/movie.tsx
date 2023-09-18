@@ -25,17 +25,6 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
         onLoadingChange(loading) {
           searchInput.setLoading(!helper.response.initial && loading);
         },
-        search: (() => {
-          const { language = [] } = app.cache.get("movie_search", {
-            language: [] as string[],
-          });
-          if (!language.length) {
-            return {};
-          }
-          return {
-            language: language.join("|"),
-          };
-        })(),
       })
   );
   const settingsSheet = useInstance(() => new DialogCore());
@@ -51,6 +40,11 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
         onBlur(v) {
           helper.search({
             name: v,
+          });
+        },
+        onClear() {
+          helper.search({
+            name: "",
           });
         },
       })
@@ -124,6 +118,9 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
     });
     scrollView.onPullToRefresh(async () => {
       await helper.refresh();
+      app.tip({
+        text: ["刷新成功"],
+      });
       scrollView.stopPullToRefresh();
     });
     scrollView.onReachBottom(() => {
@@ -139,7 +136,18 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
     });
   });
   useEffect(() => {
-    helper.init();
+    const search = (() => {
+      const { language = [] } = app.cache.get("movie_search", {
+        language: [] as string[],
+      });
+      if (!language.length) {
+        return {};
+      }
+      return {
+        language: language.join("|"),
+      };
+    })();
+    helper.init(search);
   }, []);
 
   const { dataSource, error } = response;
@@ -149,116 +157,111 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
   return (
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="">
-          <div className="">
-            <div>
-              <div className="fixed top-0 flex items-center justify-between w-full p-4 pb-0 space-x-4">
-                <div className="relative w-full">
-                  <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
-                </div>
-                <div
-                  className="relative p-2"
-                  onClick={() => {
-                    settingsSheet.show();
-                  }}
-                >
-                  <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
-                  {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
-                </div>
-              </div>
-              <div className="h-[56px]"></div>
+        <div className="w-full h-full">
+          <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
+            <div className="relative w-full">
+              <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
             </div>
-            <ListView
-              store={helper}
-              className="relative mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
-              skeleton={
-                <>
-                  <div className="flex px-4 pb-4 cursor-pointer">
-                    <div className="relative w-[128px] h-[198px] mr-4">
-                      <Skeleton className="w-full h-full dark:bg-gray-800" />
-                    </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
-                    </div>
-                  </div>
-                  <div className="flex px-4 pb-4 cursor-pointer">
-                    <div className="relative w-[128px] h-[198px] mr-4">
-                      <Skeleton className="w-full h-full dark:bg-gray-800" />
-                    </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                      <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                      <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
-                    </div>
-                  </div>
-                </>
-              }
+            <div
+              className="relative p-2"
+              onClick={() => {
+                settingsSheet.show();
+              }}
             >
-              {(() => {
-                return dataSource.map((movie) => {
-                  const { id, name, overview, vote, genres, air_date, poster_path = "", runtime } = movie;
-                  return (
-                    <div
-                      key={id}
-                      className="flex px-4 pb-4 cursor-pointer"
-                      onClick={() => {
-                        moviePlayingPage.params = {
-                          id,
-                        };
-                        rootView.layerSubView(moviePlayingPage);
-                      }}
-                    >
-                      <div className="relative w-[128px] h-[198px] mr-4">
-                        <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
-                        <div className="absolute left-2 top-2">
-                          {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
-                          {/* <div className="absolute">{vote}</div> */}
-                        </div>
-                      </div>
-                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                        <div className="flex items-center">
-                          <h2 className="text-2xl dark:text-white">{name}</h2>
-                        </div>
-                        <div className="flex items-center mt-1 ">
-                          <div>{air_date}</div>
-                          <p className="mx-2 ">·</p>
-                          <div className="flex items-center">
-                            <Star className="mr-1 relative top-[-2px] w-4 h-4" />
-                            <div>{vote}</div>
-                          </div>
-                          {runtime ? (
-                            <>
-                              <p className="mx-2 ">·</p>
-                              <div className="flex items-center">
-                                <div>{runtime}</div>
-                              </div>
-                            </>
-                          ) : null}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 flex-wrap max-w-full">
-                          {genres.map((g) => {
-                            return (
-                              <div
-                                key={g}
-                                className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
-                                style={{
-                                  lineHeight: "12px",
-                                }}
-                              >
-                                {g}
-                              </div>
-                            );
-                          })}
-                        </div>
+              <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
+              {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
+            </div>
+          </div>
+          <ListView
+            store={helper}
+            className="relative mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            skeleton={
+              <>
+                <div className="flex px-4 pb-4 cursor-pointer">
+                  <div className="relative w-[128px] h-[198px] mr-4">
+                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                  </div>
+                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                </div>
+                <div className="flex px-4 pb-4 cursor-pointer">
+                  <div className="relative w-[128px] h-[198px] mr-4">
+                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                  </div>
+                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
+                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                </div>
+              </>
+            }
+          >
+            {(() => {
+              return dataSource.map((movie) => {
+                const { id, name, overview, vote, genres, air_date, poster_path = "", runtime } = movie;
+                return (
+                  <div
+                    key={id}
+                    className="flex px-4 pb-4 cursor-pointer"
+                    onClick={() => {
+                      moviePlayingPage.params = {
+                        id,
+                      };
+                      rootView.layerSubView(moviePlayingPage);
+                    }}
+                  >
+                    <div className="relative w-[128px] h-[198px] mr-4">
+                      <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
+                      <div className="absolute left-2 top-2">
+                        {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
+                        {/* <div className="absolute">{vote}</div> */}
                       </div>
                     </div>
-                  );
-                });
-              })()}
-            </ListView>
-          </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                      <div className="flex items-center">
+                        <h2 className="text-2xl dark:text-white">{name}</h2>
+                      </div>
+                      <div className="flex items-center mt-1 ">
+                        <div>{air_date}</div>
+                        <p className="mx-2 ">·</p>
+                        <div className="flex items-center">
+                          <Star className="mr-1 relative top-[-2px] w-4 h-4" />
+                          <div>{vote}</div>
+                        </div>
+                        {runtime ? (
+                          <>
+                            <p className="mx-2 ">·</p>
+                            <div className="flex items-center">
+                              <div>{runtime}</div>
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 flex-wrap max-w-full">
+                        {genres.map((g) => {
+                          return (
+                            <div
+                              key={g}
+                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                              style={{
+                                lineHeight: "12px",
+                              }}
+                            >
+                              {g}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </ListView>
         </div>
       </ScrollView>
       <BackToTop store={scrollView} />

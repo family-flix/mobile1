@@ -41,6 +41,8 @@ enum Events {
   BeforeChangeSource,
   /** 字幕改变 */
   SubtitleChange,
+  /** 字幕加载完成 */
+  SubtitleLoaded,
 }
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: TVProps["profile"];
@@ -62,6 +64,7 @@ type TheTypesOfEvents = {
     texts: string[];
     others: (SubtitleResp & { selected: boolean })[];
   };
+  [Events.SubtitleLoaded]: SubtitleCore;
 };
 type TVState = {};
 type TVProps = {
@@ -375,14 +378,15 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.subtitle.visible = true;
     this.subtitle.index = curLine?.line ?? "0";
     this.subtitle.texts = curLine?.texts ?? [];
-    this.emit(Events.SubtitleChange, { ...this.subtitle });
     this._subtitleStore = r.data;
-    console.log("[DOMAIN]movie/index - after SubtitleCore.New", r.data, curLine);
+    this.emit(Events.SubtitleChange, { ...this.subtitle });
+    this.emit(Events.SubtitleLoaded, this._subtitleStore);
+    // console.log("[DOMAIN]movie/index - after SubtitleCore.New", r.data, curLine);
     this._subtitleStore.onStateChange((nextState) => {
       const { curLine } = nextState;
       this.subtitle.index = curLine?.line ?? "0";
       this.subtitle.texts = curLine?.texts ?? [];
-      console.log("[DOMAIN]tv/index - subtitleStore.onStateChange", this.subtitle, curLine);
+      // console.log("[DOMAIN]tv/index - subtitleStore.onStateChange", this.subtitle, curLine);
       this.emit(Events.SubtitleChange, { ...this.subtitle });
     });
   }
@@ -774,6 +778,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   }
   onSubtitleChange(handler: Handler<TheTypesOfEvents[Events.SubtitleChange]>) {
     return this.on(Events.SubtitleChange, handler);
+  }
+  onSubtitleLoaded(handler: Handler<TheTypesOfEvents[Events.SubtitleLoaded]>) {
+    return this.on(Events.SubtitleLoaded, handler);
   }
 }
 

@@ -283,7 +283,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               刷新登录信息
             </Button>
           </div>
-          <div className="text-center text-sm">V1.11.0</div>
+          <div className="text-center text-sm">V1.13.3</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>

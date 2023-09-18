@@ -1,6 +1,7 @@
 import parse from "url-parse";
 
 import { SubtitleFile, SubtitleFileType, SubtitleParagraph } from "./types";
+import { SubtitleCore } from ".";
 
 export function timeStrToSeconds(durationStr: string) {
   if (durationStr.match(/[0-9]{1,2}:[0-9]{2}:[0-9]{2}[\.,]/)) {
@@ -184,4 +185,36 @@ export function parseSubtitleContent(content: string, format: SubtitleFileType):
       texts: [content],
     },
   ];
+}
+const VVTLanguageLabelMaps = {
+  chi: "简体中文",
+  cht: "繁体中文",
+  jpn: "日语",
+  eng: "英语",
+  "chi&eng": "中英对照",
+};
+const VVTLanguageLangMaps = {
+  chi: "zh-Hans",
+  cht: "zh-Hant",
+  jpn: "ja",
+  eng: "en",
+  "chi&eng": "中英对照",
+};
+export function createVVTSubtitle(store: SubtitleCore) {
+  const { lines } = store;
+  const content = [
+    "WEBVTT",
+    "",
+    ...lines.map((line) => {
+      const { start, end, texts } = line;
+      return [`${start} --> ${end}`, ...texts].join("\n");
+    }),
+  ].join("\r\n");
+  const blob = new Blob([content], { type: "text/vtt" });
+  const url = URL.createObjectURL(blob);
+  return {
+    src: url,
+    label: store.lang ? VVTLanguageLabelMaps[store.lang as keyof typeof VVTLanguageLabelMaps] : store.filename,
+    lang: store.lang ? VVTLanguageLangMaps[store.lang as keyof typeof VVTLanguageLangMaps] : store.filename,
+  };
 }

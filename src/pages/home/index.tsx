@@ -33,6 +33,12 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
             name: v,
           });
         },
+        onClear() {
+          // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
+          helper.search({
+            name: "",
+          });
+        },
       })
   );
   const sourceCheckboxGroup = useInstance(() => {
@@ -54,7 +60,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
           language: options,
         });
         setHasSearch(!!options.length);
-        // settingsSheet.hide();
         helper.search({
           language: options.join("|"),
         });
@@ -86,17 +91,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         onLoadingChange(loading) {
           searchInput.setLoading(!helper.response.initial && loading);
         },
-        search: (() => {
-          const { language = [] } = app.cache.get("tv_search", {
-            language: [] as string[],
-          });
-          if (!language.length) {
-            return {};
-          }
-          return {
-            language: language.join("|"),
-          };
-        })(),
       })
   );
 
@@ -114,6 +108,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
   useInitialize(() => {
     scrollView.onPullToRefresh(async () => {
       await helper.refresh();
+      app.tip({
+        text: ["刷新成功"],
+      });
       scrollView.stopPullToRefresh();
     });
     scrollView.onReachBottom(() => {
@@ -122,7 +119,18 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
     helper.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-    helper.init();
+    const search = (() => {
+      const { language = [] } = app.cache.get("tv_search", {
+        language: [] as string[],
+      });
+      if (!language.length) {
+        return {};
+      }
+      return {
+        language: language.join("|"),
+      };
+    })();
+    helper.init(search);
   });
 
   const { dataSource } = response;

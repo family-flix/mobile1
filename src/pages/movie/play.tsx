@@ -29,6 +29,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
+import { createVVTSubtitle } from "@/domains/subtitle/utils";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -137,6 +138,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       movie.play();
       player.setCurrentTime(profile.currentTime);
       bottomOperation.show();
+    });
+    movie.onSubtitleLoaded((subtitle) => {
+      player.setSubtitle(createVVTSubtitle(subtitle));
     });
     movie.onStateChange((nextProfile) => {
       setProfile(nextProfile);
@@ -345,7 +349,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
               return (
                 <div className="">
                   <Video store={player} />
-                  {subtileState.visible ? (
+                  {/* {subtileState.visible ? (
                     <div key={subtileState.index} className="mt-2 space-y-1">
                       {subtileState.texts.map((text) => {
                         return (
@@ -355,7 +359,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         );
                       })}
                     </div>
-                  ) : null}
+                  ) : null} */}
                 </div>
               );
             })()}
@@ -518,12 +522,13 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Sheet store={subtitleSheet}>
-        <div className="max-h-full overflow-y-auto">
+        <div className="max-h-full pb-24 overflow-y-auto">
           {(() => {
             return (
               <div
                 className="px-4"
                 onClick={() => {
+                  player.toggleSubtitleVisible();
                   movie.toggleSubtitleVisible();
                 }}
               >
@@ -531,7 +536,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
               </div>
             );
           })()}
-          <div className="pt-4 pb-24 dark:text-black-200">
+          <div className="pt-4 dark:text-black-200">
             {subtileState.others.map((subtitle, i) => {
               return (
                 <div

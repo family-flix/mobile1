@@ -43,6 +43,7 @@ describe("播放视频时正确展示字幕", () => {
       const suffix = parseSubtitleUrl(subtitleUrl);
       const paragraphs = parseSubtitleContent(vvtSubtitleContent, suffix);
       const store = new SubtitleCore({
+        filename: subtitleLanguage,
         lang: subtitleLanguage,
         suffix,
         lines: paragraphs,

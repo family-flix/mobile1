@@ -23,6 +23,7 @@ import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { RequestCore } from "@/domains/request";
 import { SelectionCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
+import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
@@ -182,6 +183,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
       player.setCurrentTime(curEpisode.currentTime);
       bottomOperation.show();
+    });
+    tv.onSubtitleLoaded((subtitle) => {
+      player.setSubtitle(createVVTSubtitle(subtitle));
     });
     tv.onEpisodeChange((nextEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
@@ -437,12 +441,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
           </div>
-          <div
-            className="video z-20 absolute top-[20%]"
-            // onTouchStart={(event) => {
-            //   event.stopPropagation();
-            // }}
-          >
+          <div className="video z-20 absolute top-[20%]">
             {(() => {
               if (profile === null || profile.curEpisode === null) {
                 return null;
@@ -450,7 +449,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               return (
                 <div className="">
                   <Video store={player} />
-                  {subtileState.visible ? (
+                  {/* {subtileState.visible ? (
                     <div key={subtileState.index} className="mt-2 space-y-1">
                       {subtileState.texts.map((text) => {
                         return (
@@ -460,7 +459,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         );
                       })}
                     </div>
-                  ) : null}
+                  ) : null} */}
                 </div>
               );
             })()}
@@ -474,7 +473,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { seasons, curEpisodes } = profile;
           const episodes_elm = (
-            <ListView className="pb-24" store={tv.episodeList}>
+            <ListView className="" store={tv.episodeList}>
               {curEpisodes.map((episode) => {
                 const { id, name, episode_text, runtime } = episode;
                 return (
@@ -500,7 +499,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
           if (seasons.length === 1) {
             return (
-              <ScrollView store={episodeScrollView} className="top-14 fixed dark:text-black-200">
+              <ScrollView
+                store={episodeScrollView}
+                className="top-14 fixed dark:text-black-200"
+                contentClassName="pb-24"
+              >
                 {episodes_elm}
               </ScrollView>
             );
@@ -513,7 +516,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <TabsTrigger value="season">季</TabsTrigger>
                 </TabsList>
                 <TabsContent className="pt-8 border-0" value="episode">
-                  <ScrollView wrapClassName="top-12" store={episodeScrollView}>
+                  <ScrollView contentClassName="pb-24" wrapClassName="top-12" store={episodeScrollView}>
                     {episodes_elm}
                   </ScrollView>
                 </TabsContent>
@@ -703,12 +706,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Sheet store={subtitleSheet}>
-        <div className="max-h-full overflow-y-auto">
+        <div className="max-h-full pb-24 overflow-y-auto">
           {(() => {
             return (
               <div
                 className="px-4"
                 onClick={() => {
+                  player.toggleSubtitleVisible();
                   tv.toggleSubtitleVisible();
                 }}
               >
@@ -716,7 +720,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             );
           })()}
-          <div className="pt-4 pb-24 dark:text-black-200">
+          <div className="pt-4 dark:text-black-200">
             {subtileState.others.map((subtitle, i) => {
               return (
                 <div

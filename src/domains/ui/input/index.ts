@@ -9,6 +9,7 @@ enum Events {
   Focus,
   Blur,
   Enter,
+  Clear,
 }
 type TheTypesOfEvents = {
   [Events.Change]: string;
@@ -17,6 +18,7 @@ type TheTypesOfEvents = {
   [Events.Focus]: void;
   [Events.Blur]: string;
   [Events.Enter]: string;
+  [Events.Clear]: void;
 };
 
 type InputProps = {
@@ -29,6 +31,7 @@ type InputProps = {
   onChange: (v: string) => void;
   onEnter: (v: string) => void;
   onBlur: (v: string) => void;
+  onClear: () => void;
 };
 type InputState = {
   value: string;
@@ -36,6 +39,7 @@ type InputState = {
   disabled: boolean;
   loading: boolean;
   type: string;
+  allowClear: boolean;
 };
 
 export class InputCore extends BaseDomain<TheTypesOfEvents> {
@@ -43,17 +47,19 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   value = "";
   placeholder: string;
   disabled: boolean;
+  allowClear: boolean = true;
   type: string;
   loading = false;
   valueUsed = "";
 
-  get state() {
+  get state(): InputState {
     return {
       value: this.value,
       placeholder: this.placeholder,
       disabled: this.disabled,
       loading: this.loading,
       type: this.type,
+      allowClear: this.allowClear,
     };
   }
 
@@ -69,6 +75,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       onChange,
       onBlur,
       onEnter,
+      onClear,
     } = options;
     if (name) {
       this._name = name;
@@ -91,14 +98,17 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     if (onBlur) {
       this.onBlur(onBlur);
     }
+    if (onClear) {
+      this.onClear(onClear);
+    }
   }
   setMounted() {
     this.emit(Events.Mounted);
   }
   handleEnter() {
-    if (this.value === this.valueUsed) {
-      return;
-    }
+    // if (this.value === this.valueUsed) {
+    //   return;
+    // }
     this.valueUsed = this.value;
     this.emit(Events.Enter, this.value);
   }
@@ -130,7 +140,10 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   clear() {
-    this.value = "";
+    console.log("[COMPONENT]ui/input/index - clear", this._defaultValue);
+    this.value = this._defaultValue;
+    // this.emit(Events.Change, this.value);
+    this.emit(Events.Clear);
     this.emit(Events.StateChange, { ...this.state });
   }
   reset() {
@@ -155,5 +168,8 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   }
   onEnter(handler: Handler<TheTypesOfEvents[Events.Enter]>) {
     return this.on(Events.Enter, handler);
+  }
+  onClear(handler: Handler<TheTypesOfEvents[Events.Clear]>) {
+    return this.on(Events.Clear, handler);
   }
 }

@@ -1,5 +1,5 @@
 import React, { ReactElement, useEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
 import { InputCore } from "@/domains/ui/input";
 import { connect } from "@/domains/ui/input/connect.web";
@@ -26,7 +26,7 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
     });
   });
 
-  const { loading, value, placeholder, disabled, type } = state;
+  const { loading, value, placeholder, disabled, allowClear, type } = state;
 
   // React.useEffect(() => {
   //   return () => {
@@ -80,6 +80,26 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
           store.handleBlur();
         }}
       />
+      <div className="absolute right-3 top-[50%] translate-y-[-50%] text-slate-400 ">
+        {(() => {
+          if (!allowClear) {
+            return null;
+          }
+          if (!value) {
+            return null;
+          }
+          return (
+            <div
+              className="p-1 rounded-full bg-white-900 dark:bg-black-900"
+              onClick={() => {
+                store.clear();
+              }}
+            >
+              <X className="w-3 h-3" />
+            </div>
+          );
+        })()}
+      </div>
     </div>
   );
 };

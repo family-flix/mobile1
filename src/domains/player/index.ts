@@ -96,6 +96,11 @@ type PlayerState = {
   rate: number;
   volume: number;
   currentTime: number;
+  subtitle: null | {
+    label: string;
+    lang: string;
+    src: string;
+  };
 };
 
 export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
@@ -114,10 +119,12 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     return this._currentTime;
   }
   playing = false;
-  _mounted = false;
   poster?: string;
+  subtitle: PlayerState["subtitle"] = null;
+  _mounted = false;
   /** 默认是不能播放的，只有用户交互后可以播放 */
   private _target_current_time = 0;
+  _subtitleVisible = false;
   private _progress = 0;
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
@@ -130,6 +137,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     setCurrentTime: (v: number) => void;
     setVolume: (v: number) => void;
     setRate: (v: number) => void;
+    showSubtitle: () => void;
+    hideSubtitle: () => void;
   } | null = null;
   private _app: Application;
 
@@ -143,6 +152,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       rate: this._curRate,
       volume: this._curVolume,
       currentTime: this._currentTime,
+      subtitle: this.subtitle,
     };
   }
 
@@ -175,6 +185,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._abstractNode.play();
+    this._abstractNode.setRate(this._curRate);
     this.playing = true;
     this.emit(Events.StateChange, { ...this.state });
   }
@@ -203,6 +214,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._curRate = v;
     this._abstractNode.setRate(v);
     this.emit(Events.RateChange, { rate: v });
+  }
+  toggleSubtitle() {
+    this._subtitleVisible = !this._subtitleVisible;
   }
   setPoster(url: string | null) {
     if (url === null) {
@@ -239,6 +253,31 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   setResolution(values: { type: EpisodeResolutionTypes; text: string }) {
     this.emit(Events.ResolutionChange, values);
+  }
+  setSubtitle(subtitle: { src: string; label: string; lang: string }) {
+    this.subtitle = subtitle;
+    this.emit(Events.StateChange, { ...this.state });
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
+    setTimeout(() => {
+      this._subtitleVisible = true;
+      $video.showSubtitle();
+    }, 800);
+  }
+  toggleSubtitleVisible() {
+    console.log("[DOMAIN]player/index - toggleSubtitleVisible", this._abstractNode, this._subtitleVisible);
+    if (!this._abstractNode) {
+      return;
+    }
+    if (this._subtitleVisible) {
+      this._subtitleVisible = false;
+      this._abstractNode.hideSubtitle();
+      return;
+    }
+    this._subtitleVisible = true;
+    this._abstractNode.showSubtitle();
   }
   loadSource(video: MediaSourceProfile) {
     this.metadata = video;

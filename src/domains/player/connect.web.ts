@@ -121,5 +121,16 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     setRate(rate: number) {
       $video.playbackRate = rate;
     },
+    showSubtitle() {
+      if ($video.textTracks[0]) {
+        $video.textTracks[0].mode = "showing";
+      }
+    },
+    hideSubtitle() {
+      console.log("[DOMAIN]player/connect - hideSubtitle", $video.textTracks[0]);
+      if ($video.textTracks[0]) {
+        $video.textTracks[0].mode = "hidden";
+      }
+    },
   });
 }
