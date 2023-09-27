@@ -4,8 +4,19 @@
 import React, { useEffect, useState } from "react";
 import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
-import { BackToTop, ScrollView, Sheet, ListView, Skeleton, Input, LazyImage, CheckboxGroup } from "@/components/ui";
-import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
+import {
+  BackToTop,
+  ScrollView,
+  Sheet,
+  ListView,
+  Skeleton,
+  Input,
+  LazyImage,
+  CheckboxGroup,
+  Button,
+  Dialog,
+} from "@/components/ui";
+import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore } from "@/domains/ui";
 import { fetch_movie_list } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
@@ -13,6 +24,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
 import { moviePlayingPage, rootView } from "@/store";
 import { ViewComponent } from "@/types";
+import { MediaRequestCore } from "@/components/media-request";
 
 export const HomeMoviePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -91,6 +103,16 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
       },
     });
   });
+  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequestBtn = useInstance(
+    () =>
+      new ButtonCore({
+        onClick() {
+          mediaRequest.input.change(searchInput.value);
+          mediaRequest.dialog.show();
+        },
+      })
+  );
 
   const [hasSearch, setHasSearch] = useState(
     (() => {
@@ -156,25 +178,28 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="w-full h-full">
-          <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
-            <div className="relative w-full">
-              <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
-            </div>
-            <div
-              className="relative p-2"
-              onClick={() => {
-                settingsSheet.show();
-              }}
-            >
-              <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
-              {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
-            </div>
+      <div className="relative z-50">
+        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 space-x-4 bg-white dark:bg-black">
+          <div className="relative w-full">
+            <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>
+          <div
+            className="relative p-2"
+            onClick={() => {
+              settingsSheet.show();
+            }}
+          >
+            <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
+            {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
+          </div>
+        </div>
+        <div className="h-[56px]" />
+      </div>
+      <ScrollView store={scrollView} className="dark:text-black-200">
+        <div className="w-full h-full pt-[56px]">
           <ListView
             store={helper}
-            className="relative mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
                 <div className="flex px-4 pb-4 cursor-pointer">
@@ -198,6 +223,13 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                   </div>
                 </div>
               </>
+            }
+            extraEmpty={
+              <div className="mt-2">
+                <Button store={mediaRequestBtn} variant="subtle">
+                  提交想看的电影
+                </Button>
+              </div>
             }
           >
             {(() => {
@@ -285,6 +317,14 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
           </div>
         </div>
       </Sheet>
+      <Dialog store={mediaRequest.dialog}>
+        <div>
+          <p>输入想看的电影</p>
+          <div className="mt-4">
+            <Input store={mediaRequest.input} />
+          </div>
+        </div>
+      </Dialog>
     </>
   );
 });

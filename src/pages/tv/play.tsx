@@ -21,7 +21,7 @@ import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/
 import { TVCore } from "@/domains/tv";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { RequestCore } from "@/domains/request";
-import { SelectionCore } from "@/domains/cur";
+import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,8 +35,6 @@ import { cn } from "@/utils";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
-
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const scrollView = useInstance(
     () =>
@@ -72,7 +70,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   });
   const curReport = useInstance(
     () =>
-      new SelectionCore<string>({
+      new RefCore<string>({
         onChange(v) {
           setCurReportValue(v);
         },
@@ -98,7 +96,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
         },
       })
   );
-  // const video = useInstance(() => new ElementCore({}));
   const episodesSheet = useInstance(() => new DialogCore());
   const sourcesSheet = useInstance(() => new DialogCore());
   const rateSheet = useInstance(() => new DialogCore());
@@ -166,7 +163,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
     console.log("[PAGE]play - useInitialize");
     app.onHidden(() => {
       player.pause();
-      // tv.updatePlayProgress();
     });
     app.onShow(() => {
       console.log("[PAGE]play - app.onShow", player.currentTime);
@@ -225,7 +221,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
         return;
       }
       // console.log("[PAGE]play - player.onCanPlay");
-      cover.hide();
       if (!tv.canAutoPlay) {
         return;
       }

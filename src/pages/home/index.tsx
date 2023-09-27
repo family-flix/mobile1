@@ -4,8 +4,19 @@
 import React, { useState } from "react";
 import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
-import { Skeleton, ListView, Input, ScrollView, LazyImage, Sheet, CheckboxGroup, BackToTop } from "@/components/ui";
-import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore } from "@/domains/ui";
+import {
+  Skeleton,
+  ListView,
+  Input,
+  ScrollView,
+  LazyImage,
+  Sheet,
+  CheckboxGroup,
+  BackToTop,
+  Button,
+  Dialog,
+} from "@/components/ui";
+import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore } from "@/domains/ui";
 import { fetch_season_list } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
@@ -13,6 +24,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions } from "@/constants";
 import { ViewComponent } from "@/types";
 import { rootView, tvPlayingPage } from "@/store";
+import { MediaRequestCore } from "@/components/media-request";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -93,6 +105,16 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         },
       })
   );
+  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequestBtn = useInstance(
+    () =>
+      new ButtonCore({
+        onClick() {
+          mediaRequest.input.change(searchInput.value);
+          mediaRequest.dialog.show();
+        },
+      })
+  );
 
   const [response, setResponse] = useState(helper.response);
   const [hasSearch, setHasSearch] = useState(
@@ -119,6 +141,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
     helper.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
+    mediaRequest.onTip((msg) => {
+      app.tip(msg);
+    });
     const search = (() => {
       const { language = [] } = app.cache.get("tv_search", {
         language: [] as string[],
@@ -139,25 +164,28 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="w-full h-full">
-          <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
-            <div className="relative w-full">
-              <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
-            </div>
-            <div
-              className="relative p-2"
-              onClick={() => {
-                settingsSheet.show();
-              }}
-            >
-              <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
-              {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
-            </div>
+      <div className="relative z-50">
+        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 space-x-4 bg-white dark:bg-black">
+          <div className="relative w-full">
+            <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>
+          <div
+            className="relative p-2"
+            onClick={() => {
+              settingsSheet.show();
+            }}
+          >
+            <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
+            {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
+          </div>
+        </div>
+        <div className="h-[56px]" />
+      </div>
+      <ScrollView store={scrollView} className="dark:text-black-200">
+        <div className="w-full h-full pt-[56px]">
           <ListView
             store={helper}
-            className="relative h-[50%] mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative h-[50%] mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
                 <div className="flex px-4 pb-4 cursor-pointer">
@@ -181,6 +209,13 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   </div>
                 </div>
               </>
+            }
+            extraEmpty={
+              <div className="mt-2">
+                <Button store={mediaRequestBtn} variant="subtle">
+                  提交想看的电视剧
+                </Button>
+              </div>
             }
           >
             {(() => {
@@ -213,10 +248,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                   >
                     <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
                       <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                      {/* <div className="absolute left-2 top-2">
-                          <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} />
-                          <div className="absolute">{vote}</div>
-                        </div> */}
                       <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
                       {episode_count_text && (
                         <div className="z-20 absolute bottom-1 right-1">
@@ -286,6 +317,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
           </div>
         </div>
       </Sheet>
+      <Dialog store={mediaRequest.dialog}>
+        <div>
+          <p>输入想看的电视剧</p>
+          <div className="mt-4">
+            <Input store={mediaRequest.input} />
+          </div>
+        </div>
+      </Dialog>
     </>
   );
 });

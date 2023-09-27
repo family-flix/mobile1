@@ -6,11 +6,11 @@ import { MoreVertical } from "lucide-react";
 
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
-import { PlayHistoryItem, delete_history, fetch_play_histories } from "@/domains/tv/services";
-import { SelectionCore } from "@/domains/cur";
+import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/tv/services";
+import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
+import { useDomainState, useInitialize, useInstance } from "@/hooks";
 import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
 import { Show } from "@/components/ui/show";
@@ -18,7 +18,7 @@ import { Show } from "@/components/ui/show";
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  const cur = useInstance(() => new SelectionCore<PlayHistoryItem>());
+  const cur = useInstance(() => new RefCore<PlayHistoryItem>());
   const deletingRequest = useInstance(
     () =>
       new RequestCore(delete_history, {
@@ -56,7 +56,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
         },
       })
   );
-  const helper = useInstance(() => new ListCore(new RequestCore(fetch_play_histories)));
+  const helper = useInstance(() => new ListCore(new RequestCore(fetchPlayingHistories)));
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({

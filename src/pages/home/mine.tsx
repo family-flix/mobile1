@@ -188,7 +188,6 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               className="mr-4"
               onClick={() => {
                 app.tip({ text: ["敬请期待"] });
-                // dialog.show();
               }}
             >
               <Settings2 className="w-5 h-5" />
@@ -221,7 +220,6 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div
               className=""
               onClick={() => {
-                // app.tip({ text: ["敬请期待"] });
                 reportConfirmDialog.show();
               }}
             >
@@ -237,7 +235,6 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div
               className=""
               onClick={() => {
-                // app.tip({ text: ["敬请期待"] });
                 wantDialog.show();
               }}
             >
@@ -283,7 +280,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               刷新登录信息
             </Button>
           </div>
-          <div className="text-center text-sm">V1.13.3</div>
+          <div className="text-center text-sm">V1.15.4</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * 初始化时
@@ -52,4 +52,18 @@ export function useInstance<T extends Factory>(fn: T) {
     };
   }, []);
   return ref.current;
+}
+
+export function useDomainState<T extends { state: any; onStateChange: (handler: (nextState: any) => void) => void }>(
+  domain: T
+) {
+  const [state, setState] = useState(domain.state);
+
+  useEffect(() => {
+    domain.onStateChange((nextState) => {
+      setState(nextState);
+    });
+  }, []);
+
+  return state;
 }

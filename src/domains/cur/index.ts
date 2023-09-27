@@ -1,5 +1,6 @@
 /**
- * @file 列表中单选
+ * @file 一个缓存/当前值
+ * 类似 useRef
  */
 import { Handler } from "mitt";
 
@@ -10,29 +11,32 @@ enum Events {
   Change,
 }
 type TheTypesOfEvents<T> = {
-  [Events.StateChange]: SelectionState;
-  [Events.Change]: T;
+  [Events.StateChange]: T;
 };
-type SelectionProps<T> = Partial<{
+type RefProps<T> = {
   onChange?: (v: T) => void;
-}>;
-type SelectionState = {};
-export class SelectionCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
+};
+type RefState = {};
+export class RefCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   value: T | null = null;
 
-  constructor(props: Partial<{ _name: string }> & SelectionProps<T> = {}) {
-    super(props);
+  get state(): T | null {
+    return this.value;
+  }
 
-    const { onChange } = props;
+  constructor(options: Partial<{ _name: string }> & RefProps<T> = {}) {
+    super(options);
+
+    const { onChange } = options;
     if (onChange) {
-      this.onChange(onChange);
+      this.onStateChange(onChange);
     }
   }
 
   /** 暂存一个值 */
   select(value: T) {
     this.value = value;
-    this.emit(Events.Change, this.value);
+    this.emit(Events.StateChange, this.value);
   }
   /** 暂存的值是否为空 */
   isEmpty() {
@@ -42,10 +46,11 @@ export class SelectionCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   clear() {
     // const v = this.value;
     this.value = null;
+    this.emit(Events.StateChange);
     // return v;
   }
 
-  onChange(handler: Handler<TheTypesOfEvents<T>[Events.Change]>) {
-    return this.on(Events.Change, handler);
+  onStateChange(handler: Handler<TheTypesOfEvents<T>[Events.StateChange]>) {
+    return this.on(Events.StateChange, handler);
   }
 }

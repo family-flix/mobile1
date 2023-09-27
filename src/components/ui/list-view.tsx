@@ -14,8 +14,14 @@ import { Button } from "./button";
 import { Show } from "./show";
 
 export const ListView = React.memo(
-  (props: { store: ListCore<any, any>; skeleton?: React.ReactElement } & React.HTMLAttributes<HTMLDivElement>) => {
-    const { store, skeleton = null } = props;
+  (
+    props: {
+      store: ListCore<any, any>;
+      skeleton?: React.ReactElement;
+      extraEmpty?: React.ReactElement;
+    } & React.HTMLAttributes<HTMLDivElement>
+  ) => {
+    const { store, skeleton = null, extraEmpty = null } = props;
     const [response, setResponse] = useState(store.response);
 
     const logintBtn = useInstance(
@@ -40,7 +46,7 @@ export const ListView = React.memo(
     });
 
     return (
-      <div className={cn("relative")}>
+      <div className={cn("relative z-40")}>
         <div className={props.className}>
           <Show when={!!(response.initial && skeleton)}>{skeleton}</Show>
           <Show
@@ -55,6 +61,7 @@ export const ListView = React.memo(
                     </Show>
                     <div className="text-xl">{response.loading ? "加载中" : "列表为空"}</div>
                   </div>
+                  {extraEmpty}
                 </div>
               </div>
             }

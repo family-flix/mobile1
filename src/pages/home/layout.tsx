@@ -91,9 +91,9 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <Home className="w-5 h-5" />
+              <Home className="w-6 h-6" />
             </div>
-            <div className="mt-2 text-sm text-center">首页</div>
+            <div className="mt-1 text-center text-[12px]">首页</div>
           </div>
           <div
             className={cn(
@@ -106,9 +106,9 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <Film className="w-5 h-5" />
+              <Film className="w-6 h-6" />
             </div>
-            <div className="mt-2 text-sm text-center">电影</div>
+            <div className="mt-1 text-center text-[12px]">电影</div>
           </div>
           {/* <div
             className="flex flex-col justify-center items-center dark:text-black-200"
@@ -117,9 +117,9 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <Search className="w-5 h-5" />
+              <Search className="w-6 h-6" />
             </div>
-            <div className="mt-2 text-sm text-center">搜索</div>
+            <div className="mt-1 text-center text-[12px]">搜索</div>
           </div> */}
           <div
             className={cn(
@@ -131,9 +131,9 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <HardDrive className="w-5 h-5" />
+              <HardDrive className="w-6 h-6" />
             </div>
-            <div className="mt-2 text-sm text-center">观看记录</div>
+            <div className="mt-1 text-center text-[12px]">观看记录</div>
           </div>
           <div
             className={cn(
@@ -145,12 +145,12 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div className="relative">
-              <MessageSquare className="w-5 h-5" />
+              <MessageSquare className="w-6 h-6" />
               <Show when={!!messageResponse.total}>
                 <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
               </Show>
             </div>
-            <div className="mt-2 text-sm text-center">消息</div>
+            <div className="mt-1 text-center text-[12px]">消息</div>
           </div>
           <div
             className={cn(
@@ -162,9 +162,9 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <Users className="w-5 h-5" />
+              <Users className="w-6 h-6" />
             </div>
-            <div className="mt-2 text-sm text-center">我的</div>
+            <div className="mt-1 text-center text-[12px]">我的</div>
           </div>
         </div>
       </div>

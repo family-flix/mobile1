@@ -21,7 +21,7 @@ import { Presence } from "@/components/ui/presence";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
 import { MovieCore } from "@/domains/movie";
-import { SelectionCore } from "@/domains/cur";
+import { RefCore } from "@/domains/cur";
 import { RequestCore } from "@/domains/request";
 import { reportSomething } from "@/services";
 import { MovieReportList, ReportTypes } from "@/constants";
@@ -50,7 +50,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const infoSheet = useInstance(() => new DialogCore());
   const curReport = useInstance(
     () =>
-      new SelectionCore<string>({
+      new RefCore<string>({
         onChange(v) {
           setCurReportValue(v);
         },
@@ -120,8 +120,6 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const [rate, setRate] = useState(player.state.rate);
 
   useInitialize(() => {
-    // console.log("[PAGE]play - useInitialize");
-
     app.onHidden(() => {
       player.pause();
     });

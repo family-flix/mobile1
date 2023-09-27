@@ -10,7 +10,10 @@ import { NavigatorCore } from "@/domains/navigator";
 import { Result } from "@/types";
 
 NavigatorCore.prefix = "/mobile";
-const cache = new LocalCache();
+
+const cache = new LocalCache({
+  key: "m_global",
+});
 const router = new NavigatorCore();
 const user = new UserCore(cache.get("user"));
 user.onLogin((profile) => {

@@ -549,7 +549,7 @@ export async function update_play_history(body: {
  * @param params
  * @returns
  */
-export async function fetch_play_histories(params: FetchParams) {
+export async function fetchPlayingHistories(params: FetchParams) {
   const { page, pageSize, ...rest } = params;
   const r = await request.get<
     ListResponse<{
@@ -659,7 +659,7 @@ export async function fetch_play_histories(params: FetchParams) {
     }),
   });
 }
-export type PlayHistoryItem = RequestedResource<typeof fetch_play_histories>["list"][0];
+export type PlayHistoryItem = RequestedResource<typeof fetchPlayingHistories>["list"][0];
 
 export enum MediaTypes {
   TV = 1,

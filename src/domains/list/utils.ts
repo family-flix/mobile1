@@ -88,3 +88,24 @@ export const qs = {
       .join("&");
   },
 };
+
+export function getPageSizeByDeviceSize(size: string) {
+  if (size === "md") {
+    return {
+      pageSize: 24,
+    };
+  }
+  if (size === "xl") {
+    return {
+      pageSize: 25,
+    };
+  }
+  if (size === "2xl") {
+    return {
+      pageSize: 36,
+    };
+  }
+  return {
+    pageSize: 20,
+  };
+}

@@ -127,7 +127,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       }
     },
     hideSubtitle() {
-      console.log("[DOMAIN]player/connect - hideSubtitle", $video.textTracks[0]);
+      // console.log("[DOMAIN]player/connect - hideSubtitle", $video.textTracks[0]);
       if ($video.textTracks[0]) {
         $video.textTracks[0].mode = "hidden";
       }
