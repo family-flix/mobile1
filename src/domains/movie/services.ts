@@ -199,7 +199,7 @@ export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch
 /**
  * 更新播放记录
  */
-export async function update_play_history(params: {
+export async function updateMoviePlayHistory(params: {
   movie_id?: string;
   /** 视频当前时间 */
   current_time?: number;

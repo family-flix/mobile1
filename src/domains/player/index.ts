@@ -1,7 +1,6 @@
 /**
  * @file 播放器
  */
-import debounce from "lodash/fp/debounce";
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";

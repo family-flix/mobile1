@@ -3,7 +3,7 @@
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
 import { useState } from "react";
-import { Film, HardDrive, Home, MessageCircle, MessageSquare, Users } from "lucide-react";
+import { Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, Users } from "lucide-react";
 
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { ButtonCore, DialogCore } from "@/domains/ui";
@@ -16,6 +16,7 @@ import {
   homeMessagesPage,
   homeMinePage,
   homeMoviePage,
+  homeSeasonPage,
   messageList,
 } from "@/store";
 import { cn } from "@/utils";
@@ -98,10 +99,23 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
+              curView === homeSeasonPage ? highlightColor : ""
+            )}
+            onClick={() => {
+              homeLayout.showSubView(homeSeasonPage);
+            }}
+          >
+            <div>
+              <Tv2 className="w-6 h-6" />
+            </div>
+            <div className="mt-1 text-center text-[12px]">电视剧</div>
+          </div>
+          <div
+            className={cn(
+              "flex flex-col justify-center items-center dark:text-black-200",
               curView === homeMoviePage ? highlightColor : ""
             )}
             onClick={() => {
-              // router.push("/home/movie");
               homeLayout.showSubView(homeMoviePage);
             }}
           >
@@ -110,17 +124,6 @@ export const HomeLayout: ViewComponent = (props) => {
             </div>
             <div className="mt-1 text-center text-[12px]">电影</div>
           </div>
-          {/* <div
-            className="flex flex-col justify-center items-center dark:text-black-200"
-            onClick={() => {
-              router.push("/home/search");
-            }}
-          >
-            <div>
-              <Search className="w-6 h-6" />
-            </div>
-            <div className="mt-1 text-center text-[12px]">搜索</div>
-          </div> */}
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
@@ -138,31 +141,17 @@ export const HomeLayout: ViewComponent = (props) => {
           <div
             className={cn(
               "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeMessagesPage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeMessagesPage);
-            }}
-          >
-            <div className="relative">
-              <MessageSquare className="w-6 h-6" />
-              <Show when={!!messageResponse.total}>
-                <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
-              </Show>
-            </div>
-            <div className="mt-1 text-center text-[12px]">消息</div>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
               curView === homeMinePage ? highlightColor : ""
             )}
             onClick={() => {
               homeLayout.showSubView(homeMinePage);
             }}
           >
-            <div>
+            <div className="relative">
               <Users className="w-6 h-6" />
+              <Show when={!!messageResponse.total}>
+                <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
+              </Show>
             </div>
             <div className="mt-1 text-center text-[12px]">我的</div>
           </div>

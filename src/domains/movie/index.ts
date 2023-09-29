@@ -12,7 +12,7 @@ import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import {
   MovieProfile,
   fetch_movie_and_cur_source,
-  update_play_history,
+  updateMoviePlayHistory,
   MediaSourceProfile,
   fetch_media_profile,
 } from "./services";
@@ -396,7 +396,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const { file_id } = this.curSource;
-    update_play_history({
+    updateMoviePlayHistory({
       movie_id: this.id,
       current_time: currentTime,
       duration,

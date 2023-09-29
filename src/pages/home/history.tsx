@@ -6,11 +6,11 @@ import { MoreVertical } from "lucide-react";
 
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
-import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/tv/services";
+import { MediaTypes, PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/tv/services";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { useDomainState, useInitialize, useInstance } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks";
 import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
 import { Show } from "@/components/ui/show";
@@ -18,7 +18,7 @@ import { Show } from "@/components/ui/show";
 export const HomeHistoryPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  const cur = useInstance(() => new RefCore<PlayHistoryItem>());
+  const historyList = useInstance(() => new ListCore(new RequestCore(fetchPlayingHistories)));
   const deletingRequest = useInstance(
     () =>
       new RequestCore(delete_history, {
@@ -35,7 +35,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
             text: ["删除成功"],
           });
           deletingConfirmDialog.hide();
-          helper.deleteItem((history) => {
+          historyList.deleteItem((history) => {
             if (history.id === cur.value?.id) {
               return true;
             }
@@ -56,16 +56,16 @@ export const HomeHistoryPage: ViewComponent = (props) => {
         },
       })
   );
-  const helper = useInstance(() => new ListCore(new RequestCore(fetchPlayingHistories)));
+  const cur = useInstance(() => new RefCore<PlayHistoryItem>());
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
         async onPullToRefresh() {
-          await helper.refresh();
+          await historyList.refresh();
           scrollView.stopPullToRefresh();
         },
         onReachBottom() {
-          helper.loadMore();
+          historyList.loadMore();
         },
       })
   );
@@ -76,15 +76,18 @@ export const HomeHistoryPage: ViewComponent = (props) => {
           if (!history) {
             return;
           }
-          const { tv_id, movie_id } = history;
-          if (tv_id) {
+          const { type, tv_id, season_id, movie_id } = history;
+          if (type === MediaTypes.TV && tv_id) {
             tvPlayingPage.params = {
               id: tv_id,
+            };
+            tvPlayingPage.query = {
+              season_id,
             };
             rootView.layerSubView(tvPlayingPage);
             return;
           }
-          if (movie_id) {
+          if (type === MediaTypes.Movie && movie_id) {
             moviePlayingPage.params = {
               id: movie_id,
             };
@@ -99,14 +102,14 @@ export const HomeHistoryPage: ViewComponent = (props) => {
       })
   );
 
-  const [response, setResponse] = useState(helper.response);
+  const [response, setResponse] = useState(historyList.response);
 
   useInitialize(() => {
     // console.log("[PAGE]history - useInitialize");
-    helper.onStateChange((nextResponse) => {
+    historyList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-    helper.init();
+    historyList.init();
   });
 
   const { dataSource } = response;
@@ -117,7 +120,7 @@ export const HomeHistoryPage: ViewComponent = (props) => {
         <div className="min-h-screen w-full">
           <div className="">
             <ListView
-              store={helper}
+              store={historyList}
               className="grid grid-cols-1 space-y-4 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
               skeleton={
                 <>
@@ -138,7 +141,6 @@ export const HomeHistoryPage: ViewComponent = (props) => {
                 const {
                   id,
                   tv_id,
-                  movie_id,
                   name,
                   poster_path,
                   episode,

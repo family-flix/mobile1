@@ -2,106 +2,79 @@
  * @file 首页
  */
 import React, { useState } from "react";
-import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
 
-import {
-  Skeleton,
-  ListView,
-  Input,
-  ScrollView,
-  LazyImage,
-  Sheet,
-  CheckboxGroup,
-  BackToTop,
-  Button,
-  Dialog,
-} from "@/components/ui";
-import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore } from "@/domains/ui";
-import { fetch_season_list } from "@/domains/tv/services";
+import { fetchCollectionList, fetchUpdatedMediaToday } from "@/services";
+import { Skeleton, ListView, ScrollView, LazyImage, BackToTop, Button } from "@/components/ui";
+import { MediaRequestCore } from "@/components/media-request";
+import { ScrollViewCore, InputCore, ButtonCore } from "@/domains/ui";
+import { MediaTypes, fetchPlayingHistories } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions } from "@/constants";
 import { ViewComponent } from "@/types";
-import { rootView, tvPlayingPage } from "@/store";
-import { MediaRequestCore } from "@/components/media-request";
+import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
+import { Bird } from "lucide-react";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
 
-  const scrollView = useInstance(() => new ScrollViewCore());
-  const settingsSheet = useInstance(() => new DialogCore());
+  const collectionList = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchCollectionList), {
+        pageSize: 6,
+        onLoadingChange(loading) {
+          searchInput.setLoading(!collectionList.response.initial && loading);
+        },
+      })
+  );
+  const updatedMediaList = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchUpdatedMediaToday), {
+        pageSize: 12,
+      })
+  );
+  const historyList = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchPlayingHistories), {
+        pageSize: 12,
+      })
+  );
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        async onPullToRefresh() {
+          updatedMediaList.refresh();
+          historyList.refresh();
+          await collectionList.refresh();
+          app.tip({
+            text: ["刷新成功"],
+          });
+          scrollView.stopPullToRefresh();
+        },
+        onReachBottom() {
+          collectionList.loadMore();
+        },
+      })
+  );
   const searchInput = useInstance(
     () =>
       new InputCore({
         placeholder: "请输入关键字搜索电视剧",
         onEnter(v) {
-          helper.search({
+          collectionList.search({
             name: v,
           });
         },
         onBlur(v) {
-          helper.search({
+          collectionList.search({
             name: v,
           });
         },
         onClear() {
           // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
-          helper.search({
+          collectionList.search({
             name: "",
           });
-        },
-      })
-  );
-  const sourceCheckboxGroup = useInstance(() => {
-    const { language = [] } = app.cache.get("tv_search", {
-      language: [] as string[],
-    });
-    return new CheckboxGroupCore({
-      values: TVSourceOptions.filter((opt) => {
-        return language.includes(opt.value);
-      }).map((opt) => opt.value),
-      options: TVSourceOptions.map((opt) => {
-        return {
-          ...opt,
-          checked: language.includes(opt.value),
-        };
-      }),
-      onChange(options) {
-        app.cache.merge("tv_search", {
-          language: options,
-        });
-        setHasSearch(!!options.length);
-        helper.search({
-          language: options.join("|"),
-        });
-      },
-    });
-  });
-  const genresCheckboxGroup = useInstance(() => {
-    // const { genres = [] } = app.cache.get("tv_search", {
-    //   genres: [] as string[],
-    // });
-    return new CheckboxGroupCore({
-      options: TVGenresOptions,
-      onChange(options) {
-        // app.cache.merge("tv_search", {
-        //   genres: options,
-        // });
-        setHasSearch(!!options.length);
-        // settingsSheet.hide();
-        helper.search({
-          genres: options.join("|"),
-        });
-      },
-    });
-  });
-  const helper = useInstance(
-    () =>
-      new ListCore(new RequestCore(fetch_season_list), {
-        pageSize: 6,
-        onLoadingChange(loading) {
-          searchInput.setLoading(!helper.response.initial && loading);
         },
       })
   );
@@ -116,7 +89,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
       })
   );
 
-  const [response, setResponse] = useState(helper.response);
+  const [response, setResponse] = useState(collectionList.response);
+  const [updatedMediaListState, setUpdatedMediaListState] = useState(updatedMediaList.response);
+  const [historyState, setHistoryState] = useState(historyList.response);
   const [hasSearch, setHasSearch] = useState(
     (() => {
       const { language = [] } = app.cache.get("tv_search", {
@@ -128,18 +103,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
-    scrollView.onPullToRefresh(async () => {
-      await helper.refresh();
-      app.tip({
-        text: ["刷新成功"],
-      });
-      scrollView.stopPullToRefresh();
-    });
-    scrollView.onReachBottom(() => {
-      helper.loadMore();
-    });
-    helper.onStateChange((nextResponse) => {
+    collectionList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
+    });
+    updatedMediaList.onStateChange((nextState) => {
+      setUpdatedMediaListState(nextState);
+    });
+    historyList.onStateChange((nextState) => {
+      setHistoryState(nextState);
     });
     mediaRequest.onTip((msg) => {
       app.tip(msg);
@@ -155,7 +126,9 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         language: language.join("|"),
       };
     })();
-    helper.init(search);
+    collectionList.init(search);
+    updatedMediaList.init();
+    historyList.init();
   });
 
   const { dataSource } = response;
@@ -164,51 +137,39 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <div className="relative z-50">
-        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 space-x-4 bg-white dark:bg-black">
-          <div className="relative w-full">
-            <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
-          </div>
-          <div
-            className="relative p-2"
-            onClick={() => {
-              settingsSheet.show();
-            }}
-          >
-            <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
-            {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
-          </div>
-        </div>
-        <div className="h-[56px]" />
-      </div>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="w-full h-full pt-[56px]">
+        <div className="w-full h-full">
           <ListView
-            store={helper}
+            store={collectionList}
             className="relative h-[50%] mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
-              <>
-                <div className="flex px-4 pb-4 cursor-pointer">
-                  <div className="relative w-[128px] h-[198px] mr-4">
-                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+              <div className="pb-8">
+                <div className="px-4">
+                  <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
+                </div>
+                <div className="flex mt-4 w-screen overflow-x-auto px-4 space-x-2 hide-scroll">
+                  <div>
+                    <div className="relative rounded-lg overflow-hidden">
+                      <Skeleton className="w-[128px] h-[192px] object-cover dark:bg-gray-800" />
+                    </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                      <div className="flex items-center overflow-hidden text-ellipsis">
+                        <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                      </div>
+                    </div>
                   </div>
-                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                  <div>
+                    <div className="relative rounded-lg overflow-hidden">
+                      <Skeleton className="w-[128px] h-[192px] object-cover dark:bg-gray-800" />
+                    </div>
+                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                      <div className="flex items-center overflow-hidden text-ellipsis">
+                        <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="flex px-4 pb-4 cursor-pointer">
-                  <div className="relative w-[128px] h-[198px] mr-4">
-                    <Skeleton className="w-full h-full dark:bg-gray-800" />
-                  </div>
-                  <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
-                  </div>
-                </div>
-              </>
+              </div>
             }
             extraEmpty={
               <div className="mt-2">
@@ -219,74 +180,216 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
             }
           >
             {(() => {
-              return dataSource.map((season) => {
-                const {
-                  id,
-                  tv_id,
-                  name,
-                  overview,
-                  season_text,
-                  episode_count_text,
-                  vote,
-                  genres,
-                  air_date,
-                  poster_path = "",
-                } = season;
-                return (
-                  <div
-                    key={id}
-                    className="flex px-4 pb-4 cursor-pointer"
-                    onClick={() => {
-                      tvPlayingPage.params = {
-                        id: tv_id,
-                      };
-                      tvPlayingPage.query = {
-                        season_id: id,
-                      };
-                      rootView.layerSubView(tvPlayingPage);
-                    }}
-                  >
-                    <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                      <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
-                      {episode_count_text && (
-                        <div className="z-20 absolute bottom-1 right-1">
-                          <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                            <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
-                              {episode_count_text}
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              if (response.initial) {
+                return null;
+              }
+              return (
+                <>
+                  <div className="flex pb-8 cursor-pointer">
+                    <div>
+                      <div className="px-4">
+                        <h2 className="text-2xl dark:text-white">📆今日更新</h2>
+                      </div>
+                      <div className="flex mt-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                        {(() => {
+                          if (updatedMediaListState.empty) {
+                            return (
+                              <div className="flex items-center justify-center w-full h-full mt-[68px]">
+                                <div className="flex flex-col items-center justify-center">
+                                  <Bird className="w-16 h-16" />
+                                  <div className="mt-2 text-xl">暂无数据</div>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return updatedMediaListState.dataSource.map((media) => {
+                            const { id, name, type, tv_id, poster_path, text, air_date } = media;
+                            return (
+                              <div
+                                key={id}
+                                onClick={() => {
+                                  if (type === MediaTypes.TV && tv_id) {
+                                    tvPlayingPage.params = {
+                                      id: tv_id,
+                                    };
+                                    tvPlayingPage.query = {
+                                      season_id: id,
+                                    };
+                                    rootView.layerSubView(tvPlayingPage);
+                                  }
+                                  if (type === MediaTypes.Movie) {
+                                    moviePlayingPage.params = {
+                                      id,
+                                    };
+                                    rootView.layerSubView(moviePlayingPage);
+                                  }
+                                }}
+                              >
+                                <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
+                                  <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                                  {text && (
+                                    <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[24px] px-2 text-sm text-right text-white bg-gradient-to-t from-black to-transparent">
+                                      <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                                        {text}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                                  <div className="flex items-center overflow-hidden text-ellipsis">
+                                    <h2 className="break-all text-lg truncate">{name}</h2>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <div className="text-sm">{air_date}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
                     </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                      <div className="flex items-center">
-                        <h2 className="text-2xl dark:text-white">{name}</h2>
+                  </div>
+                  <div className="flex pb-8 cursor-pointer">
+                    <div>
+                      <div className="px-4">
+                        <h2 className="text-2xl dark:text-white">🎬最近观看</h2>
                       </div>
-                      <div className="flex items-center mt-1 ">
-                        <div>{air_date}</div>
-                        <p className="mx-2 ">·</p>
-                        <p className="whitespace-nowrap">{season_text}</p>
-                        <p className="mx-2 ">·</p>
-                        <div className="flex items-center">
-                          <Star className="mr-1 relative top-[-2px] w-4 h-4" />
-                          <div>{vote}</div>
-                        </div>
+                      <div className="flex mt-4 w-screen min-h-[184px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                        {(() => {
+                          if (historyState.empty) {
+                            return (
+                              <div className="flex items-center justify-center w-full h-full mt-[68px]">
+                                <div className="flex flex-col items-center justify-center">
+                                  <Bird className="w-16 h-16" />
+                                  <div className="mt-2 text-xl">暂无数据</div>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return historyState.dataSource.map((history) => {
+                            const {
+                              id,
+                              type,
+                              name,
+                              percent,
+                              tv_id,
+                              season_id,
+                              movie_id,
+                              poster_path,
+                              updated,
+                              thumbnail,
+                            } = history;
+                            return (
+                              <div
+                                key={id}
+                                onClick={() => {
+                                  if (type === MediaTypes.TV && tv_id) {
+                                    tvPlayingPage.params = {
+                                      id: tv_id,
+                                    };
+                                    tvPlayingPage.query = {
+                                      season_id,
+                                    };
+                                    rootView.layerSubView(tvPlayingPage);
+                                  }
+                                  if (type === MediaTypes.Movie && movie_id) {
+                                    moviePlayingPage.params = {
+                                      id: movie_id,
+                                    };
+                                    rootView.layerSubView(moviePlayingPage);
+                                  }
+                                }}
+                              >
+                                <div className="relative w-[240px] h-[148px] rounded-lg overflow-hidden">
+                                  <LazyImage className="w-full h-full object-cover" src={thumbnail} alt={name} />
+                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-sm text-right text-white bg-gradient-to-t from-black to-transparent">
+                                    <div className="">看到{percent}%</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="text-lg">{name}</div>
+                                  {/* <div className="mr-4 text-sm">{updated}</div> */}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
-                      <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
-                        {genres.map((g) => {
-                          return (
-                            <div
-                              key={g}
-                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
-                              style={{
-                                lineHeight: "12px",
-                              }}
-                            >
-                              {g}
-                            </div>
-                          );
-                        })}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+            {(() => {
+              return dataSource.map((collection) => {
+                const { id, title, desc, medias } = collection;
+                return (
+                  <div key={id} className="flex pb-8 cursor-pointer">
+                    <div>
+                      <div className="px-4">
+                        <h2 className="text-2xl dark:text-white">{title}</h2>
+                        {desc && <div>{desc}</div>}
+                      </div>
+                      <div className="flex mt-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                        {(() => {
+                          if (medias.length === 0) {
+                            return (
+                              <div className="flex items-center justify-center w-full h-full mt-[68px]">
+                                <div className="flex flex-col items-center justify-center">
+                                  <Bird className="w-16 h-16" />
+                                  <div className="mt-2 text-xl">暂无数据</div>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return medias.map((media) => {
+                            const { id, name, type, tv_id, poster_path, episode_count_text, air_date } = media;
+                            return (
+                              <div
+                                key={id}
+                                onClick={() => {
+                                  if (type === MediaTypes.TV && tv_id) {
+                                    tvPlayingPage.params = {
+                                      id: tv_id,
+                                    };
+                                    tvPlayingPage.query = {
+                                      season_id: id,
+                                    };
+                                    rootView.layerSubView(tvPlayingPage);
+                                  }
+                                  if (type === MediaTypes.Movie) {
+                                    moviePlayingPage.params = {
+                                      id,
+                                    };
+                                    rootView.layerSubView(moviePlayingPage);
+                                  }
+                                }}
+                              >
+                                <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
+                                  <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                                  {episode_count_text && (
+                                    <div className="z-20 absolute bottom-1 right-1">
+                                      <div className="inline-flex items-center py-1 px-2 rounded-sm">
+                                        <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                                          {episode_count_text}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                                  <div className="flex items-center overflow-hidden text-ellipsis">
+                                    <h2 className="break-all text-lg truncate">{name}</h2>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <div className="text-sm">{air_date}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -297,34 +400,6 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         </div>
       </ScrollView>
       <BackToTop store={scrollView} />
-      <Sheet store={settingsSheet}>
-        <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
-          {response.loading && (
-            <>
-              <div className="absolute inset-0 bg-white opacity-50 dark:bg-black-900" />
-              <div className="absolute w-full h-[120px] flex items-center justify-center">
-                <Loader className="w-8 h-8 animate-spin" />
-              </div>
-            </>
-          )}
-          <div>
-            <div>
-              <CheckboxGroup store={sourceCheckboxGroup} />
-            </div>
-            <div>
-              <CheckboxGroup store={genresCheckboxGroup} />
-            </div>
-          </div>
-        </div>
-      </Sheet>
-      <Dialog store={mediaRequest.dialog}>
-        <div>
-          <p>输入想看的电视剧</p>
-          <div className="mt-4">
-            <Input store={mediaRequest.input} />
-          </div>
-        </div>
-      </Dialog>
     </>
   );
 });

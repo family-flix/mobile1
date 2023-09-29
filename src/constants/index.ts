@@ -217,3 +217,33 @@ export enum ReportTypes {
 export const TVReportList = ["信息有误", "无法播放", "重复", "缺少字幕", "集/季数不全"];
 export const MovieReportList = ["信息有误", "无法播放", "重复", "缺少字幕"];
 export const CommonReportList = [""];
+
+export const players: { icon: string; name: string; scheme: string }[] = [
+  // { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },
+  // { icon: "potplayer", name: "PotPlayer", scheme: "potplayer://$durl" },
+  {
+    icon: "https://cdn.weipaitang.com/static/20230928ab23e98c-d8fc-e98cd8fc-453a-47af288db8d1-W512H512",
+    name: "VLC",
+    scheme: "vlc://$durl",
+  },
+  {
+    icon: "https://cdn.weipaitang.com/static/202309288011c2c9-a6b1-c2c9a6b1-2699-dc5136ed6657-W225H225",
+    name: "nPlayer",
+    scheme: "nplayer-$durl",
+  },
+  {
+    icon: "https://cdn.weipaitang.com/static/202309288f2eda45-7eba-da457eba-fe3c-c9ce239b8020-W170H170",
+    name: "Infuse",
+    scheme: "infuse://x-callback-url/play?url=$durl",
+  },
+  // {
+  //   icon: "mxplayer",
+  //   name: "MX Player",
+  //   scheme: "intent:$durl#Intent;package=com.mxtech.videoplayer.ad;S.title=$name;end",
+  // },
+  // {
+  //   icon: "mxplayer-pro",
+  //   name: "MX Player Pro",
+  //   scheme: "intent:$durl#Intent;package=com.mxtech.videoplayer.pro;S.title=$name;end",
+  // },
+];

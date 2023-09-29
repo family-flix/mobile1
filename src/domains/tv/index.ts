@@ -14,7 +14,7 @@ import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants"
 import {
   TVAndEpisodesProfile,
   MediaSourceProfile,
-  update_play_history,
+  updatePlayHistory,
   fetch_episode_profile,
   fetch_tv_and_cur_episode,
   fetch_episodes_of_season,
@@ -390,6 +390,17 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       this.emit(Events.SubtitleChange, { ...this.subtitle });
     });
   }
+  async findEpisode(id: string): Promise<number> {
+    const episodes = this.curEpisodes;
+    const index = episodes.findIndex((e) => e.id === id);
+    if (index === -1) {
+      if (!this.episodeList.response.noMore) {
+        await this.episodeList.loadMore();
+        return this.findEpisode(id);
+      }
+    }
+    return index;
+  }
   /** 获取下一剧集 */
   async getNextEpisode() {
     if (this.profile === null || this.curEpisode === null) {
@@ -405,8 +416,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     }
     // const { episodes } = curSeason;
     const episodes = this.curEpisodes;
-    console.log("[DOMAIN]tv/index - getNextEpisode", curSeason, this.curEpisode);
-    const index = episodes.findIndex((e) => e.id === id);
+    // console.log("[DOMAIN]tv/index - getNextEpisode", curSeason, this.curEpisode);
+    const index = await this.findEpisode(id);
     if (index === -1) {
       return Result.Err("没有找到当前剧集在季中的顺序");
     }
@@ -419,11 +430,11 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("已经是最后一集了");
     }
     // const cur_season_index = seasons.findIndex((s) => s == season_of_cur_episode);
-    const cur_season_index = seasons.indexOf(curSeason);
-    if (cur_season_index === -1) {
+    const curSeasonIndex = seasons.indexOf(curSeason);
+    if (curSeasonIndex === -1) {
       return Result.Err("没有找到当前季的顺序");
     }
-    const next_season = seasons[cur_season_index + 1];
+    const next_season = seasons[curSeasonIndex + 1];
     if (!next_season) {
       return Result.Err("没有找到下一季");
     }
@@ -493,19 +504,17 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.BeforeNextEpisode);
     this._pending = true;
     const nextEpisodeRes = await this.getNextEpisode();
+    this._pending = false;
     if (nextEpisodeRes.error) {
       this.tip({ text: [nextEpisodeRes.error.message] });
-      this._pending = false;
       return;
     }
     const nextEpisode = nextEpisodeRes.data;
     if (nextEpisode === null) {
-      this._pending = false;
       return Result.Err("没有找到可播放剧集");
     }
     // this.currentTime = 0;
     await this.playEpisode(nextEpisode, { currentTime: 0, thumbnail: null });
-    this._pending = false;
     return Result.Ok(null);
   }
   /** 播放上一集 */
@@ -694,6 +703,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (!this.id) {
       return;
     }
+    if (this.curSeason === null) {
+      return;
+    }
     if (this.curEpisode === null) {
       return;
     }
@@ -702,8 +714,9 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     }
     const { id: episode_id } = this.curEpisode;
     const { file_id } = this.curSource;
-    update_play_history({
+    updatePlayHistory({
       tv_id: this.id,
+      season_id: this.curSeason.id,
       episode_id,
       current_time: parseFloat(currentTime.toFixed(2)),
       duration: parseFloat(duration.toFixed(2)),

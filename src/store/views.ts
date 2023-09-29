@@ -5,6 +5,7 @@ import { RouteViewCore, onViewCreated } from "@/domains/route_view";
 /** 首页 */
 import { HomeLayout } from "@/pages/home/layout";
 import { HomeIndexPage } from "@/pages/home";
+import { HomeSeasonListPage } from "@/pages/home/season";
 import { HomeMoviePage } from "@/pages/home/movie";
 import { HomeHistoryPage } from "@/pages/home/history";
 import { HomeMessagePage } from "@/pages/home/message";
@@ -13,6 +14,7 @@ import { HomeMovieSearchPage } from "@/pages/home/search/movie";
 import { HomeMinePage } from "@/pages/home/mine";
 /** 视频播放 */
 import { TVPlayingPage } from "@/pages/tv/play";
+import { TVOuterPlayersPage } from "@/pages/tv/outerplayers";
 import { MoviePlayingPage } from "@/pages/movie/play";
 import { OuterPlayersPage } from "@/pages/outplayers";
 /** 其他 */
@@ -36,6 +38,11 @@ export const homeIndexPage = new RouteViewCore({
 });
 // mainLayout.curView = aView;
 // mainLayout.appendSubView(aView);
+export const homeSeasonPage = new RouteViewCore({
+  key: "/home/season",
+  title: "电视剧",
+  component: HomeSeasonListPage,
+});
 export const homeMoviePage = new RouteViewCore({
   key: "/home/movie",
   title: "电影",
@@ -75,6 +82,11 @@ export const tvPlayingPage = new RouteViewCore({
   key: "/tv/play/:id",
   title: "播放电视剧",
   component: TVPlayingPage,
+});
+export const tvOuterPlayerPage = new RouteViewCore({
+  key: "/tv/players/:id",
+  title: "外部播放器",
+  component: TVOuterPlayersPage,
 });
 export const moviePlayingPage = new RouteViewCore({
   key: "/movie/play/:id",

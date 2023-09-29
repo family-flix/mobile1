@@ -44,7 +44,7 @@ export type TVItem = RequestedResource<typeof fetch_tv_list>["list"][0];
 /**
  * 获取季列表
  */
-export async function fetch_season_list(params: FetchParams & { name: string }) {
+export async function fetchSeasonList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
   const resp = await request.get<
     ListResponse<{
@@ -131,7 +131,7 @@ export async function fetch_season_list(params: FetchParams & { name: string }) 
     }),
   });
 }
-export type SeasonItem = RequestedResource<typeof fetch_season_list>["list"][0];
+export type SeasonItem = RequestedResource<typeof fetchSeasonList>["list"][0];
 
 type MediaSourceProfileRes = {
   id: string;
@@ -525,8 +525,9 @@ export async function fetch_source_playing_info(body: { episode_id: string; file
 /**
  * 更新播放记录
  */
-export async function update_play_history(body: {
+export async function updatePlayHistory(body: {
   tv_id: string;
+  season_id: string;
   episode_id: string;
   /** 视频当前时间 */
   current_time: number;
@@ -534,9 +535,10 @@ export async function update_play_history(body: {
   /** 视频源 */
   file_id: string;
 }) {
-  const { tv_id, episode_id, current_time, duration, file_id } = body;
+  const { tv_id, season_id, episode_id, current_time, duration, file_id } = body;
   return request.post<null>("/api/history/update", {
     tv_id,
+    season_id,
     episode_id,
     current_time,
     duration,
@@ -554,12 +556,14 @@ export async function fetchPlayingHistories(params: FetchParams) {
   const r = await request.get<
     ListResponse<{
       id: string;
+      type: number;
       /** 电视剧名称 */
       name: string;
       /** 电视剧海报地址 */
       poster_path: string;
       /** 电视剧id */
       tv_id: string;
+      season_id: string;
       /** 影片id */
       episode_id: string;
       movie_id: string;
@@ -579,9 +583,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
       episode_count: number;
       /** 最新一集添加时间 */
       latest_episode: string;
-      /** 电视剧首播日期 */
-      first_air_date: string;
-      /** 该季首播日期 */
+      /** 首播日期 */
       air_date: string;
       /** 看过后是否有更新 */
       has_update: number;
@@ -604,8 +606,10 @@ export async function fetchPlayingHistories(params: FetchParams) {
     list: list.map((history) => {
       const {
         id,
+        type,
         name,
         tv_id,
+        season_id,
         episode_id,
         movie_id,
         poster_path,
@@ -622,6 +626,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
       if (movie_id) {
         return {
           id,
+          type,
           movie_id,
           name,
           poster_path,
@@ -633,8 +638,10 @@ export async function fetchPlayingHistories(params: FetchParams) {
       }
       return {
         id,
+        type,
         name,
         tv_id,
+        season_id,
         episode_id,
         poster_path,
         cur_episode_count,

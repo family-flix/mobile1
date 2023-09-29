@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button, BackToTop, ListView, ScrollView, Input, LazyImage } from "@/components/ui";
 import { ButtonCore, InputCore, ScrollViewCore } from "@/domains/ui";
-import { fetch_season_list } from "@/domains/tv/services";
+import { fetchSeasonList } from "@/domains/tv/services";
 import { RequestCore } from "@/domains/request";
 import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks";
@@ -16,7 +16,7 @@ export const HomeTVSearchPage: ViewComponent = (props) => {
   const { router, view } = props;
 
   const helper = useInstance(() => {
-    return new ListCore(new RequestCore(fetch_season_list), {
+    return new ListCore(new RequestCore(fetchSeasonList), {
       onLoadingChange(loading) {
         searchBtn.setLoading(loading);
       },

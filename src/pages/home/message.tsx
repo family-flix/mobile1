@@ -2,7 +2,7 @@
  * @file 消息列表
  */
 import React, { useState } from "react";
-import { Check, CheckCheck, Diamond, MoreVertical, Smile } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } from "lucide-react";
 
 import { fetchNotifications, readAllNotification, readNotification } from "@/services";
 import { ScrollView, Skeleton, LazyImage, ListView, BackToTop, Dialog, Node, Button } from "@/components/ui";
@@ -44,6 +44,9 @@ export const HomeMessagePage: ViewComponent = (props) => {
         onReachBottom() {
           messageList.loadMore();
         },
+        onPullToBack() {
+          rootView.uncoverPrevView();
+        },
       })
   );
   const readAllBtn = new ButtonCore({
@@ -70,7 +73,6 @@ export const HomeMessagePage: ViewComponent = (props) => {
     if (messageList.response.dataSource.length === 0) {
       step.select(0);
     }
-    // console.log("[PAGE]history - useInitialize");
     messageList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
@@ -81,7 +83,20 @@ export const HomeMessagePage: ViewComponent = (props) => {
   return (
     <>
       <ScrollView store={scrollView} className="dark:text-black-200">
-        <div className="h-full w-full">
+        <div className="min-h-screen w-full">
+          <div className="">
+            <div className="flex items-center">
+              <div
+                className="inline-block p-4"
+                onClick={() => {
+                  rootView.uncoverPrevView();
+                }}
+              >
+                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+              </div>
+              <div className="text-2xl">我的消息</div>
+            </div>
+          </div>
           <div className="flex justify-between mt-2 p-2">
             <div></div>
             <div
@@ -107,16 +122,16 @@ export const HomeMessagePage: ViewComponent = (props) => {
                 store={step}
                 options={{
                   0: null,
-                  1: <Diamond className="w-4 h-4" />,
-                  2: <CheckCheck className="w-4 h-4" />,
+                  1: <Trash className="w-4 h-4" />,
+                  2: null,
                 }}
               />
               <StepSwitch
                 store={step}
                 options={{
                   0: null,
-                  1: <div className="ml-2">全部标记已读</div>,
-                  2: <div className="ml-2">全部已读</div>,
+                  1: <div className="ml-2">清理</div>,
+                  2: <div className="ml-2">完成</div>,
                 }}
               />
             </div>

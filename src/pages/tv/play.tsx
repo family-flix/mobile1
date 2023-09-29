@@ -16,7 +16,7 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
+import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
@@ -29,9 +29,10 @@ import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { reportSomething } from "@/services";
-import { ReportTypes, TVReportList } from "@/constants";
+import { ReportTypes, TVReportList, players } from "@/constants";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
+import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -150,6 +151,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
+  const nextEpisodeLoader = useInstance(() => new LoaderOverrideCore({}));
   const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
 
@@ -186,6 +188,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     tv.onEpisodeChange((nextEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { currentTime, thumbnail } = nextEpisode;
+      nextEpisodeLoader.unload();
       player.setCurrentTime(currentTime);
       player.setPoster(thumbnail);
       player.pause();
@@ -359,11 +362,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   )}
                 >
                   <div
+                    className=""
                     onClick={(event) => {
                       event.stopPropagation();
                     }}
                   >
-                    <div className="grid grid-cols-3 gap-4 mt-18">
+                    <div className="flex justify-between px-8 mt-18">
                       <div
                         className="flex flex-col items-center dark:text-black-200"
                         onClick={async () => {
@@ -373,16 +377,19 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <ArrowBigLeft className="w-8 h-8" />
                         <p className="mt-2 text-sm">上一集</p>
                       </div>
-                      <div className="flex flex-col items-center"></div>
-                      <div
-                        className="flex flex-col items-center dark:text-black-200"
-                        onClick={() => {
-                          tv.playNextEpisode();
-                        }}
-                      >
-                        <ArrowBigRight className="w-8 h-8 " />
-                        <p className="mt-2 text-sm ">下一集</p>
-                      </div>
+                      <LoaderContainer className="w-12 h-16 dark:text-black-200" store={nextEpisodeLoader}>
+                        <div
+                          className="flex flex-col items-center"
+                          onClick={async () => {
+                            nextEpisodeLoader.load();
+                            await tv.playNextEpisode();
+                            nextEpisodeLoader.unload();
+                          }}
+                        >
+                          <ArrowBigRight className="w-8 h-8 " />
+                          <p className="mt-2 text-sm ">下一集</p>
+                        </div>
+                      </LoaderContainer>
                     </div>
                     <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
                       <div
@@ -740,10 +747,51 @@ export const TVPlayingPage: ViewComponent = (props) => {
       <Dialog store={errorTipDialog}>
         <div>该问题是因为手机无法解析视频</div>
         <div>可以尝试如下解决方案</div>
-        <div className="mt-4 text-left">
+        <div className="mt-4 text-left space-y-4">
           <div>1、「切换源」或者「分辨率」</div>
-          <div>2、使用电脑观看</div>
-          <div>3、使用手机外部播放器(开发中)</div>
+          <div>
+            <div>2、使用电脑观看</div>
+            <div
+              className="mt-2 break-all"
+              onClick={() => {
+                app.copy(window.location.href.replace(/mobile/, "pc"));
+                app.tip({
+                  text: ["已复制到剪贴板"],
+                });
+              }}
+            >
+              {window.location.href.replace(/mobile/, "pc")}
+            </div>
+          </div>
+          <div>
+            <div>3、使用手机外部播放器</div>
+            <div className="flex items-center mt-2 space-x-2">
+              {players.map((player) => {
+                const { icon, name, scheme } = player;
+                const url = (() => {
+                  if (!curSource) {
+                    return null;
+                  }
+                  return scheme
+                    .replace(/\$durl/, curSource.url)
+                    .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
+                })();
+                if (!url) {
+                  return null;
+                }
+                return (
+                  <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
+                    <LazyImage className="w-8 h-8 rounded-full" src={icon} />
+                    <div className="absolute bottom-0 w-full text-center">{name}</div>
+                  </a>
+                );
+              })}
+            </div>
+            <div className="mt-2 font-sm opacity-50">
+              <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
+              <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
+            </div>
+          </div>
         </div>
       </Dialog>
     </>

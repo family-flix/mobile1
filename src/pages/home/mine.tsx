@@ -2,7 +2,7 @@
  * @file 个人中心页
  */
 import React, { useEffect, useState } from "react";
-import { Copy, HelpCircle, HelpingHand, MailQuestion, Moon, Settings2, Sun, Tv } from "lucide-react";
+import { Copy, HelpCircle, HelpingHand, MailQuestion, MessageSquare, Moon, Settings2, Sun, Tv } from "lucide-react";
 
 import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
@@ -14,7 +14,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
 import { Show } from "@/components/ui/show";
-import { infoRequest, inviteeListPage, rootView } from "@/store";
+import { homeMessagesPage, infoRequest, inviteeListPage, messageList, rootView } from "@/store";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -135,12 +135,16 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { theme, setTheme } = useTheme();
   const [t, setT] = useState(theme);
   const [profile, setProfile] = useState(app.user);
+  const [messageResponse, setMessageResponse] = useState(messageList.response);
   // const [history_response] = useState(history_helper.response);
 
   useEffect(() => {
     infoRequest.run();
   }, []);
   useInitialize(() => {
+    messageList.onStateChange((nextState) => {
+      setMessageResponse(nextState);
+    });
     if (theme !== "system") {
       return;
     }
@@ -202,6 +206,24 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
           </div>
           <div className="border-b-2 dark:border-black-900"></div>
           <div className="rounded-lg">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => {
+                rootView.layerSubView(homeMessagesPage);
+              }}
+            >
+              <div className="flex">
+                <div className="relative w-5 p-4 mr-4">
+                  <MessageSquare className="w-5 h-5" />
+                  <Show when={!!messageResponse.total}>
+                    <div className="absolute top-3 right-[-8px] w-2 h-2 rounded-full bg-red-500" />
+                  </Show>
+                </div>
+                <div className="flex-1 py-4 mr-4">
+                  <div>消息</div>
+                </div>
+              </div>
+            </div>
             <div
               className=""
               onClick={() => {
@@ -280,7 +302,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               刷新登录信息
             </Button>
           </div>
-          <div className="text-center text-sm">V1.15.4</div>
+          <div className="text-center text-sm">v1.16.0</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>
