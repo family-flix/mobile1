@@ -159,12 +159,13 @@ export async function fetchCollectionList(body: FetchParams) {
         medias: medias.map((media) => {
           const { id, type, name, poster_path, air_date } = media;
           if (type === MediaTypes.TV) {
-            const { cur_episode_count, episode_count } = media;
+            const { tv_id, cur_episode_count, episode_count } = media;
             return {
               id,
               type,
               name,
               poster_path,
+              tv_id,
               air_date,
               episode_count_text: (() => {
                 if (!episode_count) {

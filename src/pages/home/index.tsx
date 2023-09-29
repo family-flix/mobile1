@@ -2,6 +2,7 @@
  * @file 首页
  */
 import React, { useState } from "react";
+import { Bird } from "lucide-react";
 
 import { fetchCollectionList, fetchUpdatedMediaToday } from "@/services";
 import { Skeleton, ListView, ScrollView, LazyImage, BackToTop, Button } from "@/components/ui";
@@ -13,7 +14,6 @@ import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
-import { Bird } from "lucide-react";
 
 export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -357,13 +357,18 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                       season_id: id,
                                     };
                                     rootView.layerSubView(tvPlayingPage);
+                                    return;
                                   }
                                   if (type === MediaTypes.Movie) {
                                     moviePlayingPage.params = {
                                       id,
                                     };
                                     rootView.layerSubView(moviePlayingPage);
+                                    return;
                                   }
+                                  app.tip({
+                                    text: ["数据异常"],
+                                  });
                                 }}
                               >
                                 <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
