@@ -141,35 +141,54 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
         <div className="w-full h-full">
           <ListView
             store={collectionList}
-            className="relative h-[50%] mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative h-[50%] mt-4 space-y-6"
             skeleton={
-              <div className="pb-8">
-                <div className="px-4">
-                  <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
-                </div>
-                <div className="flex mt-4 w-screen overflow-x-auto px-4 space-x-2 hide-scroll">
-                  <div>
-                    <div className="relative rounded-lg overflow-hidden">
-                      <Skeleton className="w-[128px] h-[192px] object-cover dark:bg-gray-800" />
+              <>
+                <div className="py-2">
+                  <div className="px-4">
+                    <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                  <div className="flex mt-2 w-screen overflow-x-auto px-4 space-x-3 hide-scroll">
+                    <div>
+                      <div className="relative rounded-lg overflow-hidden">
+                        <Skeleton className="w-[138px] h-[207px] object-cover dark:bg-gray-800" />
+                      </div>
+                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                        <div className="flex items-center overflow-hidden text-ellipsis">
+                          <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                        </div>
+                        <Skeleton className="mt-1 h-[18px] w-[36px] dark:bg-gray-800"></Skeleton>
+                      </div>
                     </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                      <div className="flex items-center overflow-hidden text-ellipsis">
-                        <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                    <div>
+                      <div className="relative rounded-lg overflow-hidden">
+                        <Skeleton className="w-[138px] h-[207px] object-cover dark:bg-gray-800" />
+                      </div>
+                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                        <div className="flex items-center overflow-hidden text-ellipsis">
+                          <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                        </div>
+                        <Skeleton className="mt-1 h-[18px] w-[36px] dark:bg-gray-800"></Skeleton>
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="relative rounded-lg overflow-hidden">
-                      <Skeleton className="w-[128px] h-[192px] object-cover dark:bg-gray-800" />
-                    </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                      <div className="flex items-center overflow-hidden text-ellipsis">
-                        <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                </div>
+                <div className="py-2">
+                  <div className="px-4">
+                    <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
+                  </div>
+                  <div className="flex mt-2 w-screen overflow-x-auto px-4 space-x-2 hide-scroll">
+                    <div>
+                      <div className="relative w-[240px] h-[135px] rounded-lg overflow-hidden">
+                        <Skeleton className="w-full h-full  dark:bg-gray-800" />
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <Skeleton className="h-[28px] w-[64px] dark:bg-gray-800"></Skeleton>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </>
             }
             extraEmpty={
               <div className="mt-2">
@@ -185,12 +204,12 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
               }
               return (
                 <>
-                  <div className="flex pb-8 cursor-pointer">
+                  <div className="flex py-2">
                     <div>
                       <div className="px-4">
                         <h2 className="text-2xl dark:text-white">📆今日更新</h2>
                       </div>
-                      <div className="flex mt-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                      <div className="flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll">
                         {(() => {
                           if (updatedMediaListState.empty) {
                             return (
@@ -207,6 +226,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                             return (
                               <div
                                 key={id}
+                                className="w-[138px]"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
                                     tvPlayingPage.params = {
@@ -225,7 +245,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                   }
                                 }}
                               >
-                                <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
+                                <div className="relative w-[138px] h-[207px] rounded-lg overflow-hidden">
                                   <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
                                   {text && (
                                     <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[24px] px-2 text-sm text-right text-white bg-gradient-to-t from-black to-transparent">
@@ -250,12 +270,12 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex pb-8 cursor-pointer">
+                  <div className="flex py-2">
                     <div>
                       <div className="px-4">
                         <h2 className="text-2xl dark:text-white">🎬最近观看</h2>
                       </div>
-                      <div className="flex mt-4 w-screen min-h-[184px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                      <div className="flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 hide-scroll">
                         {(() => {
                           if (historyState.empty) {
                             return (
@@ -325,13 +345,13 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
               return dataSource.map((collection) => {
                 const { id, title, desc, medias } = collection;
                 return (
-                  <div key={id} className="flex pb-8 cursor-pointer">
+                  <div key={id} className="flex py-2">
                     <div>
                       <div className="px-4">
                         <h2 className="text-2xl dark:text-white">{title}</h2>
                         {desc && <div>{desc}</div>}
                       </div>
-                      <div className="flex mt-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll">
+                      <div className="flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll">
                         {(() => {
                           if (medias.length === 0) {
                             return (
@@ -348,6 +368,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                             return (
                               <div
                                 key={id}
+                                className="w-[128px]"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
                                     tvPlayingPage.params = {
