@@ -79,7 +79,7 @@ export const homeLayout = new RouteViewCore({
   component: HomeLayout,
 });
 export const tvPlayingPage = new RouteViewCore({
-  key: "/tv/play/:id",
+  key: "/tv_play",
   title: "播放电视剧",
   component: TVPlayingPage,
 });

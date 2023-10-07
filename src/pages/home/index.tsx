@@ -229,10 +229,8 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                 className="w-[138px]"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
-                                    tvPlayingPage.params = {
-                                      id: tv_id,
-                                    };
                                     tvPlayingPage.query = {
+                                      id: tv_id,
                                       season_id: id,
                                     };
                                     rootView.layerSubView(tvPlayingPage);
@@ -305,10 +303,8 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                 key={id}
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
-                                    tvPlayingPage.params = {
-                                      id: tv_id,
-                                    };
                                     tvPlayingPage.query = {
+                                      id: tv_id,
                                       season_id,
                                     };
                                     rootView.layerSubView(tvPlayingPage);
@@ -371,10 +367,8 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                 className="w-[128px]"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
-                                    tvPlayingPage.params = {
-                                      id: tv_id,
-                                    };
                                     tvPlayingPage.query = {
+                                      id: tv_id,
                                       season_id: id,
                                     };
                                     rootView.layerSubView(tvPlayingPage);

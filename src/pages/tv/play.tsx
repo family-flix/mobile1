@@ -236,6 +236,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       });
     });
     player.onRateChange(({ rate }) => {
+      console.log("[PAGE]TVPlaying - onRateChange", rate);
       setRate(rate);
     });
     player.onProgress(({ currentTime, duration }) => {
@@ -301,8 +302,18 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       player.load(url);
     });
-    // console.log(view.query);
-    tv.fetchProfile(view.params.id, {
+    if (view.query.rate) {
+      setTimeout(() => {
+        player.changeRate(Number(view.query.rate));
+      }, 1000);
+    }
+    if (view.query.hide_menu) {
+      setTimeout(() => {
+        topOperation.hide();
+        bottomOperation.hide();
+      }, 1000);
+    }
+    tv.fetchProfile(view.query.id, {
       season_id: view.query.season_id,
     });
   });
@@ -443,7 +454,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
           </div>
-          <div className="video z-20 absolute top-[20%]">
+          <div className="video z-20 absolute top-[12%]">
             {(() => {
               if (profile === null || profile.curEpisode === null) {
                 return null;
@@ -451,6 +462,17 @@ export const TVPlayingPage: ViewComponent = (props) => {
               return (
                 <div className="">
                   <Video store={player} />
+                  {/* <div className="flex justify-between">
+                    <span></span>
+                    <span
+                      className="inline p-4 dark:text-black-200"
+                      onClick={() => {
+                        player.requestFullScreen();
+                      }}
+                    >
+                      <Maximize className="w-4 h-4" />
+                    </span>
+                  </div> */}
                   {/* {subtileState.visible ? (
                     <div key={subtileState.index} className="mt-2 space-y-1">
                       {subtileState.texts.map((text) => {
@@ -698,9 +720,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     reportConfirmDialog.show();
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer")} onClick={() => {}}>
-                    {question}
-                  </div>
+                  <div className={cn("py-2 px-4 rounded cursor-pointer")}>{question}</div>
                 </div>
               );
             })}

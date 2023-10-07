@@ -236,10 +236,8 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
                     key={id}
                     className="flex px-4 pb-4 cursor-pointer"
                     onClick={() => {
-                      tvPlayingPage.params = {
-                        id: tv_id,
-                      };
                       tvPlayingPage.query = {
+                        id: tv_id,
                         season_id: id,
                       };
                       rootView.layerSubView(tvPlayingPage);

@@ -165,7 +165,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                       });
                       if (season) {
                         const { id, tv_id } = season;
-                        tvPlayingPage.params = {
+                        tvPlayingPage.query = {
                           id: tv_id,
                           season_id: id,
                         };

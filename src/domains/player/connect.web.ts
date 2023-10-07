@@ -5,6 +5,12 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   $video.onloadstart = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onloadstart");
   };
+  $video.addEventListener("webkitstartfullscreen", () => {
+    player.setFullScreen(true);
+  });
+  $video.addEventListener("webkitendfullscreen", () => {
+    player.setFullScreen(false);
+  });
   $video.onloadedmetadata = function (event) {
     // console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata", this.videoWidth, this.videoHeight, this);
     // @ts-ignore
@@ -119,6 +125,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       $video.volume = volume;
     },
     setRate(rate: number) {
+      console.log("[DOMAIN]player/connect - setRate", rate, $video);
       $video.playbackRate = rate;
     },
     showSubtitle() {

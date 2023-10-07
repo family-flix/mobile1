@@ -32,7 +32,7 @@ export function Video(props: { store: PlayerCore }) {
     connect($video, store);
   }, []);
 
-  const { width, height, ready, poster, subtitle } = state;
+  const { width, height, ready, poster, subtitle, prepareFullscreen } = state;
 
   // console.log("[COMPONENT]Video - render", width, height, poster);
 
@@ -59,8 +59,8 @@ export function Video(props: { store: PlayerCore }) {
         poster={poster}
         className="w-full relative z-10"
         controls={true}
-        webkit-playsinline="true"
-        playsInline
+        webkit-playsinline={prepareFullscreen ? undefined : "true"}
+        playsInline={!prepareFullscreen}
         preload="none"
         height={height}
       >

@@ -78,10 +78,8 @@ export const HomeHistoryPage: ViewComponent = (props) => {
           }
           const { type, tv_id, season_id, movie_id } = history;
           if (type === MediaTypes.TV && tv_id) {
-            tvPlayingPage.params = {
-              id: tv_id,
-            };
             tvPlayingPage.query = {
+              id: tv_id,
               season_id,
             };
             rootView.layerSubView(tvPlayingPage);

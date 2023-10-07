@@ -95,6 +95,7 @@ type PlayerState = {
   rate: number;
   volume: number;
   currentTime: number;
+  prepareFullscreen: boolean;
   subtitle: null | {
     label: string;
     lang: string;
@@ -124,6 +125,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   /** 默认是不能播放的，只有用户交互后可以播放 */
   private _target_current_time = 0;
   _subtitleVisible = false;
+  prepareFullscreen = false;
   private _progress = 0;
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
@@ -152,6 +154,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       volume: this._curVolume,
       currentTime: this._currentTime,
       subtitle: this.subtitle,
+      prepareFullscreen: this.prepareFullscreen,
     };
   }
 
@@ -170,9 +173,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
 
   bindAbstractNode(node: PlayerCore["_abstractNode"]) {
     this._abstractNode = node;
+    // console.log("[DOMAIN]player/index - bindAbstractNode", node, this.pendingRate);
     if (this._abstractNode) {
+      if (this.pendingRate) {
+        this.changeRate(this.pendingRate);
+        this.pendingRate = null;
+      }
       this._abstractNode.setVolume(this._curVolume);
-      this._abstractNode.setVolume(this._curRate);
     }
   }
   /** 开始播放 */
@@ -206,11 +213,14 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._abstractNode.setVolume(v);
     this.emit(Events.VolumeChange, { volume: v });
   }
+  pendingRate: null | number = null;
   changeRate(v: number) {
     if (this._abstractNode === null) {
+      this.pendingRate = v;
       return;
     }
     this._curRate = v;
+    console.log("[DOMAIN]player/index - changeRate", v);
     this._abstractNode.setRate(v);
     this.emit(Events.RateChange, { rate: v });
   }
@@ -278,6 +288,20 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._subtitleVisible = true;
     this._abstractNode.showSubtitle();
   }
+  requestFullScreen() {
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
+    this.pause();
+    if (this.prepareFullscreen === false) {
+      this.prepareFullscreen = true;
+      this.emit(Events.StateChange, { ...this.state });
+    }
+    setTimeout(() => {
+      this.play();
+    }, 200);
+  }
   loadSource(video: MediaSourceProfile) {
     this.metadata = video;
     this._canPlay = false;
@@ -333,6 +357,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   setMounted() {
     this._mounted = true;
     this.emit(Events.Mounted);
+  }
+  setFullScreen(isFullscreen: boolean) {
+    this.prepareFullscreen = isFullscreen;
+    if (isFullscreen === false) {
+      this.playing = false;
+    }
+    this.emit(Events.StateChange, { ...this.state });
   }
   handlePause({ currentTime, duration }: { currentTime: number; duration: number }) {
     this.emit(Events.Pause, { currentTime, duration });
