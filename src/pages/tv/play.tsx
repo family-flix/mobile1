@@ -102,6 +102,17 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const rateSheet = useInstance(() => new DialogCore());
   const resolutionSheet = useInstance(() => new DialogCore());
   const dSheet = useInstance(() => new DialogCore());
+  const fullscreenDialog = useInstance(
+    () =>
+      new DialogCore({
+        title: "进入全屏播放",
+        cancel: false,
+        onOk() {
+          fullscreenDialog.hide();
+          player.playAndFullScreen();
+        },
+      })
+  );
   const errorTipDialog = useInstance(() => {
     const dialog = new DialogCore({
       title: "视频加载错误",
@@ -170,6 +181,24 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - app.onShow", player.currentTime);
       // 锁屏后 currentTime 不是锁屏前的
       player.setCurrentTime(player.currentTime);
+    });
+    app.onOrientationChange((orientation) => {
+      if (orientation === "horizontal") {
+        if (!player.hasPlayed) {
+          fullscreenDialog.show();
+          return;
+        }
+        if (player.playing) {
+          return;
+        }
+        player.requestFullScreen();
+      }
+      if (orientation === "vertical") {
+        fullscreenDialog.hide();
+        if (tv.curSource) {
+          player.setSize({ width: tv.curSource.width, height: tv.curSource.height });
+        }
+      }
     });
     view.onHidden(() => {
       player.pause();
@@ -454,7 +483,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
           </div>
-          <div className="video z-20 absolute top-[12%]">
+          <div className="video z-20 absolute top-[12%] left-[50%] translate-x-[-50%]">
             {(() => {
               if (profile === null || profile.curEpisode === null) {
                 return null;
@@ -813,6 +842,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
             </div>
           </div>
         </div>
+      </Dialog>
+      <Dialog store={fullscreenDialog}>
+        <div>点击进入全屏播放</div>
       </Dialog>
     </>
   );

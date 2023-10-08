@@ -22,6 +22,9 @@ export function connect(app: Application) {
     const { innerWidth, innerHeight } = window;
     app.setSize({ width: innerWidth, height: innerHeight });
   });
+  window.addEventListener("orientationchange", function () {
+    app.handleScreenOrientationChange(window.orientation);
+  });
   window.addEventListener("load", () => {
     // console.log("2");
   });
@@ -48,7 +51,7 @@ export function connect(app: Application) {
     };
     // console.log("resize", size);
     // app.emit(app.Events.Resize, { width: innerWidth, height: innerHeight });
-    app.resize(size);
+    app.handleResize(size);
   });
   window.addEventListener("blur", () => {
     app.emit(app.Events.Blur);

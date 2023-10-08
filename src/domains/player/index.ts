@@ -182,6 +182,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       this._abstractNode.setVolume(this._curVolume);
     }
   }
+  /** 手动播放过 */
+  hasPlayed = false;
   /** 开始播放 */
   async play() {
     if (this._abstractNode === null) {
@@ -191,6 +193,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._abstractNode.play();
+    this.hasPlayed = true;
     this._abstractNode.setRate(this._curRate);
     this.playing = true;
     this.emit(Events.StateChange, { ...this.state });
@@ -287,6 +290,17 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     this._subtitleVisible = true;
     this._abstractNode.showSubtitle();
+  }
+  playAndFullScreen() {
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
+    this.play();
+    if (this.prepareFullscreen === false) {
+      this.prepareFullscreen = true;
+      this.emit(Events.StateChange, { ...this.state });
+    }
   }
   requestFullScreen() {
     const $video = this._abstractNode;

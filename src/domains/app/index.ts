@@ -8,6 +8,10 @@ import { JSONObject, Result } from "@/types";
 
 import { LocalCache } from "./cache";
 
+enum OrientationTypes {
+  Horizontal,
+  Vertical,
+}
 const mediaSizes = {
   sm: 0,
   md: 768, // 中等设备宽度阈值
@@ -48,6 +52,7 @@ enum Events {
   ClickLink,
   Show,
   Hidden,
+  OrientationChange,
   // 该怎么处理？
   // DrivesChange,
 }
@@ -76,6 +81,7 @@ type TheTypesOfEvents = {
   [Events.Blur]: void;
   [Events.Show]: void;
   [Events.Hidden]: void;
+  [Events.OrientationChange]: "vertical" | "horizontal";
   // [Events.DrivesChange]: Drive[];
 };
 type ApplicationState = {
@@ -216,7 +222,20 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   popstate({ type, pathname }: { type: string; pathname: string }) {
     this.emit(Events.PopState, { type, pathname });
   }
-  resize(size: { width: number; height: number }) {
+  orientation = OrientationTypes.Vertical;
+  /** 屏幕方向改变 */
+  handleScreenOrientationChange(orientation: number) {
+    if (orientation === 0) {
+      this.orientation = OrientationTypes.Vertical;
+      this.emit(Events.OrientationChange, "vertical");
+      return;
+    }
+    this.orientation = OrientationTypes.Horizontal;
+    this.emit(Events.OrientationChange, "horizontal");
+  }
+  handleResize(size: { width: number; height: number }) {
+    // const { width: prevWidth, height: prevHeight } = this.screen;
+    // const { width, height } = size;
     this.screen = size;
     const mediaStr = getCurrentDeviceSize(size.width);
     if (mediaStr !== this.curDeviceSize) {
@@ -239,6 +258,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     return this.on(Events.DeviceSizeChange, handler);
   }
   /** 平台相关全局事件 */
+  onOrientationChange(handler: Handler<TheTypesOfEvents[Events.OrientationChange]>) {
+    return this.on(Events.OrientationChange, handler);
+  }
   onPopState(handler: Handler<TheTypesOfEvents[Events.PopState]>) {
     return this.on(Events.PopState, handler);
   }
