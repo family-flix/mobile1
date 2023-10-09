@@ -483,7 +483,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             </div>
           </div>
-          <div className="video z-20 absolute top-[12%] left-[50%] translate-x-[-50%]">
+          <div className="video z-20 absolute top-[12%]">
             {(() => {
               if (profile === null || profile.curEpisode === null) {
                 return null;

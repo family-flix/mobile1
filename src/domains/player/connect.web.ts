@@ -38,6 +38,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     // player.emit(PlayerCore.Events.Play);
   };
   $video.onplaying = () => {
+    player.hasPlayed = true;
     console.log("[COMPONENT]VideoPlayer/connect - $video.onplaying");
   };
   $video.ontimeupdate = (event) => {

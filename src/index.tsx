@@ -12,7 +12,7 @@ import { Toast } from "./components/ui/toast";
 import { ToastCore } from "./domains/ui/toast";
 import { connect } from "./domains/app/connect.web";
 import { useInitialize } from "./hooks";
-import { rootView } from "./store/views";
+import { rootView, tvPlayingPage } from "./store/views";
 import { ViewComponent } from "./types";
 import { cn } from "./utils";
 
@@ -60,9 +60,13 @@ function ApplicationView() {
         });
         if (matched) {
           matched.query = router.query;
+          if (matched === tvPlayingPage) {
+            rootView.showSubView(matched);
+            return;
+          }
           // @todo 这样写只能展示 /home/xxx 路由，应该根据路由，找到多层级视图，即 rootView,homeLayout,homeIndexPage 这样
-          rootView.showSubView(matched);
-          // homeLayout.showSubView(matched);
+          homeLayout.showSubView(matched);
+          rootView.showSubView(homeLayout);
           return;
         }
         rootView.showSubView(homeLayout);
