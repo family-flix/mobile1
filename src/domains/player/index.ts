@@ -307,7 +307,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     setTimeout(() => {
       this.play();
       // 300 的延迟是 video 保证重渲染 play inline 后，才开始播放
-    }, 300);
+    }, 800);
   }
   loadSource(video: MediaSourceProfile) {
     this.metadata = video;
@@ -374,8 +374,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Mounted);
     this.emit(Events.Ready);
   }
+  isFullscreen = false;
   /** ------ 平台 video 触发的事件 start -------- */
   handleFullscreenChange(isFullscreen: boolean) {
+    this.isFullscreen = isFullscreen;
     if (isFullscreen === false) {
       this.emit(Events.ExitFullscreen);
     }

@@ -60,12 +60,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
     return tv;
   });
   const player = useInstance(() => {
-    const { volume } = app.cache.get<{
+    const { volume, rate } = app.cache.get<{
       volume: number;
+      rate: number;
     }>("player_settings", {
       volume: 0.5,
+      rate: 1,
     });
-    const player = new PlayerCore({ app, volume });
+    const player = new PlayerCore({ app, volume, rate });
     // @ts-ignore
     window.__player__ = player;
     return player;
@@ -189,7 +191,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
           fullscreenDialog.show();
           return;
         }
+        if (player.isFullscreen) {
+          return;
+        }
         player.requestFullScreen();
+        player.isFullscreen = true;
       }
       if (orientation === "vertical") {
         player.disableFullscreen();
@@ -654,6 +660,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   key={index}
                   onClick={() => {
                     player.changeRate(rateOpt);
+                    app.cache.merge("player_settings", {
+                      rate: rateOpt,
+                    });
                   }}
                 >
                   <div className={cn("p-4 rounded cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>

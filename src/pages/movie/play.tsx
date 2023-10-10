@@ -35,7 +35,17 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
 
   const movie = useInstance(() => new MovieCore());
-  const player = useInstance(() => new PlayerCore({ app }));
+  const player = useInstance(() => {
+    const { volume, rate } = app.cache.get<{
+      volume: number;
+      rate: number;
+    }>("player_settings", {
+      volume: 0.5,
+      rate: 1,
+    });
+    const player = new PlayerCore({ app, volume, rate });
+    return player;
+  });
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
@@ -110,6 +120,17 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
+  const fullscreenDialog = useInstance(
+    () =>
+      new DialogCore({
+        title: "进入全屏播放",
+        cancel: false,
+        onOk() {
+          fullscreenDialog.hide();
+          player.requestFullScreen();
+        },
+      })
+  );
   const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
 
@@ -130,6 +151,26 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     });
     view.onHidden(() => {
       player.pause();
+    });
+    app.onOrientationChange((orientation) => {
+      if (orientation === "horizontal") {
+        if (!player.hasPlayed) {
+          fullscreenDialog.show();
+          return;
+        }
+        if (player.isFullscreen) {
+          return;
+        }
+        player.requestFullScreen();
+        player.isFullscreen = true;
+      }
+      if (orientation === "vertical") {
+        player.disableFullscreen();
+        fullscreenDialog.hide();
+        if (curSource) {
+          player.setSize({ width: curSource.width, height: curSource.height });
+        }
+      }
     });
     movie.onProfileLoaded((profile) => {
       app.setTitle(movie.getTitle().join(" - "));
@@ -409,6 +450,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   key={index}
                   onClick={() => {
                     player.changeRate(rateOpt);
+                    app.cache.merge("player_settings", {
+                      rate: rateOpt,
+                    });
                   }}
                 >
                   <div className={cn("p-4 rounded cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
@@ -605,6 +649,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
             </div>
           </div>
         </div>
+      </Dialog>
+      <Dialog store={fullscreenDialog}>
+        <div>点击进入全屏播放</div>
       </Dialog>
     </>
   );
