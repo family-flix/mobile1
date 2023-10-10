@@ -1,7 +1,9 @@
 /**
  * 注册的监听器
  */
-import mitt, { EventType, Handler } from "mitt";
+import mitt, { EventType, Handler as _Handler } from "mitt";
+
+export type Handler<T> = _Handler<T>;
 
 let _uid = 0;
 export function uid() {
@@ -70,10 +72,10 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
       ...args
     );
   }
-  off<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
+  off<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: _Handler<BaseDomainEvents<Events>[Key]>) {
     this._emitter.off(event, handler);
   }
-  on<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
+  on<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: _Handler<BaseDomainEvents<Events>[Key]>) {
     const unlisten = () => {
       this.listeners = this.listeners.filter((l) => l !== unlisten);
       this.off(event, handler);
@@ -100,10 +102,10 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
     }
     this.emit(BaseEvents.Destroy);
   }
-  onTip(handler: Handler<TheTypesOfBaseEvents[BaseEvents.Tip]>) {
+  onTip(handler: _Handler<TheTypesOfBaseEvents[BaseEvents.Tip]>) {
     return this.on(BaseEvents.Tip, handler);
   }
-  onDestroy(handler: Handler<TheTypesOfBaseEvents[BaseEvents.Destroy]>) {
+  onDestroy(handler: _Handler<TheTypesOfBaseEvents[BaseEvents.Destroy]>) {
     return this.on(BaseEvents.Destroy, handler);
   }
 

@@ -40,7 +40,7 @@ type DialogState = {
   footer?: boolean;
   cancel?: boolean;
 };
-type DialogProps = {
+export type DialogProps = {
   title?: string;
   footer?: boolean;
   cancel?: boolean;

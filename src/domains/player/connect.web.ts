@@ -6,10 +6,10 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onloadstart");
   };
   $video.addEventListener("webkitstartfullscreen", () => {
-    player.setFullScreen(true);
+    player.handleFullscreenChange(true);
   });
   $video.addEventListener("webkitendfullscreen", () => {
-    player.setFullScreen(false);
+    player.handleFullscreenChange(false);
   });
   $video.onloadedmetadata = function (event) {
     // console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata", this.videoWidth, this.videoHeight, this);
@@ -35,11 +35,11 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   };
   $video.onplay = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onplay");
-    // player.emit(PlayerCore.Events.Play);
+    player.handlePlay();
   };
   $video.onplaying = () => {
-    player.hasPlayed = true;
     console.log("[COMPONENT]VideoPlayer/connect - $video.onplaying");
+    player.handlePlaying();
   };
   $video.ontimeupdate = (event) => {
     const { currentTime, duration } = event.currentTarget as HTMLVideoElement;
@@ -62,7 +62,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   };
   $video.onended = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onended");
-    player.handleEnd();
+    player.handleEnded();
   };
   $video.onvolumechange = (event) => {
     const { volume } = event.currentTarget as HTMLVideoElement;
@@ -128,6 +128,16 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     setRate(rate: number) {
       console.log("[DOMAIN]player/connect - setRate", rate, $video);
       $video.playbackRate = rate;
+    },
+    enableFullscreen() {
+      // $video.removeAttribute("webkit-playsinline");
+      // $video.removeAttribute("plays-inline");
+      // ...
+    },
+    disableFullscreen() {
+      // $video.setAttribute("webkit-playsinline", "true");
+      // $video.setAttribute("plays-inline", "true");
+      // ...
     },
     showSubtitle() {
       if ($video.textTracks[0]) {

@@ -33,6 +33,7 @@ import { ReportTypes, TVReportList, players } from "@/constants";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
 import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
+import { OrientationTypes } from "@/domains/app";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -109,7 +110,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         cancel: false,
         onOk() {
           fullscreenDialog.hide();
-          player.playAndFullScreen();
+          player.requestFullScreen();
         },
       })
   );
@@ -188,12 +189,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
           fullscreenDialog.show();
           return;
         }
-        if (player.playing) {
-          return;
-        }
         player.requestFullScreen();
       }
       if (orientation === "vertical") {
+        player.disableFullscreen();
         fullscreenDialog.hide();
         if (tv.curSource) {
           player.setSize({ width: tv.curSource.width, height: tv.curSource.height });
@@ -202,6 +201,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     view.onHidden(() => {
       player.pause();
+    });
+    player.onExitFullscreen(() => {
+      player.pause();
+      if (app.orientation === OrientationTypes.Vertical) {
+        player.disableFullscreen();
+      }
     });
     tv.onProfileLoaded((profile) => {
       app.setTitle(tv.getTitle().join(" - "));
@@ -247,6 +252,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.loadSource(mediaSource);
       player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
+    });
+    player.onReady(() => {
+      player.disableFullscreen();
     });
     player.onCanPlay(() => {
       if (!view.state.visible) {

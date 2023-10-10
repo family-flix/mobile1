@@ -28,8 +28,8 @@ export function Video(props: { store: PlayerCore }) {
     if ($video === null) {
       return;
     }
-    store.setMounted();
     connect($video, store);
+    store.setMounted();
   }, []);
 
   const { width, height, ready, poster, subtitle, prepareFullscreen } = state;

@@ -29,7 +29,7 @@ enum Events {
   Loaded,
   /** 播放源加载完成 */
   SourceLoaded,
-  /** 准备播放 */
+  /** 准备播放（这个不要随便用，在调整进度时也会触发） */
   CanPlay,
   /** 开始播放 */
   Play,
@@ -42,6 +42,8 @@ enum Events {
   /** 播放结束 */
   End,
   Resize,
+  /** 退出全屏模式 */
+  ExitFullscreen,
   /** 发生错误 */
   Error,
   StateChange,
@@ -57,6 +59,7 @@ type TheTypesOfEvents = {
   [Events.VolumeChange]: { volume: number };
   [Events.RateChange]: { rate: number };
   [Events.SizeChange]: { width: number; height: number };
+  [Events.ExitFullscreen]: void;
   [Events.Ready]: void;
   // EpisodeProfile
   [Events.SourceLoaded]: Partial<{
@@ -138,6 +141,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     setCurrentTime: (v: number) => void;
     setVolume: (v: number) => void;
     setRate: (v: number) => void;
+    enableFullscreen: () => void;
+    disableFullscreen: () => void;
     showSubtitle: () => void;
     hideSubtitle: () => void;
   } | null = null;
@@ -291,30 +296,18 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._subtitleVisible = true;
     this._abstractNode.showSubtitle();
   }
-  playAndFullScreen() {
-    const $video = this._abstractNode;
-    if (!$video) {
-      return;
-    }
-    this.play();
-    if (this.prepareFullscreen === false) {
-      this.prepareFullscreen = true;
-      this.emit(Events.StateChange, { ...this.state });
-    }
-  }
   requestFullScreen() {
     const $video = this._abstractNode;
     if (!$video) {
       return;
     }
+    // 这里不暂停，就没法先允许全屏，再通过播放来全屏了
     this.pause();
-    if (this.prepareFullscreen === false) {
-      this.prepareFullscreen = true;
-      this.emit(Events.StateChange, { ...this.state });
-    }
+    this.enableFullscreen();
     setTimeout(() => {
       this.play();
-    }, 200);
+      // 300 的延迟是 video 保证重渲染 play inline 后，才开始播放
+    }, 300);
   }
   loadSource(video: MediaSourceProfile) {
     this.metadata = video;
@@ -368,16 +361,24 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     this._passPoint = false;
   }
+  enableFullscreen() {
+    this.prepareFullscreen = true;
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  disableFullscreen() {
+    this.prepareFullscreen = false;
+    this.emit(Events.StateChange, { ...this.state });
+  }
   setMounted() {
     this._mounted = true;
     this.emit(Events.Mounted);
+    this.emit(Events.Ready);
   }
-  setFullScreen(isFullscreen: boolean) {
-    this.prepareFullscreen = isFullscreen;
+  /** ------ 平台 video 触发的事件 start -------- */
+  handleFullscreenChange(isFullscreen: boolean) {
     if (isFullscreen === false) {
-      this.playing = false;
+      this.emit(Events.ExitFullscreen);
     }
-    this.emit(Events.StateChange, { ...this.state });
   }
   handlePause({ currentTime, duration }: { currentTime: number; duration: number }) {
     this.emit(Events.Pause, { currentTime, duration });
@@ -397,7 +398,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     // this.emit(Events.StateChange, { ...this.state });
   }
   /** 视频播放结束 */
-  handleEnd() {
+  handleEnded() {
     this.playing = false;
     this._ended = true;
     this.emit(Events.End, {
@@ -421,7 +422,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   handlePlay() {
-    this.emit(Events.Play);
+    // this.emit(Events.Play);
+  }
+  handlePlaying() {
+    this.hasPlayed = true;
   }
   handleError(msg: string) {
     // console.log("[DOMAIN]Player - throwError", msg);
@@ -442,6 +446,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   onUrlChange(handler: Handler<TheTypesOfEvents[Events.UrlChange]>) {
     return this.on(Events.UrlChange, handler);
+  }
+  onExitFullscreen(handler: Handler<TheTypesOfEvents[Events.ExitFullscreen]>) {
+    return this.on(Events.ExitFullscreen, handler);
   }
   onPreload(handler: Handler<TheTypesOfEvents[Events.Preload]>) {
     return this.on(Events.Preload, handler);

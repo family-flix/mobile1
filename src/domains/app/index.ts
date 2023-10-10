@@ -8,9 +8,9 @@ import { JSONObject, Result } from "@/types";
 
 import { LocalCache } from "./cache";
 
-enum OrientationTypes {
-  Horizontal,
-  Vertical,
+export enum OrientationTypes {
+  Horizontal = "horizontal",
+  Vertical = "vertical",
 }
 const mediaSizes = {
   sm: 0,
@@ -227,11 +227,11 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   handleScreenOrientationChange(orientation: number) {
     if (orientation === 0) {
       this.orientation = OrientationTypes.Vertical;
-      this.emit(Events.OrientationChange, "vertical");
+      this.emit(Events.OrientationChange, this.orientation);
       return;
     }
     this.orientation = OrientationTypes.Horizontal;
-    this.emit(Events.OrientationChange, "horizontal");
+    this.emit(Events.OrientationChange, this.orientation);
   }
   handleResize(size: { width: number; height: number }) {
     // const { width: prevWidth, height: prevHeight } = this.screen;
