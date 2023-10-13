@@ -18,7 +18,7 @@ export const ScrollView = React.memo(
     style?: React.CSSProperties;
     children: React.ReactElement;
   }) => {
-    const { store, className, wrapClassName, style = {}, children, ...restProps } = props;
+    const { store, className, contentClassName, wrapClassName, style = {}, children, ...restProps } = props;
 
     const ref = useRef<HTMLDivElement>(null);
     const [state, setState] = useState(store.state);
@@ -64,7 +64,7 @@ export const ScrollView = React.memo(
           </div>
           <Content
             store={store}
-            className={cn("max-h-full overflow-y-auto hide-scroll", props.contentClassName, scrollable ? "" : "")}
+            className={cn("max-h-full overflow-y-auto hide-scroll", contentClassName, scrollable ? "" : "")}
             style={(() => {
               if (scrollable) {
                 return {};

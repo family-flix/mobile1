@@ -112,7 +112,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
 
   private _timer: null | number = null;
-  private _canPlay = false;
+  _canPlay = false;
   private _ended = false;
   private _duration = 0;
   private _currentTime = 0;

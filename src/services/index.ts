@@ -107,7 +107,7 @@ export type MediaPayload = {
   type: number;
   tv_id?: string;
   season_text?: string;
-  episode_count_text?: number;
+  text?: string;
   name: string;
   poster_path: string;
   air_date: string;
@@ -142,6 +142,7 @@ export async function fetchCollectionList(body: FetchParams) {
         name: string;
         poster_path: string;
         air_date: string;
+        text: string;
       }[];
     }>
   >("/api/collection/list", body);
@@ -157,9 +158,9 @@ export async function fetchCollectionList(body: FetchParams) {
         title,
         desc,
         medias: medias.map((media) => {
-          const { id, type, name, poster_path, air_date } = media;
+          const { id, type, name, text, poster_path, air_date } = media;
           if (type === MediaTypes.TV) {
-            const { tv_id, cur_episode_count, episode_count } = media;
+            const { tv_id } = media;
             return {
               id,
               type,
@@ -167,15 +168,7 @@ export async function fetchCollectionList(body: FetchParams) {
               poster_path,
               tv_id,
               air_date,
-              episode_count_text: (() => {
-                if (!episode_count) {
-                  return;
-                }
-                if (cur_episode_count === episode_count) {
-                  return `全${episode_count}集`;
-                }
-                return `更新至${cur_episode_count}集`;
-              })(),
+              text,
             } as MediaPayload;
           }
           return {
@@ -184,6 +177,7 @@ export async function fetchCollectionList(body: FetchParams) {
             name,
             poster_path,
             air_date,
+            text,
           } as MediaPayload;
         }),
       };

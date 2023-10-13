@@ -4,10 +4,10 @@ import { FetchParams } from "@/domains/list/typing";
 import { SubtitleResp } from "@/domains/subtitle/types";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
+import { MediaSource, TVGenresTexts, TVSourceTexts } from "@/constants";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
 
 import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants";
-import { MediaSource, TVGenresTexts, TVSourceTexts } from "@/constants";
 
 /**
  * 获取电视剧列表
@@ -93,7 +93,7 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
         id,
         tv_id,
         name: name || original_name,
-        season_text,
+        season_text: season_to_chinese_num(season_text),
         air_date: dayjs(first_air_date).year(),
         episode_count,
         cur_episode_count,
@@ -148,7 +148,7 @@ type MediaSourceProfileRes = {
  * 获取电视剧及当前播放的剧集详情
  * @param params
  */
-export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_id?: string }) {
+export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: string }) {
   // console.log("[]fetch_tv_profile params", params);
   const { tv_id, season_id } = params;
   const r = await request.get<{
@@ -205,13 +205,18 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
   const matchedSeason = seasons.find((season) => {
     return season.id === cur_season.id;
   });
+  const s = (() => {
+    return {
+      ...(matchedSeason || cur_season),
+    };
+  })();
   return Result.Ok({
     id,
     name,
     overview,
     curSeason: {
       episodes: [],
-      ...(matchedSeason || cur_season),
+      ...s,
     },
     episodeNoMore: (() => {
       if (matchedSeason) {
@@ -319,11 +324,9 @@ export async function fetch_tv_and_cur_episode(params: { tv_id: string; season_i
   });
 }
 /** 电视剧详情 */
-export type TVAndEpisodesProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_tv_and_cur_episode>>>;
-export type TVSeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_tv_and_cur_episode>>>["seasons"][number];
-export type TVEpisodeProfile = UnpackedResult<
-  Unpacked<ReturnType<typeof fetch_tv_and_cur_episode>>
->["curEpisodes"][number];
+export type TVAndEpisodesProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>;
+export type TVSeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>["seasons"][number];
+export type TVEpisodeProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>["curEpisodes"][number];
 
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息
@@ -398,7 +401,7 @@ export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch
 /**
  * 获取指定 tv、指定 season 下的所有影片
  */
-export async function fetch_episodes_of_season(params: { tv_id: string; season_id: string } & FetchParams) {
+export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: string } & FetchParams) {
   const { tv_id, season_id, page, pageSize } = params;
   const r = await request.get<
     ListResponse<{

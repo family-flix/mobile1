@@ -24,7 +24,9 @@ import { RequestCore } from "@/domains/request";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
+import { OrientationTypes } from "@/domains/app";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
@@ -32,8 +34,6 @@ import { reportSomething } from "@/services";
 import { ReportTypes, TVReportList, players } from "@/constants";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
-import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
-import { OrientationTypes } from "@/domains/app";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -104,6 +104,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const sourcesSheet = useInstance(() => new DialogCore());
   const rateSheet = useInstance(() => new DialogCore());
   const resolutionSheet = useInstance(() => new DialogCore());
+  const loadingPresence = useInstance(() => new PresenceCore());
   const dSheet = useInstance(() => new DialogCore());
   const fullscreenDialog = useInstance(
     () =>
@@ -255,8 +256,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       player.pause();
       player.setSize({ width: mediaSource.width, height: mediaSource.height });
+      // loadSource 后开始 video loadstart 事件
       player.loadSource(mediaSource);
-      player.setCurrentTime(mediaSource.currentTime);
       setCurSource(mediaSource);
     });
     player.onReady(() => {
@@ -267,11 +268,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
         return;
       }
       // console.log("[PAGE]play - player.onCanPlay");
-      if (!tv.canAutoPlay) {
+      if (!player.hasPlayed) {
         return;
       }
+      player.setCurrentTime(tv.currentTime);
       player.play();
-      tv.canAutoPlay = false;
     });
     player.onVolumeChange(({ volume }) => {
       app.cache.merge("player_settings", {
@@ -284,7 +285,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-      tv.setCurrentTime(currentTime);
+      if (!player._canPlay) {
+        return;
+      }
       tv.handleCurTimeChange({
         currentTime,
         duration,
@@ -302,12 +305,12 @@ export const TVPlayingPage: ViewComponent = (props) => {
       tv.playNextEpisode();
     });
     player.onResolutionChange(({ type }) => {
-      console.log("[PAGE]play - player.onResolutionChange", type);
-      player.setCurrentTime(tv.currentTime);
+      console.log("[PAGE]play - player.onResolutionChange", type, tv.currentTime);
+      // player.setCurrentTime(tv.currentTime);
     });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
-      if (!tv.canAutoPlay) {
+      if (!player.hasPlayed) {
         return;
       }
       episodesSheet.hide();
@@ -546,13 +549,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
                 return (
                   <div
                     key={id}
-                    onClick={() => {
-                      tv.switchEpisode(episode);
+                    onClick={async () => {
+                      loadingPresence.show();
+                      await tv.switchEpisode(episode);
+                      loadingPresence.hide();
                     }}
                   >
-                    <div
-                      className={cn("p-4 rounded cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}
-                    >
+                    <div className={cn("p-4 cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}>
                       <div>
                         {episode_text}
                         {runtime ? <span className="text-sm">({runtime})</span> : null}
@@ -595,10 +598,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         return (
                           <div
                             key={id}
-                            className={cn(
-                              "p-4 rounded cursor-pointer",
-                              profile.curSeason.id === id ? "bg-slate-500" : ""
-                            )}
+                            className={cn("p-4 cursor-pointer", profile.curSeason.id === id ? "bg-slate-500" : "")}
                             onClick={() => {
                               tv.fetchEpisodesOfSeason(season);
                             }}
@@ -614,6 +614,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
             </div>
           );
         })()}
+        <Presence store={loadingPresence}>
+          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black-200 opacity-60">
+            <Loader className="w-10 h-10 animate animate-spin" />
+          </div>
+        </Presence>
       </Sheet>
       <Sheet store={sourcesSheet}>
         {(() => {
@@ -629,16 +634,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   return (
                     <div
                       key={id}
-                      onClick={() => {
-                        tv.changeSource(s);
+                      onClick={async () => {
+                        loadingPresence.show();
+                        await tv.changeSource(s);
+                        loadingPresence.hide();
                       }}
                     >
-                      <div
-                        className={cn(
-                          "p-4 rounded cursor-pointer",
-                          curSource?.file_id === file_id ? "bg-slate-500" : ""
-                        )}
-                      >
+                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}>
                         <div className="break-all">
                           {parent_paths}/{file_name}
                         </div>
@@ -650,6 +652,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
             </div>
           );
         })()}
+        <Presence store={loadingPresence}>
+          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black-200 opacity-60">
+            <Loader className="w-10 h-10 animate animate-spin" />
+          </div>
+        </Presence>
       </Sheet>
       <Sheet store={rateSheet}>
         <div className="max-h-full overflow-y-auto">
@@ -665,7 +672,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     });
                   }}
                 >
-                  <div className={cn("p-4 rounded cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
+                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
                     <div className="break-all">{rateOpt}x</div>
                   </div>
                 </div>
@@ -688,7 +695,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   return (
                     <div key={i}>
                       <div
-                        className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                         onClick={() => {
                           tv.changeResolution(type);
                         }}
@@ -766,7 +773,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     reportConfirmDialog.show();
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer")}>{question}</div>
+                  <div className={cn("py-2 px-4 cursor-pointer")}>{question}</div>
                 </div>
               );
             })}
@@ -797,7 +804,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     tv.loadSubtitleFile(subtitle, tv.currentTime);
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
                     {subtitle.name}
                   </div>
                 </div>

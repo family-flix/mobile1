@@ -22,6 +22,7 @@ import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
 import { MovieCore } from "@/domains/movie";
 import { RefCore } from "@/domains/cur";
+import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCore } from "@/domains/request";
 import { reportSomething } from "@/services";
 import { MovieReportList, ReportTypes, players } from "@/constants";
@@ -29,7 +30,6 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
-import { createVVTSubtitle } from "@/domains/subtitle/utils";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -205,14 +205,17 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       if (!view.state.visible) {
         return;
       }
-      if (!movie.canAutoPlay) {
+      if (!player.hasPlayed) {
         return;
       }
+      player.setCurrentTime(movie.currentTime);
       player.play();
     });
     player.onProgress(({ currentTime, duration }) => {
       // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-      movie.setCurrentTime(currentTime);
+      if (!player._canPlay) {
+        return;
+      }
       movie.handleCurTimeChange({
         currentTime,
         duration,
@@ -235,11 +238,12 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     });
     player.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
-      player.setCurrentTime(movie.currentTime);
     });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", player.currentTime);
-      player.setCurrentTime(player.currentTime);
+      if (!player.hasPlayed) {
+        return;
+      }
     });
     // console.log("[PAGE]play - before player.onError");
     player.onError((error) => {
@@ -423,12 +427,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         movie.changeSource(source);
                       }}
                     >
-                      <div
-                        className={cn(
-                          "p-4 rounded cursor-pointer",
-                          curSource?.file_id === file_id ? "bg-slate-500" : ""
-                        )}
-                      >
+                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}>
                         <div className="break-all">
                           {parent_paths}/{file_name}
                         </div>
@@ -455,7 +454,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     });
                   }}
                 >
-                  <div className={cn("p-4 rounded cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
+                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
                     <div className="break-all">{rateOpt}x</div>
                   </div>
                 </div>
@@ -478,7 +477,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   return (
                     <div key={i}>
                       <div
-                        className={cn("p-4 rounded cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
                         onClick={() => {
                           movie.changeResolution(type);
                         }}
@@ -556,7 +555,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     reportConfirmDialog.show();
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer")}>{question}</div>
+                  <div className={cn("py-2 px-4 cursor-pointer")}>{question}</div>
                 </div>
               );
             })}
@@ -587,7 +586,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     movie.loadSubtitleFile(subtitle, movie.currentTime);
                   }}
                 >
-                  <div className={cn("py-2 px-4 rounded cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
                     {subtitle.name}
                   </div>
                 </div>

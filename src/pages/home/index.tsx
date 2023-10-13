@@ -214,7 +214,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                           if (updatedMediaListState.empty) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center">
+                                <div className="flex flex-col items-center justify-center text-slate-500">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -278,7 +278,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                           if (historyState.empty) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center">
+                                <div className="flex flex-col items-center justify-center text-slate-500">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -352,7 +352,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                           if (medias.length === 0) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center">
+                                <div className="flex flex-col items-center justify-center text-slate-500">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -360,7 +360,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                             );
                           }
                           return medias.map((media) => {
-                            const { id, name, type, tv_id, poster_path, episode_count_text, air_date } = media;
+                            const { id, name, type, tv_id, poster_path, text: episode_count_text, air_date } = media;
                             return (
                               <div
                                 key={id}

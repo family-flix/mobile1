@@ -19,13 +19,18 @@
 /* html {
   scroll-behavior: smooth;
 } */
+body {
+  user-select: none;
+  -moz-user-select: none; /* Firefox */
+  -webkit-user-select: none; /* Chrome, Safari, and Opera */
+}
 .app__mask {
   transition: all 0.8s;
 }
 
 .hide-scroll {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  /* overscroll-behavior: contain; */
 }
 .hide-scroll::-webkit-scrollbar {
   display: none;

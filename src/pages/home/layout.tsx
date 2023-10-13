@@ -134,7 +134,7 @@ export const HomeLayout: ViewComponent = (props) => {
             }}
           >
             <div>
-              <HardDrive className="w-6 h-6" />
+              <HardDrive className="w-6 h-6 dark:text-slate-500" />
             </div>
             <div className="mt-1 text-center text-[12px]">观看记录</div>
           </div>

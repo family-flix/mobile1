@@ -36,18 +36,18 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
       new InputCore({
         placeholder: "请输入关键字搜索电视剧",
         onEnter(v) {
-          helper.search({
+          seasonList.search({
             name: v,
           });
         },
         onBlur(v) {
-          helper.search({
+          seasonList.search({
             name: v,
           });
         },
         onClear() {
           // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
-          helper.search({
+          seasonList.search({
             name: "",
           });
         },
@@ -72,7 +72,7 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
           language: options,
         });
         setHasSearch(!!options.length);
-        helper.search({
+        seasonList.search({
           language: options.join("|"),
         });
       },
@@ -90,18 +90,18 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
         // });
         setHasSearch(!!options.length);
         // settingsSheet.hide();
-        helper.search({
+        seasonList.search({
           genres: options.join("|"),
         });
       },
     });
   });
-  const helper = useInstance(
+  const seasonList = useInstance(
     () =>
       new ListCore(new RequestCore(fetchSeasonList), {
         pageSize: 6,
         onLoadingChange(loading) {
-          searchInput.setLoading(!helper.response.initial && loading);
+          searchInput.setLoading(!seasonList.response.initial && loading);
         },
       })
   );
@@ -116,7 +116,7 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
       })
   );
 
-  const [response, setResponse] = useState(helper.response);
+  const [response, setResponse] = useState(seasonList.response);
   const [hasSearch, setHasSearch] = useState(
     (() => {
       const { language = [] } = app.cache.get("tv_search", {
@@ -129,16 +129,16 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
     scrollView.onPullToRefresh(async () => {
-      await helper.refresh();
+      await seasonList.refresh();
       app.tip({
         text: ["刷新成功"],
       });
       scrollView.stopPullToRefresh();
     });
     scrollView.onReachBottom(() => {
-      helper.loadMore();
+      seasonList.loadMore();
     });
-    helper.onStateChange((nextResponse) => {
+    seasonList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
     mediaRequest.onTip((msg) => {
@@ -155,7 +155,7 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
         language: language.join("|"),
       };
     })();
-    helper.init(search);
+    seasonList.init(search);
   });
 
   const { dataSource } = response;
@@ -184,7 +184,7 @@ export const HomeSeasonListPage: ViewComponent = React.memo((props) => {
       <ScrollView store={scrollView} className="dark:text-black-200">
         <div className="w-full h-full pt-[56px]">
           <ListView
-            store={helper}
+            store={seasonList}
             className="relative h-[50%] mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
