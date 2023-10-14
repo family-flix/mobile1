@@ -3,9 +3,9 @@
  *
  */
 import qs from "qs";
-import { Handler } from "mitt";
+import parse from "url-parse";
 
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { JSONObject } from "@/types";
 
 enum Events {
@@ -79,6 +79,19 @@ type NavigatorState = {
 
 export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   static prefix: string | null = null;
+  static parse(url: string) {
+    const { pathname, query: queryStr, ...rest } = parse(url);
+    const query = qs.parse(queryStr, { ignoreQueryPrefix: true });
+    if (NavigatorCore.prefix && pathname.startsWith(NavigatorCore.prefix)) {
+      return { ...rest, query, pathname: pathname.replace(NavigatorCore.prefix, "") };
+    }
+    return {
+      ...rest,
+      query,
+      pathname,
+    };
+  }
+
   _name = "NavigatorCore";
   debug = false;
 
@@ -147,7 +160,6 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     ];
     this.emit(Events.PathnameChange, { ...this._pending });
   }
-
   private setPrevPathname(p: string) {
     this.prevPathname = p;
   }
@@ -248,7 +260,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
   };
   /** 外部路由改变（点击浏览器前进、后退），作出响应 */
   handlePopState({ type, pathname }: { type: string; pathname: string }) {
-    // console.log("pathname change", type, this.pathname, this.prevHistories);
+    console.log("pathname change", type, this.pathname, this.prevHistories);
     if (type !== "popstate") {
       return;
     }

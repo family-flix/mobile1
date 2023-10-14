@@ -5,14 +5,14 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 // store 必须第一个
-import { app, homeIndexPage, homeLayout, pages } from "./store";
+import { app, rootView, homeIndexPage, pages } from "./store";
+import { ToastCore } from "./domains/ui/toast";
+import { connect } from "./domains/app/connect.web";
+import { NavigatorCore } from "./domains/navigator";
 import { ThemeProvider } from "./components/Theme";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
-import { ToastCore } from "./domains/ui/toast";
-import { connect } from "./domains/app/connect.web";
 import { useInitialize } from "./hooks";
-import { rootView, tvPlayingPage } from "./store/views";
 import { ViewComponent } from "./types";
 import { cn } from "./utils";
 
@@ -22,15 +22,36 @@ const { router } = app;
 // @ts-ignore
 window.__app__ = app;
 
-// router.onPathnameChange(({ pathname, type }) => {
-//   // router.log("[]Application - pathname change", pathname);
-//   rootView.checkMatch({ pathname, type });
-// });
-app.onPopState((options) => {
-  const { type, pathname } = options;
-  router.handlePopState({ type, pathname });
+app.onClickLink(({ href }) => {
+  const { pathname, query } = NavigatorCore.parse(href);
+  const matched = pages.find((v) => {
+    return v.key === pathname;
+  });
+  if (matched) {
+    matched.query = query as Record<string, string>;
+    app.showView(matched);
+    return;
+  }
+  app.tip({
+    text: ["没有匹配的页面"],
+  });
 });
-
+app.onPopState((options) => {
+  const { pathname } = NavigatorCore.parse(options.pathname);
+  const matched = pages.find((v) => {
+    // console.log(v.key, pathname);
+    // return [NavigatorCore.prefix, v.key].join("/") === pathname;
+    return v.key === pathname;
+  });
+  if (matched) {
+    matched.isShowForBack = true;
+    matched.query = router.query;
+    app.showView(matched, { back: true });
+    return;
+  }
+  homeIndexPage.isShowForBack = true;
+  app.showView(homeIndexPage, { back: true });
+});
 connect(app);
 
 const toast = new ToastCore();
@@ -39,7 +60,23 @@ function ApplicationView() {
   // const [showMask, setShowMask] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [subViews, setSubViews] = useState(rootView.subViews);
+
   useInitialize(() => {
+    rootView.onViewShow((views) => {
+      const curView = views.pop();
+      if (!curView) {
+        return;
+      }
+      if (curView.isShowForBack) {
+        curView.isShowForBack = false;
+        return;
+      }
+      app.setTitle(`${curView.title}`);
+      if (app.env.android) {
+        const r = curView.buildUrl();
+        router.pushState(r);
+      }
+    });
     rootView.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
@@ -52,29 +89,26 @@ function ApplicationView() {
     app.onError((err) => {
       setError(err);
     });
-    app.onReady(() => {
-      // console.log("[]Application - before start", window.history);
-      (() => {
-        const matched = pages.find((v) => {
-          return v.checkMatchRegexp(router.pathname);
-        });
-        if (matched) {
-          matched.query = router.query;
-          if (matched === tvPlayingPage) {
-            rootView.showSubView(matched);
-            return;
-          }
-          // @todo 这样写只能展示 /home/xxx 路由，应该根据路由，找到多层级视图，即 rootView,homeLayout,homeIndexPage 这样
-          homeLayout.showSubView(matched);
-          rootView.showSubView(homeLayout);
-          return;
-        }
-        rootView.showSubView(homeLayout);
-        homeLayout.showSubView(homeIndexPage);
-      })();
-    });
     const { innerWidth, innerHeight, location } = window;
     app.router.prepare(location);
+    (() => {
+      const { pathname } = NavigatorCore.parse(router.pathname);
+      const matched = pages.find((v) => {
+        return v.key === pathname;
+      });
+      console.log("[ROOT]after app.router.prepare", matched);
+      if (matched) {
+        if (matched === rootView) {
+          homeIndexPage.query = router.query;
+          app.showView(homeIndexPage);
+          return;
+        }
+        matched.query = router.query;
+        app.showView(matched);
+        return;
+      }
+      app.showView(homeIndexPage);
+    })();
     app.start({
       width: innerWidth,
       height: innerHeight,
@@ -125,7 +159,7 @@ function ApplicationView() {
             <StackRouteView
               key={subView.id}
               className={cn(
-                "fixed inset-0 bg-white opacity-100 dark:bg-black",
+                "fixed inset-0 bg-w-bg-0 opacity-100",
                 "animate-in slide-in-from-right",
                 "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
               )}

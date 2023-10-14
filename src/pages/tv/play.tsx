@@ -56,7 +56,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          rootView.uncoverPrevView();
+          app.back();
         },
       })
   );
@@ -399,9 +399,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="fixed dark:text-black-200">
+      <ScrollView store={scrollView} className="fixed">
         <div className="h-screen">
-          <div className="operations">
+          <div className="operations text-w-fg-1">
             <div
               className={cn("z-10 absolute inset-0")}
               onClick={() => {
@@ -425,10 +425,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     <div
                       className="inline-block p-4"
                       onClick={() => {
-                        rootView.uncoverPrevView();
+                        app.back();
                       }}
                     >
-                      <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                      <ArrowLeft className="w-6 h-6" />
                     </div>
                   </div>
                 </Presence>
@@ -449,7 +449,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   >
                     <div className="flex justify-between px-8 mt-18">
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={async () => {
                           tv.playPrevEpisode();
                         }}
@@ -457,7 +457,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <ArrowBigLeft className="w-8 h-8" />
                         <p className="mt-2 text-sm">上一集</p>
                       </div>
-                      <LoaderContainer className="w-12 h-16 dark:text-black-200" store={nextEpisodeLoader}>
+                      <LoaderContainer className="w-12 h-16" store={nextEpisodeLoader}>
                         <div
                           className="flex flex-col items-center"
                           onClick={async () => {
@@ -473,7 +473,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     </div>
                     <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           episodesSheet.show();
                         }}
@@ -482,7 +482,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">选集</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           sourcesSheet.show();
                         }}
@@ -491,7 +491,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">切换源</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           rateSheet.show();
                         }}
@@ -500,7 +500,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">{rate}x</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           resolutionSheet.show();
                         }}
@@ -509,7 +509,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200 focus:outline-none focus:ring-0"
+                        className="flex flex-col items-center focus:outline-none focus:ring-0"
                         onClick={() => {
                           dSheet.show();
                         }}
@@ -534,7 +534,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   {/* <div className="flex justify-between">
                     <span></span>
                     <span
-                      className="inline p-4 dark:text-black-200"
+                      className="inline p-4"
                       onClick={() => {
                         player.requestFullScreen();
                       }}
@@ -578,7 +578,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                       loadingPresence.hide();
                     }}
                   >
-                    <div className={cn("p-4 cursor-pointer", profile.curEpisode.id === id ? "bg-slate-500" : "")}>
+                    <div className={cn("p-4 cursor-pointer", profile.curEpisode.id === id ? "bg-w-bg-active" : "")}>
                       <div>
                         {episode_text}
                         {runtime ? <span className="text-sm">({runtime})</span> : null}
@@ -592,17 +592,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
           if (seasons.length === 1) {
             return (
-              <ScrollView
-                store={episodeScrollView}
-                className="top-14 fixed dark:text-black-200"
-                contentClassName="pb-24"
-              >
+              <ScrollView store={episodeScrollView} className="top-14 fixed" contentClassName="pb-24">
                 {episodes_elm}
               </ScrollView>
             );
           }
           return (
-            <div className="relative box-border h-full safe-bottom dark:text-black-200">
+            <div className="relative box-border h-full safe-bottom">
               <Tabs defaultValue="episode" className="">
                 <TabsList className="absolute top-[-50px] left-4 z-10">
                   <TabsTrigger value="episode">集</TabsTrigger>
@@ -621,7 +617,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         return (
                           <div
                             key={id}
-                            className={cn("p-4 cursor-pointer", profile.curSeason.id === id ? "bg-slate-500" : "")}
+                            className={cn("p-4 cursor-pointer", profile.curSeason.id === id ? "bg-w-bg-active" : "")}
                             onClick={() => {
                               tv.fetchEpisodesOfSeason(season);
                             }}
@@ -638,7 +634,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
         <Presence store={loadingPresence}>
-          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black-200 opacity-60">
+          <div className="absolute inset-0 flex items-center justify-center bg-w-bg-0 opacity-60">
             <Loader className="w-10 h-10 animate animate-spin" />
           </div>
         </Presence>
@@ -650,8 +646,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { curEpisode } = profile;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pt-4 pb-24 dark:text-black-200">
+            <div className="max-h-full overflow-y-auto text-w-fg-1">
+              <div className="pt-4 pb-24">
                 {curEpisode.sources.map((s) => {
                   const { id, file_id, file_name, parent_paths } = s;
                   return (
@@ -663,7 +659,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                         loadingPresence.hide();
                       }}
                     >
-                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}>
+                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-w-bg-active" : "")}>
                         <div className="break-all">
                           {parent_paths}/{file_name}
                         </div>
@@ -676,14 +672,14 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
         <Presence store={loadingPresence}>
-          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black-200 opacity-60">
+          <div className="absolute inset-0 flex items-center justify-center bg-w-bg-0 opacity-60">
             <Loader className="w-10 h-10 animate animate-spin" />
           </div>
         </Presence>
       </Sheet>
       <Sheet store={rateSheet}>
-        <div className="max-h-full overflow-y-auto">
-          <div className="pt-4 pb-24 dark:text-black-200">
+        <div className="max-h-full overflow-y-auto text-w-fg-1">
+          <div className="pt-4 pb-24">
             {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
               return (
                 <div
@@ -695,7 +691,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     });
                   }}
                 >
-                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
+                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-w-bg-active" : "")}>
                     <div className="break-all">{rateOpt}x</div>
                   </div>
                 </div>
@@ -711,16 +707,19 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { typeText: curTypeText, resolutions } = curSource;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pt-4 pb-24 dark:text-black-200">
+            <div className="max-h-full text-w-fg-1 overflow-y-auto">
+              <div className="pt-4 pb-24">
                 {resolutions.map((r, i) => {
                   const { type, typeText } = r;
                   return (
                     <div key={i}>
                       <div
-                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-w-bg-active" : "")}
                         onClick={() => {
                           tv.changeResolution(type);
+                          app.cache.merge("player_settings", {
+                            type,
+                          });
                         }}
                       >
                         {typeText}
@@ -744,8 +743,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
           }
           const { name, overview } = profile;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pb-24 dark:text-black-200">
+            <div className="max-h-full text-w-fg-1 overflow-y-auto">
+              <div className="pb-24">
                 <div className="px-4">
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
@@ -785,8 +784,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={reportSheet}>
-        <div className="max-h-full overflow-y-auto">
-          <div className="pt-4 pb-24 dark:text-black-200">
+        <div className="max-h-full text-w-fg-1 overflow-y-auto">
+          <div className="pt-4 pb-24">
             {TVReportList.map((question, i) => {
               return (
                 <div
@@ -804,7 +803,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Sheet store={subtitleSheet}>
-        <div className="max-h-full pb-24 overflow-y-auto">
+        <div className="max-h-full text-w-fg-1 pb-24 overflow-y-auto">
           {(() => {
             return (
               <div
@@ -818,7 +817,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
               </div>
             );
           })()}
-          <div className="pt-4 dark:text-black-200">
+          <div className="pt-4 text-w-fg-1">
             {subtileState.others.map((subtitle, i) => {
               return (
                 <div
@@ -827,7 +826,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     tv.loadSubtitleFile(subtitle, tv.currentTime);
                   }}
                 >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-w-bg-active" : "")}>
                     {subtitle.name}
                   </div>
                 </div>
@@ -837,61 +836,65 @@ export const TVPlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Dialog store={reportConfirmDialog}>
-        <p>提交你发现的该电视剧的问题</p>
-        <p className="mt-2">「{curReportValue}」</p>
+        <div className="text-w-fg-1">
+          <p>提交你发现的该电视剧的问题</p>
+          <p className="mt-2">「{curReportValue}」</p>
+        </div>
       </Dialog>
       <Dialog store={errorTipDialog}>
-        <div>该问题是因为手机无法解析视频</div>
-        <div>可以尝试如下解决方案</div>
-        <div className="mt-4 text-left space-y-4">
-          <div>1、「切换源」或者「分辨率」</div>
-          <div>
-            <div>2、使用电脑观看</div>
-            <div
-              className="mt-2 break-all"
-              onClick={() => {
-                app.copy(window.location.href.replace(/mobile/, "pc"));
-                app.tip({
-                  text: ["已复制到剪贴板"],
-                });
-              }}
-            >
-              {window.location.href.replace(/mobile/, "pc")}
+        <div className=" text-w-fg-1">
+          <div>该问题是因为手机无法解析视频</div>
+          <div>可以尝试如下解决方案</div>
+          <div className="mt-4 text-left space-y-4">
+            <div>1、「切换源」或者「分辨率」</div>
+            <div>
+              <div>2、使用电脑观看</div>
+              <div
+                className="mt-2 break-all"
+                onClick={() => {
+                  app.copy(window.location.href.replace(/mobile/, "pc"));
+                  app.tip({
+                    text: ["已复制到剪贴板"],
+                  });
+                }}
+              >
+                {window.location.href.replace(/mobile/, "pc")}
+              </div>
             </div>
-          </div>
-          <div>
-            <div>3、使用手机外部播放器</div>
-            <div className="flex items-center mt-2 space-x-2">
-              {players.map((player) => {
-                const { icon, name, scheme } = player;
-                const url = (() => {
-                  if (!curSource) {
+            <div>
+              <div>3、使用手机外部播放器</div>
+              <div className="flex items-center mt-2 space-x-2">
+                {players.map((player) => {
+                  const { icon, name, scheme } = player;
+                  const url = (() => {
+                    if (!curSource) {
+                      return null;
+                    }
+                    return scheme
+                      .replace(/\$durl/, curSource.url)
+                      .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
+                  })();
+                  if (!url) {
                     return null;
                   }
-                  return scheme
-                    .replace(/\$durl/, curSource.url)
-                    .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
-                })();
-                if (!url) {
-                  return null;
-                }
-                return (
-                  <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
-                    <LazyImage className="w-8 h-8 rounded-full" src={icon} />
-                    <div className="absolute bottom-0 w-full text-center">{name}</div>
-                  </a>
-                );
-              })}
-            </div>
-            <div className="mt-2 font-sm opacity-50">
-              <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
-              <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
+                  return (
+                    <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
+                      <LazyImage className="w-8 h-8 rounded-full" src={icon} />
+                      <div className="absolute bottom-0 w-full text-center">{name}</div>
+                    </a>
+                  );
+                })}
+              </div>
+              <div className="mt-2 font-sm text-w-fg-2">
+                <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
+                <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
+              </div>
             </div>
           </div>
         </div>
       </Dialog>
       <Dialog store={fullscreenDialog}>
-        <div>点击进入全屏播放</div>
+        <div className="text-w-fg-1">点击进入全屏播放</div>
       </Dialog>
     </>
   );

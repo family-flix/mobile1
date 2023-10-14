@@ -2,52 +2,141 @@
  * @file 首页布局
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
-import { useState } from "react";
-import { Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, Users } from "lucide-react";
+import React, { useState } from "react";
+import { ArrowUp, Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, User, Users } from "lucide-react";
 
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
+import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
+import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import {
   homeHistoriesPage,
   homeIndexPage,
   homeLayout,
-  homeMessagesPage,
+  messagesPage,
   homeMinePage,
   homeMoviePage,
   homeSeasonPage,
   messageList,
 } from "@/store";
 import { cn } from "@/utils";
-import { Show } from "@/components/ui/show";
+import { BaseDomain, Handler } from "@/domains/base";
+import { Application } from "@/domains/app";
+import { RouteViewCore } from "@/domains/route_view";
+import { debounce } from "lodash/fp";
+import { BottomMenuCore } from "@/domains/bottom_menu";
+
+const BottomMenu = (props: { store: BottomMenuCore }) => {
+  const { store } = props;
+
+  const [state, setState] = useState(store.state);
+
+  useInitialize(() => {
+    store.onStateChange((nextState) => {
+      setState(nextState);
+    });
+  });
+
+  const { icon, active, text, badge } = state;
+  const i = icon as React.ReactElement;
+  const highlightColor = "text-green-600 dark:text-green-600";
+
+  return (
+    <div
+      className={cn("flex flex-col justify-center items-center", active ? highlightColor : "")}
+      onClick={() => {
+        store.handleClick();
+      }}
+    >
+      <div>
+        {i}
+        <Show when={!!badge}>
+          <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
+        </Show>
+      </div>
+      <div className="mt-1 text-center text-[12px]">{text}</div>
+    </div>
+  );
+};
 
 export const HomeLayout: ViewComponent = (props) => {
   const { app, router, view } = props;
 
-  const dialog = useInstance(() => new DialogCore());
-  const logoutBtn = useInstance(
+  const homeMenu = useInstance(
     () =>
-      new ButtonCore({
-        async onClick() {
-          const r = await app.user.validate(router.query.token, "1");
-          if (r.error) {
-            return;
-          }
-          router.reload();
-        },
+      new BottomMenuCore({
+        app,
+        icon: <Home className="w-6 h-6" />,
+        view: homeIndexPage,
+        text: "首页",
+      })
+  );
+  const seasonMenu = useInstance(
+    () =>
+      new BottomMenuCore({
+        app,
+        icon: <Tv2 className="w-6 h-6" />,
+        view: homeSeasonPage,
+        text: "电视剧",
+      })
+  );
+  const movieMenu = useInstance(
+    () =>
+      new BottomMenuCore({
+        app,
+        icon: <Film className="w-6 h-6" />,
+        view: homeMoviePage,
+        text: "电影",
+      })
+  );
+  const historyMenu = useInstance(
+    () =>
+      new BottomMenuCore({
+        app,
+        icon: <HardDrive className="w-6 h-6" />,
+        view: homeHistoriesPage,
+        text: "观看记录",
+      })
+  );
+  const mineMenu = useInstance(
+    () =>
+      new BottomMenuCore({
+        app,
+        icon: <User className="w-6 h-6" />,
+        view: homeMinePage,
+        text: "我的",
       })
   );
   const [subViews, setSubViews] = useState(view.subViews);
-  const [curView, setCurView] = useState(view.curView);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
+  const menus = [homeMenu, seasonMenu, movieMenu, historyMenu, mineMenu];
 
   useInitialize(() => {
+    function updateMenuActive(curView: RouteViewCore) {
+      const matchedMenu = menus.find((menu) => {
+        return menu.view === curView;
+      });
+      if (!matchedMenu) {
+        return;
+      }
+      const otherMenus = menus.filter((m) => {
+        return m.view !== curView;
+      });
+      for (let i = 0; i < otherMenus.length; i += 1) {
+        const m = otherMenus[i];
+        m.reset();
+      }
+      matchedMenu.select();
+    }
+    if (view.curView) {
+      updateMenuActive(view.curView);
+    }
     view.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
     view.onCurViewChange((nextCurView) => {
-      setCurView(nextCurView);
+      updateMenuActive(nextCurView);
     });
     messageList.onStateChange((nextState) => {
       setMessageResponse(nextState);
@@ -55,15 +144,13 @@ export const HomeLayout: ViewComponent = (props) => {
     messageList.initIfInitial();
   });
 
-  // console.log("[PAGE]home/layout - render", view);
-  const highlightColor = "text-green-600 dark:text-green-600";
-
   return (
     <div className="flex flex-col w-full h-full">
       <div className="relative z-90 flex-1 h-full">
         <div className="relative w-full h-full">
           {subViews.map((subView, i) => {
-            const PageContent = subView.component as ViewComponent;
+            const matchedMenu = menus.find((m) => m.view === subView);
+            const PageContent = subView.component as ViewComponentWithMenu;
             return (
               <KeepAliveRouteView
                 key={subView.id}
@@ -71,8 +158,24 @@ export const HomeLayout: ViewComponent = (props) => {
                 store={subView}
                 index={i}
               >
-                <div className="w-full h-full scrollbar-hide overflow-y-auto bg-white opacity-100 dark:bg-black hide-scroll">
-                  <PageContent app={app} router={router} view={subView} />
+                <div
+                  className={cn(
+                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-0 opacity-100 hide-scroll",
+                    app.env.ios ? "hide-scroll--fix" : ""
+                  )}
+                >
+                  <PageContent
+                    app={app}
+                    router={router}
+                    view={subView}
+                    menu={matchedMenu}
+                    // onScroll={(pos) => {
+                    //   homeMenu.setTextAndIcon({
+                    //     text: "回到顶部",
+                    //     icon: <ArrowUp className="w-6 h-6" />,
+                    //   });
+                    // }}
+                  />
                 </div>
               </KeepAliveRouteView>
             );
@@ -81,105 +184,14 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-white-900 opacity-100 dark:bg-black-900 safe-bottom">
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeIndexPage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeIndexPage);
-            }}
-          >
-            <div>
-              <Home className="w-6 h-6" />
-            </div>
-            <div className="mt-1 text-center text-[12px]">首页</div>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeSeasonPage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeSeasonPage);
-            }}
-          >
-            <div>
-              <Tv2 className="w-6 h-6" />
-            </div>
-            <div className="mt-1 text-center text-[12px]">电视剧</div>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeMoviePage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeMoviePage);
-            }}
-          >
-            <div>
-              <Film className="w-6 h-6" />
-            </div>
-            <div className="mt-1 text-center text-[12px]">电影</div>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeHistoriesPage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeHistoriesPage);
-            }}
-          >
-            <div>
-              <HardDrive className="w-6 h-6 dark:text-slate-500" />
-            </div>
-            <div className="mt-1 text-center text-[12px]">观看记录</div>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col justify-center items-center dark:text-black-200",
-              curView === homeMinePage ? highlightColor : ""
-            )}
-            onClick={() => {
-              homeLayout.showSubView(homeMinePage);
-            }}
-          >
-            <div className="relative">
-              <Users className="w-6 h-6" />
-              <Show when={!!messageResponse.total}>
-                <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
-              </Show>
-            </div>
-            <div className="mt-1 text-center text-[12px]">我的</div>
-          </div>
+        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-w-bg-1 text-w-fg-1 opacity-100 safe-bottom">
+          <BottomMenu store={homeMenu} />
+          <BottomMenu store={seasonMenu} />
+          <BottomMenu store={movieMenu} />
+          <BottomMenu store={historyMenu} />
+          <BottomMenu store={mineMenu} />
         </div>
       </div>
-      <Sheet store={dialog}>
-        <div className="p-4">
-          {/* <div>
-            {(() => {
-              if (state.theme === "light") {
-                return (
-                  <div className="p-2 cursor-pointer">
-                    <Moon className="w-8 h-8" />
-                  </div>
-                );
-              }
-              return (
-                <div className="p-2 cursor-pointer">
-                  <Sun className="w-8 h-8" />
-                </div>
-              );
-            })()}
-          </div> */}
-          <div className="grid grid-cols-1">
-            <Button store={logoutBtn}>重新登录</Button>
-          </div>
-        </div>
-      </Sheet>
     </div>
   );
 };

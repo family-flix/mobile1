@@ -2,7 +2,18 @@
  * @file 个人中心页
  */
 import React, { useEffect, useState } from "react";
-import { Copy, HelpCircle, HelpingHand, MailQuestion, MessageSquare, Moon, Settings2, Sun, Tv } from "lucide-react";
+import {
+  Copy,
+  HelpCircle,
+  HelpingHand,
+  MailQuestion,
+  MessageSquare,
+  Moon,
+  Pen,
+  Settings2,
+  Sun,
+  Tv,
+} from "lucide-react";
 
 import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
@@ -14,7 +25,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
 import { Show } from "@/components/ui/show";
-import { homeMessagesPage, infoRequest, inviteeListPage, messageList, rootView } from "@/store";
+import { messagesPage, infoRequest, inviteeListPage, messageList, rootView } from "@/store";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -165,7 +176,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
+      <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1">
         <div className="relative p-4 space-y-4">
           <div className="py-1 px-4 flex flex-row-reverse">
             <div
@@ -197,26 +208,25 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <Settings2 className="w-5 h-5" />
             </div>
           </div>
-          <div className="relative flex p-4 h-24 rounded-lg">
+          <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-2">
             <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
               <LazyImage className="w-full h-full" src={profile.avatar} />
             </div>
             <div className="mt-2 text-xl">{profile.id}</div>
             <div></div>
           </div>
-          <div className="border-b-2 dark:border-black-900"></div>
-          <div className="rounded-lg">
+          <div className="rounded-lg bg-w-bg-2">
             <div
               className="flex items-center justify-between"
               onClick={() => {
-                rootView.layerSubView(homeMessagesPage);
+                app.showView(messagesPage);
               }}
             >
               <div className="flex">
                 <div className="relative w-5 p-4 mr-4">
                   <MessageSquare className="w-5 h-5" />
                   <Show when={!!messageResponse.total}>
-                    <div className="absolute top-3 right-[-8px] w-2 h-2 rounded-full bg-red-500" />
+                    <div className="absolute top-3 right-[-8px] w-2 h-2 rounded-full bg-w-red" />
                   </Show>
                 </div>
                 <div className="flex-1 py-4 mr-4">
@@ -224,6 +234,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
             <div
               className=""
               onClick={() => {
@@ -239,6 +250,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
             <div
               className=""
               onClick={() => {
@@ -254,6 +266,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
             <div
               className=""
               onClick={() => {
@@ -269,6 +282,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
             <div
               className=""
               onClick={() => {
@@ -284,7 +298,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                   });
                   return;
                 }
-                rootView.layerSubView(inviteeListPage);
+                app.showView(inviteeListPage);
               }}
             >
               <div className="flex">
@@ -297,27 +311,26 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               </div>
             </div>
           </div>
-          <div>
-            <Button className="w-full py-3 text-lg bg-red-600" size="lg" variant="subtle" store={loginBtn}>
-              刷新登录信息
-            </Button>
-          </div>
           <div className="text-center text-sm">v1.16.0</div>
         </div>
       </ScrollView>
       <Dialog store={dialog}>
-        <div>敬请期待</div>
+        <div className="text-w-fg-1">敬请期待</div>
       </Dialog>
       <Dialog store={reportConfirmDialog}>
-        <p>提交你认为存在问题或需要改进的地方</p>
-        <div className="mt-4">
-          <Input store={reportInput} />
+        <div className="text-w-fg-1">
+          <p>提交你认为存在问题或需要改进的地方</p>
+          <div className="mt-4">
+            <Input prefix={<Pen className="w-4 h-4" />} store={reportInput} />
+          </div>
         </div>
       </Dialog>
       <Dialog store={wantDialog}>
-        <p>你可以提交想看的电视剧或电影</p>
-        <div className="mt-4">
-          <Input store={wantInput} />
+        <div className="text-w-fg-1">
+          <p>你可以提交想看的电视剧或电影</p>
+          <div className="mt-4">
+            <Input prefix={<Pen className="w-4 h-4" />} store={wantInput} />
+          </div>
         </div>
       </Dialog>
     </>

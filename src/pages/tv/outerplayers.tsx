@@ -38,9 +38,9 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
   const { app, router, view } = props;
 
   const tv = useInstance(() => {
-    const { type: resolution } = app.cache.get<{
-      type: EpisodeResolutionTypes;
-    }>("player_settings", {
+    const { type: resolution } = app.cache.get("player_settings", {
+      volume: 0.5,
+      rate: 1,
       type: "SD",
     });
     const tv = new TVCore({
@@ -54,7 +54,7 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          rootView.uncoverPrevView();
+          app.back();
         },
       })
   );

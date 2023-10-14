@@ -2,7 +2,7 @@ import { Handler } from "mitt";
 
 import { UserCore } from "@/domains/user";
 import { BaseDomain } from "@/domains/base";
-// import { Drive } from "@/domains/drive";
+import { RouteViewCore } from "@/domains/route_view";
 import { NavigatorCore } from "@/domains/navigator";
 import { JSONObject, Result } from "@/types";
 
@@ -186,6 +186,55 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   applyTheme() {
     throw new Error("请在 connect.web 中实现 applyTheme 方法");
+  }
+  prevViews: RouteViewCore[] = [];
+  views: RouteViewCore[] = [];
+  curView: RouteViewCore | null = null;
+  showView(view: RouteViewCore, options: Partial<{ back: boolean }> = {}) {
+    console.log("[DOMAIN]Application - showView", view._name, view.parent, options.back, this.curView);
+    if (options.back) {
+      if (!this.curView) {
+        // 异常行为
+        return;
+      }
+      if (!this.curView.parent) {
+        return;
+      }
+      this.curView.parent.uncoverPrevView();
+      return;
+    }
+    this.curView = view;
+    this.prevViews = this.views;
+    this.views = [];
+    const _show = (view: RouteViewCore) => {
+      if (view.parent) {
+        _show(view.parent);
+        (() => {
+          if (view.parent.canLayer) {
+            view.parent.layerSubView(view);
+            return;
+          }
+          view.parent.showSubView(view);
+        })();
+      }
+      view.show();
+      this.views.push(view);
+    };
+    _show(view);
+    // console.log("[DOMAIN]Application - after show", this.views);
+  }
+  back() {
+    if (this.env.ios) {
+      if (!this.curView) {
+        return;
+      }
+      if (!this.curView.parent) {
+        return;
+      }
+      this.curView.parent.uncoverPrevView();
+      return;
+    }
+    history.back();
   }
   /** 手机震动 */
   vibrate() {}

@@ -64,7 +64,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          rootView.uncoverPrevView();
+          app.back();
         },
       })
   );
@@ -335,7 +335,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="fixed dark:text-black-200">
+      <ScrollView store={scrollView} className="fixed text-w-fg-1">
         <div className="h-screen">
           <div className="operations">
             <div
@@ -361,10 +361,10 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     <div
                       className="inline-block p-4"
                       onClick={() => {
-                        rootView.uncoverPrevView();
+                        app.back();
                       }}
                     >
-                      <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                      <ArrowLeft className="w-6 h-6" />
                     </div>
                   </div>
                 </Presence>
@@ -394,7 +394,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">切换源</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           rateSheet.show();
                         }}
@@ -403,7 +403,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         <p className="mt-2 text-sm ">{rate}x</p>
                       </div>
                       <div
-                        className="flex flex-col items-center dark:text-black-200"
+                        className="flex flex-col items-center"
                         onClick={() => {
                           resolutionSheet.show();
                         }}
@@ -454,12 +454,12 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       <Sheet store={sourceSheet}>
         {(() => {
           if (profile === null) {
-            return <div>Loading</div>;
+            return <div className="text-w-fg-1">Loading</div>;
           }
           const { sources } = profile;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pt-4 pb-24 dark:text-black-200">
+            <div className="max-h-full overflow-y-auto text-w-fg-1">
+              <div className="pt-4 pb-24">
                 {sources.map((source) => {
                   const { file_id, file_name, parent_paths } = source;
                   return (
@@ -469,7 +469,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                         movie.changeSource(source);
                       }}
                     >
-                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-slate-500" : "")}>
+                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-w-bg-active" : "")}>
                         <div className="break-all">
                           {parent_paths}/{file_name}
                         </div>
@@ -483,8 +483,8 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={rateSheet}>
-        <div className="max-h-full overflow-y-auto">
-          <div className="pt-4 pb-24 dark:text-black-200">
+        <div className="max-h-full overflow-y-auto text-w-fg-1">
+          <div className="pt-4 pb-24">
             {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
               return (
                 <div
@@ -496,7 +496,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     });
                   }}
                 >
-                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-slate-500" : "")}>
+                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-w-bg-active" : "")}>
                     <div className="break-all">{rateOpt}x</div>
                   </div>
                 </div>
@@ -508,18 +508,18 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       <Sheet store={resolutionSheet}>
         {(() => {
           if (profile === null || curSource === null) {
-            return <div>Loading</div>;
+            return <div className="text-w-fg-1">Loading</div>;
           }
           const { typeText: curTypeText, resolutions } = curSource;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pt-4 pb-24 dark:text-black-200">
+            <div className="max-h-full overflow-y-auto text-w-fg-1">
+              <div className="pt-4 pb-24">
                 {resolutions.map((r, i) => {
                   const { type, typeText } = r;
                   return (
                     <div key={i}>
                       <div
-                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-slate-500" : "")}
+                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-w-bg-active" : "")}
                         onClick={() => {
                           movie.changeResolution(type);
                         }}
@@ -538,15 +538,15 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         {(() => {
           if (profile === null) {
             return (
-              <div>
+              <div className="text-w-fg-1">
                 <Loader className="animate animate-spin w-6 h-6" />
               </div>
             );
           }
           const { name, overview } = profile;
           return (
-            <div className="max-h-full overflow-y-auto">
-              <div className="pb-24 dark:text-black-200">
+            <div className="max-h-full overflow-y-auto text-w-fg-1">
+              <div className="pb-24">
                 <div className="px-4">
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
@@ -586,8 +586,8 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={reportSheet}>
-        <div className="max-h-full overflow-y-auto">
-          <div className="pt-4 pb-24 dark:text-black-200">
+        <div className="max-h-full text-w-fg-1 overflow-y-auto">
+          <div className="pt-4 pb-24">
             {MovieReportList.map((question, i) => {
               return (
                 <div
@@ -605,7 +605,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Sheet store={subtitleSheet}>
-        <div className="max-h-full pb-24 overflow-y-auto">
+        <div className="max-h-full pb-24 text-w-fg-1 overflow-y-auto">
           {(() => {
             return (
               <div
@@ -619,7 +619,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
               </div>
             );
           })()}
-          <div className="pt-4 dark:text-black-200">
+          <div className="pt-4">
             {subtileState.others.map((subtitle, i) => {
               return (
                 <div
@@ -628,7 +628,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     movie.loadSubtitleFile(subtitle, movie.currentTime);
                   }}
                 >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-slate-500" : "")}>
+                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-w-bg-active" : "")}>
                     {subtitle.name}
                   </div>
                 </div>
@@ -638,61 +638,65 @@ export const MoviePlayingPage: ViewComponent = (props) => {
         </div>
       </Sheet>
       <Dialog store={reportConfirmDialog}>
-        <p>提交你发现的该电视剧的问题</p>
-        <p className="mt-2">「{curReportValue}」</p>
+        <div className="text-w-fg-1">
+          <p>提交你发现的该电视剧的问题</p>
+          <p className="mt-2">「{curReportValue}」</p>
+        </div>
       </Dialog>
       <Dialog store={errorTipDialog}>
-        <div>该问题是因为手机无法解析视频</div>
-        <div>可以尝试如下解决方案</div>
-        <div className="mt-4 text-left space-y-4">
-          <div>1、「切换源」或者「分辨率」</div>
-          <div>
-            <div>2、使用电脑观看</div>
-            <div
-              className="mt-2 break-all"
-              onClick={() => {
-                app.copy(window.location.href.replace(/mobile/, "pc"));
-                app.tip({
-                  text: ["已复制到剪贴板"],
-                });
-              }}
-            >
-              {window.location.href.replace(/mobile/, "pc")}
+        <div className="text-w-fg-1">
+          <div>该问题是因为手机无法解析视频</div>
+          <div>可以尝试如下解决方案</div>
+          <div className="mt-4 text-left space-y-4">
+            <div>1、「切换源」或者「分辨率」</div>
+            <div>
+              <div>2、使用电脑观看</div>
+              <div
+                className="mt-2 break-all"
+                onClick={() => {
+                  app.copy(window.location.href.replace(/mobile/, "pc"));
+                  app.tip({
+                    text: ["已复制到剪贴板"],
+                  });
+                }}
+              >
+                {window.location.href.replace(/mobile/, "pc")}
+              </div>
             </div>
-          </div>
-          <div>
-            <div>3、使用手机外部播放器</div>
-            <div className="flex items-center mt-2 space-x-2">
-              {players.map((player) => {
-                const { icon, name, scheme } = player;
-                const url = (() => {
-                  if (!curSource) {
+            <div>
+              <div>3、使用手机外部播放器</div>
+              <div className="flex items-center mt-2 space-x-2">
+                {players.map((player) => {
+                  const { icon, name, scheme } = player;
+                  const url = (() => {
+                    if (!curSource) {
+                      return null;
+                    }
+                    return scheme
+                      .replace(/\$durl/, curSource.url)
+                      .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
+                  })();
+                  if (!url) {
                     return null;
                   }
-                  return scheme
-                    .replace(/\$durl/, curSource.url)
-                    .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
-                })();
-                if (!url) {
-                  return null;
-                }
-                return (
-                  <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
-                    <LazyImage className="w-8 h-8 rounded-full" src={icon} />
-                    <div className="absolute bottom-0 w-full text-center">{name}</div>
-                  </a>
-                );
-              })}
-            </div>
-            <div className="mt-2 font-sm opacity-50">
-              <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
-              <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
+                  return (
+                    <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
+                      <LazyImage className="w-8 h-8 rounded-full" src={icon} />
+                      <div className="absolute bottom-0 w-full text-center">{name}</div>
+                    </a>
+                  );
+                })}
+              </div>
+              <div className="mt-2 font-sm text-w-fg-2">
+                <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
+                <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
+              </div>
             </div>
           </div>
         </div>
       </Dialog>
       <Dialog store={fullscreenDialog}>
-        <div>点击进入全屏播放</div>
+        <div className="text-w-fg-1">点击进入全屏播放</div>
       </Dialog>
     </>
   );

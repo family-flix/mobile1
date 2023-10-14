@@ -52,7 +52,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          rootView.uncoverPrevView();
+          app.back();
         },
       })
   );
@@ -140,7 +140,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
               <div
                 className="inline-block p-4"
                 onClick={() => {
-                  rootView.uncoverPrevView();
+                  app.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6 dark:text-black-200" />

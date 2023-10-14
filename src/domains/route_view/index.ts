@@ -3,12 +3,11 @@
  */
 import qs from "qs";
 import { pathToRegexp } from "path-to-regexp";
-import { Handler } from "mitt";
 import parse from "url-parse";
 
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { PresenceCore } from "@/domains/ui/presence";
-import { RouteAction } from "@/domains/navigator";
+import { NavigatorCore, RouteAction } from "@/domains/navigator";
 import { Result } from "@/types";
 
 import { buildUrl } from "./utils";
@@ -69,6 +68,8 @@ type RouteViewProps = {
   key: string;
   title: string;
   component: unknown;
+  layers?: boolean;
+  children?: RouteViewCore[];
 };
 
 export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
@@ -95,6 +96,9 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   isMounted = false;
   visible = false;
   layered = false;
+  canLayer = false;
+  /** 父级视图 */
+  parent: RouteViewCore | null = null;
   /** 视图元素 */
   component: unknown;
   /** 用于路由匹配的 */
@@ -126,24 +130,22 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
 
   constructor(options: Partial<{ _name: string }> & RouteViewProps) {
     super(options);
-    const { key, title, component } = options;
+    const { key, title, component, layers = false, children = [] } = options;
     this.key = key;
     this.title = title;
     this._name = title;
     this.component = component;
     this.configs = [];
+    this.canLayer = layers;
+
+    for (let i = 0; i < children.length; i += 1) {
+      children[i].parent = this;
+    }
 
     this.presence.onStateChange((nextState) => {
       const { open, mounted } = nextState;
-      console.log(
-        "[ROUTE_VIEW]this.presence.onStateChange",
-        this._name,
-        this.subViews.length,
-        this.visible,
-        open,
-        mounted
-      );
-      const prevVisible = this.visible;
+      // console.log("[ROUTE_VIEW]this.presence.onStateChange", this._name, this.state.visible, open, mounted);
+      const prevVisible = this.state.visible;
       this.visible = open;
 
       if (prevVisible === false && open) {
@@ -169,19 +171,14 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   checkMatchRegexp(url: string) {
-    const { regexp } = this;
-    if (!regexp) {
-      return false;
-    }
-    const strictMatch = regexp.test(url);
-    if (strictMatch) {
-      const { pathname } = parse(url);
-      const params = buildParams({
-        regexp,
-        targetPath: pathname,
-        keys: this.keys,
-      });
-      this.params = params;
+    const pathname = (() => {
+      if (url.startsWith("http")) {
+        return parse(url).pathname;
+      }
+      return url;
+    })();
+    console.log(pathname);
+    if (pathname === this.key) {
       return true;
     }
     return false;
@@ -248,7 +245,6 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.ViewsChange, [...this.subViews]);
     this.curView.show();
   }
-  /** @deprecated */
   setSubViews(
     subView: RouteViewCore,
     extra: {
@@ -351,14 +347,19 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.ViewsChange, [...this.subViews]);
   }
   buildUrl() {
-    return buildUrl(this.key, this.params, this.query);
+    const url = buildUrl(this.key, this.params, this.query);
+    return url;
+  }
+  buildUrlWithPrefix() {
+    const url = buildUrl(this.key, this.params, this.query);
+    return NavigatorCore.prefix + url;
   }
   ready() {
     this.emit(Events.Ready);
   }
   /** 主动展示视图 */
   show() {
-    console.log("[ROUTE_VIEW]show", this._name, this.visible);
+    // console.log("[ROUTE_VIEW]show", this._name, this.state.visible);
     if (this.visible) {
       // 为了让 presence 内部 hide 时判断 mounted 为 true
       this.presence.state.mounted = true;
@@ -392,14 +393,14 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
   }
   showPrevView(options: Partial<{ ignore: boolean; destroy: boolean }> = {}) {
     // alert(JSON.stringify(this.prevView));
-    // console.log("[DOMAIN]route_view - showPrevView", this.prevView?.title, this.curView?.title);
+    console.log("[DOMAIN]route_view - showPrevView", this.prevView?.title, this.curView?.title);
     if (this.prevView === null) {
       return;
     }
-    // console.log("[DOMAIN]route_view - showPrevView", this.prevView?.title, this.curView?.title);
+    console.log("[DOMAIN]route_view - showPrevView", this.prevView?.title, this.curView?.title);
     const curView = this.curView;
     if (options.destroy) {
-      curView?.onUnmounted(() => {
+      curView?.onHidden(() => {
         console.log("[DOMAIN]route_view - showPrevView when hidden", this.title);
         curView?.setUnload();
         this.subViews = this.subViews.filter((v) => v !== curView);
@@ -420,18 +421,20 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const curView = this.curView;
+    if (options.destroy) {
+      curView?.onHidden(() => {
+        console.log("[DOMAIN]route_view - showPrevView when hidden", this.title);
+        curView?.setUnload();
+        this.subViews = this.subViews.filter((v) => v !== curView);
+        this.emit(Events.ViewsChange, [...this.subViews]);
+      });
+    }
     this.curView?.hide();
-    // this.visible = false;
     this.prevView?.uncovered();
     this.curView = this.prevView;
     this.prevView = null;
-    curView?.onUnmounted(() => {
-      console.log("[DOMAIN]route_view - uncoverPreview when hidden", this.title);
-      curView?.setUnload();
-      this.subViews = this.subViews.filter((v) => v !== curView);
-      this.emit(Events.ViewsChange, [...this.subViews]);
-    });
     this.emit(Events.CurViewChange, this.curView);
+    this.emit(Events.ViewsChange, [...this.subViews]);
   }
   _showed = false;
   /** 视图被展示 */

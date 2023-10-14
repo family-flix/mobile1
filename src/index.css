@@ -30,6 +30,8 @@ body {
 
 .hide-scroll {
   -webkit-overflow-scrolling: touch;
+}
+.hide-scroll.hide-scroll--fix {
   /* overscroll-behavior: contain; */
 }
 .hide-scroll::-webkit-scrollbar {

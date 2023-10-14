@@ -32,17 +32,17 @@ export const ScrollView = React.memo(
     const options = {
       pending: () => null,
       pulling: () => (
-        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
+        <div className="p-4 rounded-full bg-w-bg-0">
           <ArrowDown width={18} height={18} />
         </div>
       ),
       releasing: () => (
-        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
+        <div className="p-4 rounded-full bg-w-bg-0">
           <Loader2 width={18} height={18} />
         </div>
       ),
       refreshing: () => (
-        <div className="p-4 rounded-full bg-white-900 dark:bg-black-900">
+        <div className="p-4 rounded-full bg-w-bg-0">
           <Loader2 className="animate animate-spin" width={18} height={18} />
         </div>
       ),
@@ -64,7 +64,11 @@ export const ScrollView = React.memo(
           </div>
           <Content
             store={store}
-            className={cn("max-h-full overflow-y-auto hide-scroll", contentClassName, scrollable ? "" : "")}
+            className={cn(
+              "z-10 relative max-h-full overflow-y-auto hide-scroll",
+              contentClassName,
+              scrollable ? "" : ""
+            )}
             style={(() => {
               if (scrollable) {
                 return {};
@@ -76,11 +80,9 @@ export const ScrollView = React.memo(
           >
             {children}
           </Content>
-          {pullToRefresh && (
-            <Indicator className="z-100 absolute w-full top-4 flex justify-center" store={store}>
-              <Component />
-            </Indicator>
-          )}
+          <Indicator className="z-50 absolute w-full top-4 flex justify-center" store={store}>
+            <Component />
+          </Indicator>
         </div>
       </Root>
     );
@@ -106,7 +108,8 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
     store.enablePullToRefresh();
   });
   const top = state.top;
-  const opacity = top / 80;
+  // const opacity = top / 80;
+  const opacity = 1;
 
   return (
     <div
@@ -133,7 +136,7 @@ const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<H
 
   return (
     <div
-      className={cn("flex items-center justify-center h-48 return-prev-indicator", props.className)}
+      className={cn("flex items-center justify-center h-48 text-w-fg-1 return-prev-indicator", props.className)}
       style={{
         width: state.pullToBack.width,
         height: state.pullToBack.height,

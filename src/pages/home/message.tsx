@@ -45,7 +45,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
           messageList.loadMore();
         },
         onPullToBack() {
-          rootView.uncoverPrevView();
+          app.back();
         },
       })
   );
@@ -89,7 +89,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
               <div
                 className="inline-block p-4"
                 onClick={() => {
-                  rootView.uncoverPrevView();
+                  app.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6 dark:text-black-200" />
@@ -169,14 +169,14 @@ export const HomeMessagePage: ViewComponent = (props) => {
                           id: tv_id,
                           season_id: id,
                         };
-                        rootView.layerSubView(tvPlayingPage);
+                        app.showView(tvPlayingPage);
                       }
                       if (movie) {
                         const { id } = movie;
                         moviePlayingPage.params = {
                           id,
                         };
-                        rootView.layerSubView(moviePlayingPage);
+                        app.showView(moviePlayingPage);
                       }
                     }}
                   >
@@ -259,7 +259,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                       </div>
                     </div>
                     <Show when={status === MessageStatus.Read}>
-                      <div className="absolute inset-0 bg-white opacity-50 pointer-events-none dark:bg-black"></div>
+                      <div className="absolute inset-0 bg-w-bg-0 opacity-50 pointer-events-none"></div>
                     </Show>
                   </div>
                 );

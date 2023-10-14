@@ -2,7 +2,7 @@
  * @file 首页
  */
 import React, { useState } from "react";
-import { Bird } from "lucide-react";
+import { ArrowUp, Bird } from "lucide-react";
 
 import { fetchCollectionList, fetchUpdatedMediaToday } from "@/services";
 import { Skeleton, ListView, ScrollView, LazyImage, BackToTop, Button } from "@/components/ui";
@@ -12,11 +12,12 @@ import { MediaTypes, fetchPlayingHistories } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
+import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
+import { cn } from "@/utils";
 
-export const HomeIndexPage: ViewComponent = React.memo((props) => {
-  const { app, router, view } = props;
+export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
+  const { app, router, view, menu } = props;
 
   const collectionList = useInstance(
     () =>
@@ -42,6 +43,19 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
+        onScroll(pos) {
+          if (!menu) {
+            return;
+          }
+          if (pos.scrollTop > app.screen.height) {
+            menu.setCanTop({
+              icon: <ArrowUp className="w-6 h-6" />,
+              text: "回到顶部",
+            });
+            return;
+          }
+          menu.recover();
+        },
         async onPullToRefresh() {
           updatedMediaList.refresh();
           historyList.refresh();
@@ -103,6 +117,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    if (menu) {
+      menu.onScrollToTop(() => {
+        scrollView.scrollTo({ top: 0 });
+      });
+      menu.onRefresh(() => {
+        scrollView.startPullToRefresh();
+      });
+    }
     collectionList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
@@ -137,53 +159,63 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
+      <ScrollView store={scrollView} className="bg-w-bg-0">
         <div className="w-full h-full">
           <ListView
             store={collectionList}
-            className="relative h-[50%] mt-4 space-y-6"
+            className="relative h-[50%] space-y-3"
             skeleton={
               <>
-                <div className="py-2">
+                <div className="py-4 bg-w-bg-2">
                   <div className="px-4">
-                    <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="h-[32px] w-[188px]"></Skeleton>
                   </div>
-                  <div className="flex mt-2 w-screen overflow-x-auto px-4 space-x-3 hide-scroll">
+                  <div
+                    className={cn(
+                      "flex mt-2 w-screen overflow-x-auto px-4 space-x-3 hide-scroll",
+                      app.env.ios ? "hide-scroll--fix" : ""
+                    )}
+                  >
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[207px] object-cover dark:bg-gray-800" />
+                        <Skeleton className="w-[138px] h-[207px] object-cover" />
                       </div>
                       <div className="mt-2 flex-1 max-w-full overflow-hidden">
                         <div className="flex items-center overflow-hidden text-ellipsis">
-                          <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                          <Skeleton className="h-[28px] w-[80px]"></Skeleton>
                         </div>
-                        <Skeleton className="mt-1 h-[18px] w-[36px] dark:bg-gray-800"></Skeleton>
+                        <Skeleton className="mt-1 h-[18px] w-[36px]"></Skeleton>
                       </div>
                     </div>
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[207px] object-cover dark:bg-gray-800" />
+                        <Skeleton className="w-[138px] h-[207px] object-cover" />
                       </div>
                       <div className="mt-2 flex-1 max-w-full overflow-hidden">
                         <div className="flex items-center overflow-hidden text-ellipsis">
-                          <Skeleton className="h-[28px] w-[80px] dark:bg-gray-800"></Skeleton>
+                          <Skeleton className="h-[28px] w-[80px]"></Skeleton>
                         </div>
-                        <Skeleton className="mt-1 h-[18px] w-[36px] dark:bg-gray-800"></Skeleton>
+                        <Skeleton className="mt-1 h-[18px] w-[36px]"></Skeleton>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="py-2">
+                <div className="py-4 bg-w-bg-2">
                   <div className="px-4">
-                    <Skeleton className="h-[32px] w-[188px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="h-[32px] w-[188px]"></Skeleton>
                   </div>
-                  <div className="flex mt-2 w-screen overflow-x-auto px-4 space-x-2 hide-scroll">
+                  <div
+                    className={cn(
+                      "flex mt-2 w-screen overflow-x-auto px-4 space-x-2 hide-scroll",
+                      app.env.ios ? "hide-scroll--fix" : ""
+                    )}
+                  >
                     <div>
                       <div className="relative w-[240px] h-[135px] rounded-lg overflow-hidden">
-                        <Skeleton className="w-full h-full  dark:bg-gray-800" />
+                        <Skeleton className="w-full h-full " />
                       </div>
                       <div className="flex items-center justify-between mt-2">
-                        <Skeleton className="h-[28px] w-[64px] dark:bg-gray-800"></Skeleton>
+                        <Skeleton className="h-[28px] w-[64px]"></Skeleton>
                       </div>
                     </div>
                   </div>
@@ -204,17 +236,22 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
               }
               return (
                 <>
-                  <div className="flex py-2">
+                  <div className="flex py-4 text-w-fg-0 bg-w-bg-2">
                     <div>
                       <div className="px-4">
-                        <h2 className="text-2xl dark:text-white">📆今日更新</h2>
+                        <h2 className="text-xl">📆今日更新</h2>
                       </div>
-                      <div className="flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll">
+                      <div
+                        className={cn(
+                          "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll",
+                          app.env.ios ? "hide-scroll--fix" : ""
+                        )}
+                      >
                         {(() => {
                           if (updatedMediaListState.empty) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center text-slate-500">
+                                <div className="flex flex-col items-center justify-center text-w-fg-1">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -233,13 +270,13 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                       id: tv_id,
                                       season_id: id,
                                     };
-                                    rootView.layerSubView(tvPlayingPage);
+                                    app.showView(tvPlayingPage);
                                   }
                                   if (type === MediaTypes.Movie) {
                                     moviePlayingPage.params = {
                                       id,
                                     };
-                                    rootView.layerSubView(moviePlayingPage);
+                                    app.showView(moviePlayingPage);
                                   }
                                 }}
                               >
@@ -268,17 +305,22 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex py-2">
+                  <div className="flex py-4 text-w-fg-0 bg-w-bg-2">
                     <div>
                       <div className="px-4">
-                        <h2 className="text-2xl dark:text-white">🎬最近观看</h2>
+                        <h2 className="text-xl">🎬最近观看</h2>
                       </div>
-                      <div className="flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 hide-scroll">
+                      <div
+                        className={cn(
+                          "flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 hide-scroll",
+                          app.env.ios ? "hide-scroll--fix" : ""
+                        )}
+                      >
                         {(() => {
                           if (historyState.empty) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center text-slate-500">
+                                <div className="flex flex-col items-center justify-center text-w-fg-1">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -307,19 +349,19 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                       id: tv_id,
                                       season_id,
                                     };
-                                    rootView.layerSubView(tvPlayingPage);
+                                    app.showView(tvPlayingPage);
                                   }
                                   if (type === MediaTypes.Movie && movie_id) {
                                     moviePlayingPage.params = {
                                       id: movie_id,
                                     };
-                                    rootView.layerSubView(moviePlayingPage);
+                                    app.showView(moviePlayingPage);
                                   }
                                 }}
                               >
                                 <div className="relative w-[240px] h-[148px] rounded-lg overflow-hidden">
                                   <LazyImage className="w-full h-full object-cover" src={thumbnail} alt={name} />
-                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-sm text-right text-white bg-gradient-to-t from-black to-transparent">
+                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-sm text-right text-w-fg-1 bg-gradient-to-t from-black to-transparent">
                                     <div className="">看到{percent}%</div>
                                   </div>
                                 </div>
@@ -341,18 +383,23 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
               return dataSource.map((collection) => {
                 const { id, title, desc, medias } = collection;
                 return (
-                  <div key={id} className="flex py-2">
+                  <div key={id} className="flex text-w-fg-0 py-4 bg-w-bg-2">
                     <div>
                       <div className="px-4">
-                        <h2 className="text-2xl dark:text-white">{title}</h2>
-                        {desc && <div>{desc}</div>}
+                        <h2 className="text-xl">{title}</h2>
+                        {desc && <div className="text-w-fg-1">{desc}</div>}
                       </div>
-                      <div className="flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll">
+                      <div
+                        className={cn(
+                          "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll",
+                          app.env.ios ? "hide-scroll--fix" : ""
+                        )}
+                      >
                         {(() => {
                           if (medias.length === 0) {
                             return (
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center text-slate-500">
+                                <div className="flex flex-col items-center justify-center text-w-fg-1">
                                   <Bird className="w-16 h-16" />
                                   <div className="mt-2 text-xl">暂无数据</div>
                                 </div>
@@ -371,14 +418,14 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                       id: tv_id,
                                       season_id: id,
                                     };
-                                    rootView.layerSubView(tvPlayingPage);
+                                    app.showView(tvPlayingPage);
                                     return;
                                   }
                                   if (type === MediaTypes.Movie) {
                                     moviePlayingPage.params = {
                                       id,
                                     };
-                                    rootView.layerSubView(moviePlayingPage);
+                                    app.showView(moviePlayingPage);
                                     return;
                                   }
                                   app.tip({
@@ -403,7 +450,7 @@ export const HomeIndexPage: ViewComponent = React.memo((props) => {
                                     <h2 className="break-all text-lg truncate">{name}</h2>
                                   </div>
                                   <div className="flex items-center">
-                                    <div className="text-sm">{air_date}</div>
+                                    <div className="text-sm text-w-fg-1">{air_date}</div>
                                   </div>
                                 </div>
                               </div>

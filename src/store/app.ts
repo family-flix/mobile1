@@ -49,6 +49,8 @@ export const app = new Application({
     return Result.Ok(null);
   },
 });
+// @ts-ignore
+window.__app = app;
 
 ListCore.commonProcessor = <T>(
   originalResponse: any

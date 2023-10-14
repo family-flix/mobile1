@@ -47,18 +47,17 @@ export function Dialog(
           store={store}
           className={cn(
             "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:w-full",
-            "bg-white dark:bg-black-900 dark:border-black-900"
+            "bg-w-bg-0 border-w-bg-2"
           )}
           // className={cn(
           //   "fixed z-50 grid w-full gap-4 rounded-b-lg bg-white p-6 sm:max-w-lg sm:rounded-lg",
           //   "sm:zoom-in-90",
-          //   "dark:bg-black-900",
           //   "animate-in data-[state=open]:fade-in-90",
           //   "data-[state=closed]:animate-out data-[state=closed]:fade-out"
           // )}
         >
           <DialogPrimitive.Header className="flex flex-col space-y-1.5 text-center sm:text-left">
-            <DialogPrimitive.Title className={cn("text-lg font-semibold leading-none tracking-tight")}>
+            <DialogPrimitive.Title className={cn("text-lg text-w-fg-0 font-semibold leading-none tracking-tight")}>
               {title}
             </DialogPrimitive.Title>
             <DialogPrimitive.Description className={cn("text-sm text-muted-foreground")}>
@@ -78,10 +77,10 @@ export function Dialog(
           <DialogPrimitive.Close
             store={store}
             className={cn(
-              "absolute top-4 right-4 cursor-pointer rounded-sm",
+              "absolute top-4 right-4 cursor-pointer rounded-full",
               "opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none",
               "dark:focus:ring-slate-400 dark:focus:ring-offset-black-900",
-              "data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800"
+              "data-[state=open]:bg-w-bg-0"
             )}
           >
             <X width={15} height={15} />

@@ -2,7 +2,7 @@
  * @file 电影列表页
  */
 import React, { useEffect, useState } from "react";
-import { Loader, Search, SlidersHorizontal, Star } from "lucide-react";
+import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import {
   BackToTop,
@@ -23,13 +23,30 @@ import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
 import { moviePlayingPage, rootView } from "@/store";
-import { ViewComponent } from "@/types";
+import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { MediaRequestCore } from "@/components/media-request";
 
-export const HomeMoviePage: ViewComponent = React.memo((props) => {
-  const { app, router, view } = props;
+export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
+  const { app, router, view, menu } = props;
 
-  const scrollView = useInstance(() => new ScrollViewCore());
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        onScroll(pos) {
+          if (!menu) {
+            return;
+          }
+          if (pos.scrollTop > app.screen.height) {
+            menu.setCanTop({
+              icon: <ArrowUp className="w-6 h-6" />,
+              text: "回到顶部",
+            });
+            return;
+          }
+          menu.recover();
+        },
+      })
+  );
   const helper = useInstance(
     () =>
       new ListCore(new RequestCore(fetch_movie_list), {
@@ -126,6 +143,14 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    if (menu) {
+      menu.onScrollToTop(() => {
+        scrollView.scrollTo({ top: 0 });
+      });
+      menu.onRefresh(() => {
+        scrollView.startPullToRefresh();
+      });
+    }
     view.onReady(() => {
       console.log("home/index ready");
     });
@@ -177,49 +202,49 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
   console.log("[PAGE]home - render", dataSource);
 
   return (
-    <>
+    <div className="bg-w-bg-0">
       <div className="relative z-50">
-        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 space-x-4 bg-white dark:bg-black">
+        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 bg-w-bg-0 text-w-fg-2 space-x-3">
           <div className="relative w-full">
             <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>
           <div
-            className="relative p-2"
+            className="relative p-2 rounded-md bg-w-bg-2"
             onClick={() => {
               settingsSheet.show();
             }}
           >
-            <SlidersHorizontal className="w-5 h-5 dark:text-black-200" />
+            <SlidersHorizontal className="w-5 h-5" />
             {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
           </div>
         </div>
         <div className="h-[56px]" />
       </div>
-      <ScrollView store={scrollView} className="dark:text-black-200">
+      <ScrollView store={scrollView} className="">
         <div className="w-full h-full pt-[56px]">
           <ListView
             store={helper}
-            className="relative mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
-                <div className="flex px-4 pb-4 cursor-pointer">
+                <div className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer">
                   <div className="relative w-[128px] h-[198px] mr-4">
-                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                    <Skeleton className="w-full h-full" />
                   </div>
                   <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="w-full h-[32px]"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px]"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px]"></Skeleton>
                   </div>
                 </div>
-                <div className="flex px-4 pb-4 cursor-pointer">
+                <div className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer">
                   <div className="relative w-[128px] h-[198px] mr-4">
-                    <Skeleton className="w-full h-full dark:bg-gray-800" />
+                    <Skeleton className="w-full h-full" />
                   </div>
                   <div className="mt-2 flex-1 max-w-full overflow-hidden text-ellipsis">
-                    <Skeleton className="w-full h-[32px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-1 w-24 h-[24px] dark:bg-gray-800"></Skeleton>
-                    <Skeleton className="mt-2 w-32 h-[22px] dark:bg-gray-800"></Skeleton>
+                    <Skeleton className="w-full h-[32px]"></Skeleton>
+                    <Skeleton className="mt-1 w-24 h-[24px]"></Skeleton>
+                    <Skeleton className="mt-2 w-32 h-[22px]"></Skeleton>
                   </div>
                 </div>
               </>
@@ -238,12 +263,12 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                 return (
                   <div
                     key={id}
-                    className="flex px-4 pb-4 cursor-pointer"
+                    className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer"
                     onClick={() => {
                       moviePlayingPage.params = {
                         id,
                       };
-                      rootView.layerSubView(moviePlayingPage);
+                      app.showView(moviePlayingPage);
                     }}
                   >
                     <div className="relative w-[128px] h-[198px] mr-4">
@@ -255,7 +280,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                     </div>
                     <div className="mt-2 flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
-                        <h2 className="text-2xl dark:text-white">{name}</h2>
+                        <h2 className="text-2xl text-w-fg-0">{name}</h2>
                       </div>
                       <div className="flex items-center mt-1 ">
                         <div>{air_date}</div>
@@ -278,7 +303,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
                           return (
                             <div
                               key={g}
-                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border dark:border-black-200"
+                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
                               style={{
                                 lineHeight: "12px",
                               }}
@@ -301,7 +326,7 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
           {response.loading && (
             <>
-              <div className="absolute inset-0 bg-white opacity-50 dark:bg-black-900" />
+              <div className="absolute inset-0 bg-w-bg-0 opacity-50" />
               <div className="absolute w-full h-[120px] flex items-center justify-center">
                 <Loader className="w-8 h-8 animate-spin" />
               </div>
@@ -318,13 +343,13 @@ export const HomeMoviePage: ViewComponent = React.memo((props) => {
         </div>
       </Sheet>
       <Dialog store={mediaRequest.dialog}>
-        <div>
+        <div className="text-w-fg-1">
           <p>输入想看的电影</p>
           <div className="mt-4">
-            <Input store={mediaRequest.input} />
+            <Input prefix={<Pen className="w-4 h-4" />} store={mediaRequest.input} />
           </div>
         </div>
       </Dialog>
-    </>
+    </div>
   );
 });

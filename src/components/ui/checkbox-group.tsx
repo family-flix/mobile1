@@ -22,8 +22,8 @@ export const CheckboxOption = (
   return (
     <div
       className={cn(
-        "flex justify-center items-center py-1 px-2 mb-2 rounded-lg border leading-none dark:text-black-200 dark:border-black-200",
-        state.checked ? "bg-slate-500 text-slate-200 dark:text-slate-200 dark:bg-slate-600" : ""
+        "flex justify-center items-center py-1 px-2 mb-2 rounded-lg text-w-fg-1 border border-w-fg-1 leading-none",
+        state.checked ? "bg-w-bg-active text-w-fg-1" : ""
       )}
       onClick={() => {
         store.toggle();

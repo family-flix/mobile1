@@ -1,6 +1,7 @@
 // import { Response } from "@list-helper/core/typing";
 
 import { Application } from "@/domains/app";
+import { BottomMenuCore } from "@/domains/bottom_menu";
 import { BizError } from "@/domains/error";
 import { NavigatorCore } from "@/domains/navigator";
 import { RouteViewCore } from "@/domains/route_view";
@@ -76,6 +77,13 @@ export type ViewComponent = (props: {
   app: Application;
   router: NavigatorCore;
   view: RouteViewCore;
+}) => React.ReactElement | null;
+
+export type ViewComponentWithMenu = (props: {
+  app: Application;
+  router: NavigatorCore;
+  view: RouteViewCore;
+  menu?: BottomMenuCore;
 }) => React.ReactElement | null;
 
 export type Rect = {

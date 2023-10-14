@@ -46,14 +46,14 @@ export const ListView = React.memo(
     });
 
     return (
-      <div className={cn("relative z-40")}>
+      <div className={cn("relative z-40 text-w-fg-1")}>
         <div className={props.className}>
           <Show when={!!(response.initial && skeleton)}>{skeleton}</Show>
           <Show
             when={!response.empty}
             fallback={
               <div className="w-full h-[480px] flex items-center justify-center">
-                <div className="flex flex-col items-center justify-center text-slate-500">
+                <div className="flex flex-col items-center justify-center">
                   <Bird className="w-24 h-24" />
                   <div className="mt-4 flex items-center space-x-2">
                     <Show when={response.loading}>
@@ -73,7 +73,7 @@ export const ListView = React.memo(
           when={!!response.error}
           fallback={
             <Show when={!response.noMore && !response.initial}>
-              <div className="flex justify-center py-8 text-slate-500">
+              <div className="flex justify-center py-8">
                 <div
                   className="flex items-center space-x-2 cursor-pointer"
                   onClick={() => {
@@ -90,7 +90,7 @@ export const ListView = React.memo(
           }
         >
           <div className="w-full h-[240px] flex items-center justify-center py-24">
-            <div className="flex flex-col items-center justify-center px-8 text-slate-500">
+            <div className="flex flex-col items-center justify-center px-8">
               <AlertCircle className="w-24 h-24" />
               <div className="mt-4 flex items-center space-x-2">
                 <div className="text-center text-xl">{response.error?.message}</div>
@@ -104,7 +104,7 @@ export const ListView = React.memo(
           </div>
         </Show>
         <Show when={response.noMore && !response.empty}>
-          <div className="flex justify-center py-8 text-slate-500">
+          <div className="flex justify-center py-8">
             <div className="flex items-center space-x-2">
               <Show when={response.loading}>
                 <Loader className="w-6 h-6 animate-spin" />

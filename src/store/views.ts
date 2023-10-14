@@ -48,25 +48,20 @@ export const homeMoviePage = new RouteViewCore({
   title: "电影",
   component: HomeMoviePage,
 });
-export const homeTVSearchPage = new RouteViewCore({
-  key: "/search_tv",
-  title: "搜索电视剧",
-  component: HomeTVSearchPage,
-});
-export const homeMovieSearchPage = new RouteViewCore({
-  key: "/search_movie",
-  title: "搜索电影",
-  component: HomeMovieSearchPage,
-});
+// export const homeTVSearchPage = new RouteViewCore({
+//   key: "/search_tv",
+//   title: "搜索电视剧",
+//   component: HomeTVSearchPage,
+// });
+// export const homeMovieSearchPage = new RouteViewCore({
+//   key: "/search_movie",
+//   title: "搜索电影",
+//   component: HomeMovieSearchPage,
+// });
 export const homeHistoriesPage = new RouteViewCore({
   key: "/home/history",
   title: "播放历史",
   component: HomeHistoryPage,
-});
-export const homeMessagesPage = new RouteViewCore({
-  key: "/home/message",
-  title: "未读消息",
-  component: HomeMessagePage,
 });
 export const homeMinePage = new RouteViewCore({
   key: "/home/mine",
@@ -77,6 +72,7 @@ export const homeLayout = new RouteViewCore({
   key: "/home",
   title: "首页",
   component: HomeLayout,
+  children: [homeIndexPage, homeSeasonPage, homeMoviePage, homeHistoriesPage, homeMinePage],
 });
 export const tvPlayingPage = new RouteViewCore({
   key: "/tv_play",
@@ -103,6 +99,11 @@ export const outerPlayerPage = new RouteViewCore({
   title: "调用外部播放器",
   component: OuterPlayersPage,
 });
+export const messagesPage = new RouteViewCore({
+  key: "/home/message",
+  title: "未读消息",
+  component: HomeMessagePage,
+});
 export const testView = new RouteViewCore({
   key: "/test",
   title: "测试",
@@ -117,6 +118,8 @@ export const rootView = new RouteViewCore({
   key: "/",
   title: "ROOT",
   component: "div",
+  layers: true,
+  children: [homeLayout, tvPlayingPage, moviePlayingPage, inviteeListPage, messagesPage],
 });
 export function getRootView() {
   return rootView;

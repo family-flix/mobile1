@@ -36,7 +36,7 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
   // console.log("[]Input");
   return (
     <div className="relative">
-      <div className="absolute left-3 top-[50%] translate-y-[-50%] text-slate-400 ">
+      <div className="absolute left-3 top-[50%] translate-y-[-50%] text-w-fg-1 ">
         {(() => {
           if (!prefix) {
             return null;
@@ -50,11 +50,10 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
       <input
         ref={ref}
         className={cn(
-          "flex items-center h-10 w-full rounded-md leading-none border border-slate-300 bg-transparent py-2 px-3 text-sm",
-          "focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2",
+          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-2 text-fg-1 py-2 px-3 text-sm",
+          "focus:outline-none focus:ring-2 focus:ring-fg-4 focus:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "dark:border-slate-700 dark:text-slate-50 dark:focus:ring-slate-400 dark:focus:ring-offset-slate-900",
-          "placeholder:text-slate-400",
+          "placeholder:text-w-fg-1",
           prefix ? "pl-8" : "",
           props.className
         )}
@@ -80,7 +79,7 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
           store.handleBlur();
         }}
       />
-      <div className="absolute right-3 top-[50%] translate-y-[-50%] text-slate-400 ">
+      <div className="absolute right-3 top-[50%] translate-y-[-50%] text-w-fg-1">
         {(() => {
           if (!allowClear) {
             return null;
@@ -90,12 +89,12 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
           }
           return (
             <div
-              className="p-1 rounded-full bg-white-900 dark:bg-black-900"
+              className="p-1 rounded-full bg-w-bg-0"
               onClick={() => {
                 store.clear();
               }}
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </div>
           );
         })()}

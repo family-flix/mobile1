@@ -49,6 +49,8 @@ type ScrollViewState = {
   /** 下拉刷新的阶段 */
   step: PullToRefreshStep;
 };
+const PULL_TO_REFRESH_THRESHOLD = 60;
+const PULL_TO_REFRESH_MAX_DISTANCE = 80;
 
 export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   /** 尺寸信息 */
@@ -254,8 +256,8 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     // this.isPulling = true;
-    const distThreshold = 60;
-    const distMax = 80;
+    const distThreshold = PULL_TO_REFRESH_THRESHOLD;
+    const distMax = PULL_TO_REFRESH_MAX_DISTANCE;
     const distResisted =
       resistanceFunction(this.pullToRefresh.distY / distThreshold) * Math.min(distMax, this.pullToRefresh.distY);
     this.pullToRefresh.distResisted = distResisted;
@@ -276,6 +278,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.state.pullToBack.canBack = false;
     this.state.pullToBack.width = 0;
+    // 192?
     this.state.pullToBack.height = 192;
     this.state.scrollable = true;
     this.pullToRefresh.pullStartX = 0;
@@ -360,10 +363,10 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.pullToRefresh.pullStartY = 0;
     this.pullToRefresh.pullMoveY = 0;
-    this.pullToRefresh.distY = 60;
-    this.pullToRefresh.distResisted = 60;
+    this.pullToRefresh.distY = PULL_TO_REFRESH_MAX_DISTANCE;
+    this.pullToRefresh.distResisted = PULL_TO_REFRESH_MAX_DISTANCE;
     this.pullToRefresh.state = "refreshing";
-    this.state.top = 60;
+    this.state.top = PULL_TO_REFRESH_MAX_DISTANCE;
     this.state.step = this.pullToRefresh.state;
     this.emit(Events.PullToRefresh);
     this.emit(Events.StateChange, { ...this.state });
