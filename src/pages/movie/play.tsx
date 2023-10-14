@@ -20,6 +20,7 @@ import { Video, Sheet, ScrollView, Dialog, LazyImage } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
+import { MediaResolutionTypes } from "@/domains/movie/constants";
 import { MovieCore } from "@/domains/movie";
 import { RefCore } from "@/domains/cur";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
@@ -30,19 +31,32 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { rootView } from "@/store";
 import { cn } from "@/utils";
+import { OrientationTypes } from "@/domains/app";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
 
-  const movie = useInstance(() => new MovieCore());
-  const player = useInstance(() => {
-    const { volume, rate } = app.cache.get<{
+  const settingsRef = useInstance(() => {
+    const r = new RefCore<{
       volume: number;
       rate: number;
-    }>("player_settings", {
-      volume: 0.5,
-      rate: 1,
+      type: MediaResolutionTypes;
+    }>({
+      value: app.cache.get("player_settings", {
+        volume: 0.5,
+        rate: 1,
+        type: "SD",
+      }),
     });
+    return r;
+  });
+  const movie = useInstance(() => {
+    const { type: resolution } = settingsRef.value!;
+    const movie = new MovieCore({ resolution });
+    return movie;
+  });
+  const player = useInstance(() => {
+    const { volume, rate } = settingsRef.value!;
     const player = new PlayerCore({ app, volume, rate });
     return player;
   });
@@ -152,9 +166,18 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     view.onHidden(() => {
       player.pause();
     });
+    player.onExitFullscreen(() => {
+      player.pause();
+      if (movie.curSource) {
+        player.setSize({ width: movie.curSource.width, height: movie.curSource.height });
+      }
+      if (app.orientation === OrientationTypes.Vertical) {
+        player.disableFullscreen();
+      }
+    });
     app.onOrientationChange((orientation) => {
       if (orientation === "horizontal") {
-        if (!player.hasPlayed) {
+        if (!player.hasPlayed && app.env.ios) {
           fullscreenDialog.show();
           return;
         }
@@ -205,10 +228,29 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       if (!view.state.visible) {
         return;
       }
+      function applySettings() {
+        player.setCurrentTime(movie.currentTime);
+        if (view.query.rate) {
+          player.changeRate(Number(view.query.rate));
+          return;
+        }
+        const { rate } = settingsRef.value!;
+        if (rate) {
+          player.changeRate(Number(rate));
+        }
+      }
+      (() => {
+        if (app.env.android) {
+          setTimeout(() => {
+            applySettings();
+          }, 1000);
+          return;
+        }
+        applySettings();
+      })();
       if (!player.hasPlayed) {
         return;
       }
-      player.setCurrentTime(movie.currentTime);
       player.play();
     });
     player.onProgress(({ currentTime, duration }) => {

@@ -19,8 +19,8 @@ import {
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
-import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { RequestCore } from "@/domains/request";
+import { MediaResolutionTypes } from "@/domains/movie/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
@@ -38,6 +38,20 @@ import { cn } from "@/utils";
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
 
+  const settingsRef = useInstance(() => {
+    const r = new RefCore<{
+      volume: number;
+      rate: number;
+      type: MediaResolutionTypes;
+    }>({
+      value: app.cache.get("player_settings", {
+        volume: 0.5,
+        rate: 1,
+        type: "SD",
+      }),
+    });
+    return r;
+  });
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
@@ -47,11 +61,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       })
   );
   const tv = useInstance(() => {
-    const { type: resolution } = app.cache.get<{
-      type: EpisodeResolutionTypes;
-    }>("player_settings", {
-      type: "SD",
-    });
+    const { type: resolution } = settingsRef.value!;
     const tv = new TVCore({
       resolution,
     });
@@ -60,13 +70,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     return tv;
   });
   const player = useInstance(() => {
-    const { volume, rate } = app.cache.get<{
-      volume: number;
-      rate: number;
-    }>("player_settings", {
-      volume: 0.5,
-      rate: 1,
-    });
+    const { volume, rate } = settingsRef.value!;
     const player = new PlayerCore({ app, volume, rate });
     // @ts-ignore
     window.__player__ = player;
@@ -174,7 +178,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const [curSource, setCurSource] = useState(tv.curSource);
   const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
   const [curReportValue, setCurReportValue] = useState(curReport.value);
-  const [rate, setRate] = useState(player.state.rate);
+  const [rate, setRate] = useState(1);
 
   useInitialize(() => {
     console.log("[PAGE]play - useInitialize");
@@ -187,8 +191,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.setCurrentTime(player.currentTime);
     });
     app.onOrientationChange((orientation) => {
+      console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
       if (orientation === "horizontal") {
-        if (!player.hasPlayed) {
+        if (!player.hasPlayed && app.env.ios) {
           fullscreenDialog.show();
           return;
         }
@@ -201,6 +206,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
       if (orientation === "vertical") {
         player.disableFullscreen();
         fullscreenDialog.hide();
+        console.log("[PAGE]tv/play - app.onOrientationChange", tv.curSource?.width, tv.curSource?.height);
         if (tv.curSource) {
           player.setSize({ width: tv.curSource.width, height: tv.curSource.height });
         }
@@ -211,6 +217,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     player.onExitFullscreen(() => {
       player.pause();
+      if (tv.curSource) {
+        player.setSize({ width: tv.curSource.width, height: tv.curSource.height });
+      }
       if (app.orientation === OrientationTypes.Vertical) {
         player.disableFullscreen();
       }
@@ -264,14 +273,33 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.disableFullscreen();
     });
     player.onCanPlay(() => {
+      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible, tv.currentTime);
       if (!view.state.visible) {
         return;
       }
-      // console.log("[PAGE]play - player.onCanPlay");
+      function applySettings() {
+        player.setCurrentTime(tv.currentTime);
+        if (view.query.rate) {
+          player.changeRate(Number(view.query.rate));
+          return;
+        }
+        const { rate } = settingsRef.value!;
+        if (rate) {
+          player.changeRate(Number(rate));
+        }
+      }
+      (() => {
+        if (app.env.android) {
+          setTimeout(() => {
+            applySettings();
+          }, 1000);
+          return;
+        }
+        applySettings();
+      })();
       if (!player.hasPlayed) {
         return;
       }
-      player.setCurrentTime(tv.currentTime);
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
@@ -348,11 +376,6 @@ export const TVPlayingPage: ViewComponent = (props) => {
       }
       player.load(url);
     });
-    if (view.query.rate) {
-      setTimeout(() => {
-        player.changeRate(Number(view.query.rate));
-      }, 1000);
-    }
     if (view.query.hide_menu) {
       setTimeout(() => {
         topOperation.hide();

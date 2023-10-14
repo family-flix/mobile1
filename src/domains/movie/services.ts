@@ -13,7 +13,7 @@ import { MediaSource, MovieGenresTexts, MovieSourceTexts } from "@/constants";
  * 获取电影和当前播放进度
  * @param params
  */
-export async function fetch_movie_and_cur_source(params: { movie_id: string }) {
+export async function fetchMovieAndCurSource(params: { movie_id: string }) {
   // console.log("[]fetch_tv_profile params", params);
   const { movie_id } = params;
   const r = await request.get<{
@@ -53,7 +53,7 @@ export async function fetch_movie_and_cur_source(params: { movie_id: string }) {
   });
 }
 /** 电影详情 */
-export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_movie_and_cur_source>>>;
+export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMovieAndCurSource>>>;
 
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息

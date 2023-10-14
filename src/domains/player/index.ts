@@ -37,8 +37,10 @@ enum Events {
   Progress,
   /** 暂停 */
   Pause,
+  BeforeLoadStart,
   /** 快要结束，这时可以提取加载下一集剧集信息 */
   BeforeEnded,
+  CanSetCurrentTime,
   /** 播放结束 */
   End,
   Resize,
@@ -57,10 +59,12 @@ type TheTypesOfEvents = {
     text: string;
   };
   [Events.VolumeChange]: { volume: number };
+  [Events.CanSetCurrentTime]: void;
   [Events.RateChange]: { rate: number };
   [Events.SizeChange]: { width: number; height: number };
   [Events.ExitFullscreen]: void;
   [Events.Ready]: void;
+  [Events.BeforeLoadStart]: void;
   // EpisodeProfile
   [Events.SourceLoaded]: Partial<{
     width: number;
@@ -244,6 +248,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 改变当前进度 */
   setCurrentTime(currentTime: number = 0) {
+    console.log("[DOMAIN]player/index - setCurrentTime", this._abstractNode, currentTime);
     if (this._abstractNode === null) {
       return;
     }
@@ -261,6 +266,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     const { width, height } = size;
     const h = Math.ceil((height / width) * app.screen.width);
+    console.log("[DOMAIN]player/index - setSize", app.screen.width, h);
+    if (Number.isNaN(h)) {
+      return;
+    }
     this._size = {
       width: app.screen.width,
       height: h,
@@ -335,7 +344,15 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     }
     return this._abstractNode.$node;
   }
+  updated = false;
   handleTimeUpdate({ currentTime, duration }: { currentTime: number; duration: number }) {
+    // if (!this.startLoad) {
+    //   this.emit(Events.BeforeLoadStart);
+    // }
+    if (this.startLoad && !this.updated) {
+      this.emit(Events.CanSetCurrentTime);
+      this.updated = true;
+    }
     if (this._currentTime === currentTime) {
       return;
     }
@@ -399,6 +416,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     // this.emit(Events.Resize, this._size);
     // this.emit(Events.StateChange, { ...this.state });
   }
+  startLoad = false;
+  handleStartLoad() {
+    this.startLoad = true;
+  }
   /** 视频播放结束 */
   handleEnded() {
     this.playing = false;
@@ -437,6 +458,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   onReady(handler: Handler<TheTypesOfEvents[Events.Ready]>) {
     return this.on(Events.Ready, handler);
   }
+  onBeforeStartLoad(handler: Handler<TheTypesOfEvents[Events.BeforeLoadStart]>) {
+    return this.on(Events.BeforeLoadStart, handler);
+  }
   onLoaded(handler: Handler<TheTypesOfEvents[Events.Loaded]>) {
     return this.on(Events.Loaded, handler);
   }
@@ -472,6 +496,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   onResolutionChange(handler: Handler<TheTypesOfEvents[Events.ResolutionChange]>) {
     return this.on(Events.ResolutionChange, handler);
+  }
+  onCanSetCurrentTime(handler: Handler<TheTypesOfEvents[Events.CanSetCurrentTime]>) {
+    return this.on(Events.CanSetCurrentTime, handler);
   }
   onPlay(handler: Handler<TheTypesOfEvents[Events.Play]>) {
     return this.on(Events.Play, handler);

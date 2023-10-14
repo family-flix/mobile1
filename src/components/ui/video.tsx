@@ -62,7 +62,8 @@ export function Video(props: { store: PlayerCore }) {
         webkit-playsinline={prepareFullscreen ? undefined : "true"}
         playsInline={!prepareFullscreen}
         preload="none"
-        height={height}
+        width={`${width}px`}
+        height={`${height}px`}
       >
         {subtitle ? (
           <track src={subtitle.src} kind="subtitles" label={subtitle.label} srcLang={subtitle.lang}></track>

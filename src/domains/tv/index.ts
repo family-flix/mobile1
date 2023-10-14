@@ -723,7 +723,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.playing = true;
     this._pause();
     const { currentTime = 0 } = values;
-    console.log("[DOMAIN]tv/index - handleCurTimeChange", currentTime);
+    // console.log("[DOMAIN]tv/index - handleCurTimeChange", currentTime);
     this.currentTime = currentTime;
     if (this._subtitleStore && this.subtitle.visible) {
       this._subtitleStore.handleTimeChange(currentTime);

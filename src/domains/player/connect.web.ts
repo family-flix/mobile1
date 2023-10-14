@@ -5,6 +5,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   $video.onloadstart = () => {
     // 1
     console.log("[COMPONENT]VideoPlayer/connect - $video.onloadstart");
+    player.handleStartLoad();
   };
   $video.onloadedmetadata = function (event) {
     // 2

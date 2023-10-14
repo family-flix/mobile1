@@ -110,7 +110,15 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     width: 0,
     height: 0,
   };
-  env: JSONObject = {};
+  env: {
+    wechat: boolean;
+    ios: boolean;
+    android: boolean;
+  } = {
+    wechat: false,
+    ios: false,
+    android: false,
+  };
   curDeviceSize: DeviceSizeTypes = "md";
   theme: ThemeTypes = "system";
 
@@ -182,15 +190,16 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   /** 手机震动 */
   vibrate() {}
   setSize(size: { width: number; height: number }) {
+    console.log("[DOMAIN]application/index - setSize", size);
     this.screen = size;
   }
   setTitle(title: string): void {
     throw new Error("请实现 setTitle 方法");
   }
-  setEnv(extra: JSONObject) {
+  setEnv(env: JSONObject) {
     this.env = {
       ...this.env,
-      ...extra,
+      ...env,
     };
   }
   /** 复制文本到粘贴板 */
@@ -234,8 +243,6 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.OrientationChange, this.orientation);
   }
   handleResize(size: { width: number; height: number }) {
-    // const { width: prevWidth, height: prevHeight } = this.screen;
-    // const { width, height } = size;
     this.screen = size;
     const mediaStr = getCurrentDeviceSize(size.width);
     if (mediaStr !== this.curDeviceSize) {

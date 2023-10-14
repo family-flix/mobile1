@@ -11,7 +11,7 @@ import { Result } from "@/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import {
   MovieProfile,
-  fetch_movie_and_cur_source,
+  fetchMovieAndCurSource,
   updateMoviePlayHistory,
   MediaSourceProfile,
   fetch_media_profile,
@@ -46,6 +46,7 @@ type TheTypesOfEvents = {
 type MovieState = {};
 type MovieProps = {
   profile: MovieProfile;
+  resolution?: MediaResolutionTypes;
 };
 
 export class MovieCore extends BaseDomain<TheTypesOfEvents> {
@@ -55,7 +56,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("缺少电影 id");
     }
     // this.id = id;
-    const res = await fetch_movie_and_cur_source({ movie_id: id });
+    const res = await fetchMovieAndCurSource({ movie_id: id });
     if (res.error) {
       // const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(res.error);
@@ -112,10 +113,10 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     others: [],
   };
 
-  constructor(options: Partial<{ name: string } & MovieProps> = {}) {
+  constructor(props: Partial<{ name: string } & MovieProps> = {}) {
     super();
 
-    const { profile } = options;
+    const { profile, resolution = "SD" } = props;
     // this.profile = profile;
   }
 
@@ -125,7 +126,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     this.id = id;
-    const res = await fetch_movie_and_cur_source({ movie_id: id });
+    const res = await fetchMovieAndCurSource({ movie_id: id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);

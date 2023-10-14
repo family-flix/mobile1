@@ -49,9 +49,8 @@ export function connect(app: Application) {
       width: innerWidth,
       height: innerHeight,
     };
-    // console.log("resize", size);
-    // app.emit(app.Events.Resize, { width: innerWidth, height: innerHeight });
-    app.handleResize(size);
+    // 旋转屏幕/进入全屏会触发这里（安卓）
+    // app.handleResize(size);
   });
   window.addEventListener("blur", () => {
     app.emit(app.Events.Blur);
@@ -63,11 +62,21 @@ export function connect(app: Application) {
     }
     app.emit(app.Events.Show);
   });
-  const ua = navigator.userAgent.toLowerCase();
+  /**
+   * 环境变量 ------------
+   */
+  const userAgent = navigator.userAgent;
+  const ua = userAgent.toLowerCase();
+  const ios = /iPad|iPhone|iPod/.test(userAgent);
+  const android = /Android/.test(userAgent);
   app.setEnv({
     wechat: ua.indexOf("micromessenger") !== -1,
+    ios,
+    android,
   });
-
+  /**
+   * 主题 ——-------------
+   */
   const media = window.matchMedia(MEDIA);
   let curTheme = "light";
   const getSystemTheme = (e?: MediaQueryList | MediaQueryListEvent) => {
