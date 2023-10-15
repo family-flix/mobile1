@@ -59,7 +59,7 @@ export const ScrollView = React.memo(
         <div className={cn("z-10 absolute inset-0 max-h-full")}>
           <div className="z-20 absolute left-0 bottom-[180px] flex items-center h-[200px]">
             <BackIndicator store={store}>
-              <ChevronLeft className="w-6 h-6 text-black-200" />
+              <ChevronLeft className="w-6 h-6 text-w-bg-0 dark:text-w-fg-1" />
             </BackIndicator>
           </div>
           <Content

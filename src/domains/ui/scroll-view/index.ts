@@ -234,7 +234,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
         }
         return i;
       })();
-      console.log("[DOMAIN]ui/scroll-view - pulling", distanceX);
+      // console.log("[DOMAIN]ui/scroll-view - pulling", distanceX);
       this.emit(Events.StateChange, { ...this.state });
       return;
     }

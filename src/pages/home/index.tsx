@@ -15,6 +15,7 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
 import { cn } from "@/utils";
+import { Show } from "@/components/ui/show";
 
 export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
@@ -28,12 +29,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
         },
       })
   );
-  const updatedMediaList = useInstance(
-    () =>
-      new ListCore(new RequestCore(fetchUpdatedMediaToday), {
-        pageSize: 12,
-      })
-  );
+  const updatedMediaList = useInstance(() => new RequestCore(fetchUpdatedMediaToday));
   const historyList = useInstance(
     () =>
       new ListCore(new RequestCore(fetchPlayingHistories), {
@@ -57,7 +53,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           menu.recover();
         },
         async onPullToRefresh() {
-          updatedMediaList.refresh();
+          updatedMediaList.reload();
           historyList.refresh();
           await collectionList.refresh();
           app.tip({
@@ -128,7 +124,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
     collectionList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-    updatedMediaList.onStateChange((nextState) => {
+    updatedMediaList.onSuccess((nextState) => {
       setUpdatedMediaListState(nextState);
     });
     historyList.onStateChange((nextState) => {
@@ -149,7 +145,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
       };
     })();
     collectionList.init(search);
-    updatedMediaList.init();
+    updatedMediaList.run();
     historyList.init();
   });
 
@@ -166,56 +162,31 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
             className="relative h-[50%] space-y-3"
             skeleton={
               <>
-                <div className="py-4 bg-w-bg-2">
+                <div className="py-2">
                   <div className="px-4">
                     <Skeleton className="h-[32px] w-[188px]"></Skeleton>
                   </div>
-                  <div
-                    className={cn(
-                      "flex mt-2 w-screen overflow-x-auto px-4 space-x-3 hide-scroll",
-                      app.env.ios ? "hide-scroll--fix" : ""
-                    )}
-                  >
+                  <div className={cn("flex mt-2 px-4 space-x-3")}>
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[207px] object-cover" />
-                      </div>
-                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                        <div className="flex items-center overflow-hidden text-ellipsis">
-                          <Skeleton className="h-[28px] w-[80px]"></Skeleton>
-                        </div>
-                        <Skeleton className="mt-1 h-[18px] w-[36px]"></Skeleton>
+                        <Skeleton className="w-[138px] h-[265px] object-cover" />
                       </div>
                     </div>
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[207px] object-cover" />
-                      </div>
-                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                        <div className="flex items-center overflow-hidden text-ellipsis">
-                          <Skeleton className="h-[28px] w-[80px]"></Skeleton>
-                        </div>
-                        <Skeleton className="mt-1 h-[18px] w-[36px]"></Skeleton>
+                        <Skeleton className="w-[138px] h-[265px] object-cover" />
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="py-4 bg-w-bg-2">
+                <div className="py-2">
                   <div className="px-4">
                     <Skeleton className="h-[32px] w-[188px]"></Skeleton>
                   </div>
-                  <div
-                    className={cn(
-                      "flex mt-2 w-screen overflow-x-auto px-4 space-x-2 hide-scroll",
-                      app.env.ios ? "hide-scroll--fix" : ""
-                    )}
-                  >
+                  <div className={cn("flex mt-2 px-4 space-x-2 hide-scroll")}>
                     <div>
-                      <div className="relative w-[240px] h-[135px] rounded-lg overflow-hidden">
+                      <div className="relative w-[240px] h-[206px] rounded-lg overflow-hidden">
                         <Skeleton className="w-full h-full " />
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <Skeleton className="h-[28px] w-[64px]"></Skeleton>
                       </div>
                     </div>
                   </div>
@@ -236,76 +207,93 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               }
               return (
                 <>
-                  <div className="flex py-4 text-w-fg-0 bg-w-bg-2">
-                    <div>
-                      <div className="px-4">
-                        <h2 className="text-xl">📆今日更新</h2>
-                      </div>
-                      <div
-                        className={cn(
-                          "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll",
-                          app.env.ios ? "hide-scroll--fix" : ""
-                        )}
-                      >
-                        {(() => {
-                          if (updatedMediaListState.empty) {
-                            return (
-                              <div className="flex items-center justify-center w-full h-full mt-[68px]">
-                                <div className="flex flex-col items-center justify-center text-w-fg-1">
-                                  <Bird className="w-16 h-16" />
-                                  <div className="mt-2 text-xl">暂无数据</div>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return updatedMediaListState.dataSource.map((media) => {
-                            const { id, name, type, tv_id, poster_path, text, air_date } = media;
-                            return (
-                              <div
-                                key={id}
-                                className="w-[138px]"
-                                onClick={() => {
-                                  if (type === MediaTypes.TV && tv_id) {
-                                    tvPlayingPage.query = {
-                                      id: tv_id,
-                                      season_id: id,
-                                    };
-                                    app.showView(tvPlayingPage);
-                                  }
-                                  if (type === MediaTypes.Movie) {
-                                    moviePlayingPage.params = {
-                                      id,
-                                    };
-                                    app.showView(moviePlayingPage);
-                                  }
-                                }}
-                              >
-                                <div className="relative w-[138px] h-[207px] rounded-lg overflow-hidden">
-                                  <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                                  {text && (
-                                    <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[24px] px-2 text-sm text-right text-white bg-gradient-to-t from-black to-transparent">
-                                      <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
-                                        {text}
+                  {(() => {
+                    if (!updatedMediaListState) {
+                      return null;
+                    }
+                    const { title, medias } = updatedMediaListState;
+                    return (
+                      <div className="flex pt-4 text-w-fg-0">
+                        <div>
+                          <div className="px-4">
+                            <h2 className="text-xl">📆{title}</h2>
+                          </div>
+                          <div
+                            className={cn(
+                              "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll",
+                              app.env.ios ? "hide-scroll--fix" : ""
+                            )}
+                          >
+                            {(() => {
+                              if (medias.length === 0) {
+                                return (
+                                  <div className="flex items-center justify-center w-full h-full mt-[68px]">
+                                    <div className="flex flex-col items-center justify-center text-w-fg-1">
+                                      <Bird className="w-16 h-16" />
+                                      <div className="mt-2">暂无数据</div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return medias.map((media) => {
+                                const { id, name, type, tv_id, season_text, poster_path, text, air_date } = media;
+                                return (
+                                  <div
+                                    key={id}
+                                    className="w-[138px] rounded-lg bg-w-bg-2"
+                                    onClick={() => {
+                                      if (type === MediaTypes.TV && tv_id) {
+                                        tvPlayingPage.query = {
+                                          id: tv_id,
+                                          season_id: id,
+                                        };
+                                        app.showView(tvPlayingPage);
+                                      }
+                                      if (type === MediaTypes.Movie) {
+                                        moviePlayingPage.params = {
+                                          id,
+                                        };
+                                        app.showView(moviePlayingPage);
+                                      }
+                                    }}
+                                  >
+                                    <div className="relative w-[138px] rounded-t-lg overflow-hidden">
+                                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                                      {text && (
+                                        <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[24px] px-2 text-sm text-right bg-gradient-to-t from-black to-transparent">
+                                          <div
+                                            className="text-[12px] text-w-bg-1 dark:text-w-fg-1"
+                                            style={{ lineHeight: "12px" }}
+                                          >
+                                            {text}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="p-2 flex-1 max-w-full overflow-hidden">
+                                      <div className="flex items-center overflow-hidden text-ellipsis">
+                                        <h2 className="break-all truncate">{name}</h2>
+                                      </div>
+                                      <div className="flex items-center text-[12px] text-w-fg-1 overflow-hidden text-ellipsis">
+                                        {season_text ? (
+                                          <>
+                                            <div>{season_text}</div>
+                                            <p className="mx-2 ">·</p>
+                                          </>
+                                        ) : null}
+                                        <div className="">{air_date}</div>
                                       </div>
                                     </div>
-                                  )}
-                                </div>
-                                <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                                  <div className="flex items-center overflow-hidden text-ellipsis">
-                                    <h2 className="break-all text-lg truncate">{name}</h2>
                                   </div>
-                                  <div className="flex items-center">
-                                    <div className="text-sm">{air_date}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
+                                );
+                              });
+                            })()}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="flex py-4 text-w-fg-0 bg-w-bg-2">
+                    );
+                  })()}
+                  <div className="flex pt-4 text-w-fg-0">
                     <div>
                       <div className="px-4">
                         <h2 className="text-xl">🎬最近观看</h2>
@@ -322,7 +310,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
                                 <div className="flex flex-col items-center justify-center text-w-fg-1">
                                   <Bird className="w-16 h-16" />
-                                  <div className="mt-2 text-xl">暂无数据</div>
+                                  <div className="mt-2">暂无数据</div>
                                 </div>
                               </div>
                             );
@@ -336,13 +324,17 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                               tv_id,
                               season_id,
                               movie_id,
+                              episode,
+                              season,
                               poster_path,
                               updated,
+                              air_date,
                               thumbnail,
                             } = history;
                             return (
                               <div
                                 key={id}
+                                className="bg-w-bg-2 rounded-lg"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
                                     tvPlayingPage.query = {
@@ -359,15 +351,25 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                   }
                                 }}
                               >
-                                <div className="relative w-[240px] h-[148px] rounded-lg overflow-hidden">
+                                <div className="relative w-[240px] h-[148px] rounded-t-lg overflow-hidden">
                                   <LazyImage className="w-full h-full object-cover" src={thumbnail} alt={name} />
-                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-sm text-right text-w-fg-1 bg-gradient-to-t from-black to-transparent">
-                                    <div className="">看到{percent}%</div>
+                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-right bg-gradient-to-t from-black to-transparent">
+                                    <div className="text-w-bg-1 text-[12px] dark:text-w-fg-1">看到{percent}%</div>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-between mt-2">
-                                  <div className="text-lg">{name}</div>
+                                <div className="p-2">
+                                  <div className="">{name}</div>
                                   {/* <div className="mr-4 text-sm">{updated}</div> */}
+                                  <Show when={!!episode}>
+                                    <div className="flex items-center text-[12px] text-w-fg-1">
+                                      <p className="">{episode}</p>
+                                      <p className="mx-2">·</p>
+                                      <p className="">{season}</p>
+                                    </div>
+                                  </Show>
+                                  <Show when={type === MediaTypes.Movie}>
+                                    <div className="flex items-center text-[12px] text-w-fg-1">{air_date}</div>
+                                  </Show>
                                 </div>
                               </div>
                             );
@@ -383,15 +385,15 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               return dataSource.map((collection) => {
                 const { id, title, desc, medias } = collection;
                 return (
-                  <div key={id} className="flex text-w-fg-0 py-4 bg-w-bg-2">
+                  <div key={id} className="flex pt-4 text-w-fg-0">
                     <div>
                       <div className="px-4">
                         <h2 className="text-xl">{title}</h2>
-                        {desc && <div className="text-w-fg-1">{desc}</div>}
+                        {desc && <div className="text-sm text-w-fg-1">{desc}</div>}
                       </div>
                       <div
                         className={cn(
-                          "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 hide-scroll",
+                          "flex mt-2 py-4 w-screen min-h-[248px] bg-w-bg-2 overflow-x-auto px-4 space-x-3 hide-scroll",
                           app.env.ios ? "hide-scroll--fix" : ""
                         )}
                       >
@@ -401,7 +403,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                               <div className="flex items-center justify-center w-full h-full mt-[68px]">
                                 <div className="flex flex-col items-center justify-center text-w-fg-1">
                                   <Bird className="w-16 h-16" />
-                                  <div className="mt-2 text-xl">暂无数据</div>
+                                  <div className="mt-2">暂无数据</div>
                                 </div>
                               </div>
                             );
@@ -438,7 +440,10 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                   {episode_count_text && (
                                     <div className="z-20 absolute bottom-1 right-1">
                                       <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                                        <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                                        <div
+                                          className="text-w-bg-1 text-[12px] dark:text-w-fg-1"
+                                          style={{ lineHeight: "12px" }}
+                                        >
                                           {episode_count_text}
                                         </div>
                                       </div>
@@ -447,10 +452,10 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                 </div>
                                 <div className="mt-2 flex-1 max-w-full overflow-hidden">
                                   <div className="flex items-center overflow-hidden text-ellipsis">
-                                    <h2 className="break-all text-lg truncate">{name}</h2>
+                                    <h2 className="break-all truncate">{name}</h2>
                                   </div>
                                   <div className="flex items-center">
-                                    <div className="text-sm text-w-fg-1">{air_date}</div>
+                                    <div className="text-[12px] text-w-fg-1">{air_date}</div>
                                   </div>
                                 </div>
                               </div>

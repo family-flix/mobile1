@@ -1,34 +1,82 @@
 /**
- * @file 邀请的成员列表
+ * @file 邀请的好友列表
  */
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Copy, Loader, QrCode, Search, SlidersHorizontal, Star } from "lucide-react";
+import { ArrowLeft, Copy, Film, Pen, Plus, QrCode, Search, Smartphone, Tv2 } from "lucide-react";
 
-import {
-  BackToTop,
-  ScrollView,
-  Sheet,
-  ListView,
-  Skeleton,
-  Input,
-  LazyImage,
-  CheckboxGroup,
-  Dialog,
-} from "@/components/ui";
+import { fetchInviteeList, inviteMember } from "@/services";
+import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
+import { Show } from "@/components/ui/show";
+import { Qrcode } from "@/components/Qrcode";
 import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
+import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
+import { mediaSharePage } from "@/store";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { fetchInviteeList, inviteMember } from "@/services";
-import { Show } from "@/components/ui/show";
 import { cn } from "@/utils";
-import { Qrcode } from "@/components/Qrcode";
-import { rootView } from "@/store";
+
+enum Events {
+  StateChange,
+}
+type TheTypesOfEvents = {
+  [Events.StateChange]: QrcodeState;
+};
+type QrcodeState = {
+  text: string | null;
+};
+class QrcodeCore extends BaseDomain<TheTypesOfEvents> {
+  text: string | null = null;
+
+  constructor(props: Partial<{ _name: string }>) {
+    super(props);
+  }
+
+  get state() {
+    return {
+      text: this.text,
+    };
+  }
+
+  setText(text: string) {
+    this.text = text;
+    this.emit(Events.StateChange, { ...this.state });
+  }
+
+  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
+    return this.on(Events.StateChange, handler);
+  }
+}
+const QrcodeWithStore = (props: { store: QrcodeCore } & React.HTMLAttributes<HTMLElement>) => {
+  const { store } = props;
+
+  useInitialize(() => {
+    store.onStateChange((nextState) => {
+      setState(nextState);
+    });
+  });
+
+  const [state, setState] = useState(store.state);
+
+  return (
+    <div>
+      {state.text ? <Qrcode className={props.className} text={state.text} /> : <div className={props.className}></div>}
+    </div>
+  );
+};
 
 export const InviteeListPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
 
+  const helper = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchInviteeList), {
+        onLoadingChange(loading) {
+          searchInput.setLoading(!helper.response.initial && loading);
+        },
+      })
+  );
   const inviteMemberRequest = new RequestCore(inviteMember, {
     onLoading(loading) {
       inviteDialog.okBtn.setLoading(loading);
@@ -38,9 +86,11 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
       if (!tokens[0]) {
         return;
       }
-      setUrl(tokens[0].token);
+      app.tip({
+        text: ["新增成功"],
+      });
+      helper.refresh();
       inviteDialog.hide();
-      memberLinkDialog.show();
     },
     onFailed(error) {
       app.tip({
@@ -51,20 +101,14 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
+        onPullToRefresh() {
+          helper.refresh();
+        },
         onPullToBack() {
           app.back();
         },
       })
   );
-  const helper = useInstance(
-    () =>
-      new ListCore(new RequestCore(fetchInviteeList), {
-        onLoadingChange(loading) {
-          searchInput.setLoading(!helper.response.initial && loading);
-        },
-      })
-  );
-  const settingsSheet = useInstance(() => new DialogCore());
   const searchInput = useInstance(
     () =>
       new InputCore({
@@ -83,14 +127,14 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
   );
   const remarkInput = new InputCore({
     defaultValue: "",
-    placeholder: "请输入成员备注",
+    placeholder: "请输入好友备注",
   });
   const memberLinkDialog = new DialogCore({
-    title: "成员专属链接",
+    title: "好友专属链接",
     footer: false,
   });
   const inviteDialog = new DialogCore({
-    title: "邀请成员",
+    title: "邀请好友",
     onOk() {
       if (!remarkInput.value) {
         app.tip({
@@ -103,6 +147,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
       });
     },
   });
+  const qrcodeCore = new QrcodeCore({});
   const qrcodeDialog = new DialogCore({
     title: "移动端二维码",
     footer: false,
@@ -133,21 +178,33 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
+      <ScrollView store={scrollView} className="">
         <div className="min-h-screen">
           <div className="">
-            <div className="flex items-center">
-              <div
-                className="inline-block p-4"
-                onClick={() => {
-                  app.back();
-                }}
-              >
-                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+            <div className="flex items-center justify-between py-2 px-4">
+              <div className="flex items-center space-x-2">
+                <div
+                  className="inline-block"
+                  onClick={() => {
+                    app.back();
+                  }}
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </div>
+                <div className="text-2xl">好友</div>
               </div>
-              <div className="text-2xl">成员</div>
+              <div>
+                <div
+                  className="p-2 rounded-md bg-w-bg-2"
+                  onClick={() => {
+                    inviteDialog.show();
+                  }}
+                >
+                  <Plus className="w-6 h-6" />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between w-full p-4 pb-0 space-x-4">
+            <div className="flex items-center justify-between w-full p-4 pt-0 pb-0 space-x-4">
               <div className="relative w-full">
                 <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
               </div>
@@ -155,87 +212,98 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
           </div>
           <ListView
             store={helper}
-            className="relative mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            className="relative mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
           >
             {(() => {
               return dataSource.map((member) => {
                 const { id, remark, tokens } = member;
                 return (
-                  <div key={id} className="flex px-4 pb-4 cursor-pointer">
+                  <div key={id} className="flex p-4 pb-4 mb-2 bg-w-bg-2 cursor-pointer">
                     <div className="flex items-center justify-center w-12 h-12 bg-slate-300 rounded-full mr-4">
                       <div className="text-3xl text-slate-500">{remark.slice(0, 1).toUpperCase()}</div>
                     </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                    <div className="flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
-                        <h2 className="">{remark}</h2>
+                        <h2 className="text-xl">{remark}</h2>
                       </div>
-                      <Show when={tokens.length !== 0}>
-                        <div className="mt-4 space-y-8">
+                      <div className="operations flex mt-2 space-x-2">
+                        <Show when={tokens.length !== 0}>
                           {tokens.map((link) => {
                             const { id, used } = link;
                             return (
-                              <div key={id} className="space-y-2">
+                              <>
                                 {[
                                   {
                                     prefix: "/pc/home/index?token=",
                                     qrcode: false,
+                                    platform: 1,
+                                    text: "PC 端",
                                   },
                                   {
                                     prefix: "/mobile/home/index?token=",
                                     qrcode: true,
+                                    platform: 2,
+                                    text: "移动端",
                                   },
                                 ].map((config) => {
-                                  const { prefix, qrcode } = config;
+                                  const { prefix, qrcode, platform, text } = config;
                                   // @todo 怎么移除 window 平台相关变量？
                                   const url = `${window.location.origin}${prefix}${id}`;
                                   return (
-                                    <div key={url} className="flex">
-                                      <div
-                                        className={cn(
-                                          "flex-1 w-0 text-sm text-slate-700 break-all whitespace-pre-wrap",
-                                          used ? "line-through" : ""
-                                        )}
-                                        onClick={() => {
-                                          app.copy(url);
-                                          app.tip({
-                                            text: ["链接已复制至剪切板"],
-                                          });
-                                        }}
-                                      >
-                                        {url}
-                                      </div>
-                                      <div className="flex items-center w-18 mt-2 space-x-2">
-                                        <Show when={qrcode}>
-                                          <div
-                                            className=""
-                                            onClick={() => {
-                                              qrcodeDialog.show();
-                                              setUrl(url);
-                                            }}
-                                          >
-                                            <QrCode className="w-4 h-4" />
-                                          </div>
-                                        </Show>
+                                    <>
+                                      <div className="">
                                         <div
-                                          className=""
-                                          onClick={() => {
+                                          className="p-2 rounded bg-w-bg-1"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
                                             app.copy(url);
                                             app.tip({
-                                              text: ["链接已复制至剪切板"],
+                                              text: [`${text}链接已复制至剪切板`],
                                             });
                                           }}
                                         >
-                                          <Copy className="w-4 h-4" />
+                                          {platform === 1 ? (
+                                            <Tv2 className="w-5 h-5" />
+                                          ) : (
+                                            <Smartphone className="w-5 h-5" />
+                                          )}
                                         </div>
+                                        {/* <div className="text-[12px] text-w-fg-1">{text}</div> */}
                                       </div>
-                                    </div>
+                                      <Show when={qrcode}>
+                                        <div className="">
+                                          <div
+                                            className="p-2 rounded bg-w-bg-1"
+                                            onClick={(event) => {
+                                              event.stopPropagation();
+                                              qrcodeDialog.show();
+                                              qrcodeCore.setText(url);
+                                            }}
+                                          >
+                                            <QrCode className="w-5 h-5" />
+                                          </div>
+                                          {/* <div className="text-[12px] text-w-fg-1">二维码</div> */}
+                                        </div>
+                                      </Show>
+                                    </>
                                   );
                                 })}
-                              </div>
+                              </>
                             );
                           })}
-                        </div>
-                      </Show>
+                        </Show>
+                        {/* <div className="">
+                          <div
+                            className="p-2 rounded bg-w-bg-1"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              app.showView(mediaSharePage);
+                            }}
+                          >
+                            <Film className="w-5 h-5" />
+                          </div>
+                        </div> */}
+                      </div>
                     </div>
                   </div>
                 );
@@ -245,33 +313,28 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
         </div>
       </ScrollView>
       <Dialog store={inviteDialog}>
-        <p>输入成员备注（该备注不展示给被邀请人）</p>
+        <p>输入好友备注（该备注不展示给好友）</p>
         <div className="mt-4">
-          <Input store={remarkInput} />
+          <Input prefix={<Pen className="w-4 h-4" />} store={remarkInput} />
         </div>
       </Dialog>
       <Dialog store={memberLinkDialog}>
         <Show when={!!url}>
-          <div className="text-lg">{url}</div>
+          <div className="">{url}</div>
+          <div
+            className="flex items-center mt-4 space-x-2"
+            onClick={() => {
+              app.copy(url!);
+            }}
+          >
+            <Copy className="w-4 h-4" />
+            <div>点击复制</div>
+          </div>
         </Show>
-        <div
-          className="flex items-center mt-4 space-x-2"
-          onClick={() => {
-            app.copy("hello");
-          }}
-        >
-          <Copy className="w-4 h-4" />
-          <div>点击复制</div>
-        </div>
       </Dialog>
       <Dialog store={qrcodeDialog}>
         <div className="flex justify-center mt-4 p-2">
-          {(() => {
-            if (!url) {
-              return null;
-            }
-            return <Qrcode className="w-[120px] h-[120px] mr-4" text={url} />;
-          })()}
+          <QrcodeWithStore className="w-[120px] h-[120px]" store={qrcodeCore} />
         </div>
       </Dialog>
     </>

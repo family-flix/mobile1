@@ -417,22 +417,29 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.CurViewChange, this.curView);
   }
   uncoverPrevView(options: Partial<{ ignore: boolean; destroy: boolean }> = {}) {
+    console.log("[DOMAIN]route_view - uncoverPrevView", this.title);
     if (this.prevView === null) {
       return;
     }
     const curView = this.curView;
-    if (options.destroy) {
-      curView?.onHidden(() => {
-        console.log("[DOMAIN]route_view - showPrevView when hidden", this.title);
-        curView?.setUnload();
-        this.subViews = this.subViews.filter((v) => v !== curView);
-        this.emit(Events.ViewsChange, [...this.subViews]);
-      });
-    }
+    // if (curView) {
+    //   curView.onHidden(() => {
+    //     console.log("[DOMAIN]route_view - showPrevView when hidden", this.title);
+    //     curView.setUnload();
+    //     this.subViews = this.subViews.filter((v) => v !== curView);
+    //     this.prevView = this.subViews.pop() ?? null;
+    //     console.log("[DOMAIN]route_view - showPrevView before emit", this.prevView);
+    //     this.emit(Events.ViewsChange, [...this.subViews]);
+    //   });
+    // }
     this.curView?.hide();
     this.prevView?.uncovered();
     this.curView = this.prevView;
-    this.prevView = null;
+    console.log(
+      "[DOMAIN]route_view - before setPrevView",
+      this.subViews.map((subView) => subView.title)
+    );
+    this.prevView = this.subViews[this.subViews.length - 2] ?? null;
     this.emit(Events.CurViewChange, this.curView);
     this.emit(Events.ViewsChange, [...this.subViews]);
   }

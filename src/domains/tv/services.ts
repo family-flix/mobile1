@@ -588,6 +588,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
       latest_episode: string;
       /** 首播日期 */
       air_date: string;
+      first_air_date: string;
       /** 看过后是否有更新 */
       has_update: number;
       thumbnail: string;
@@ -625,6 +626,8 @@ export async function fetchPlayingHistories(params: FetchParams) {
         duration,
         current_time,
         thumbnail,
+        air_date,
+        first_air_date,
       } = history;
       if (movie_id) {
         return {
@@ -634,6 +637,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
           name,
           poster_path,
           updated: relative_time_from_now(updated),
+          air_date: first_air_date,
           currentTime: current_time,
           percent: parseFloat(((current_time / duration) * 100).toFixed(2)),
           thumbnail,
@@ -662,6 +666,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
         season: season_to_chinese_num(season_number),
         updated: relative_time_from_now(updated),
         has_update: !!has_update,
+        air_date,
         currentTime: current_time,
         percent: parseFloat(((current_time / duration) * 100).toFixed(2)),
         thumbnail,

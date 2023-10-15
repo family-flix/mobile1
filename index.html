@@ -55,20 +55,22 @@
     html,
     body {
       overscroll-behavior: none;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
     }
 
     body {
       width: 100vw;
       height: 100vh;
-      font-family: "Courier New", Courier, monospace;
+      font-family: system-ui, -apple-system, "Helvetica Neue";
     }
 
     [data-theme="light"] body {
-      background-color: #f3f4f6;
+      background-color: #ededed;
     }
 
     [data-theme="dark"] body {
-      background-color: #171717;
+      background-color: #111111;
     }
 
     video {

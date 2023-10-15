@@ -40,7 +40,7 @@ const BottomMenu = (props: { store: BottomMenuCore }) => {
 
   const { icon, active, text, badge } = state;
   const i = icon as React.ReactElement;
-  const highlightColor = "text-green-600 dark:text-green-600";
+  const highlightColor = "text-w-brand";
 
   return (
     <div
@@ -52,7 +52,7 @@ const BottomMenu = (props: { store: BottomMenuCore }) => {
       <div>
         {i}
         <Show when={!!badge}>
-          <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-red-500" />
+          <div className="absolute right-[-4px] top-[-2px] w-2 h-2 rounded-full bg-w-red" />
         </Show>
       </div>
       <div className="mt-1 text-center text-[12px]">{text}</div>
@@ -184,7 +184,7 @@ export const HomeLayout: ViewComponent = (props) => {
       </div>
       <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] bg-w-bg-1 text-w-fg-1 opacity-100 safe-bottom">
+        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] border-t border-t-w-fg-3 dark:border-t-w-bg-3 bg-w-bg-1 text-w-fg-0 backdrop-blur-md backdrop-filter bg-opacity-50 safe-bottom">
           <BottomMenu store={homeMenu} />
           <BottomMenu store={seasonMenu} />
           <BottomMenu store={movieMenu} />

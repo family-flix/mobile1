@@ -82,7 +82,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="dark:text-black-200">
+      <ScrollView store={scrollView} className="">
         <div className="min-h-screen w-full">
           <div className="">
             <div className="flex items-center">
@@ -92,7 +92,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                   app.back();
                 }}
               >
-                <ArrowLeft className="w-6 h-6 dark:text-black-200" />
+                <ArrowLeft className="w-6 h-6" />
               </div>
               <div className="text-2xl">我的消息</div>
             </div>
@@ -145,9 +145,9 @@ export const HomeMessagePage: ViewComponent = (props) => {
                     key={message_id}
                     className="relative py-6 px-2"
                     onClick={() => {
-                      readRequest.run({
-                        id: message_id,
-                      });
+                      // readRequest.run({
+                      //   id: message_id,
+                      // });
                       messageList.modifyResponse((response) => {
                         return {
                           ...response,
@@ -196,7 +196,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                               </div>
                               <div className="mt-2 flex-1 max-w-full overflow-hidden">
                                 <div className="flex items-center">
-                                  <h2 className="text-xl dark:text-white">{name}</h2>
+                                  <h2 className="text-xl">{name}</h2>
                                 </div>
                               </div>
                             </div>
@@ -215,7 +215,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                               </div>
                               <div className="mt-2 flex-1 max-w-full overflow-hidden">
                                 <div className="flex items-center">
-                                  <h2 className="text-xl dark:text-white">{name}</h2>
+                                  <h2 className="text-xl">{name}</h2>
                                 </div>
                               </div>
                             </div>

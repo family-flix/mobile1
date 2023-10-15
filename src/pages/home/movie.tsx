@@ -280,7 +280,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                     </div>
                     <div className="mt-2 flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
-                        <h2 className="text-2xl text-w-fg-0">{name}</h2>
+                        <h2 className="text-xl text-w-fg-0">{name}</h2>
                       </div>
                       <div className="flex items-center mt-1 ">
                         <div>{air_date}</div>

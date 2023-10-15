@@ -390,7 +390,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                           sourceSheet.show();
                         }}
                       >
-                        <List className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <List className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">切换源</p>
                       </div>
                       <div
@@ -399,7 +401,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                           rateSheet.show();
                         }}
                       >
-                        <Gauge className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <Gauge className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">{rate}x</p>
                       </div>
                       <div
@@ -408,7 +412,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                           resolutionSheet.show();
                         }}
                       >
-                        <Glasses className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <Glasses className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
                       </div>
                       <div
@@ -417,7 +423,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                           infoSheet.show();
                         }}
                       >
-                        <MoreHorizontal className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <MoreHorizontal className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">更多</p>
                       </div>
                     </div>

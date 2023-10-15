@@ -274,7 +274,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                       {episode_count_text && (
                         <div className="z-20 absolute bottom-1 right-1">
                           <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                            <div className="text-[12px] text-w-fg-1" style={{ lineHeight: "12px" }}>
+                            <div className="text-[12px] text-w-bg-1 dark:text-w-fg-1" style={{ lineHeight: "12px" }}>
                               {episode_count_text}
                             </div>
                           </div>
@@ -283,7 +283,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                     </div>
                     <div className="mt-2 flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
-                        <h2 className="text-2xl text-w-fg-0">{name}</h2>
+                        <h2 className="text-xl text-w-fg-0">{name}</h2>
                       </div>
                       <div className="flex items-center mt-1 ">
                         <div>{air_date}</div>

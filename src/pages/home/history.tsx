@@ -2,7 +2,7 @@
  * @file 我的播放历史页面
  */
 import React, { useState } from "react";
-import { ArrowUp, MoreVertical } from "lucide-react";
+import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
@@ -175,16 +175,16 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                     store={historyCard.bind(history)}
                     className="relative flex px-4 py-2 bg-w-bg-2 cursor-pointer select-none"
                   >
-                    <div className="z-50 absolute right-0 bottom-0">
+                    <div className="z-50 absolute right-2 bottom-2">
                       <div
-                        className="p-2"
+                        className="px-2 py-1 bg-w-bg-1 rounded-md"
                         onClick={(event) => {
                           event.stopPropagation();
                           cur.select(history);
                           deletingConfirmDialog.show();
                         }}
                       >
-                        <MoreVertical className="w-4 h-4" />
+                        <MoreHorizontal className="w-4 h-4" />
                       </div>
                     </div>
                     <div className="z-10 relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
@@ -198,7 +198,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                           return (
                             <div className="absolute bottom-1 right-1">
                               <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                                <div className="text-[12px] text-white-900" style={{ lineHeight: "12px" }}>
+                                <div className="text-[12px] text-w-bg-1 dark:text-w-fg-1" style={{ lineHeight: "12px" }}>
                                   {episode_count_text}
                                 </div>
                               </div>
@@ -208,7 +208,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                       })()}
                     </div>
                     <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis">
-                      <h2 className="text-2xl">
+                      <h2 className="text-xl">
                         {/* <span className="mr-2">
                           {(() => {
                             if (tv_id) {

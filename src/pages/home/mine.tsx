@@ -1,7 +1,7 @@
 /**
  * @file 个人中心页
  */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Copy,
   HelpCircle,
@@ -26,6 +26,7 @@ import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
 import { Show } from "@/components/ui/show";
 import { messagesPage, infoRequest, inviteeListPage, messageList, rootView } from "@/store";
+import { MultipleClickCore } from "@/domains/utils/multiple_click";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -39,14 +40,12 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const loginBtn = useInstance(
+  const multipleClick = useInstance(
     () =>
-      new ButtonCore({
-        async onClick() {
+      new MultipleClickCore({
+        async onBingo() {
           app.user.logout();
-          loginBtn.setLoading(true);
           const r = await app.user.validate(router.query.token, "1");
-          loginBtn.setLoading(false);
           if (r.error) {
             return;
           }
@@ -54,7 +53,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const dialog = useInstance(
+  const workInProgressTipDialog = useInstance(
     () =>
       new DialogCore({
         footer: false,
@@ -149,10 +148,11 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const [messageResponse, setMessageResponse] = useState(messageList.response);
   // const [history_response] = useState(history_helper.response);
 
-  useEffect(() => {
-    infoRequest.run();
-  }, []);
   useInitialize(() => {
+    infoRequest.run();
+    // infoRequest.onSuccess((v) => {
+    //   setProfile(v);
+    // });
     messageList.onStateChange((nextState) => {
       setMessageResponse(nextState);
     });
@@ -177,10 +177,10 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   return (
     <>
       <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1">
-        <div className="relative p-4 space-y-4">
-          <div className="py-1 px-4 flex flex-row-reverse">
+        <div className="relative px-4 py-2 space-y-2">
+          <div className="py-1 flex space-x-2">
             <div
-              className="self-end"
+              className="p-2 rounded bg-w-bg-2"
               onClick={() => {
                 const nextTheme = (() => {
                   if (t === "light") {
@@ -200,7 +200,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               })()}
             </div>
             <div
-              className="mr-4"
+              className="p-2 rounded bg-w-bg-2"
               onClick={() => {
                 app.tip({ text: ["敬请期待"] });
               }}
@@ -212,77 +212,77 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
               <LazyImage className="w-full h-full" src={profile.avatar} />
             </div>
-            <div className="mt-2 text-xl">{profile.id}</div>
+            <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
             <div></div>
           </div>
-          <div className="rounded-lg bg-w-bg-2">
+          <div className="rounded-lg bg-w-bg-2 text-w-fg-0">
             <div
               className="flex items-center justify-between"
               onClick={() => {
                 app.showView(messagesPage);
               }}
             >
-              <div className="flex">
-                <div className="relative w-5 p-4 mr-4">
+              <div className="flex items-center">
+                <div className="relative p-4">
                   <MessageSquare className="w-5 h-5" />
                   <Show when={!!messageResponse.total}>
                     <div className="absolute top-3 right-[-8px] w-2 h-2 rounded-full bg-w-red" />
                   </Show>
                 </div>
-                <div className="flex-1 py-4 mr-4">
+                <div className="flex-1 py-4">
                   <div>消息</div>
                 </div>
               </div>
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
+            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
             <div
               className=""
               onClick={() => {
                 app.tip({ text: ["敬请期待"] });
               }}
             >
-              <div className="flex">
-                <div className="w-5 p-4 mr-4">
+              <div className="flex items-center">
+                <div className="p-4">
                   <HelpCircle className="w-5 h-5" />
                 </div>
-                <div className="flex-1 py-4 mr-4">
+                <div className="flex-1 py-4">
                   <div>帮助中心</div>
                 </div>
               </div>
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
+            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
             <div
               className=""
               onClick={() => {
                 reportConfirmDialog.show();
               }}
             >
-              <div className="flex">
-                <div className="w-5 p-4 mr-4">
+              <div className="flex items-center">
+                <div className="p-4">
                   <MailQuestion className="w-5 h-5" />
                 </div>
-                <div className="flex-1 py-4 mr-4">
+                <div className="flex-1 py-4">
                   <div>问题反馈</div>
                 </div>
               </div>
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
+            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
             <div
               className=""
               onClick={() => {
                 wantDialog.show();
               }}
             >
-              <div className="flex">
-                <div className="w-5 p-4 mr-4">
+              <div className="flex items-center">
+                <div className="p-4">
                   <Tv className="w-5 h-5" />
                 </div>
-                <div className="flex-1 py-4 mr-4">
+                <div className="flex-1 py-4">
                   <div>想看</div>
                 </div>
               </div>
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3"></div>
+            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
             <div
               className=""
               onClick={() => {
@@ -301,20 +301,27 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 app.showView(inviteeListPage);
               }}
             >
-              <div className="flex">
-                <div className="w-5 p-4 mr-4">
+              <div className="flex items-center">
+                <div className="p-4">
                   <HelpingHand className="w-5 h-5" />
                 </div>
-                <div className="flex-1 py-4 mr-4">
+                <div className="flex-1 py-4">
                   <div>邀请好友</div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="text-center text-sm">v1.16.0</div>
+          <div
+            className="py-2 text-center text-sm"
+            onClick={() => {
+              multipleClick.handleClick();
+            }}
+          >
+            v1.16.0
+          </div>
         </div>
       </ScrollView>
-      <Dialog store={dialog}>
+      <Dialog store={workInProgressTipDialog}>
         <div className="text-w-fg-1">敬请期待</div>
       </Dialog>
       <Dialog store={reportConfirmDialog}>

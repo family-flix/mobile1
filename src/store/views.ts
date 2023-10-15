@@ -21,6 +21,7 @@ import { OuterPlayersPage } from "@/pages/outplayers";
 import { Test1Page } from "@/pages/test1";
 import { NotFoundPage } from "@/pages/not-found";
 import { InviteeListPage } from "@/pages/invitee";
+import { MediaSharePage } from "@/pages/invitee/share";
 
 export const pages: RouteViewCore[] = [];
 onViewCreated((created) => {
@@ -91,7 +92,7 @@ export const moviePlayingPage = new RouteViewCore({
 });
 export const inviteeListPage = new RouteViewCore({
   key: "/invitee",
-  title: "邀请的成员",
+  title: "邀请的好友",
   component: InviteeListPage,
 });
 export const outerPlayerPage = new RouteViewCore({
@@ -103,6 +104,11 @@ export const messagesPage = new RouteViewCore({
   key: "/home/message",
   title: "未读消息",
   component: HomeMessagePage,
+});
+export const mediaSharePage = new RouteViewCore({
+  key: "/media_share",
+  title: "分享影视频",
+  component: MediaSharePage,
 });
 export const testView = new RouteViewCore({
   key: "/test",
@@ -119,7 +125,7 @@ export const rootView = new RouteViewCore({
   title: "ROOT",
   component: "div",
   layers: true,
-  children: [homeLayout, tvPlayingPage, moviePlayingPage, inviteeListPage, messagesPage],
+  children: [homeLayout, tvPlayingPage, moviePlayingPage, inviteeListPage, messagesPage, mediaSharePage],
 });
 export function getRootView() {
   return rootView;

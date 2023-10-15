@@ -1,7 +1,7 @@
 /**
  * @file 电视剧播放页面
  */
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   ArrowBigLeft,
   ArrowBigRight,
@@ -12,10 +12,12 @@ import {
   Loader,
   MoreHorizontal,
   Send,
+  Share2,
   Subtitles,
   Wand2,
 } from "lucide-react";
 
+import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
@@ -30,14 +32,49 @@ import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { reportSomething } from "@/services";
 import { ReportTypes, TVReportList, players } from "@/constants";
-import { rootView } from "@/store";
 import { cn } from "@/utils";
+import { InviteeSelect } from "@/components/member-select/view";
+import { InviteeSelectCore } from "@/components/member-select/store";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
 
+  const shareMediaRequest = useInstance(
+    () =>
+      new RequestCore(shareMediaToInvitee, {
+        onLoading(loading) {
+          inviteeSelect.submitBtn.setLoading(loading);
+        },
+        onSuccess(v) {
+          const { url, name } = v;
+          const message = `➤➤➤ ${name}
+${url}`;
+          app.copy(message);
+          app.tip({
+            text: ["链接信息已复制到剪贴板"],
+          });
+          inviteeSelect.dialog.hide();
+        },
+        onFailed(error) {
+          const { data } = error;
+          if (error.code === 50000) {
+            // @ts-ignore
+            const { name, url } = data;
+            const message = `➤➤➤ ${name}
+${url}`;
+            app.copy(message);
+            app.tip({
+              text: ["链接信息已复制到剪贴板"],
+            });
+            return;
+          }
+          app.tip({
+            text: ["分享失败", error.message],
+          });
+        },
+      })
+  );
   const settingsRef = useInstance(() => {
     const r = new RefCore<{
       volume: number;
@@ -52,14 +89,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     return r;
   });
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        onPullToBack() {
-          app.back();
-        },
-      })
-  );
+  const scrollView = useInstance(() => new ScrollViewCore({}));
   const tv = useInstance(() => {
     const { type: resolution } = settingsRef.value!;
     const tv = new TVCore({
@@ -110,6 +140,17 @@ export const TVPlayingPage: ViewComponent = (props) => {
   const resolutionSheet = useInstance(() => new DialogCore());
   const loadingPresence = useInstance(() => new PresenceCore());
   const dSheet = useInstance(() => new DialogCore());
+  const inviteeSelect = useInstance(
+    () =>
+      new InviteeSelectCore({
+        onOk(invitee) {
+          shareMediaRequest.run({
+            season_id: view.query.season_id,
+            target_member_id: invitee.id,
+          });
+        },
+      })
+  );
   const fullscreenDialog = useInstance(
     () =>
       new DialogCore({
@@ -215,6 +256,11 @@ export const TVPlayingPage: ViewComponent = (props) => {
     view.onHidden(() => {
       player.pause();
     });
+    if (!view.query.hide_menu) {
+      scrollView.onPullToBack(() => {
+        app.back();
+      });
+    }
     player.onExitFullscreen(() => {
       player.pause();
       if (tv.curSource) {
@@ -273,12 +319,13 @@ export const TVPlayingPage: ViewComponent = (props) => {
       player.disableFullscreen();
     });
     player.onCanPlay(() => {
-      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible, tv.currentTime);
+      const { currentTime } = tv;
+      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible, currentTime);
       if (!view.state.visible) {
         return;
       }
       function applySettings() {
-        player.setCurrentTime(tv.currentTime);
+        player.setCurrentTime(currentTime);
         if (view.query.rate) {
           player.changeRate(Number(view.query.rate));
           return;
@@ -338,6 +385,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
     });
     player.onSourceLoaded(() => {
       console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+      player.setCurrentTime(tv.currentTime);
       if (!player.hasPlayed) {
         return;
       }
@@ -382,7 +430,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
         bottomOperation.hide();
       }, 1000);
     }
-    tv.fetchProfile(view.query.id, {
+    tv.fetchProfile(view.query.id || view.query.tv_id, {
       season_id: view.query.season_id,
     });
   });
@@ -417,20 +465,22 @@ export const TVPlayingPage: ViewComponent = (props) => {
                     "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
                   )}
                 >
-                  <div
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
+                  {!view.query.hide_menu && (
                     <div
-                      className="inline-block p-4"
-                      onClick={() => {
-                        app.back();
+                      onClick={(event) => {
+                        event.stopPropagation();
                       }}
                     >
-                      <ArrowLeft className="w-6 h-6" />
+                      <div
+                        className="inline-block p-4"
+                        onClick={() => {
+                          app.back();
+                        }}
+                      >
+                        <ArrowLeft className="w-6 h-6" />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </Presence>
               </div>
               <div className="absolute bottom-12 w-full safe-bottom">
@@ -478,7 +528,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
                           episodesSheet.show();
                         }}
                       >
-                        <List className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <List className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">选集</p>
                       </div>
                       <div
@@ -487,8 +539,10 @@ export const TVPlayingPage: ViewComponent = (props) => {
                           sourcesSheet.show();
                         }}
                       >
-                        <Wand2 className="w-6 h-6 " />
-                        <p className="mt-2 text-sm ">切换源</p>
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <Wand2 className="w-6 h-6" />
+                        </div>
+                        <p className="mt-2 text-sm">切换源</p>
                       </div>
                       <div
                         className="flex flex-col items-center"
@@ -496,7 +550,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
                           rateSheet.show();
                         }}
                       >
-                        <Gauge className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <Gauge className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">{rate}x</p>
                       </div>
                       <div
@@ -505,7 +561,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
                           resolutionSheet.show();
                         }}
                       >
-                        <Glasses className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <Glasses className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
                       </div>
                       <div
@@ -514,7 +572,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
                           dSheet.show();
                         }}
                       >
-                        <MoreHorizontal className="w-6 h-6 " />
+                        <div className="p-4 rounded-md bg-w-bg-2">
+                          <MoreHorizontal className="w-6 h-6 " />
+                        </div>
                         <p className="mt-2 text-sm ">更多</p>
                       </div>
                     </div>
@@ -732,7 +792,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
-      <Sheet store={dSheet}>
+      <Sheet store={dSheet} size="xl">
         {(() => {
           if (profile === null) {
             return (
@@ -749,32 +809,52 @@ export const TVPlayingPage: ViewComponent = (props) => {
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
                   <div className="mt-4 text-lg underline-offset-1">其他</div>
-                  <div className=""></div>
-                  {(() => {
-                    if (!subtileState.enabled) {
-                      return null;
-                    }
-                    return (
+                  <div className="flex mt-2 space-x-2">
+                    <div className="">
+                      {(() => {
+                        if (!subtileState.enabled) {
+                          return null;
+                        }
+                        return (
+                          <div
+                            className=""
+                            onClick={() => {
+                              subtitleSheet.show();
+                            }}
+                          >
+                            <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                              <Subtitles className="w-4 h-4" />
+                            </div>
+                            <div className="mt-1 text-sm">字幕</div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    <div>
                       <div
-                        className="mt-2 flex items-center"
+                        className=""
                         onClick={() => {
-                          subtitleSheet.show();
+                          reportSheet.show();
                         }}
                       >
-                        <Subtitles className="mr-2 w-4 h-4" />
-                        <div className="text-sm">字幕</div>
+                        <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                          <Send className="w-4 h-4" />
+                        </div>
+                        <div className="mt-1 text-sm">提交问题</div>
                       </div>
-                    );
-                  })()}
-                  <div>
-                    <div
-                      className="mt-2 flex items-center"
-                      onClick={() => {
-                        reportSheet.show();
-                      }}
-                    >
-                      <Send className="mr-2 w-4 h-4" />
-                      <div className="text-sm">提交问题</div>
+                    </div>
+                    <div>
+                      <div
+                        className=""
+                        onClick={() => {
+                          inviteeSelect.dialog.show();
+                        }}
+                      >
+                        <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                          <Share2 className="w-4 h-4" />
+                        </div>
+                        <div className="mt-1 text-sm">分享</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -834,6 +914,9 @@ export const TVPlayingPage: ViewComponent = (props) => {
             })}
           </div>
         </div>
+      </Sheet>
+      <Sheet store={inviteeSelect.dialog} size="xl">
+        <InviteeSelect store={inviteeSelect} />
       </Sheet>
       <Dialog store={reportConfirmDialog}>
         <div className="text-w-fg-1">
