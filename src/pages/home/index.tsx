@@ -52,15 +52,15 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           }
           menu.recover();
         },
-        async onPullToRefresh() {
-          updatedMediaList.reload();
-          historyList.refresh();
-          await collectionList.refresh();
-          app.tip({
-            text: ["刷新成功"],
-          });
-          scrollView.stopPullToRefresh();
-        },
+        // async onPullToRefresh() {
+        //   updatedMediaList.reload();
+        //   historyList.refresh();
+        //   await collectionList.refresh();
+        //   app.tip({
+        //     text: ["刷新成功"],
+        //   });
+        //   scrollView.stopPullToRefresh();
+        // },
         onReachBottom() {
           collectionList.loadMore();
         },
@@ -169,12 +169,12 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                   <div className={cn("flex mt-2 px-4 space-x-3")}>
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[265px] object-cover" />
+                        <Skeleton className="w-[138px] h-[275px] object-cover" />
                       </div>
                     </div>
                     <div>
                       <div className="relative rounded-lg overflow-hidden">
-                        <Skeleton className="w-[138px] h-[265px] object-cover" />
+                        <Skeleton className="w-[138px] h-[275px] object-cover" />
                       </div>
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                   </div>
                   <div className={cn("flex mt-2 px-4 space-x-2 hide-scroll")}>
                     <div>
-                      <div className="relative w-[240px] h-[206px] rounded-lg overflow-hidden">
+                      <div className="relative w-[240px] h-[216px] rounded-lg overflow-hidden">
                         <Skeleton className="w-full h-full " />
                       </div>
                     </div>
@@ -257,24 +257,22 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                       }
                                     }}
                                   >
-                                    <div className="relative w-[138px] rounded-t-lg overflow-hidden">
+                                    <div className="relative w-[138px] h-[207px] rounded-t-lg overflow-hidden">
                                       <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
                                       {text && (
-                                        <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[24px] px-2 text-sm text-right bg-gradient-to-t from-black to-transparent">
-                                          <div
-                                            className="text-[12px] text-w-bg-1 dark:text-w-fg-1"
-                                            style={{ lineHeight: "12px" }}
-                                          >
+                                        <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                                          <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                                          <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
                                             {text}
                                           </div>
                                         </div>
                                       )}
                                     </div>
-                                    <div className="p-2 flex-1 max-w-full overflow-hidden">
+                                    <div className="p-2 pb-4 flex-1 max-w-full overflow-hidden">
                                       <div className="flex items-center overflow-hidden text-ellipsis">
                                         <h2 className="break-all truncate">{name}</h2>
                                       </div>
-                                      <div className="flex items-center text-[12px] text-w-fg-1 overflow-hidden text-ellipsis">
+                                      <div className="flex items-center text-sm text-w-fg-1 overflow-hidden text-ellipsis">
                                         {season_text ? (
                                           <>
                                             <div>{season_text}</div>
@@ -353,22 +351,25 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                               >
                                 <div className="relative w-[240px] h-[148px] rounded-t-lg overflow-hidden">
                                   <LazyImage className="w-full h-full object-cover" src={thumbnail} alt={name} />
-                                  <div className="absolute bottom-0 flex flex-row-reverse items-center w-full h-[32px] px-2 text-right bg-gradient-to-t from-black to-transparent">
-                                    <div className="text-w-bg-1 text-[12px] dark:text-w-fg-1">看到{percent}%</div>
+                                  <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                                    <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                                    <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                                      看到{percent}%
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="p-2">
+                                <div className="p-2 pb-4">
                                   <div className="">{name}</div>
                                   {/* <div className="mr-4 text-sm">{updated}</div> */}
                                   <Show when={!!episode}>
-                                    <div className="flex items-center text-[12px] text-w-fg-1">
+                                    <div className="flex items-center text-sm text-w-fg-1">
                                       <p className="">{episode}</p>
                                       <p className="mx-2">·</p>
                                       <p className="">{season}</p>
                                     </div>
                                   </Show>
                                   <Show when={type === MediaTypes.Movie}>
-                                    <div className="flex items-center text-[12px] text-w-fg-1">{air_date}</div>
+                                    <div className="flex items-center text-sm text-w-fg-1">{air_date}</div>
                                   </Show>
                                 </div>
                               </div>
@@ -438,14 +439,10 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                 <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
                                   <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
                                   {episode_count_text && (
-                                    <div className="z-20 absolute bottom-1 right-1">
-                                      <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                                        <div
-                                          className="text-w-bg-1 text-[12px] dark:text-w-fg-1"
-                                          style={{ lineHeight: "12px" }}
-                                        >
-                                          {episode_count_text}
-                                        </div>
+                                    <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                                      <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                                      <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                                        {episode_count_text}
                                       </div>
                                     </div>
                                   )}
@@ -455,7 +452,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                     <h2 className="break-all truncate">{name}</h2>
                                   </div>
                                   <div className="flex items-center">
-                                    <div className="text-[12px] text-w-fg-1">{air_date}</div>
+                                    <div className="text-sm text-w-fg-1">{air_date}</div>
                                   </div>
                                 </div>
                               </div>

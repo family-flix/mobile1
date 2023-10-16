@@ -51,38 +51,28 @@ export const ScrollView = React.memo(
     const Component = options[step];
 
     return (
-      <Root
-        className={cn("overflow-hidden absolute z-80 inset-0 w-full h-full", className)}
-        style={style}
-        {...restProps}
-      >
-        <div className={cn("z-10 absolute inset-0 max-h-full")}>
-          <div className="z-20 absolute left-0 bottom-[180px] flex items-center h-[200px]">
-            <BackIndicator store={store}>
-              <ChevronLeft className="w-6 h-6 text-w-bg-0 dark:text-w-fg-1" />
-            </BackIndicator>
-          </div>
-          <Content
-            store={store}
-            className={cn(
-              "z-10 relative max-h-full overflow-y-auto hide-scroll",
-              contentClassName,
-              scrollable ? "" : ""
-            )}
-            style={(() => {
-              if (scrollable) {
-                return {};
-              }
-              return {
-                overflow: "hidden",
-              };
-            })()}
-          >
-            {children}
-          </Content>
-          <Indicator className="z-50 absolute w-full top-4 flex justify-center" store={store}>
-            <Component />
-          </Indicator>
+      <Root className={cn("overflow-hidden w-full h-full", className)} style={style} {...restProps}>
+        <Indicator className="w-full flex justify-center" store={store}>
+          <Component />
+        </Indicator>
+        <Content
+          store={store}
+          className={cn("z-10 relative max-h-full overflow-y-auto hide-scroll", contentClassName, scrollable ? "" : "")}
+          style={(() => {
+            if (scrollable) {
+              return {};
+            }
+            return {
+              overflow: "hidden",
+            };
+          })()}
+        >
+          {children}
+        </Content>
+        <div className="z-20 absolute left-0 bottom-[180px] flex items-center h-[200px]">
+          <BackIndicator store={store}>
+            <ChevronLeft className="w-6 h-6 text-w-bg-0 dark:text-w-fg-1" />
+          </BackIndicator>
         </div>
       </Root>
     );
@@ -115,7 +105,10 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
     <div
       className={props.className}
       style={{
-        top,
+        display: "flex",
+        alignItems: "flex-end",
+        // paddingBottom: top > 0 ? 10 : 0,
+        height: top,
         opacity,
       }}
     >

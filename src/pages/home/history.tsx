@@ -73,10 +73,10 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
           }
           menu.recover();
         },
-        async onPullToRefresh() {
-          await historyList.refresh();
-          scrollView.stopPullToRefresh();
-        },
+        // async onPullToRefresh() {
+        //   await historyList.refresh();
+        //   scrollView.stopPullToRefresh();
+        // },
         onReachBottom() {
           historyList.loadMore();
         },
@@ -143,7 +143,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
               className="grid grid-cols-1 space-y-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
               skeleton={
                 <>
-                  <div className="flex px-4 py-2 bg-w-bg-2 cursor-pointer">
+                  <div className="flex px-4 py-2 cursor-pointer">
                     <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
                     <div className="relative flex-1 mt-2">
                       <Skeleton className="w-full h-[32px]"></Skeleton>
@@ -173,11 +173,11 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                   <Node
                     key={id}
                     store={historyCard.bind(history)}
-                    className="relative flex px-4 py-2 bg-w-bg-2 cursor-pointer select-none"
+                    className="relative flex px-4 py-2 cursor-pointer select-none"
                   >
                     <div className="z-50 absolute right-2 bottom-2">
                       <div
-                        className="px-2 py-1 bg-w-bg-1 rounded-md"
+                        className="px-2 py-1 bg-w-bg-2 rounded-md"
                         onClick={(event) => {
                           event.stopPropagation();
                           cur.select(history);
@@ -196,11 +196,10 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                       {(() => {
                         if (episode_count_text) {
                           return (
-                            <div className="absolute bottom-1 right-1">
-                              <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                                <div className="text-[12px] text-w-bg-1 dark:text-w-fg-1" style={{ lineHeight: "12px" }}>
-                                  {episode_count_text}
-                                </div>
+                            <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                              <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                              <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                                {episode_count_text}
                               </div>
                             </div>
                           );

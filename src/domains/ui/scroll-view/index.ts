@@ -235,7 +235,10 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
         return i;
       })();
       // console.log("[DOMAIN]ui/scroll-view - pulling", distanceX);
-      this.emit(Events.StateChange, { ...this.state });
+      requestAnimationFrame(() => {
+        this.emit(Events.StateChange, { ...this.state });
+      });
+      // this.emit(Events.StateChange, { ...this.state });
       return;
     }
     if (!this.isPullToRefresh) {
@@ -258,8 +261,8 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     // this.isPulling = true;
     const distThreshold = PULL_TO_REFRESH_THRESHOLD;
     const distMax = PULL_TO_REFRESH_MAX_DISTANCE;
-    const distResisted =
-      resistanceFunction(this.pullToRefresh.distY / distThreshold) * Math.min(distMax, this.pullToRefresh.distY);
+    // const distResisted = resistanceFunction(this.pullToRefresh.distY / distThreshold) * this.pullToRefresh.distY;
+    const distResisted = (this.pullToRefresh.distY / 480) * 180;
     this.pullToRefresh.distResisted = distResisted;
     if (this.pullToRefresh.state === "pulling" && distResisted > distThreshold) {
       this.pullToRefresh.state = "releasing";
@@ -269,7 +272,10 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.state.top = distResisted;
     this.state.step = this.pullToRefresh.state;
-    this.emit(Events.StateChange, { ...this.state });
+    requestAnimationFrame(() => {
+      this.emit(Events.StateChange, { ...this.state });
+    });
+    // this.emit(Events.StateChange, { ...this.state });
   }
   async endPulling() {
     // console.log("[DOMAIN]ui/scroll-view - endPulling", this.state.left);
@@ -366,7 +372,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.pullToRefresh.distY = PULL_TO_REFRESH_MAX_DISTANCE;
     this.pullToRefresh.distResisted = PULL_TO_REFRESH_MAX_DISTANCE;
     this.pullToRefresh.state = "refreshing";
-    this.state.top = PULL_TO_REFRESH_MAX_DISTANCE;
+    this.state.top = 40;
     this.state.step = this.pullToRefresh.state;
     this.emit(Events.PullToRefresh);
     this.emit(Events.StateChange, { ...this.state });

@@ -153,13 +153,13 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
         scrollView.startPullToRefresh();
       });
     }
-    scrollView.onPullToRefresh(async () => {
-      await seasonList.refresh();
-      app.tip({
-        text: ["刷新成功"],
-      });
-      scrollView.stopPullToRefresh();
-    });
+    // scrollView.onPullToRefresh(async () => {
+    //   await seasonList.refresh();
+    //   app.tip({
+    //     text: ["刷新成功"],
+    //   });
+    //   scrollView.stopPullToRefresh();
+    // });
     scrollView.onReachBottom(() => {
       seasonList.loadMore();
     });
@@ -207,7 +207,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
         <div className="h-[56px]" />
       </div>
       <ScrollView store={scrollView} className="">
-        <div className="w-full h-full pt-[56px]">
+        <div className="w-full h-full">
           <ListView
             store={seasonList}
             className="relative h-[50%] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
@@ -270,13 +270,11 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                   >
                     <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
                       <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
-                      <div className="z-10 absolute bottom-0 w-full h-[36px] bg-gradient-to-t from-gray-600 to-transparent opacity-30"></div>
                       {episode_count_text && (
-                        <div className="z-20 absolute bottom-1 right-1">
-                          <div className="inline-flex items-center py-1 px-2 rounded-sm">
-                            <div className="text-[12px] text-w-bg-1 dark:text-w-fg-1" style={{ lineHeight: "12px" }}>
-                              {episode_count_text}
-                            </div>
+                        <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                          <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                          <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                            {episode_count_text}
                           </div>
                         </div>
                       )}
@@ -290,9 +288,9 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                         <p className="mx-2 ">·</p>
                         <p className="whitespace-nowrap">{season_text}</p>
                         <p className="mx-2 ">·</p>
-                        <div className="flex items-center">
-                          <Star className="mr-1 relative top-[-2px] w-4 h-4" />
-                          <div>{vote}</div>
+                        <div className="relative flex items-center">
+                          <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
+                          <div className="pl-6">{vote}</div>
                         </div>
                       </div>
                       <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">

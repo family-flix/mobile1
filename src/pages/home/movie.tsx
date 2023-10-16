@@ -163,15 +163,15 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
     view.onHidden(() => {
       console.log("home/index hide");
     });
-    scrollView.onPullToRefresh(async () => {
-      await helper.refresh();
-      app.tip({
-        text: ["刷新成功"],
-      });
-      scrollView.stopPullToRefresh();
-    });
+    // scrollView.onPullToRefresh(async () => {
+    //   await helper.refresh();
+    //   app.tip({
+    //     text: ["刷新成功"],
+    //   });
+    //   scrollView.stopPullToRefresh();
+    // });
     scrollView.onReachBottom(() => {
-      console.log("load  more");
+      // console.log("load  more");
       helper.loadMore();
     });
     // page.onReady(() => {
@@ -221,7 +221,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
         <div className="h-[56px]" />
       </div>
       <ScrollView store={scrollView} className="">
-        <div className="w-full h-full pt-[56px]">
+        <div className="w-full h-full">
           <ListView
             store={helper}
             className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
@@ -285,9 +285,9 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                       <div className="flex items-center mt-1 ">
                         <div>{air_date}</div>
                         <p className="mx-2 ">·</p>
-                        <div className="flex items-center">
-                          <Star className="mr-1 relative top-[-2px] w-4 h-4" />
-                          <div>{vote}</div>
+                        <div className="relative flex items-center">
+                          <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
+                          <div className="pl-6">{vote}</div>
                         </div>
                         {runtime ? (
                           <>
