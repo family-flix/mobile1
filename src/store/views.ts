@@ -61,7 +61,7 @@ export const homeMoviePage = new RouteViewCore({
 // });
 export const homeHistoriesPage = new RouteViewCore({
   key: "/home/history",
-  title: "播放历史",
+  title: "观看记录",
   component: HomeHistoryPage,
 });
 export const homeMinePage = new RouteViewCore({

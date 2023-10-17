@@ -161,7 +161,7 @@ export const HomeLayout: ViewComponent = (props) => {
                 <div
                   className={cn(
                     "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-0 opacity-100 scroll scroll--hidden",
-                    app.env.ios ? "scroll--fix" : ""
+                    app.env.android ? "scroll--fix" : ""
                   )}
                 >
                   <PageContent

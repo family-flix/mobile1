@@ -26,10 +26,11 @@ body {
 }
 .scroll {
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 .scroll--fix {
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
 }
 .scroll--hidden::-webkit-scrollbar {
   display: none;

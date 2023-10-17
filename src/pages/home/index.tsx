@@ -230,7 +230,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                           <div
                             className={cn(
                               "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 scroll scroll--hidden",
-                              app.env.ios ? "scroll--fix" : ""
+                              app.env.android ? "scroll--fix" : ""
                             )}
                           >
                             {(() => {
@@ -308,7 +308,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                       <div
                         className={cn(
                           "flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
-                          app.env.ios ? "scroll--fix" : ""
+                          app.env.android ? "scroll--fix" : ""
                         )}
                       >
                         {(() => {
@@ -404,7 +404,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                       <div
                         className={cn(
                           "flex mt-2 py-4 w-screen min-h-[248px] bg-w-bg-2 overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
-                          app.env.ios ? "scroll--fix" : ""
+                          app.env.android ? "scroll--fix" : ""
                         )}
                       >
                         {(() => {

@@ -192,6 +192,7 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   curView: RouteViewCore | null = null;
   showView(view: RouteViewCore, options: Partial<{ back: boolean }> = {}) {
     console.log("[DOMAIN]Application - showView", view._name, view.parent, options.back, this.curView);
+    this.setTitle(`${view.title}`);
     if (options.back) {
       if (!this.curView) {
         // 异常行为

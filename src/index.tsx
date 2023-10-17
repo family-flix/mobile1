@@ -71,7 +71,7 @@ function ApplicationView() {
         curView.isShowForBack = false;
         return;
       }
-      app.setTitle(`${curView.title}`);
+      // console.log("cur view title", curView.title);
       if (app.env.android) {
         const r = curView.buildUrl();
         router.pushState(r);
