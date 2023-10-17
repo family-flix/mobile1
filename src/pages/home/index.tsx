@@ -5,17 +5,17 @@ import React, { useState } from "react";
 import { ArrowUp, Bird } from "lucide-react";
 
 import { fetchCollectionList, fetchUpdatedMediaToday } from "@/services";
-import { Skeleton, ListView, ScrollView, LazyImage, BackToTop, Button } from "@/components/ui";
+import { Skeleton, ListView, ScrollView, LazyImage, Button } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
+import { Show } from "@/components/ui/show";
 import { ScrollViewCore, InputCore, ButtonCore } from "@/domains/ui";
 import { MediaTypes, fetchPlayingHistories } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
+import { ViewComponentWithMenu } from "@/types";
+import { moviePlayingPage, tvPlayingPage } from "@/store";
 import { cn } from "@/utils";
-import { Show } from "@/components/ui/show";
 
 export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
@@ -50,7 +50,11 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
             });
             return;
           }
-          menu.recover();
+          if (pos.scrollTop === 0) {
+            menu.setCanRefresh();
+            return;
+          }
+          menu.disable();
         },
         // async onPullToRefresh() {
         //   updatedMediaList.reload();
@@ -117,8 +121,13 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
       });
-      menu.onRefresh(() => {
+      menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
+        collectionList.init(search);
+        historyList.init();
+        updatedMediaList.run().then(() => {
+          scrollView.stopPullToRefresh();
+        });
       });
     }
     collectionList.onStateChange((nextResponse) => {
@@ -183,7 +192,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                   <div className="px-4">
                     <Skeleton className="h-[32px] w-[188px]"></Skeleton>
                   </div>
-                  <div className={cn("flex mt-2 px-4 space-x-2 hide-scroll")}>
+                  <div className={cn("flex mt-2 px-4 space-x-2 scroll--hidden")}>
                     <div>
                       <div className="relative w-[240px] h-[216px] rounded-lg overflow-hidden">
                         <Skeleton className="w-full h-full " />
@@ -220,8 +229,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                           </div>
                           <div
                             className={cn(
-                              "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 hide-scroll",
-                              app.env.ios ? "hide-scroll--fix" : ""
+                              "flex mt-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-2 scroll scroll--hidden",
+                              app.env.ios ? "scroll--fix" : ""
                             )}
                           >
                             {(() => {
@@ -298,8 +307,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                       </div>
                       <div
                         className={cn(
-                          "flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 hide-scroll",
-                          app.env.ios ? "hide-scroll--fix" : ""
+                          "flex mt-2 w-screen min-h-[184px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
+                          app.env.ios ? "scroll--fix" : ""
                         )}
                       >
                         {(() => {
@@ -394,8 +403,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                       </div>
                       <div
                         className={cn(
-                          "flex mt-2 py-4 w-screen min-h-[248px] bg-w-bg-2 overflow-x-auto px-4 space-x-3 hide-scroll",
-                          app.env.ios ? "hide-scroll--fix" : ""
+                          "flex mt-2 py-4 w-screen min-h-[248px] bg-w-bg-2 overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
+                          app.env.ios ? "scroll--fix" : ""
                         )}
                       >
                         {(() => {
@@ -468,7 +477,6 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           </ListView>
         </div>
       </ScrollView>
-      <BackToTop store={scrollView} />
     </>
   );
 });

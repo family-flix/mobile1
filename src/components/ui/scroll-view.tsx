@@ -10,17 +10,16 @@ import { cn } from "@/utils";
 import { connect } from "@/domains/ui/scroll-view/connect.web";
 
 export const ScrollView = React.memo(
-  (props: {
-    store: ScrollViewCore;
-    wrapClassName?: string;
-    contentClassName?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    children: React.ReactElement;
-  }) => {
+  (
+    props: {
+      store: ScrollViewCore;
+      wrapClassName?: string;
+      contentClassName?: string;
+    } & React.HTMLAttributes<HTMLDivElement>
+  ) => {
     const { store, className, contentClassName, wrapClassName, style = {}, children, ...restProps } = props;
 
-    const ref = useRef<HTMLDivElement>(null);
+    // const ref = useRef<HTMLDivElement>(null);
     const [state, setState] = useState(store.state);
 
     useInitialize(() => {
@@ -51,13 +50,17 @@ export const ScrollView = React.memo(
     const Component = options[step];
 
     return (
-      <Root className={cn("overflow-hidden w-full h-full", className)} style={style} {...restProps}>
+      <Root className={cn("scroll-view overflow-hidden w-full h-full", className)} style={style} {...restProps}>
         <Indicator className="w-full flex justify-center" store={store}>
           <Component />
         </Indicator>
         <Content
           store={store}
-          className={cn("z-10 relative max-h-full overflow-y-auto hide-scroll", contentClassName, scrollable ? "" : "")}
+          className={cn(
+            "relative max-h-full overflow-y-auto scroll scroll--hidden",
+            contentClassName,
+            scrollable ? "" : ""
+          )}
           style={(() => {
             if (scrollable) {
               return {};
@@ -103,7 +106,7 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
 
   return (
     <div
-      className={props.className}
+      className={cn("scroll-view__loading", props.className)}
       style={{
         display: "flex",
         alignItems: "flex-end",
@@ -129,7 +132,7 @@ const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<H
 
   return (
     <div
-      className={cn("flex items-center justify-center h-48 text-w-fg-1 return-prev-indicator", props.className)}
+      className={cn("scroll-view__back flex items-center justify-center h-48 text-w-fg-1", props.className)}
       style={{
         width: state.pullToBack.width,
         height: state.pullToBack.height,

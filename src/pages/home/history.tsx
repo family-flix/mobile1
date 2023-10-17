@@ -71,7 +71,11 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
             });
             return;
           }
-          menu.recover();
+          if (pos.scrollTop === 0) {
+            menu.setCanRefresh();
+            return;
+          }
+          menu.disable();
         },
         // async onPullToRefresh() {
         //   await historyList.refresh();
@@ -120,8 +124,10 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
       });
-      menu.onRefresh(() => {
+      menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
+        await historyList.refresh();
+        scrollView.stopPullToRefresh();
       });
     }
     // console.log("[PAGE]history - useInitialize");

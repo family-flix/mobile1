@@ -4,12 +4,9 @@
 import React, { useState } from "react";
 import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } from "lucide-react";
 
-import { fetchNotifications, readAllNotification, readNotification } from "@/services";
-import { ScrollView, Skeleton, LazyImage, ListView, BackToTop, Dialog, Node, Button } from "@/components/ui";
-import { ScrollViewCore, DialogCore, NodeInListCore, ButtonCore } from "@/domains/ui";
-import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/tv/services";
-import { RefCore } from "@/domains/cur";
-import { ListCore } from "@/domains/list";
+import { readAllNotification, readNotification } from "@/services";
+import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
+import { ScrollViewCore, ButtonCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { messageList, moviePlayingPage, rootView, tvPlayingPage } from "@/store";
@@ -37,10 +34,10 @@ export const HomeMessagePage: ViewComponent = (props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        async onPullToRefresh() {
-          await messageList.refresh();
-          scrollView.stopPullToRefresh();
-        },
+        // async onPullToRefresh() {
+        //   await messageList.refresh();
+        //   scrollView.stopPullToRefresh();
+        // },
         onReachBottom() {
           messageList.loadMore();
         },
@@ -145,9 +142,9 @@ export const HomeMessagePage: ViewComponent = (props) => {
                     key={message_id}
                     className="relative py-6 px-2"
                     onClick={() => {
-                      // readRequest.run({
-                      //   id: message_id,
-                      // });
+                      readRequest.run({
+                        id: message_id,
+                      });
                       messageList.modifyResponse((response) => {
                         return {
                           ...response,

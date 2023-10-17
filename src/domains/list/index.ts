@@ -95,6 +95,8 @@ const RESPONSE_PROCESSOR = <T>(
 // type ServiceFn = (...args: unknown[]) => Promise<Result<OriginalResponse>>;
 enum Events {
   LoadingChange,
+  BeforeSearch,
+  AfterSearch,
   ParamsChange,
   DataSourceChange,
   DataSourceAdded,
@@ -105,6 +107,8 @@ enum Events {
 }
 type TheTypesOfEvents<T> = {
   [Events.LoadingChange]: boolean;
+  [Events.BeforeSearch]: void;
+  [Events.AfterSearch]: void;
   [Events.ParamsChange]: FetchParams;
   [Events.DataSourceAdded]: unknown[];
   [Events.DataSourceChange]: T[];
@@ -161,6 +165,8 @@ export class ListCore<
       extraDefaultResponse,
       onLoadingChange,
       onStateChange,
+      beforeSearch,
+      afterSearch,
     } = options;
     this.debug = !!debug;
     this.rowKey = rowKey;
@@ -190,6 +196,12 @@ export class ListCore<
     }
     if (onStateChange) {
       this.onStateChange(onStateChange);
+    }
+    if (beforeSearch) {
+      this.onBeforeSearch(beforeSearch);
+    }
+    if (afterSearch) {
+      this.onAfterSearch(afterSearch);
     }
     this.initialize(options);
   }
@@ -455,10 +467,12 @@ export class ListCore<
     return Result.Ok({ ...this.response });
   }
   async search(params: Search) {
+    this.emit(Events.BeforeSearch);
     const res = await this.fetch({
       ...this.initialParams,
       ...params,
     });
+    this.emit(Events.AfterSearch);
     if (res.error) {
       this.tip({ icon: "error", text: [res.error.message] });
       this.response.error = res.error;
@@ -618,6 +632,12 @@ export class ListCore<
   }
   onLoadingChange(handler: Handler<TheTypesOfEvents<T>[Events.LoadingChange]>) {
     return this.on(Events.LoadingChange, handler);
+  }
+  onBeforeSearch(handler: Handler<TheTypesOfEvents<T>[Events.BeforeSearch]>) {
+    return this.on(Events.BeforeSearch, handler);
+  }
+  onAfterSearch(handler: Handler<TheTypesOfEvents<T>[Events.AfterSearch]>) {
+    return this.on(Events.AfterSearch, handler);
   }
   onDataSourceChange(handler: Handler<TheTypesOfEvents<T>[Events.DataSourceChange]>) {
     return this.on(Events.DataSourceChange, handler);

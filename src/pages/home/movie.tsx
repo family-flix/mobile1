@@ -43,16 +43,23 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
             });
             return;
           }
-          menu.recover();
+          if (pos.scrollTop === 0) {
+            menu.setCanRefresh();
+            return;
+          }
+          menu.disable();
         },
       })
   );
-  const helper = useInstance(
+  const movieList = useInstance(
     () =>
       new ListCore(new RequestCore(fetch_movie_list), {
         pageSize: 6,
-        onLoadingChange(loading) {
-          searchInput.setLoading(!helper.response.initial && loading);
+        beforeSearch() {
+          searchInput.setLoading(true);
+        },
+        afterSearch() {
+          searchInput.setLoading(false);
         },
       })
   );
@@ -62,17 +69,17 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       new InputCore({
         placeholder: "请输入关键字搜索电影",
         onEnter(v) {
-          helper.search({
+          movieList.search({
             name: v,
           });
         },
         onBlur(v) {
-          helper.search({
+          movieList.search({
             name: v,
           });
         },
         onClear() {
-          helper.search({
+          movieList.search({
             name: "",
           });
         },
@@ -97,7 +104,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           language: options,
         });
         setHasSearch(!!options.length);
-        helper.search({
+        movieList.search({
           language: options.join("|"),
         });
       },
@@ -109,12 +116,12 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
     // });
     return new CheckboxGroupCore({
       options: MovieGenresOptions,
-      onChange(options) {
+      async onChange(options) {
         // app.cache.merge("movie_search", {
         //   genres: options,
         // });
         setHasSearch(!!options.length);
-        helper.search({
+        movieList.search({
           genres: options.join("|"),
         });
       },
@@ -139,7 +146,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       return language.length !== 0;
     })()
   );
-  const [response, setResponse] = useState(helper.response);
+  const [response, setResponse] = useState(movieList.response);
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
@@ -147,8 +154,10 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
       });
-      menu.onRefresh(() => {
+      menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
+        await movieList.refresh();
+        scrollView.stopPullToRefresh();
       });
     }
     view.onReady(() => {
@@ -172,13 +181,13 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
     // });
     scrollView.onReachBottom(() => {
       // console.log("load  more");
-      helper.loadMore();
+      movieList.loadMore();
     });
     // page.onReady(() => {
     //   history_helper.init();
     //   helper.init();
     // });
-    helper.onStateChange((nextResponse) => {
+    movieList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
   });
@@ -194,7 +203,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
         language: language.join("|"),
       };
     })();
-    helper.init(search);
+    movieList.init(search);
   }, []);
 
   const { dataSource, error } = response;
@@ -202,10 +211,10 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   console.log("[PAGE]home - render", dataSource);
 
   return (
-    <div className="bg-w-bg-0">
-      <div className="relative z-50">
-        <div className="fixed top-0 w-full flex items-center justify-between w-full py-2 px-4 bg-w-bg-0 text-w-fg-2 space-x-3">
-          <div className="relative w-full">
+    <>
+      <div className="fixed z-20 top-0 w-full">
+        <div className="flex items-center justify-between w-full py-2 px-4 space-x-3">
+          <div className="w-full">
             <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>
           <div
@@ -218,13 +227,12 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
             {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-red-500"></div>}
           </div>
         </div>
-        <div className="h-[56px]" />
       </div>
-      <ScrollView store={scrollView} className="">
-        <div className="w-full h-full">
+      <ScrollView store={scrollView} className="bg-w-bg-0 pt-[56px]">
+        <div className="w-full min-h-screen">
           <ListView
-            store={helper}
-            className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
+            store={movieList}
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
                 <div className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer">
@@ -287,7 +295,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                         <p className="mx-2 ">·</p>
                         <div className="relative flex items-center">
                           <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
-                          <div className="pl-6">{vote}</div>
+                          <div className="pl-4">{vote}</div>
                         </div>
                         {runtime ? (
                           <>
@@ -321,7 +329,6 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           </ListView>
         </div>
       </ScrollView>
-      <BackToTop store={scrollView} />
       <Sheet store={settingsSheet}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
           {response.loading && (
@@ -350,6 +357,6 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           </div>
         </div>
       </Dialog>
-    </div>
+    </>
   );
 });

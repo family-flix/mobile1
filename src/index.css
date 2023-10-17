@@ -16,9 +16,6 @@
     @apply top-[24%];
   }
 }
-/* html {
-  scroll-behavior: smooth;
-} */
 body {
   user-select: none;
   -moz-user-select: none; /* Firefox */
@@ -27,20 +24,40 @@ body {
 .app__mask {
   transition: all 0.8s;
 }
-
-.hide-scroll {
+.scroll {
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
-.hide-scroll.hide-scroll--fix {
-  /* overscroll-behavior: contain; */
+.scroll--fix {
+  overscroll-behavior: contain;
 }
-.hide-scroll::-webkit-scrollbar {
+.scroll--hidden::-webkit-scrollbar {
   display: none;
 }
-
-.return-prev-indicator {
+.scroll-view__back {
   /* background-image: url("https://cdn.weipaitang.com/static/2019121808df9be1-82c2-9be182c2-7a74-76514f6ee9ff-W100H159");
   background-size: 100% 100%; */
   background: url("https://cdn.weipaitang.com/static/2019121808df9be1-82c2-9be182c2-7a74-76514f6ee9ff-W100H159") 0% 0% /
     100% 100% no-repeat;
+}
+.scroll-view__loading {
+  transition: all 0.2s;
+}
+@keyframes loading-show {
+  100% {
+    height: 40px;
+  }
+}
+@keyframes loading-close {
+  0% {
+    height: 40px;
+  }
+  100% {
+    height: 0;
+  }
+}
+@keyframes loading-cancel {
+  100% {
+    height: 0;
+  }
 }

@@ -201,10 +201,10 @@ ${url}`;
   const episodeScrollView = useInstance(
     () =>
       new ScrollViewCore({
-        async onPullToRefresh() {
-          await tv.episodeList.refresh();
-          episodeScrollView.stopPullToRefresh();
-        },
+        // async onPullToRefresh() {
+        //   await tv.episodeList.refresh();
+        //   episodeScrollView.stopPullToRefresh();
+        // },
         onReachBottom() {
           tv.episodeList.loadMore();
         },

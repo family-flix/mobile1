@@ -160,8 +160,8 @@ export const HomeLayout: ViewComponent = (props) => {
               >
                 <div
                   className={cn(
-                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-0 opacity-100 hide-scroll",
-                    app.env.ios ? "hide-scroll--fix" : ""
+                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-0 opacity-100 scroll scroll--hidden",
+                    app.env.ios ? "scroll--fix" : ""
                   )}
                 >
                   <PageContent

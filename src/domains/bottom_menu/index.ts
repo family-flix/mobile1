@@ -37,6 +37,7 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
   badge: boolean = false;
   active: boolean = false;
   clickForScrollToTop = false;
+  clickForRefresh = true;
 
   get state(): BottomMenuState {
     return {
@@ -64,14 +65,16 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.active = true;
     if (this.pendingState) {
-      const { icon, text, clickForScrollToTop } = this.pendingState;
+      const { icon, text, clickForScrollToTop, clickForRefresh } = this.pendingState;
       this.icon = icon;
       this.text = text;
       this.clickForScrollToTop = clickForScrollToTop;
+      this.clickForRefresh = clickForRefresh;
     }
     this.emit(Events.StateChange, { ...this.state });
   }
-  pendingState: (BottomMenuState & { clickForScrollToTop: boolean }) | null = null;
+  pendingState: (BottomMenuState & { clickForScrollToTop: boolean; clickForRefresh: boolean }) | null = null;
+  /** 切换到其他按钮时，暂存该按钮状态 */
   reset() {
     if (!this.active) {
       return;
@@ -82,20 +85,29 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
       active: this.active,
       badge: this.badge,
       clickForScrollToTop: this.clickForScrollToTop,
+      clickForRefresh: this.clickForRefresh,
     };
     this.icon = this.defaultIcon;
     this.text = this.defaultText;
     this.active = false;
     this.clickForScrollToTop = false;
+    this.clickForRefresh = true;
     this.emit(Events.StateChange, { ...this.state });
   }
-  recover = debounce(200, () => {
-    if (this.clickForScrollToTop === false) {
-      return;
-    }
+  /** 貌似有点问题 */
+  disable = debounce(200, () => {
     this.clickForScrollToTop = false;
+    this.clickForRefresh = false;
+    console.log("[DOMAIN]BottomMenu - disable");
     this.icon = this.defaultIcon;
     this.text = this.defaultText;
+    this.emit(Events.StateChange, { ...this.state });
+  });
+  setCanRefresh = debounce(200, () => {
+    if (this.clickForRefresh) {
+      return;
+    }
+    this.clickForRefresh = true;
     this.emit(Events.StateChange, { ...this.state });
   });
   setCanTop = debounce(200, (values: { icon: unknown; text: string }) => {
@@ -103,9 +115,9 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const { icon, text } = values;
-    this.clickForScrollToTop = true;
     this.icon = icon;
     this.text = text;
+    this.clickForScrollToTop = true;
     this.emit(Events.StateChange, { ...this.state });
   });
   setIcon(icon: unknown) {
@@ -117,12 +129,16 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   handleClick() {
+    console.log("[DOMAIN]BottomMenu - handleClick", this.active, this.clickForScrollToTop, this.clickForRefresh);
     if (this.active) {
       if (this.clickForScrollToTop) {
         this.emit(Events.ScrollToTop);
         return;
       }
-      this.emit(Events.Refresh);
+      if (this.clickForRefresh) {
+        this.emit(Events.Refresh);
+        return;
+      }
       return;
     }
     this.app.showView(this.view);

@@ -101,9 +101,9 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onPullToRefresh() {
-          helper.refresh();
-        },
+        // onPullToRefresh() {
+        //   helper.refresh();
+        // },
         onPullToBack() {
           app.back();
         },
@@ -157,10 +157,10 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
   const [url, setUrl] = useState<string | null>(null);
 
   useInitialize(() => {
-    scrollView.onPullToRefresh(async () => {
-      await helper.refresh();
-      scrollView.stopPullToRefresh();
-    });
+    // scrollView.onPullToRefresh(async () => {
+    //   await helper.refresh();
+    //   scrollView.stopPullToRefresh();
+    // });
     scrollView.onReachBottom(() => {
       helper.loadMore();
     });

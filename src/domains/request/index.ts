@@ -43,6 +43,7 @@ export class RequestCore<T extends (...args: any[]) => Promise<Result<any>>> ext
 
   /** 原始 service 函数 */
   private _service: T;
+  loading = false;
   /** 处于请求中的 promise */
   pending: ReturnType<T> | null = null;
   /** 调用 prepare 方法暂存的参数 */
@@ -83,12 +84,14 @@ export class RequestCore<T extends (...args: any[]) => Promise<Result<any>>> ext
       return Result.Ok(d);
     }
     this.args = args;
-    this.emit(Events.LoadingChange, true);
+    this.loading = true;
+    this.emit(Events.LoadingChange, this.loading);
     this.emit(Events.BeforeRequest);
     const pending = this._service(...args) as ReturnType<T>;
     this.pending = pending;
     const [r] = await Promise.all([pending, sleep(1000)]);
-    this.emit(Events.LoadingChange, false);
+    this.loading = false;
+    this.emit(Events.LoadingChange, this.loading);
     this.emit(Events.Completed);
     this.pending = null;
     if (r.error) {

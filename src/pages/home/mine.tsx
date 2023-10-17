@@ -34,10 +34,10 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        async onPullToRefresh() {
-          await sleep(2000);
-          scrollView.stopPullToRefresh();
-        },
+        // async onPullToRefresh() {
+        //   await sleep(2000);
+        //   scrollView.stopPullToRefresh();
+        // },
       })
   );
   const multipleClick = useInstance(
@@ -145,14 +145,15 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { theme, setTheme } = useTheme();
   const [t, setT] = useState(theme);
   const [profile, setProfile] = useState(app.user);
+  const [loading, setLoading] = useState(infoRequest.loading);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
   // const [history_response] = useState(history_helper.response);
 
   useInitialize(() => {
     infoRequest.run();
-    // infoRequest.onSuccess((v) => {
-    //   setProfile(v);
-    // });
+    infoRequest.onLoadingChange((v) => {
+      setLoading(v);
+    });
     messageList.onStateChange((nextState) => {
       setMessageResponse(nextState);
     });
@@ -177,147 +178,149 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   return (
     <>
       <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1">
-        <div className="relative px-4 py-2 space-y-2">
-          <div className="py-1 flex space-x-2">
-            <div
-              className="p-2 rounded bg-w-bg-2"
-              onClick={() => {
-                const nextTheme = (() => {
+        <div className="w-full h-full">
+          <div className="relative px-4 py-2 space-y-2">
+            <div className="py-1 flex space-x-2">
+              <div
+                className="p-2 rounded bg-w-bg-2"
+                onClick={() => {
+                  const nextTheme = (() => {
+                    if (t === "light") {
+                      return "dark";
+                    }
+                    return "light";
+                  })();
+                  setT(nextTheme);
+                  setTheme(nextTheme);
+                }}
+              >
+                {(() => {
                   if (t === "light") {
-                    return "dark";
+                    return <Sun className="w-5 h-5" />;
                   }
-                  return "light";
-                })();
-                setT(nextTheme);
-                setTheme(nextTheme);
-              }}
-            >
-              {(() => {
-                if (t === "light") {
-                  return <Sun className="w-5 h-5" />;
-                }
-                return <Moon className="w-5 h-5" />;
-              })()}
+                  return <Moon className="w-5 h-5" />;
+                })()}
+              </div>
+              <div
+                className="p-2 rounded bg-w-bg-2"
+                onClick={() => {
+                  app.tip({ text: ["敬请期待"] });
+                }}
+              >
+                <Settings2 className="w-5 h-5" />
+              </div>
             </div>
-            <div
-              className="p-2 rounded bg-w-bg-2"
-              onClick={() => {
-                app.tip({ text: ["敬请期待"] });
-              }}
-            >
-              <Settings2 className="w-5 h-5" />
+            <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-2">
+              <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
+                <LazyImage className="w-full h-full" src={profile.avatar} />
+              </div>
+              <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
+              <div></div>
             </div>
-          </div>
-          <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-2">
-            <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
-              <LazyImage className="w-full h-full" src={profile.avatar} />
-            </div>
-            <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
-            <div></div>
-          </div>
-          <div className="rounded-lg bg-w-bg-2 text-w-fg-0">
-            <div
-              className="flex items-center justify-between"
-              onClick={() => {
-                app.showView(messagesPage);
-              }}
-            >
-              <div className="flex items-center">
-                <div className="relative p-4">
-                  <MessageSquare className="w-5 h-5" />
-                  <Show when={!!messageResponse.total}>
-                    <div className="absolute top-3 right-[-8px] w-2 h-2 rounded-full bg-w-red" />
-                  </Show>
+            <div className="rounded-lg bg-w-bg-2 text-w-fg-0">
+              <div
+                className="flex items-center justify-between"
+                onClick={() => {
+                  app.showView(messagesPage);
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="relative p-4">
+                    <MessageSquare className="w-5 h-5" />
+                    <Show when={!!messageResponse.total}>
+                      <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-w-red" />
+                    </Show>
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>消息</div>
+                  </div>
                 </div>
-                <div className="flex-1 py-4">
-                  <div>消息</div>
+              </div>
+              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
+              <div
+                className=""
+                onClick={() => {
+                  app.tip({ text: ["敬请期待"] });
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="p-4">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>帮助中心</div>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
+              <div
+                className=""
+                onClick={() => {
+                  reportConfirmDialog.show();
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="p-4">
+                    <MailQuestion className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>问题反馈</div>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
+              <div
+                className=""
+                onClick={() => {
+                  wantDialog.show();
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="p-4">
+                    <Tv className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>想看</div>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
+              <div
+                className="relative"
+                onClick={() => {
+                  if (!infoRequest.response) {
+                    app.tip({
+                      text: ["网络不佳，请刷新后重试"],
+                    });
+                    return;
+                  }
+                  if (!infoRequest.response.permissions.includes("001")) {
+                    app.tip({
+                      text: ["该功能暂未开放"],
+                    });
+                    return;
+                  }
+                  app.showView(inviteeListPage);
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="p-4">
+                    <HelpingHand className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>{loading ? "Loading" : "邀请好友"}</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
             <div
-              className=""
+              className="py-2 text-center text-sm"
               onClick={() => {
-                app.tip({ text: ["敬请期待"] });
+                multipleClick.handleClick();
               }}
             >
-              <div className="flex items-center">
-                <div className="p-4">
-                  <HelpCircle className="w-5 h-5" />
-                </div>
-                <div className="flex-1 py-4">
-                  <div>帮助中心</div>
-                </div>
-              </div>
+              v1.16.0
             </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
-            <div
-              className=""
-              onClick={() => {
-                reportConfirmDialog.show();
-              }}
-            >
-              <div className="flex items-center">
-                <div className="p-4">
-                  <MailQuestion className="w-5 h-5" />
-                </div>
-                <div className="flex-1 py-4">
-                  <div>问题反馈</div>
-                </div>
-              </div>
-            </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
-            <div
-              className=""
-              onClick={() => {
-                wantDialog.show();
-              }}
-            >
-              <div className="flex items-center">
-                <div className="p-4">
-                  <Tv className="w-5 h-5" />
-                </div>
-                <div className="flex-1 py-4">
-                  <div>想看</div>
-                </div>
-              </div>
-            </div>
-            <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
-            <div
-              className=""
-              onClick={() => {
-                if (!infoRequest.response) {
-                  app.tip({
-                    text: ["网络不佳，请刷新后重试"],
-                  });
-                  return;
-                }
-                if (!infoRequest.response.permissions.includes("001")) {
-                  app.tip({
-                    text: ["该功能暂未开放"],
-                  });
-                  return;
-                }
-                app.showView(inviteeListPage);
-              }}
-            >
-              <div className="flex items-center">
-                <div className="p-4">
-                  <HelpingHand className="w-5 h-5" />
-                </div>
-                <div className="flex-1 py-4">
-                  <div>邀请好友</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="py-2 text-center text-sm"
-            onClick={() => {
-              multipleClick.handleClick();
-            }}
-          >
-            v1.16.0
           </div>
         </div>
       </ScrollView>

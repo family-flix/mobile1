@@ -51,16 +51,16 @@ export const HomeMovieSearchPage: ViewComponent = (props) => {
         nameInput.focus();
       }, 800);
     });
-    scrollView.onPullToRefresh(async () => {
-      await (async () => {
-        console.log(nameInput.value);
-        if (!nameInput.value) {
-          return sleep(1200);
-        }
-        return helper.refresh();
-      })();
-      scrollView.stopPullToRefresh();
-    });
+    // scrollView.onPullToRefresh(async () => {
+    //   await (async () => {
+    //     console.log(nameInput.value);
+    //     if (!nameInput.value) {
+    //       return sleep(1200);
+    //     }
+    //     return helper.refresh();
+    //   })();
+    //   scrollView.stopPullToRefresh();
+    // });
     scrollView.onReachBottom(() => {
       helper.loadMore();
     });
