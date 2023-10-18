@@ -50,10 +50,8 @@ export const TVPlayingPage: ViewComponent = (props) => {
           const { url, name } = v;
           const message = `➤➤➤ ${name}
 ${url}`;
-          app.copy(message);
-          app.tip({
-            text: ["链接信息已复制到剪贴板"],
-          });
+          setShareLink(message);
+          shareLinkDialog.show();
           inviteeSelect.dialog.hide();
         },
         onFailed(error) {
@@ -63,10 +61,9 @@ ${url}`;
             const { name, url } = data;
             const message = `➤➤➤ ${name}
 ${url}`;
-            app.copy(message);
-            app.tip({
-              text: ["链接信息已复制到剪贴板"],
-            });
+            setShareLink(message);
+            shareLinkDialog.show();
+            inviteeSelect.dialog.hide();
             return;
           }
           app.tip({
@@ -140,6 +137,12 @@ ${url}`;
   const resolutionSheet = useInstance(() => new DialogCore());
   const loadingPresence = useInstance(() => new PresenceCore());
   const dSheet = useInstance(() => new DialogCore());
+  const shareLinkDialog = useInstance(
+    () =>
+      new DialogCore({
+        footer: false,
+      })
+  );
   const inviteeSelect = useInstance(
     () =>
       new InviteeSelectCore({
@@ -224,6 +227,7 @@ ${url}`;
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
   const [subtileState, setCurSubtitleState] = useState(tv.subtitle);
+  const [shareLink, setShareLink] = useState("");
   const [curReportValue, setCurReportValue] = useState(curReport.value);
   const [rate, setRate] = useState(1);
 
@@ -984,6 +988,25 @@ ${url}`;
       </Dialog>
       <Dialog store={fullscreenDialog}>
         <div className="text-w-fg-1">点击进入全屏播放</div>
+      </Dialog>
+      <Dialog store={shareLinkDialog}>
+        <div
+          onClick={() => {
+            if (!shareLink) {
+              return;
+            }
+            app.copy(shareLink);
+            app.tip({
+              text: ["已复制至粘贴板"],
+            });
+            shareLinkDialog.hide();
+          }}
+        >
+          <div>点击复制该信息至粘贴板</div>
+          <div className="mt-4 rounded-md p-4 bg-w-bg-2">
+            <pre className="text-left text-w-fg-1">{shareLink}</pre>
+          </div>
+        </div>
       </Dialog>
     </>
   );
