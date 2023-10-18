@@ -213,7 +213,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   return (
     <>
       <div className="fixed z-20 top-0 w-full">
-        <div className="flex items-center justify-between w-full py-2 px-4 space-x-3">
+        <div className="flex items-center justify-between w-full py-2 px-4 bg-w-bg-0 text-w-fg-2 space-x-3">
           <div className="w-full">
             <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>

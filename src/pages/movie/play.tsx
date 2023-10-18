@@ -542,7 +542,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
-      <Sheet store={infoSheet}>
+      <Sheet store={infoSheet} size="xl">
         {(() => {
           if (profile === null) {
             return (
@@ -559,32 +559,35 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
                   <div className="mt-4 text-lg underline-offset-1">其他</div>
-                  <div className=""></div>
-                  {(() => {
-                    if (!subtileState.enabled) {
-                      return null;
-                    }
-                    return (
-                      <div
-                        className="mt-2 flex items-center"
-                        onClick={() => {
-                          subtitleSheet.show();
-                        }}
-                      >
-                        <Subtitles className="mr-2 w-4 h-4" />
-                        <div className="text-sm">字幕</div>
-                      </div>
-                    );
-                  })()}
-                  <div>
+                  <div className="flex mt-2 space-x-2">
+                    {(() => {
+                      if (!subtileState.enabled) {
+                        return null;
+                      }
+                      return (
+                        <div
+                          className=""
+                          onClick={() => {
+                            subtitleSheet.show();
+                          }}
+                        >
+                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                            <Subtitles className="w-4 h-4" />
+                          </div>
+                          <div className="mt-1 text-sm">字幕</div>
+                        </div>
+                      );
+                    })()}
                     <div
-                      className="mt-2 flex items-center"
+                      className=""
                       onClick={() => {
                         reportSheet.show();
                       }}
                     >
-                      <Send className="mr-2 w-4 h-4" />
-                      <div className="text-sm">提交问题</div>
+                      <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                        <Send className="w-4 h-4" />
+                      </div>
+                      <div className="mt-1 text-sm">提交问题</div>
                     </div>
                   </div>
                 </div>

@@ -319,7 +319,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 multipleClick.handleClick();
               }}
             >
-              v1.16.0
+              v1.19.0
             </div>
           </div>
         </div>

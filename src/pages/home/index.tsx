@@ -117,6 +117,17 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    const search = (() => {
+      const { language = [] } = app.cache.get("tv_search", {
+        language: [] as string[],
+      });
+      if (!language.length) {
+        return {};
+      }
+      return {
+        language: language.join("|"),
+      };
+    })();
     if (menu) {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
@@ -142,17 +153,6 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
     mediaRequest.onTip((msg) => {
       app.tip(msg);
     });
-    const search = (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
-      if (!language.length) {
-        return {};
-      }
-      return {
-        language: language.join("|"),
-      };
-    })();
     collectionList.init(search);
     updatedMediaList.run();
     historyList.init();

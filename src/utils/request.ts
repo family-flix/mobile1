@@ -27,7 +27,7 @@ export const request = {
       });
       const { code, msg, data } = resp.data;
       if (code !== 0) {
-        return Result.Err(msg);
+        return Result.Err(msg, code, data);
       }
       return Result.Ok(data);
     } catch (err) {
@@ -44,7 +44,7 @@ export const request = {
       });
       const { code, msg, data } = resp.data;
       if (code !== 0) {
-        return Result.Err(msg);
+        return Result.Err(msg, code, data);
       }
       return Result.Ok(data);
     } catch (err) {

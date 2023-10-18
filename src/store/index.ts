@@ -11,4 +11,3 @@ export const messageList = new ListCore(new RequestCore(fetchNotifications), {
   },
 });
 export const infoRequest = new RequestCore(fetchInfo);
-messageList.init();

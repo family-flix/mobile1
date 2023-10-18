@@ -144,6 +144,12 @@ ${url}`;
     () =>
       new InviteeSelectCore({
         onOk(invitee) {
+          if (!invitee) {
+            app.tip({
+              text: ["请选择分享好友"],
+            });
+            return;
+          }
           shareMediaRequest.run({
             season_id: view.query.season_id,
             target_member_id: invitee.id,
