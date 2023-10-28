@@ -17,7 +17,7 @@ import {
   Dialog,
 } from "@/components/ui";
 import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore } from "@/domains/ui";
-import { fetch_movie_list } from "@/domains/movie/services";
+import { fetchMovieList } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
@@ -53,7 +53,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   );
   const movieList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetch_movie_list), {
+      new ListCore(new RequestCore(fetchMovieList), {
         pageSize: 6,
         beforeSearch() {
           searchInput.setLoading(true);
@@ -72,6 +72,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           movieList.search({
             name: v,
           });
+          scrollView.scrollTo({ top: 0 });
         },
         onBlur(v) {
           movieList.search({
@@ -150,6 +151,9 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    view.onShow(() => {
+      app.setTitle(view.title);
+    });
     if (menu) {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });

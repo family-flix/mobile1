@@ -2,10 +2,9 @@ import * as React from "react";
 import { VariantProps, cva } from "class-variance-authority";
 import { X } from "lucide-react";
 
-import * as DialogPrimitive from "@/packages/ui/dialog";
-
-import { cn } from "@/utils";
 import { DialogCore } from "@/domains/ui/dialog";
+import * as DialogPrimitive from "@/packages/ui/dialog";
+import { cn } from "@/utils";
 
 const sheetVariants = cva("fixed z-50 scale-100 gap-4 rounded-tl-xl rounded-tr-xl bg-w-bg-2 text-w-fg-0 opacity-100", {
   variants: {

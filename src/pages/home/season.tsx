@@ -29,6 +29,18 @@ import { MediaRequestCore } from "@/components/media-request";
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
 
+  const seasonList = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchSeasonList), {
+        pageSize: 6,
+        beforeSearch() {
+          searchInput.setLoading(true);
+        },
+        afterSearch() {
+          searchInput.setLoading(false);
+        },
+      })
+  );
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
@@ -60,6 +72,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
           seasonList.search({
             name: v,
           });
+          scrollView.scrollTo({ top: 0 });
         },
         onBlur(v) {
           seasonList.search({
@@ -117,18 +130,6 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       },
     });
   });
-  const seasonList = useInstance(
-    () =>
-      new ListCore(new RequestCore(fetchSeasonList), {
-        pageSize: 6,
-        beforeSearch() {
-          searchInput.setLoading(true);
-        },
-        afterSearch() {
-          searchInput.setLoading(false);
-        },
-      })
-  );
   const mediaRequest = useInstance(() => new MediaRequestCore({}));
   const mediaRequestBtn = useInstance(
     () =>
@@ -152,6 +153,9 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    view.onShow(() => {
+      app.setTitle(view.title);
+    });
     if (menu) {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
@@ -198,13 +202,13 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
 
   return (
     <>
-      <div className="fixed z-20 top-0 w-full">
-        <div className="flex items-center justify-between w-full py-2 px-4 bg-w-bg-0 text-w-fg-2 space-x-3">
+      <div className="fixed z-20 top-0 w-full bg-w-bg-0">
+        <div className="flex items-center justify-between w-full py-2 px-4 text-w-fg-2 space-x-3">
           <div className="w-full">
             <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
           </div>
           <div
-            className="relative p-2 rounded-md bg-w-bg-2"
+            className="relative p-2 rounded-md bg-w-bg-3"
             onClick={() => {
               settingsSheet.show();
             }}
@@ -214,14 +218,14 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
           </div>
         </div>
       </div>
-      <ScrollView store={scrollView} className="bg-w-bg-0 pt-[56px]">
+      <ScrollView store={scrollView} className="text-w-fg-1 pt-[56px]">
         <div className="w-full min-h-screen">
           <ListView
             store={seasonList}
             className="h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
             skeleton={
               <>
-                <div className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer">
+                <div className="flex px-4 py-2 mb-3 bg-w-bg-3 cursor-pointer">
                   <div className="relative w-[128px] h-[198px] mr-4">
                     <Skeleton className="w-full h-full" />
                   </div>
@@ -231,7 +235,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                     <Skeleton className="mt-2 w-32 h-[22px]"></Skeleton>
                   </div>
                 </div>
-                <div className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer">
+                <div className="flex px-4 py-2 mb-3 bg-w-bg-3 cursor-pointer">
                   <div className="relative w-[128px] h-[198px] mr-4">
                     <Skeleton className="w-full h-full" />
                   </div>
@@ -267,7 +271,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                 return (
                   <div
                     key={id}
-                    className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer"
+                    className="flex px-4 py-2 mb-3 bg-w-bg-3 cursor-pointer"
                     onClick={() => {
                       tvPlayingPage.query = {
                         id: tv_id,

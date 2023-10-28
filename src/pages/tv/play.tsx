@@ -669,12 +669,12 @@ ${url}`;
           }
           return (
             <div className="relative box-border h-full safe-bottom">
-              <Tabs defaultValue="episode" className="">
+              <Tabs defaultValue="episode" className="h-full">
                 <TabsList className="absolute top-[-50px] left-4 z-10">
                   <TabsTrigger value="episode">集</TabsTrigger>
                   <TabsTrigger value="season">季</TabsTrigger>
                 </TabsList>
-                <TabsContent className="pt-8 border-0" value="episode">
+                <TabsContent className="border-0 h-full" value="episode">
                   <ScrollView contentClassName="pb-24" wrapClassName="top-12" store={episodeScrollView}>
                     {episodes_elm}
                   </ScrollView>

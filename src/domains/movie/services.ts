@@ -322,7 +322,7 @@ export type PlayHistoryItem = RequestedResource<typeof fetch_play_histories>["li
 /**
  * 获取电影列表
  */
-export async function fetch_movie_list(params: FetchParams & { name: string }) {
+export async function fetchMovieList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
   const resp = await request.get<
     ListResponse<{
@@ -400,4 +400,4 @@ export async function fetch_movie_list(params: FetchParams & { name: string }) {
     }),
   });
 }
-export type MovieItem = RequestedResource<typeof fetch_movie_list>["list"][0];
+export type MovieItem = RequestedResource<typeof fetchMovieList>["list"][0];

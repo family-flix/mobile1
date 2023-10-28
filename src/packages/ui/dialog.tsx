@@ -12,46 +12,6 @@ import { cn } from "@/utils";
 import { Portal as PortalPrimitive } from "./portal";
 import { Show } from "./show";
 
-export function Dialog(
-  props: {
-    store: DialogCore;
-  } & React.AllHTMLAttributes<HTMLElement>
-) {
-  const { store } = props;
-
-  const [state, setState] = useState(store.state);
-
-  useInitialize(() => {
-    store.onStateChange((nextState) => {
-      setState(nextState);
-    });
-  });
-
-  const { title, footer } = state;
-
-  return (
-    <Root store={store}>
-      <Portal store={store}>
-        <Overlay store={store} />
-        <Content store={store}>
-          <Header>
-            <Title>{title}</Title>
-          </Header>
-          {props.children}
-          <Show when={!!footer}>
-            <Footer>
-              <div className="space-x-2">
-                <Cancel store={store}>取消</Cancel>
-                <Submit store={store}>确认</Submit>
-              </div>
-            </Footer>
-          </Show>
-        </Content>
-      </Portal>
-    </Root>
-  );
-}
-
 const Root = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   return <div>{props.children}</div>;
 };

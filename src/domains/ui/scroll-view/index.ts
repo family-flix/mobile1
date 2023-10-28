@@ -234,11 +234,10 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
         }
         return i;
       })();
-      // console.log("[DOMAIN]ui/scroll-view - pulling", distanceX);
-      requestAnimationFrame(() => {
-        this.emit(Events.StateChange, { ...this.state });
-      });
-      // this.emit(Events.StateChange, { ...this.state });
+      // requestAnimationFrame(() => {
+      //   this.emit(Events.StateChange, { ...this.state });
+      // });
+      this.emit(Events.StateChange, { ...this.state });
       return;
     }
     if (!this.isPullToRefresh) {
@@ -270,12 +269,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     if (this.pullToRefresh.state === "releasing" && distResisted <= distThreshold) {
       this.pullToRefresh.state = "pulling";
     }
-    this.state.top = distResisted;
+    // this.state.top = distResisted;
     this.state.step = this.pullToRefresh.state;
-    requestAnimationFrame(() => {
-      this.emit(Events.StateChange, { ...this.state });
-    });
-    // this.emit(Events.StateChange, { ...this.state });
+    // requestAnimationFrame(() => {
+    //   this.emit(Events.StateChange, { ...this.state });
+    // });
+    this.emit(Events.StateChange, { ...this.state });
   }
   async endPulling() {
     // console.log("[DOMAIN]ui/scroll-view - endPulling", this.state.left);

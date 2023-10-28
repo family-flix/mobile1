@@ -6,7 +6,7 @@ import { useState } from "react";
 import { BackToTop, Button, Input, ScrollView, ListView, LazyImage } from "@/components/ui";
 import { ButtonCore, InputCore, ScrollViewCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
-import { fetch_movie_list } from "@/domains/movie/services";
+import { fetchMovieList } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
@@ -16,7 +16,7 @@ export const HomeMovieSearchPage: ViewComponent = (props) => {
   const { router, view } = props;
 
   const helper = useInstance(() => {
-    return new ListCore(new RequestCore(fetch_movie_list), {
+    return new ListCore(new RequestCore(fetchMovieList), {
       onLoadingChange(loading) {
         searchBtn.setLoading(loading);
       },

@@ -125,7 +125,7 @@ export const HomeLayout: ViewComponent = (props) => {
       });
       for (let i = 0; i < otherMenus.length; i += 1) {
         const m = otherMenus[i];
-        m.reset();
+        m.hide();
       }
       matchedMenu.select();
     }

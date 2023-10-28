@@ -50,14 +50,18 @@ export const ScrollView = React.memo(
     const Component = options[step];
 
     return (
-      <Root className={cn("scroll-view overflow-hidden w-full h-full", className)} style={style} {...restProps}>
+      <Root
+        className={cn("scroll-view overflow-hidden relative w-full h-full", className)}
+        style={style}
+        {...restProps}
+      >
         <Indicator className="w-full flex justify-center" store={store}>
           <Component />
         </Indicator>
         <Content
           store={store}
           className={cn(
-            "relative max-h-full overflow-y-auto scroll scroll--hidden",
+            "relative z-20 max-h-full overflow-y-auto scroll scroll--hidden",
             contentClassName,
             scrollable ? "" : ""
           )}
@@ -100,7 +104,7 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
     });
     store.enablePullToRefresh();
   });
-  const top = state.top;
+  // const top = state.top;
   // const opacity = top / 80;
   const opacity = 1;
 
@@ -111,7 +115,7 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
         display: "flex",
         alignItems: "flex-end",
         // paddingBottom: top > 0 ? 10 : 0,
-        height: top,
+        // height: top,
         opacity,
       }}
     >

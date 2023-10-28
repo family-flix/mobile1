@@ -6,8 +6,8 @@ import { connect } from "@/domains/ui/input/connect.web";
 import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 
-const Input = (props: { store: InputCore; prefix?: ReactElement; className?: string }) => {
-  const { store, prefix } = props;
+const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement; className?: string }) => {
+  const { store, prefix, focus } = props;
 
   const ref = useRef<HTMLInputElement>(null);
   const [state, setState] = useState(store.state);
@@ -18,6 +18,11 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
       return;
     }
     connect(store, $input);
+    if (focus) {
+      setTimeout(() => {
+        $input.focus();
+      }, 200);
+    }
     store.setMounted();
   }, []);
   useInitialize(() => {
@@ -50,7 +55,7 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
       <input
         ref={ref}
         className={cn(
-          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-2 text-fg-1 py-2 px-3 text-sm",
+          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-3 text-w-fg-0 py-2 px-3 text-sm",
           "focus:outline-none focus:ring-2 focus:ring-fg-4 focus:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "placeholder:text-w-fg-1",
@@ -79,7 +84,12 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
           store.handleBlur();
         }}
       />
-      <div className="absolute right-3 top-[50%] translate-y-[-50%] text-w-fg-1">
+      <div
+        className="absolute right-3 top-[50%] p-2 translate-y-[-50%]"
+        onClick={() => {
+          store.clear();
+        }}
+      >
         {(() => {
           if (!allowClear) {
             return null;
@@ -88,13 +98,8 @@ const Input = (props: { store: InputCore; prefix?: ReactElement; className?: str
             return null;
           }
           return (
-            <div
-              className="p-1 rounded-full bg-w-bg-0"
-              onClick={() => {
-                store.clear();
-              }}
-            >
-              <X className="w-4 h-4" />
+            <div className="p-1 rounded-full bg-w-fg-1 text-w-bg-0">
+              <X className="w-2 h-2" />
             </div>
           );
         })()}

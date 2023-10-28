@@ -177,9 +177,9 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1">
+      <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1" contentClassName="h-full">
         <div className="w-full h-full">
-          <div className="relative px-4 py-2 space-y-2">
+          <div className="relative px-4 py-2 space-y-2 h-full">
             <div className="py-1 flex space-x-2">
               <div
                 className="p-2 rounded bg-w-bg-2"
@@ -202,7 +202,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 })()}
               </div>
               <div
-                className="p-2 rounded bg-w-bg-2"
+                className="p-2 rounded bg-w-bg-3"
                 onClick={() => {
                   app.tip({ text: ["敬请期待"] });
                 }}
@@ -210,14 +210,14 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 <Settings2 className="w-5 h-5" />
               </div>
             </div>
-            <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-2">
+            <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-3">
               <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
                 <LazyImage className="w-full h-full" src={profile.avatar} />
               </div>
               <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
               <div></div>
             </div>
-            <div className="rounded-lg bg-w-bg-2 text-w-fg-0">
+            <div className="rounded-lg bg-w-bg-3 text-w-fg-0">
               <div
                 className="flex items-center justify-between"
                 onClick={() => {
@@ -322,6 +322,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               v1.19.0
             </div>
           </div>
+          <div className="h-[1px]"></div>
         </div>
       </ScrollView>
       <Dialog store={workInProgressTipDialog}>
@@ -331,7 +332,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         <div className="text-w-fg-1">
           <p>提交你认为存在问题或需要改进的地方</p>
           <div className="mt-4">
-            <Input prefix={<Pen className="w-4 h-4" />} store={reportInput} />
+            <Input prefix={<Pen className="w-4 h-4" />} store={reportInput} focus />
           </div>
         </div>
       </Dialog>
@@ -339,7 +340,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         <div className="text-w-fg-1">
           <p>你可以提交想看的电视剧或电影</p>
           <div className="mt-4">
-            <Input prefix={<Pen className="w-4 h-4" />} store={wantInput} />
+            <Input prefix={<Pen className="w-4 h-4" />} store={wantInput} focus />
           </div>
         </div>
       </Dialog>

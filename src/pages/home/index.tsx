@@ -117,6 +117,9 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
+    view.onShow(() => {
+      app.setTitle(view.title);
+    });
     const search = (() => {
       const { language = [] } = app.cache.get("tv_search", {
         language: [] as string[],

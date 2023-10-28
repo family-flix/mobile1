@@ -69,17 +69,22 @@ function ApplicationView() {
       if (!curView) {
         return;
       }
+      // console.log("cur view title", curView.title);
       if (curView.isShowForBack) {
         curView.isShowForBack = false;
         return;
       }
-      // console.log("cur view title", curView.title);
       if (app.env.android) {
         const r = curView.buildUrl();
         router.pushState(r);
       }
     });
     rootView.onSubViewsChange((nextSubViews) => {
+      // const visibleViews = nextSubViews.filter((view) => view.state.visible);
+      // const latest = visibleViews[visibleViews.length - 1];
+      // if (latest) {
+      //   app.setTitle(latest.title);
+      // }
       setSubViews(nextSubViews);
     });
     app.onReady(() => {

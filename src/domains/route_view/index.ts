@@ -435,6 +435,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.curView?.hide();
     this.prevView?.uncovered();
     this.curView = this.prevView;
+    // this.curView
     console.log(
       "[DOMAIN]route_view - before setPrevView",
       this.subViews.map((subView) => subView.title)

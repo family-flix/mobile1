@@ -75,7 +75,7 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
   }
   pendingState: (BottomMenuState & { clickForScrollToTop: boolean; clickForRefresh: boolean }) | null = null;
   /** 切换到其他按钮时，暂存该按钮状态 */
-  reset() {
+  hide() {
     if (!this.active) {
       return;
     }
@@ -98,19 +98,19 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
   disable = debounce(200, () => {
     this.clickForScrollToTop = false;
     this.clickForRefresh = false;
-    console.log("[DOMAIN]BottomMenu - disable");
+    // console.log("[DOMAIN]BottomMenu - disable");
     this.icon = this.defaultIcon;
     this.text = this.defaultText;
     this.emit(Events.StateChange, { ...this.state });
   });
-  setCanRefresh = debounce(200, () => {
+  setCanRefresh = () => {
     if (this.clickForRefresh) {
       return;
     }
     this.clickForRefresh = true;
-    this.emit(Events.StateChange, { ...this.state });
-  });
-  setCanTop = debounce(200, (values: { icon: unknown; text: string }) => {
+    this.update();
+  };
+  setCanTop = (values: { icon: unknown; text: string }) => {
     if (this.clickForScrollToTop) {
       return;
     }
@@ -118,6 +118,12 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
     this.icon = icon;
     this.text = text;
     this.clickForScrollToTop = true;
+    this.update();
+  };
+  update = debounce(200, () => {
+    if (!this.active) {
+      return;
+    }
     this.emit(Events.StateChange, { ...this.state });
   });
   setIcon(icon: unknown) {

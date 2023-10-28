@@ -1,13 +1,13 @@
 /**
  * @file 电视剧
  */
-import { Handler } from "mitt";
+import { debounce } from "lodash/fp";
 
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleResp } from "@/domains/subtitle/types";
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { Result } from "@/types";
 
 import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants";
@@ -22,7 +22,6 @@ import {
   TVEpisodeProfile,
   fetch_source_playing_info,
 } from "./services";
-import { debounce } from "lodash/fp";
 
 enum Events {
   /** 电视剧详情加载完成 */
