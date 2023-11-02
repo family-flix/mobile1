@@ -338,13 +338,14 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                               season,
                               poster_path,
                               updated,
+                              has_update,
                               air_date,
                               thumbnail,
                             } = history;
                             return (
                               <div
                                 key={id}
-                                className="bg-w-bg-2 rounded-lg"
+                                className="relative bg-w-bg-2 rounded-lg"
                                 onClick={() => {
                                   if (type === MediaTypes.TV && tv_id) {
                                     tvPlayingPage.query = {
@@ -361,7 +362,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                   }
                                 }}
                               >
-                                <div className="relative w-[240px] h-[148px] rounded-t-lg overflow-hidden">
+                                <div className="relative w-[240px] h-[148px] overflow-hidden rounded-t-lg">
                                   <LazyImage className="w-full h-full object-cover" src={thumbnail} alt={name} />
                                   <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
                                     <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
@@ -370,9 +371,13 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                                     </div>
                                   </div>
                                 </div>
+                                <Show when={!!has_update}>
+                                  <div className="absolute top-4 left-[-5px]">
+                                    <div className="huizhang">有更新</div>
+                                  </div>
+                                </Show>
                                 <div className="p-2 pb-4">
                                   <div className="">{name}</div>
-                                  {/* <div className="mr-4 text-sm">{updated}</div> */}
                                   <Show when={!!episode}>
                                     <div className="flex items-center text-sm text-w-fg-1">
                                       <p className="">{episode}</p>

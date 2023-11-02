@@ -12,19 +12,18 @@ import {
   LazyImage,
   Sheet,
   CheckboxGroup,
-  BackToTop,
   Button,
   Dialog,
 } from "@/components/ui";
+import { MediaRequestCore } from "@/components/media-request";
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore } from "@/domains/ui";
 import { fetchSeasonList } from "@/domains/tv/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions } from "@/constants";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { rootView, tvPlayingPage } from "@/store";
-import { MediaRequestCore } from "@/components/media-request";
+import { ViewComponentWithMenu } from "@/types";
+import { tvPlayingPage } from "@/store";
 
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
@@ -45,6 +44,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
     () =>
       new ScrollViewCore({
         onScroll(pos) {
+          console.log("[PAGE]home/season - onScroll", pos.scrollTop);
           if (!menu) {
             return;
           }
@@ -55,11 +55,13 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
             });
             return;
           }
-          if (pos.scrollTop === 0) {
+          if (pos.scrollTop <= 0) {
             menu.setCanRefresh();
             return;
           }
-          menu.disable();
+          if (pos.scrollTop >= 5) {
+            menu.disable();
+          }
         },
       })
   );
@@ -218,8 +220,8 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
           </div>
         </div>
       </div>
-      <ScrollView store={scrollView} className="text-w-fg-1 pt-[56px]">
-        <div className="w-full min-h-screen">
+      <ScrollView store={scrollView} className="box-border text-w-fg-1 pt-[56px]">
+        <div className="w-full h-full">
           <ListView
             store={seasonList}
             className="h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
@@ -267,6 +269,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                   genres,
                   air_date,
                   poster_path = "",
+                  actors,
                 } = season;
                 return (
                   <div
@@ -295,7 +298,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                       <div className="flex items-center">
                         <h2 className="text-xl text-w-fg-0">{name}</h2>
                       </div>
-                      <div className="flex items-center mt-1 ">
+                      <div className="flex items-center mt-1">
                         <div>{air_date}</div>
                         <p className="mx-2 ">·</p>
                         <p className="whitespace-nowrap">{season_text}</p>
@@ -305,6 +308,11 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                           <div className="pl-4">{vote}</div>
                         </div>
                       </div>
+                      {actors ? (
+                        <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
+                          {actors}
+                        </div>
+                      ) : null}
                       <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
                         {genres.map((tag) => {
                           return (
@@ -327,6 +335,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
             })()}
           </ListView>
         </div>
+        <div style={{ height: 1 }} />
       </ScrollView>
       <Sheet store={settingsSheet}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">

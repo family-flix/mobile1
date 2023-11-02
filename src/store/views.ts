@@ -22,6 +22,9 @@ import { Test1Page } from "@/pages/test1";
 import { NotFoundPage } from "@/pages/not-found";
 import { InviteeListPage } from "@/pages/invitee";
 import { MediaSharePage } from "@/pages/invitee/share";
+import { TVChannelPlayingPage } from "@/pages/live/play";
+import { TVLiveListPage } from "@/pages/live/list";
+import { TVChannelTestPlayingPage } from "@/pages/live/demo";
 
 export const pages: RouteViewCore[] = [];
 onViewCreated((created) => {
@@ -95,6 +98,21 @@ export const inviteeListPage = new RouteViewCore({
   title: "邀请的好友",
   component: InviteeListPage,
 });
+export const tvChannelListPage = new RouteViewCore({
+  key: "/live",
+  title: "电视频道列表",
+  component: TVLiveListPage,
+});
+export const tvChannelPlayingPage = new RouteViewCore({
+  key: "/live_playing",
+  title: "电视频道",
+  component: TVChannelPlayingPage,
+});
+export const tvChannelTestPlayingPage = new RouteViewCore({
+  key: "/live_playing_test",
+  title: "电视频道",
+  component: TVChannelTestPlayingPage,
+});
 export const outerPlayerPage = new RouteViewCore({
   key: "/out_players",
   title: "调用外部播放器",
@@ -125,7 +143,17 @@ export const rootView = new RouteViewCore({
   title: "ROOT",
   component: "div",
   layers: true,
-  children: [homeLayout, tvPlayingPage, moviePlayingPage, inviteeListPage, messagesPage, mediaSharePage],
+  children: [
+    homeLayout,
+    tvPlayingPage,
+    moviePlayingPage,
+    inviteeListPage,
+    messagesPage,
+    mediaSharePage,
+    tvChannelPlayingPage,
+    tvChannelTestPlayingPage,
+    tvChannelListPage,
+  ],
 });
 export function getRootView() {
   return rootView;

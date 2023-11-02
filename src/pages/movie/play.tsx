@@ -147,6 +147,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   );
   const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
+  const scrollView2 = useInstance(() => new ScrollViewCore());
 
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
@@ -553,8 +554,8 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           }
           const { name, overview } = profile;
           return (
-            <div className="max-h-full overflow-y-auto text-w-fg-1">
-              <div className="pb-24">
+            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
+              <div className="text-w-fg-1">
                 <div className="px-4">
                   <div className="text-xl">{name}</div>
                   <div className="text-sm">{overview}</div>
@@ -592,7 +593,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollView>
           );
         })()}
       </Sheet>

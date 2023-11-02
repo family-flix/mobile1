@@ -58,10 +58,14 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
       overview: string;
       poster_path: string;
       backdrop_path: string;
-      first_air_date: string;
+      air_date: string;
       genres: string;
       origin_country: string;
       vote_average: number;
+      actors: {
+        id: string;
+        name: string;
+      }[];
     }>
   >("/api/season/list", {
     ...rest,
@@ -83,18 +87,19 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
         overview,
         poster_path,
         vote_average,
-        first_air_date,
+        air_date,
         genres,
         origin_country,
         episode_count,
         cur_episode_count,
+        actors = [],
       } = season;
       return {
         id,
         tv_id,
         name: name || original_name,
         season_text: season_to_chinese_num(season_text),
-        air_date: dayjs(first_air_date).year(),
+        air_date: dayjs(air_date).year(),
         episode_count,
         cur_episode_count,
         episode_count_text: (() => {
@@ -127,6 +132,7 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
               })
               .filter(Boolean)
           ),
+        actors: actors.map((actor) => actor.name).join(" / "),
       };
     }),
   });
@@ -437,7 +443,10 @@ export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: 
         season_id,
         season_text: season_to_chinese_num(season_number),
         episode_text: (() => {
-          if (name.match(/第[^集]{1,}集/)) {
+          if (name.match(/第[^集期场局]{1,}[集期场局]/)) {
+            return name;
+          }
+          if (episode_number.match(/^[0-9]/)) {
             return name;
           }
           return `${episode_to_chinese_num(episode_number)}、${name}`;

@@ -95,14 +95,14 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   /** 貌似有点问题 */
-  disable = debounce(200, () => {
+  disable = () => {
+    // console.log("[DOMAIN]BottomMenu - disable");
     this.clickForScrollToTop = false;
     this.clickForRefresh = false;
-    // console.log("[DOMAIN]BottomMenu - disable");
     this.icon = this.defaultIcon;
     this.text = this.defaultText;
     this.emit(Events.StateChange, { ...this.state });
-  });
+  };
   setCanRefresh = () => {
     if (this.clickForRefresh) {
       return;

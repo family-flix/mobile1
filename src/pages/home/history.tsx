@@ -146,10 +146,10 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
           <div className="">
             <ListView
               store={historyList}
-              className="grid grid-cols-1 space-y-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+              className="grid grid-cols-1 space-y-3 px-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
               skeleton={
                 <>
-                  <div className="flex px-4 py-2 cursor-pointer">
+                  <div className="flex py-2 cursor-pointer">
                     <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
                     <div className="relative flex-1 mt-2">
                       <Skeleton className="w-full h-[32px]"></Skeleton>
@@ -179,7 +179,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                   <Node
                     key={id}
                     store={historyCard.bind(history)}
-                    className="relative flex px-4 py-2 cursor-pointer select-none"
+                    className="relative flex py-2 cursor-pointer select-none"
                   >
                     <div className="z-50 absolute right-2 bottom-2">
                       <div
@@ -212,6 +212,15 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                         }
                       })()}
                     </div>
+                    {(() => {
+                      if (has_update) {
+                        return (
+                          <div className="absolute z-50 left-[-4px] top-6">
+                            <div className="huizhang">有更新</div>
+                          </div>
+                        );
+                      }
+                    })()}
                     <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis">
                       <h2 className="text-xl">
                         {/* <span className="mr-2">
@@ -250,22 +259,6 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                         >
                           {tv_id ? "电视剧" : "电影"}
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {(() => {
-                          const nodes: React.ReactNode[] = [];
-                          if (has_update) {
-                            nodes.push(
-                              <div key="update_1" className="inline-flex items-center py-1 px-2 rounded-sm bg-w-brand">
-                                <div className="text-[14px] leading-none text-w-fg-1">在你看过后有更新</div>
-                              </div>
-                            );
-                          }
-                          if (!nodes.length) {
-                            return null;
-                          }
-                          return <div className="mt-4">{nodes}</div>;
-                        })()}
                       </div>
                     </div>
                   </Node>

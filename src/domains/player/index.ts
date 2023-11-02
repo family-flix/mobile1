@@ -52,7 +52,7 @@ enum Events {
 }
 type TheTypesOfEvents = {
   [Events.Mounted]: boolean;
-  [Events.UrlChange]: MediaSourceProfile;
+  [Events.UrlChange]: { url: string; thumbnail?: string };
   [Events.CurrentTimeChange]: { currentTime: number };
   [Events.ResolutionChange]: {
     type: EpisodeResolutionTypes;
@@ -112,7 +112,7 @@ type PlayerState = {
 
 export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   /** 视频信息 */
-  metadata: MediaSourceProfile | null = null;
+  metadata: { url: string; thumbnail?: string } | null = null;
   static Events = Events;
 
   private _timer: null | number = null;
@@ -318,7 +318,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       // 300 的延迟是 video 保证重渲染 play inline 后，才开始播放
     }, 800);
   }
-  loadSource(video: MediaSourceProfile) {
+  loadSource(video: { url: string; thumbnail?: string }) {
     this.metadata = video;
     this._canPlay = false;
     this.emit(Events.UrlChange, video);

@@ -25,7 +25,15 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
 import { Show } from "@/components/ui/show";
-import { messagesPage, infoRequest, inviteeListPage, messageList, rootView } from "@/store";
+import {
+  messagesPage,
+  infoRequest,
+  inviteeListPage,
+  messageList,
+  rootView,
+  tvChannelListPage,
+  tvChannelTestPlayingPage,
+} from "@/store";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
@@ -218,6 +226,22 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div></div>
             </div>
             <div className="rounded-lg bg-w-bg-3 text-w-fg-0">
+              {/* <div
+                className="flex items-center justify-between"
+                onClick={() => {
+                  app.showView(tvChannelListPage);
+                }}
+              >
+                <div className="flex items-center">
+                  <div className="relative p-4">
+                    <Tv2 className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 py-4">
+                    <div>电视频道</div>
+                  </div>
+                </div>
+              </div> */}
+              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
               <div
                 className="flex items-center justify-between"
                 onClick={() => {
@@ -319,7 +343,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 multipleClick.handleClick();
               }}
             >
-              v1.19.0
+              v1.20.0
             </div>
           </div>
           <div className="h-[1px]"></div>

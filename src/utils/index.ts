@@ -24,6 +24,9 @@ export function remove_str(filename: string, index: number = 0, length: number) 
 }
 
 export function episode_to_chinese_num(str: string) {
+  if (str.match(/^[0-9]/)) {
+    return str;
+  }
   const regex = /(\d+)/g;
   let s = str.replace(/[eE]/g, "");
   const matches = s.match(regex);

@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import {
-  BackToTop,
   ScrollView,
   Sheet,
   ListView,
@@ -16,23 +15,36 @@ import {
   Button,
   Dialog,
 } from "@/components/ui";
+import { MediaRequestCore } from "@/components/media-request";
 import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore } from "@/domains/ui";
 import { fetchMovieList } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
-import { moviePlayingPage, rootView } from "@/store";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { MediaRequestCore } from "@/components/media-request";
+import { moviePlayingPage } from "@/store";
+import { ViewComponentWithMenu } from "@/types";
 
 export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
 
+  const movieList = useInstance(
+    () =>
+      new ListCore(new RequestCore(fetchMovieList), {
+        pageSize: 6,
+        beforeSearch() {
+          searchInput.setLoading(true);
+        },
+        afterSearch() {
+          searchInput.setLoading(false);
+        },
+      })
+  );
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
         onScroll(pos) {
+          console.log("[PAGE]home/movie - onScroll", pos.scrollTop);
           if (!menu) {
             return;
           }
@@ -43,23 +55,13 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
             });
             return;
           }
-          if (pos.scrollTop === 0) {
+          if (pos.scrollTop <= 0) {
             menu.setCanRefresh();
             return;
           }
-          menu.disable();
-        },
-      })
-  );
-  const movieList = useInstance(
-    () =>
-      new ListCore(new RequestCore(fetchMovieList), {
-        pageSize: 6,
-        beforeSearch() {
-          searchInput.setLoading(true);
-        },
-        afterSearch() {
-          searchInput.setLoading(false);
+          if (pos.scrollTop >= 5) {
+            menu.disable();
+          }
         },
       })
   );
@@ -232,8 +234,8 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           </div>
         </div>
       </div>
-      <ScrollView store={scrollView} className="bg-w-bg-0 pt-[56px]">
-        <div className="w-full min-h-screen">
+      <ScrollView store={scrollView} className="box-border bg-w-bg-0 pt-[56px]">
+        <div className="w-full h-full">
           <ListView
             store={movieList}
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
@@ -271,7 +273,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
           >
             {(() => {
               return dataSource.map((movie) => {
-                const { id, name, overview, vote, genres, air_date, poster_path = "", runtime } = movie;
+                const { id, name, vote, genres, air_date, poster_path = "", runtime, actors } = movie;
                 return (
                   <div
                     key={id}
@@ -285,31 +287,32 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                   >
                     <div className="relative w-[128px] h-[198px] mr-4">
                       <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
-                      <div className="absolute left-2 top-2">
-                        {/* <PercentCircle percent={vote * 10} width={80} height={80} style={{ width: 20, height: 20 }} /> */}
-                        {/* <div className="absolute">{vote}</div> */}
-                      </div>
+                      {runtime && (
+                        <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                          <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                          <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                            {runtime}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="mt-2 flex-1 max-w-full overflow-hidden">
                       <div className="flex items-center">
                         <h2 className="text-xl text-w-fg-0">{name}</h2>
                       </div>
-                      <div className="flex items-center mt-1 ">
+                      <div className="flex items-center mt-1">
                         <div>{air_date}</div>
                         <p className="mx-2 ">·</p>
                         <div className="relative flex items-center">
                           <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
                           <div className="pl-4">{vote}</div>
                         </div>
-                        {runtime ? (
-                          <>
-                            <p className="mx-2 ">·</p>
-                            <div className="flex items-center">
-                              <div>{runtime}</div>
-                            </div>
-                          </>
-                        ) : null}
                       </div>
+                      {actors ? (
+                        <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
+                          {actors}
+                        </div>
+                      ) : null}
                       <div className="mt-2 flex items-center gap-2 flex-wrap max-w-full">
                         {genres.map((g) => {
                           return (
@@ -332,6 +335,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
             })()}
           </ListView>
         </div>
+        <div style={{ height: 1 }} />
       </ScrollView>
       <Sheet store={settingsSheet}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">

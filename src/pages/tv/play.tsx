@@ -223,6 +223,7 @@ ${url}`;
   const nextEpisodeLoader = useInstance(() => new LoaderOverrideCore({}));
   const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
+  const scrollView2 = useInstance(() => new ScrollViewCore());
 
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
@@ -629,7 +630,7 @@ ${url}`;
           </div>
         </div>
       </ScrollView>
-      <Sheet store={episodesSheet} className="">
+      <Sheet store={episodesSheet} className="" size="lg">
         {(() => {
           if (profile === null) {
             return <div>Loading</div>;
@@ -813,63 +814,65 @@ ${url}`;
           }
           const { name, overview } = profile;
           return (
-            <div className="max-h-full text-w-fg-1 overflow-y-auto">
-              <div className="pb-24">
-                <div className="px-4">
-                  <div className="text-xl">{name}</div>
-                  <div className="text-sm">{overview}</div>
-                  <div className="mt-4 text-lg underline-offset-1">其他</div>
-                  <div className="flex mt-2 space-x-2">
-                    <div className="">
-                      {(() => {
-                        if (!subtileState.enabled) {
-                          return null;
-                        }
-                        return (
-                          <div
-                            className=""
-                            onClick={() => {
-                              subtitleSheet.show();
-                            }}
-                          >
-                            <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                              <Subtitles className="w-4 h-4" />
+            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
+              <div className="text-w-fg-1">
+                <div className="">
+                  <div className="px-4">
+                    <div className="text-xl">{name}</div>
+                    <div className="text-sm">{overview}</div>
+                    <div className="mt-4 text-lg underline-offset-1">其他</div>
+                    <div className="flex mt-2 space-x-2">
+                      <div className="">
+                        {(() => {
+                          if (!subtileState.enabled) {
+                            return null;
+                          }
+                          return (
+                            <div
+                              className=""
+                              onClick={() => {
+                                subtitleSheet.show();
+                              }}
+                            >
+                              <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                                <Subtitles className="w-4 h-4" />
+                              </div>
+                              <div className="mt-1 text-sm">字幕</div>
                             </div>
-                            <div className="mt-1 text-sm">字幕</div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div>
-                      <div
-                        className=""
-                        onClick={() => {
-                          reportSheet.show();
-                        }}
-                      >
-                        <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                          <Send className="w-4 h-4" />
-                        </div>
-                        <div className="mt-1 text-sm">提交问题</div>
+                          );
+                        })()}
                       </div>
-                    </div>
-                    <div>
-                      <div
-                        className=""
-                        onClick={() => {
-                          inviteeSelect.dialog.show();
-                        }}
-                      >
-                        <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                          <Share2 className="w-4 h-4" />
+                      <div>
+                        <div
+                          className=""
+                          onClick={() => {
+                            reportSheet.show();
+                          }}
+                        >
+                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                            <Send className="w-4 h-4" />
+                          </div>
+                          <div className="mt-1 text-sm">提交问题</div>
                         </div>
-                        <div className="mt-1 text-sm">分享</div>
+                      </div>
+                      <div>
+                        <div
+                          className=""
+                          onClick={() => {
+                            inviteeSelect.dialog.show();
+                          }}
+                        >
+                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                            <Share2 className="w-4 h-4" />
+                          </div>
+                          <div className="mt-1 text-sm">分享</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollView>
           );
         })()}
       </Sheet>

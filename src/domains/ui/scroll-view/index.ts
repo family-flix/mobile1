@@ -195,7 +195,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       return distance;
     })();
     (() => {
-      if (this.isPullToBack || this.isPullToBack) {
+      if (this.isPullToBack) {
         return;
       }
       if (pullingDistance.x > 10 && this.state.pullToBack.enabled) {
@@ -204,14 +204,14 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
           this._disablePullToRefresh = true;
         }
       }
-      if (Math.abs(pullingDistance.y) > 10) {
-        if (!this._disablePullToRefresh) {
-          this._disablePullToBack = true;
-          if (this._pullToRefresh && pullingDistance.y > 10) {
-            this.isPullToRefresh = true;
-          }
-        }
-      }
+      // if (Math.abs(pullingDistance.y) > 10) {
+      //   if (!this._disablePullToRefresh) {
+      //     this._disablePullToBack = true;
+      //     if (this._pullToRefresh && pullingDistance.y > 10) {
+      //       this.isPullToRefresh = true;
+      //     }
+      //   }
+      // }
     })();
     // console.log("[DOMAIN]ui/scroll-view - pulling", isPullToRefresh);
     if (this.isPullToBack) {
@@ -363,9 +363,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
    * 调用后触发下拉刷新动画，效果与用户手动下拉刷新一致
    */
   startPullToRefresh() {
-    if (this.canPullToRefresh === false) {
-      return;
-    }
+    // console.log("[DOMAIN]ui/scroll-view - startPullToRefresh");
     this.pullToRefresh.pullStartY = 0;
     this.pullToRefresh.pullMoveY = 0;
     this.pullToRefresh.distY = PULL_TO_REFRESH_MAX_DISTANCE;

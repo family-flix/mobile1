@@ -267,3 +267,16 @@ export function shareMediaToInvitee(values: { season_id?: string; movie_id?: str
     target_member_id,
   });
 }
+
+/** 获取电视频道列表 */
+export function fetchTVChannelList(params: FetchParams) {
+  return request.post<
+    ListResponse<{
+      id: string;
+      name: string;
+      group_name: string;
+      logo: string;
+      url: string;
+    }>
+  >("/api/tv_live/list", params);
+}

@@ -332,11 +332,15 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
       overview: string;
       poster_path: string;
       backdrop_path: string;
-      first_air_date: string;
+      air_date: string;
       vote_average: number;
       genres: string;
       origin_country: string;
       runtime: number;
+      actors: {
+        id: string;
+        name: string;
+      }[];
     }>
   >("/api/movie/list", {
     ...rest,
@@ -356,17 +360,18 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
         overview,
         runtime,
         poster_path,
-        first_air_date,
+        air_date,
         vote_average,
         genres,
         origin_country,
+        actors = [],
       } = movie;
       return {
         id,
         name: name || original_name,
         overview,
         poster_path,
-        air_date: dayjs(first_air_date).year(),
+        air_date: dayjs(air_date).format("YYYY-MM-DD"),
         vote: (() => {
           if (vote_average === 0) {
             return "N/A";
@@ -392,10 +397,14 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
           }
           const [hour, minute] = minute_to_hour(runtime);
           if (hour) {
+            if (minute === 0) {
+              return `${hour}h`;
+            }
             return `${hour}h${minute}m`;
           }
           return `${minute}m`;
         })(),
+        actors: actors.map((actor) => actor.name).join(" / "),
       };
     }),
   });
