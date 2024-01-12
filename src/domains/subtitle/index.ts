@@ -1,10 +1,10 @@
 import { Handler } from "mitt";
 import axios from "axios";
 
+import { fetch_subtitle_url } from "@/services";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
 
-// import { fetch_subtitle_url } from "./services";
 import { parseSubtitleContent, parseSubtitleUrl, timeStrToSeconds } from "./utils";
 import { SubtitleParagraph } from "./types";
 
@@ -51,8 +51,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
         });
       }
       if (type === 2) {
-        const mod = await import("./services");
-        const r1 = await mod.fetch_subtitle_url({ id });
+        const r1 = await fetch_subtitle_url({ id });
         if (r1.error) {
           return Result.Err(r1.error);
         }

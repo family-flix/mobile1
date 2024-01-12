@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
-import { SubtitleResp } from "@/domains/subtitle/types";
+import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
-import { MediaSource, TVGenresTexts, TVSourceTexts } from "@/constants";
+import { MediaOriginCountry, SeasonMediaOriginCountryTexts, SeasonGenresTexts } from "@/constants";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
 
 import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants";
@@ -122,13 +122,13 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
         genres: origin_country
           .split("|")
           .map((country) => {
-            return TVSourceTexts[country as MediaSource] ?? "unknown";
+            return SeasonMediaOriginCountryTexts[country as MediaOriginCountry] ?? "unknown";
           })
           .concat(
             genres
               .split("|")
               .map((g) => {
-                return TVGenresTexts[g];
+                return SeasonGenresTexts[g];
               })
               .filter(Boolean)
           ),
@@ -179,7 +179,7 @@ export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: 
         runtime: number;
         season_id: string;
         sources: MediaSourceProfileRes[];
-        subtitles: SubtitleResp[];
+        subtitles: SubtitleFileResp[];
       }[];
     }[];
     /** 会根据用户播放历史返回正在播放的剧集，或第一集 */
@@ -193,7 +193,7 @@ export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: 
       current_time: number;
       thumbnail: string | null;
       sources: MediaSourceProfileRes[];
-      subtitles: SubtitleResp[];
+      subtitles: SubtitleFileResp[];
     };
     cur_season: {
       id: string;
@@ -372,7 +372,7 @@ export async function fetch_episode_profile(params: { id: string; type?: Episode
       /** 影片高度 */
       height: number;
     }[];
-    subtitles: SubtitleResp[];
+    subtitles: SubtitleFileResp[];
   }>(`/api/episode/${id}`, {
     type: params.type,
   });
@@ -419,7 +419,7 @@ export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: 
       runtime: number;
       season_id: string;
       sources: MediaSourceProfileRes[];
-      subtitles: SubtitleResp[];
+      subtitles: SubtitleFileResp[];
     }>
   >(`/api/tv/${tv_id}/season/${season_id}/episode/list`, {
     page,
@@ -472,7 +472,7 @@ export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: 
 /**
  * 获取视频源播放信息
  */
-export async function fetch_source_playing_info(body: { episode_id: string; file_id: string }) {
+export async function fetchSourcePlayingInfo(body: { episode_id: string; file_id: string }) {
   const res = await request.get<{
     id: string;
     name: string;
@@ -505,7 +505,7 @@ export async function fetch_source_playing_info(body: { episode_id: string; file
       /** 影片高度 */
       height: number;
     }[];
-    subtitles: SubtitleResp[];
+    subtitles: SubtitleFileResp[];
   }>(`/api/episode/${body.episode_id}/source/${body.file_id}`);
   if (res.error) {
     return Result.Err(res.error);

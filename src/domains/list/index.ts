@@ -1,11 +1,9 @@
 /**
  * @file 分页领域
  */
-import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
+import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { omit } from "./utils";
@@ -309,6 +307,12 @@ export class ListCore<
     if (params.page === 1 && response.dataSource.length === 0) {
       response.empty = true;
     }
+    // console.log(response.next_marker);
+    // @ts-ignore
+    if (response.next_marker) {
+      // @ts-ignore
+      this.params.next_marker = response.next_marker;
+    }
     // console.log(...this.log('3、afterProcessor', response));
     const responseIsEmpty = response.dataSource === undefined;
     if (responseIsEmpty) {
@@ -340,8 +344,10 @@ export class ListCore<
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
-  async initIfInitial() {
+  /** 无论如何都会触发一次 state change */
+  async initAny() {
     if (!this.response.initial) {
+      this.emit(Events.StateChange, { ...this.response });
       return Result.Ok(this.response);
     }
     return this.init();
@@ -396,6 +402,35 @@ export class ListCore<
       ...res.data,
     };
     this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
+    return Result.Ok({ ...this.response });
+  }
+  nextWithCursor() {}
+  /** 强制请求下一页，如果下一页没有数据，page 不改变 */
+  async loadMoreForce() {
+    const { page, ...restParams } = this.params;
+    const res = await this.fetch({
+      ...restParams,
+      page: page + 1,
+    });
+    if (res.error) {
+      this.tip({ icon: "error", text: [res.error.message] });
+      this.response.error = res.error;
+      this.emit(Events.Error, res.error);
+      this.emit(Events.StateChange, { ...this.response });
+      return Result.Err(res.error);
+    }
+    if (res.data.dataSource.length === 0) {
+      this.params.page -= 1;
+    }
+    const prevItems = this.response.dataSource;
+    this.response = {
+      ...this.response,
+      ...res.data,
+    };
+    this.response.dataSource = prevItems.concat(res.data.dataSource);
+    this.emit(Events.StateChange, { ...this.response });
+    this.emit(Events.DataSourceAdded, [...res.data.dataSource]);
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
@@ -526,6 +561,7 @@ export class ListCore<
     const res = await this.fetch({
       ...restParams,
       page: 1,
+      next_marker: "",
     });
     this.response.refreshing = false;
     if (res.error) {
@@ -591,12 +627,19 @@ export class ListCore<
     this.emit(Events.StateChange, { ...this.response });
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
+  replaceDataSource(dataSource: T[]) {
+    this.response.dataSource = dataSource;
+    this.emit(Events.DataSourceChange, [...this.response.dataSource]);
+  }
   /**
    * 手动修改当前 dataSource
    * @param fn
    */
-  modifyDataSource(dataSource: T[]) {
-    this.response.dataSource = dataSource;
+  modifyDataSource(fn: (v: T) => T) {
+    this.response.dataSource = this.response.dataSource.map((item) => {
+      return fn(item);
+    });
+    this.emit(Events.StateChange, { ...this.response });
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
   /**

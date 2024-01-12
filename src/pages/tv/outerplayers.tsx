@@ -12,6 +12,7 @@ import { ScrollViewCore } from "@/domains/ui";
 import { homeIndexPage, rootView } from "@/store";
 import { NavigatorCore } from "@/domains/navigator";
 import { stringify } from "qs";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   // { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },
@@ -41,7 +42,7 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
     const { type: resolution } = app.cache.get("player_settings", {
       volume: 0.5,
       rate: 1,
-      type: "SD",
+      type: MediaResolutionTypes.SD,
     });
     const tv = new TVCore({
       resolution,

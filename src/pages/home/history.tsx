@@ -5,13 +5,14 @@ import React, { useState } from "react";
 import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
-import { ScrollViewCore, DialogCore, NodeInListCore } from "@/domains/ui";
-import { MediaTypes, PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/tv/services";
+import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
+import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { moviePlayingPage, rootView, tvPlayingPage } from "@/store";
+import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store";
+import { MediaTypes } from "@/constants";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { Show } from "@/components/ui/show";
 
@@ -56,6 +57,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
         },
       })
   );
+  const poster = useInstance(() => new ImageInListCore());
   const cur = useInstance(() => new RefCore<PlayHistoryItem>());
   const scrollView = useInstance(
     () =>
@@ -93,20 +95,19 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
           if (!history) {
             return;
           }
-          const { type, tv_id, season_id, movie_id } = history;
-          if (type === MediaTypes.TV && tv_id) {
-            tvPlayingPage.query = {
-              id: tv_id,
-              season_id,
+          const { type, media_id } = history;
+          if (type === MediaTypes.Season) {
+            seasonPlayingPageV2.query = {
+              id: media_id,
             };
-            app.showView(tvPlayingPage);
+            app.showView(seasonPlayingPageV2);
             return;
           }
-          if (type === MediaTypes.Movie && movie_id) {
-            moviePlayingPage.params = {
-              id: movie_id,
+          if (type === MediaTypes.Movie) {
+            moviePlayingPageV2.query = {
+              id: media_id,
             };
-            app.showView(moviePlayingPage);
+            app.showView(moviePlayingPageV2);
             return;
           }
         },
@@ -163,18 +164,8 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
               }
             >
               {dataSource.map((history) => {
-                const {
-                  id,
-                  tv_id,
-                  name,
-                  poster_path,
-                  episode,
-                  season,
-                  updated,
-                  episode_count_text,
-                  has_update,
-                  percent,
-                } = history;
+                const { id, type, name, poster_path, updated, episode_text, episode_count_text, has_update, percent } =
+                  history;
                 return (
                   <Node
                     key={id}
@@ -194,7 +185,7 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                       </div>
                     </div>
                     <div className="z-10 relative w-[128px] h-[198px] rounded-lg overflow-hidden mr-4">
-                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                      <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
                       <div
                         className="absolute w-full bottom-0 bg-gray-600 opacity-50"
                         style={{ height: `${percent}%` }}
@@ -223,30 +214,11 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                     })()}
                     <div className="relative flex-1 max-w-sm overflow-hidden text-ellipsis">
                       <h2 className="text-xl">
-                        {/* <span className="mr-2">
-                          {(() => {
-                            if (tv_id) {
-                              return (
-                                <span className="text-[14px] leading-none text-gray-800 dark:text-gray-300">
-                                  电视剧
-                                </span>
-                              );
-                            }
-                            if (movie_id) {
-                              return (
-                                <span className="text-[14px] leading-none text-gray-800 dark:text-gray-300">电影</span>
-                              );
-                            }
-                            return null;
-                          })()}
-                        </span> */}
                         <span className="text-w-fg-0">{name}</span>
                       </h2>
-                      <Show when={!!episode}>
+                      <Show when={!!episode_text}>
                         <div className="flex items-center mt-2">
-                          <p className="">{episode}</p>
-                          <p className="mx-2">·</p>
-                          <p className="">{season}</p>
+                          <p className="">{episode_text}</p>
                         </div>
                       </Show>
                       <div className="mt-2">{updated} 看过</div>
@@ -257,7 +229,15 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
                             lineHeight: "12px",
                           }}
                         >
-                          {tv_id ? "电视剧" : "电影"}
+                          {(() => {
+                            if (type === MediaTypes.Season) {
+                              return "电视剧";
+                            }
+                            if (type === MediaTypes.Movie) {
+                              return "电影";
+                            }
+                            return null;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -268,7 +248,6 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
           </div>
         </div>
       </ScrollView>
-      {/* <BackToTop store={scrollView} /> */}
       <Dialog store={deletingConfirmDialog}>
         <div>确认删除吗？</div>
       </Dialog>

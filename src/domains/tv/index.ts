@@ -6,7 +6,7 @@ import { debounce } from "lodash/fp";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { SubtitleCore } from "@/domains/subtitle";
-import { SubtitleResp } from "@/domains/subtitle/types";
+import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { BaseDomain, Handler } from "@/domains/base";
 import { Result } from "@/types";
 
@@ -20,7 +20,7 @@ import {
   fetchEpisodesOfSeason,
   TVSeasonProfile,
   TVEpisodeProfile,
-  fetch_source_playing_info,
+  fetchSourcePlayingInfo,
 } from "./services";
 
 enum Events {
@@ -61,7 +61,7 @@ type TheTypesOfEvents = {
     enabled: boolean;
     visible: boolean;
     texts: string[];
-    others: (SubtitleResp & { selected: boolean })[];
+    others: (SubtitleFileResp & { selected: boolean })[];
   };
   [Events.SubtitleLoaded]: SubtitleCore;
 };
@@ -144,7 +144,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   playing = false;
   _subtitleStore: SubtitleCore | null = null;
   /** 字幕文件列表 */
-  _subtitles: SubtitleResp[] = [];
+  _subtitles: SubtitleFileResp[] = [];
   /** 字幕 */
   subtitle: {
     url: string | null;
@@ -152,7 +152,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     enabled: boolean;
     visible: boolean;
     texts: string[];
-    others: (SubtitleResp & { selected: boolean })[];
+    others: (SubtitleFileResp & { selected: boolean })[];
   } = {
     url: null,
     index: "0",
@@ -223,7 +223,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     };
     // this.curEpisode = curEpisode;
     this.curSeason = curSeason;
-    this.episodeList.modifyDataSource(curEpisodes);
+    // this.episodeList.modifyDataSource(curEpisodes);
     this.episodeList.setParams((prev) => {
       return {
         ...prev,
@@ -342,7 +342,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[DOMAIN]tv/index - before loadSubtitleFile", subtitleFile);
     this.loadSubtitleFile(subtitleFile, currentTime);
   }
-  async loadSubtitleFile(subtitleFile: SubtitleResp, currentTime: number) {
+  async loadSubtitleFile(subtitleFile: SubtitleFileResp, currentTime: number) {
     // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this.subtitle);
     if (subtitleFile.url === this.subtitle.url) {
       return;
@@ -593,7 +593,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (this.curSource && file_id === this.curSource.file_id) {
       return;
     }
-    const r = await fetch_source_playing_info({
+    const r = await fetchSourcePlayingInfo({
       episode_id: this.profile.curEpisode.id,
       file_id,
     });

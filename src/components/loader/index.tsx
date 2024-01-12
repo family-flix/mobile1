@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader } from "lucide-react";
+import { Loader, Loader2 } from "lucide-react";
 import { Handler } from "mitt";
 
 import { cn } from "@/utils";
@@ -10,17 +10,18 @@ enum Events {
   StateChange,
 }
 type TheTypesOfEvents = {
-  [Events.StateChange]: LoaderOverrideState;
+  [Events.StateChange]: ToggleOverrideState;
 };
-type LoaderOverrideState = {
-  loading: boolean;
+type ToggleOverrideState = {
+  visible: boolean;
 };
 type LoaderOverrideProps = {};
-export class LoaderOverrideCore extends BaseDomain<TheTypesOfEvents> {
-  loading = false;
-  get state(): LoaderOverrideState {
+export class ToggleOverrideCore extends BaseDomain<TheTypesOfEvents> {
+  visible = false;
+
+  get state(): ToggleOverrideState {
     return {
-      loading: this.loading,
+      visible: this.visible,
     };
   }
 
@@ -28,12 +29,19 @@ export class LoaderOverrideCore extends BaseDomain<TheTypesOfEvents> {
     super(props);
   }
 
-  load() {
-    this.loading = true;
+  toggle() {
+    if (this.visible) {
+      this.hide();
+      return;
+    }
+    this.show();
+  }
+  show() {
+    this.visible = true;
     this.emit(Events.StateChange, { ...this.state });
   }
-  unload() {
-    this.loading = false;
+  hide() {
+    this.visible = false;
     this.emit(Events.StateChange, { ...this.state });
   }
 
@@ -42,7 +50,9 @@ export class LoaderOverrideCore extends BaseDomain<TheTypesOfEvents> {
   }
 }
 
-export function LoaderContainer(props: { store: LoaderOverrideCore } & React.AllHTMLAttributes<HTMLHtmlElement>) {
+export function ToggleOverlay(
+  props: { store: ToggleOverrideCore } & React.AllHTMLAttributes<HTMLHtmlElement>
+): JSX.Element {
   const { store } = props;
 
   useInitialize(() => {
@@ -53,9 +63,6 @@ export function LoaderContainer(props: { store: LoaderOverrideCore } & React.All
 
   const [state, setState] = useState(store.state);
 
-  return (
-    <div className={cn("relative", props.className)}>
-      {state.loading ? <Loader className="absolute inset-0 w-full h-full animate animate-spin" /> : props.children}
-    </div>
-  );
+  // @ts-ignore
+  return state.visible ? props.children : null;
 }

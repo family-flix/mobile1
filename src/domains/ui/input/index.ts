@@ -32,6 +32,7 @@ type InputProps = {
   onEnter: (v: string) => void;
   onBlur: (v: string) => void;
   onClear: () => void;
+  onMounted?: () => void;
 };
 type InputState = {
   value: string;
@@ -76,6 +77,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       onBlur,
       onEnter,
       onClear,
+      onMounted,
     } = options;
     if (name) {
       this._name = name;
@@ -100,6 +102,9 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     }
     if (onClear) {
       this.onClear(onClear);
+    }
+    if (onMounted) {
+      this.onMounted(onMounted);
     }
   }
   setMounted() {

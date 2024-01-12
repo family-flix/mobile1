@@ -55,24 +55,15 @@ export const ScrollView = React.memo(
         style={style}
         {...restProps}
       >
-        <Indicator className="w-full flex justify-center" store={store}>
+        <Indicator className="scroll-view__indicator w-full flex justify-center" store={store}>
           <Component />
         </Indicator>
         <Content
           store={store}
           className={cn(
-            "relative z-20 h-full overflow-y-auto scroll scroll--hidden",
-            contentClassName,
-            scrollable ? "" : ""
+            "scroll-view__content relative z-20 h-full overflow-y-auto scroll scroll--hidden",
+            contentClassName
           )}
-          style={(() => {
-            if (scrollable) {
-              return {};
-            }
-            return {
-              overflow: "hidden",
-            };
-          })()}
         >
           {children}
         </Content>
@@ -86,15 +77,16 @@ export const ScrollView = React.memo(
   }
 );
 
-const Root = (props: { className?: string; style: React.CSSProperties; children: React.ReactNode }) => {
+const Root = React.memo((props: { className?: string; style: React.CSSProperties; children: React.ReactNode }) => {
   const { className, style, children, ...restProps } = props;
   return (
     <div className={className} style={style} {...restProps}>
       {children}
     </div>
   );
-};
-const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
+});
+
+const Indicator = React.memo((props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
 
@@ -122,9 +114,9 @@ const Indicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLE
       {props.children}
     </div>
   );
-};
+});
 
-const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
+const BackIndicator = React.memo((props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
 
@@ -150,14 +142,16 @@ const BackIndicator = (props: { store: ScrollViewCore } & React.HTMLAttributes<H
       })()}
     </div>
   );
-};
+});
 
-const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
+const Content = React.memo((props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLElement>) => {
   const { store } = props;
   //   let $page: HTMLDivElement;
   const $page = useRef<HTMLDivElement>(null);
 
   const [state, setState] = useState(store.state);
+  const [scrollable, setScrollable] = useState(store.scrollable);
+  const [styles, setStyles] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     const $container = $page.current;
@@ -166,10 +160,25 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
     }
     connect(store, $container);
   }, []);
+  useEffect(() => {
+    console.log("[COMPONENT]scroll-view/index - scrollable", scrollable, store._name);
+  }, [scrollable]);
 
   useInitialize(() => {
     store.onStateChange((nextState) => {
       setState(nextState);
+    });
+    store.onDisableScroll(() => {
+      setScrollable(false);
+      setStyles({
+        overflow: "hidden",
+      });
+    });
+    store.onEnableScroll(() => {
+      setScrollable(true);
+      setStyles({
+        overflow: "auto",
+      });
     });
     if ($page.current === null) {
       return;
@@ -189,11 +198,25 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
     <div
       ref={$page}
       className={props.className}
-      // style={{ ...(props.style || {}), transform: `translateY(${top}px)` }}
-      style={{ ...(props.style || {}) }}
+      // style={(() => {
+      //   const styles: React.CSSProperties = {
+      //     ...(props.style || {}),
+      //     overflow: "auto",
+      //   };
+      //   if (!scrollable) {
+      //     styles.overflow = "hidden";
+      //   }
+      //   return styles;
+      // })()}
+      style={styles}
       onTouchStart={(event) => {
         const { pageX, pageY } = event.touches[0];
         const position = { x: pageX, y: pageY };
+        if (pageX < 30) {
+          setStyles({
+            overflow: "hidden",
+          });
+        }
         store.startPull(position);
       }}
       onTouchMove={(event) => {
@@ -205,8 +228,11 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
         };
         store.pulling(position);
       }}
-      onTouchEnd={() => {
+      onTouchEnd={(event) => {
         store.endPulling();
+        setStyles({
+          overflow: "auto",
+        });
       }}
       onScroll={(event) => {
         const { scrollHeight, clientHeight } = event.currentTarget;
@@ -244,6 +270,6 @@ const Content = (props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLEle
       {props.children}
     </div>
   );
-};
+});
 
 // export { Root, Indicator, Content };

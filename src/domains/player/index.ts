@@ -4,8 +4,7 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { MediaSourceProfile } from "@/domains/tv/services";
-import { EpisodeResolutionTypes } from "@/domains/tv/constants";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 import { Application } from "@/domains/app";
 import { app } from "@/store/app";
 
@@ -15,6 +14,10 @@ enum Events {
   UrlChange,
   /** 调整进度 */
   CurrentTimeChange,
+  BeforeAdjustCurrentTime,
+  /** 调整进度条时，预期的进度改变 */
+  TargetTimeChange,
+  AfterAdjustCurrentTime,
   /** 分辨率改变 */
   ResolutionChange,
   /** 音量改变 */
@@ -54,8 +57,11 @@ type TheTypesOfEvents = {
   [Events.Mounted]: boolean;
   [Events.UrlChange]: { url: string; thumbnail?: string };
   [Events.CurrentTimeChange]: { currentTime: number };
+  [Events.BeforeAdjustCurrentTime]: void;
+  [Events.TargetTimeChange]: number;
+  [Events.AfterAdjustCurrentTime]: void;
   [Events.ResolutionChange]: {
-    type: EpisodeResolutionTypes;
+    type: MediaResolutionTypes;
     text: string;
   };
   [Events.VolumeChange]: { volume: number };
@@ -117,9 +123,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
 
   private _timer: null | number = null;
   _canPlay = false;
-  private _ended = false;
-  private _duration = 0;
-  private _currentTime = 0;
+  _ended = false;
+  _duration = 0;
+  _currentTime = 0;
   _curVolume = 0.5;
   _curRate = 1;
   get currentTime() {
@@ -130,10 +136,11 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   subtitle: PlayerState["subtitle"] = null;
   _mounted = false;
   /** 默认是不能播放的，只有用户交互后可以播放 */
-  private _target_current_time = 0;
+  _target_current_time = 0;
   _subtitleVisible = false;
   prepareFullscreen = false;
-  private _progress = 0;
+  _progress = 0;
+  virtualProgress = 0;
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
   private _abstractNode: {
@@ -149,6 +156,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     disableFullscreen: () => void;
     showSubtitle: () => void;
     hideSubtitle: () => void;
+    showAirplay: () => void;
+    pictureInPicture: () => void;
   } | null = null;
   private _app: Application;
 
@@ -236,6 +245,18 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._abstractNode.setRate(v);
     this.emit(Events.RateChange, { rate: v });
   }
+  showAirplay() {
+    if (this._abstractNode === null) {
+      return;
+    }
+    this._abstractNode.showAirplay();
+  }
+  pictureInPicture() {
+    if (this._abstractNode === null) {
+      return;
+    }
+    this._abstractNode.pictureInPicture();
+  }
   toggleSubtitle() {
     this._subtitleVisible = !this._subtitleVisible;
   }
@@ -247,13 +268,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   /** 改变当前进度 */
-  setCurrentTime(currentTime: number = 0) {
+  setCurrentTime(currentTime: number | null = 0) {
     console.log("[DOMAIN]player/index - setCurrentTime", this._abstractNode, currentTime);
     if (this._abstractNode === null) {
       return;
     }
-    this._currentTime = currentTime;
-    this._abstractNode.setCurrentTime(currentTime);
+    this._currentTime = currentTime || 0;
+    this._abstractNode.setCurrentTime(currentTime || 0);
   }
   setSize(size: { width: number; height: number }) {
     if (
@@ -277,7 +298,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.SizeChange, { ...this._size });
     this.emit(Events.StateChange, { ...this.state });
   }
-  setResolution(values: { type: EpisodeResolutionTypes; text: string }) {
+  setResolution(values: { type: MediaResolutionTypes; text: string }) {
     this.emit(Events.ResolutionChange, values);
   }
   setSubtitle(subtitle: { src: string; label: string; lang: string }) {
@@ -311,6 +332,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     // 这里不暂停，就没法先允许全屏，再通过播放来全屏了
+    $video.enableFullscreen();
     this.pause();
     this.enableFullscreen();
     setTimeout(() => {
@@ -318,7 +340,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       // 300 的延迟是 video 保证重渲染 play inline 后，才开始播放
     }, 800);
   }
-  loadSource(video: { url: string; thumbnail?: string }) {
+  loadSource(video: { url: string }) {
     this.metadata = video;
     this._canPlay = false;
     this.emit(Events.UrlChange, video);
@@ -333,10 +355,25 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     return this._abstractNode.canPlayType(type);
   }
   load(url: string) {
+    console.log("[DOMAIN]player - load", url, this._abstractNode);
     if (!this._abstractNode) {
       return false;
     }
     this._abstractNode.load(url);
+  }
+  startAdjustCurrentTime() {
+    this.emit(Events.BeforeAdjustCurrentTime);
+  }
+  /** 0.x */
+  adjustProgressManually(percent: number) {
+    const targetTime = percent * this._duration;
+    this.virtualProgress = percent;
+    this.emit(Events.TargetTimeChange, targetTime);
+  }
+  adjustCurrentTime(targetTime: number) {
+    this.setCurrentTime(targetTime);
+    this.play();
+    this.emit(Events.AfterAdjustCurrentTime);
   }
   node() {
     if (!this._abstractNode) {
@@ -500,11 +537,20 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   onCanSetCurrentTime(handler: Handler<TheTypesOfEvents[Events.CanSetCurrentTime]>) {
     return this.on(Events.CanSetCurrentTime, handler);
   }
+  beforeAdjustCurrentTime(handler: Handler<TheTypesOfEvents[Events.BeforeAdjustCurrentTime]>) {
+    return this.on(Events.BeforeAdjustCurrentTime, handler);
+  }
+  afterAdjustCurrentTime(handler: Handler<TheTypesOfEvents[Events.AfterAdjustCurrentTime]>) {
+    return this.on(Events.AfterAdjustCurrentTime, handler);
+  }
   onPlay(handler: Handler<TheTypesOfEvents[Events.Play]>) {
     return this.on(Events.Play, handler);
   }
   onSourceLoaded(handler: Handler<TheTypesOfEvents[Events.SourceLoaded]>) {
     return this.on(Events.SourceLoaded, handler);
+  }
+  onTargetTimeChange(handler: Handler<TheTypesOfEvents[Events.TargetTimeChange]>) {
+    return this.on(Events.TargetTimeChange, handler);
   }
   onCurrentTimeChange(handler: Handler<TheTypesOfEvents[Events.CurrentTimeChange]>) {
     return this.on(Events.CurrentTimeChange, handler);

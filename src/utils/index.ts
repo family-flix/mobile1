@@ -23,7 +23,10 @@ export function remove_str(filename: string, index: number = 0, length: number) 
   return filename.slice(0, index) + filename.slice(index + length);
 }
 
-export function episode_to_chinese_num(str: string) {
+export function episode_to_chinese_num(str: string | number) {
+  if (typeof str === "number") {
+    return `第${str}集`;
+  }
   if (str.match(/^[0-9]/)) {
     return str;
   }
@@ -147,6 +150,13 @@ export function minute_to_hour(value: number) {
     return [hours, minutes];
   }
   return [null, minutes];
+}
+export function minute_to_hour2(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(remainingMinutes).padStart(2, "0");
+  return `${formattedHours}:${formattedMinutes}`;
 }
 export function relative_time_from_now(time: string) {
   const date = dayjs(time);

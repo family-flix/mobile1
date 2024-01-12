@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Calendar, Send } from "lucide-react";
 
 import { BaseDomain } from "@/domains/base";
-import { ButtonCore, DialogCore, DialogProps, InputCore, ScrollViewCore } from "@/domains/ui";
+import { ButtonCore, DialogCore, DialogProps, ImageInListCore, InputCore, ScrollViewCore } from "@/domains/ui";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
@@ -15,6 +15,7 @@ import { Button, Input, LazyImage, ListView, ScrollView, Skeleton } from "@/comp
 import { TVSeasonSelectCore } from "./store";
 import { Show } from "@/packages/ui/show";
 import { cn } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks";
 
 export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
   const { store } = props;
@@ -22,21 +23,26 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
   const [tvListResponse, setTVListResponse] = useState(store.response);
   const [curSeason, setCurSeason] = useState(store.value);
 
-  const scrollView = new ScrollViewCore({
-    onReachBottom() {
-      store.list.loadMore();
-    },
-  });
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        onReachBottom() {
+          store.list.loadMore();
+        },
+      })
+  );
+  const poster = useInstance(() => new ImageInListCore());
 
-  store.onResponseChange((nextState) => {
-    setTVListResponse(nextState);
+  useInitialize(() => {
+    store.onResponseChange((nextState) => {
+      setTVListResponse(nextState);
+    });
+    store.onCurSeasonChange((nextState) => {
+      //     console.log("[COMPONENT]TVSeasonSelect - store.onCurSeasonChange", nextState);
+      setCurSeason(nextState);
+    });
+    store.list.init();
   });
-  store.onCurSeasonChange((nextState) => {
-    //     console.log("[COMPONENT]TVSeasonSelect - store.onCurSeasonChange", nextState);
-    setCurSeason(nextState);
-  });
-
-  store.list.init();
 
   return (
     <div>
@@ -70,17 +76,7 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
         >
           <div className="space-y-4">
             {tvListResponse.dataSource.map((season) => {
-              const {
-                id,
-                tv_id,
-                name,
-                overview,
-                cur_episode_count,
-                episode_count,
-                air_date,
-                poster_path,
-                season_text,
-              } = season;
+              const { id, name, overview, cur_episode_count, episode_count, air_date, poster_path } = season;
               return (
                 <div
                   className={cn({
@@ -94,12 +90,11 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
                 >
                   <div className="flex">
                     <div className="overflow-hidden mr-2 rounded-sm">
-                      <LazyImage className="w-[120px] h-[180px]" src={poster_path} alt={name} />
+                      <LazyImage className="w-[120px] h-[180px]" store={poster.bind(poster_path)} alt={name} />
                     </div>
                     <div className="flex-1 w-0 p-4">
                       <div className="flex items-center">
                         <h2 className="text-2xl text-slate-800">{name}</h2>
-                        <p className="ml-4 text-slate-500">{season_text}</p>
                       </div>
                       <div className="mt-2 overflow-hidden text-ellipsis">
                         <p className="text-slate-700 break-all whitespace-pre-wrap truncate line-clamp-3">{overview}</p>

@@ -2,7 +2,7 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { SeasonItem, fetchSeasonList } from "@/domains/tv/services";
+import { SeasonItem, fetchSeasonList } from "@/domains/media/services";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
 
 enum Events {

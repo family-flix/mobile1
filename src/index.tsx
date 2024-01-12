@@ -169,10 +169,10 @@ function ApplicationView() {
             <StackRouteView
               key={subView.id}
               className={cn(
-                "fixed inset-0 bg-w-bg-0 opacity-100",
-                "animate-in",
+                "fixed inset-0 bg-w-bg-3 opacity-100",
+                "animate-in duration-500",
                 index !== 0 ? " slide-in-from-right" : "",
-                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right"
+                "data-[state=closed]:animate-out data-[state=closed]:duration-500 data-[state=closed]:slide-out-to-right"
               )}
               store={subView}
               index={index}

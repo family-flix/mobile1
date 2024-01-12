@@ -3,7 +3,7 @@
  */
 import { useState } from "react";
 
-import { TVCore } from "@/domains/tv";
+import { SeasonMediaCore } from "@/domains/media/season";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 
@@ -31,23 +31,24 @@ const players: { icon: string; name: string; scheme: string }[] = [
 export const OuterPlayersPage: ViewComponent = (props) => {
   const { app, view } = props;
 
-  const tv = useInstance(() => new TVCore());
+  const tv = useInstance(() => new SeasonMediaCore());
   const [profile, setProfile] = useState(tv.profile);
-  const [source, setSource] = useState(tv.curSource);
+  const [source, setSource] = useState(tv.$source.profile);
 
   useInitialize(() => {
-    tv.onProfileLoaded((profile) => {
+    tv.onProfileLoaded((data) => {
       app.setTitle(tv.getTitle().join(" - "));
-      const { curEpisode } = profile;
-      tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime, thumbnail: curEpisode.thumbnail });
+      const { curSource: curEpisode } = data;
+      setProfile(data.profile);
+      tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime });
     });
     tv.onEpisodeChange(() => {
       app.setTitle(tv.getTitle().join(" - "));
     });
-    tv.onStateChange((nextProfile) => {
-      setProfile(nextProfile);
-    });
-    tv.onSourceChange((mediaSource) => {
+    // tv.onStateChange((nextProfile) => {
+    //   setProfile(nextProfile);
+    // });
+    tv.onSourceFileChange((mediaSource) => {
       setSource(mediaSource);
     });
     tv.onTip((msg) => {

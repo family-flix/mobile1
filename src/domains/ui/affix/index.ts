@@ -1,15 +1,15 @@
 /**
  * @file 固钉
  */
-
-import { BaseDomain } from "@/domains/base";
-import { Handler } from "mitt";
+import { BaseDomain, Handler } from "@/domains/base";
+import { debounce } from "lodash/fp";
 
 enum Events {
   /** 变成固定 */
   Fixed,
   /** 取消固定 */
   UnFixed,
+  Mounted,
   /** 内容位置、宽高等信息改变 */
   SizeChange,
   StateChange,
@@ -17,44 +17,101 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.Fixed]: void;
   [Events.UnFixed]: void;
+  [Events.Mounted]: void;
   [Events.SizeChange]: void;
   [Events.StateChange]: AffixState;
 };
 type AffixProps = {
   top: number;
+  onMounted?: () => void;
 };
-type AffixState = {};
+type AffixState = {
+  height: number;
+  fixed: boolean;
+  top: number;
+  style: unknown;
+};
 
 export class AffixCore extends BaseDomain<TheTypesOfEvents> {
   height = 0;
   /** 当前 */
-  top = 0;
+  curTop = 0;
   /** 当距离顶部多少距离时固定 */
   targetTop = 0;
   fixed = false;
+  needRegisterAgain = true;
+  shouldFixed = true;
+  mounted = false;
+  style: unknown = {};
+  $node = null;
 
-  get state() {
+  get state(): AffixState {
     return {
       height: this.height,
       fixed: this.fixed,
       top: this.targetTop,
+      style: this.style,
     };
   }
 
-  constructor(options: AffixProps) {
-    super();
+  constructor(props: Partial<{ _name: string }> & AffixProps) {
+    super(props);
 
-    const { top } = options;
+    const { top, onMounted = null } = props;
+
+    // this.name = uniqueName;
     this.targetTop = top;
+    // this.needRegisterAgain = needRegisterAgain;
+    // this.onMounted = onMounted;
+    if (onMounted) {
+      this.onMounted(onMounted);
+    }
+  }
+
+  handleMounted(rect: { top: number; height: number }) {
+    const { top, height } = rect;
+    this.curTop = top;
+    this.height = height;
+    if (top === this.targetTop) {
+      this.fix();
+    }
+    // if (this.targetTop >= this.curTop) {
+    //   // 如果目标距离大于实际距离，发生固定时，位置反而会往下移动，所以这里将目标距离等于实际距离
+    //   this.targetTop = this.curTop;
+    // }
+    this.mounted = true;
+    this.emit(Events.Mounted);
+  }
+  handleScroll(values: { scrollTop: number }) {
+    const { scrollTop } = values;
+    const fixed = (() => {
+      if (this.targetTop >= this.curTop) {
+        return true;
+      }
+      if (scrollTop + this.targetTop >= this.curTop) {
+        return true;
+      }
+      return false;
+    })();
+    this.shouldFixed = fixed;
+    // if (this.name) {
+    //     console.log('[COMPONENT]FixedTopForHome - scroll', this.name, scrollTop, this.targetTop, this.top, fixed);
+    // }
+    if (this.fixed === fixed) {
+      return;
+    }
+    this.fixed = fixed;
+    this.emit(Events.StateChange, { ...this.state });
   }
 
   register(size: { top: number; height: number }) {
     const { top, height } = size;
-    this.top = top;
-    console.log("[COMPONENT]FixedTopForHome - register", this.targetTop, this.top);
-    if (this.targetTop >= this.top) {
+    console.log("[COMPONENT]FixedTopForHome - register", this._name, this.targetTop, this.curTop, top);
+    this.curTop = top;
+    this.mounted = true;
+    if (this.targetTop >= this.curTop) {
       // 如果目标距离大于实际距离，发生固定时，位置反而会往下移动，所以这里将目标距离等于实际距离
-      this.targetTop = this.top;
+      this.targetTop = this.curTop;
     }
     this.height = height;
     this.emit(Events.SizeChange);
@@ -69,36 +126,66 @@ export class AffixCore extends BaseDomain<TheTypesOfEvents> {
       height: 0,
     };
   };
-  // setRect(fn) {
-  //   this.rect = fn;
-  // }
-  scroll(data: { scrollTop: number }) {
-    const { scrollTop } = data;
-    const fixed = (() => {
-      if (this.targetTop >= this.top) {
-        return true;
-      }
-      if (scrollTop + this.targetTop >= this.top) {
-        return true;
-      }
-      return false;
-    })();
-    // console.log('[COMPONENT]FixedTopForHome - scroll', scrollTop, this.targetTop, this.top, fixed);
-    if (this.fixed === fixed) {
+  setRect(fn: () => { top: number; height: number }) {
+    this.rect = fn;
+  }
+  fix() {
+    if (this.fixed) {
       return;
     }
-    this.fixed = fixed;
-    (() => {
-      if (this.fixed) {
-        this.emit(Events.Fixed);
-        return;
-      }
-      this.emit(Events.UnFixed);
-    })();
+    if (!this.shouldFixed) {
+      return;
+    }
+    this.fixed = true;
+    this.emit(Events.Fixed);
     this.emit(Events.StateChange, { ...this.state });
   }
+  unfix() {
+    if (!this.fixed) {
+      return;
+    }
+    this.fixed = false;
+    this.emit(Events.UnFixed);
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  setTop = debounce(0, (top) => {
+    const $el = this.$node;
+    if (!$el) {
+      return;
+    }
+    // $el.style.top = `${top}px`;
+  });
+  set(nextState: { fixed: boolean; top: number; style: unknown }) {
+    const { fixed, top, style } = nextState;
+    if (fixed !== undefined) {
+      this.fixed = fixed;
+    }
+    if (top !== undefined) {
+      this.targetTop = top;
+    }
+    if (style !== undefined) {
+      this.style = style;
+    }
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  // setNode(v) {
+  //   this.$node = v;
+  // }
+  // updateTransformY(v) {
+  //   const $el = this.$node;
+  //   if (!$el) {
+  //     return;
+  //   }
+  //   $el.style.transform = `translateY(${v}px)`;
+  // }
 
-  onStateChange(handler: Handler<TheTypesOfEvents[Events]>) {
+  onMounted(handler: Handler<TheTypesOfEvents[Events.Mounted]>) {
+    return this.on(Events.Mounted, handler);
+  }
+  onSizeChange(handler: Handler<TheTypesOfEvents[Events.SizeChange]>) {
+    return this.on(Events.SizeChange, handler);
+  }
+  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
   }
 }

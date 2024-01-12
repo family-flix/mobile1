@@ -4,7 +4,7 @@ import { ReportTypes } from "@/constants";
 import { FetchParams } from "@/domains/list/typing";
 import { ListResponse, RequestedResource, Result } from "@/types";
 import { request } from "@/utils/request";
-import { MediaTypes } from "@/domains/tv/services";
+import { MediaTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
 import { CollectionCore, CollectionTypes } from "@/domains/ui/collection";
 
@@ -162,7 +162,7 @@ export async function fetchCollectionList(body: FetchParams) {
         desc,
         medias: medias.map((media) => {
           const { id, type, name, text, poster_path, air_date, cur_episode_count, episode_count } = media;
-          if (type === MediaTypes.TV) {
+          if (type === MediaTypes.Season) {
             const { tv_id } = media;
             return {
               id,

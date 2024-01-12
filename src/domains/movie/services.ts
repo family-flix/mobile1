@@ -1,21 +1,19 @@
 import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
-import { SubtitleResp } from "@/domains/subtitle/types";
+import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
 import { request } from "@/utils/request";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
-
-import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
-import { MediaSource, MovieGenresTexts, MovieSourceTexts } from "@/constants";
+import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts } from "@/constants";
 
 /**
  * 获取电影和当前播放进度
- * @param params
+ * @param body
  */
-export async function fetchMovieAndCurSource(params: { movie_id: string }) {
+export async function fetchMoviePlayingSource(body: { movie_id: string }) {
   // console.log("[]fetch_tv_profile params", params);
-  const { movie_id } = params;
   const r = await request.get<{
     id: string;
     name: string;
@@ -27,7 +25,7 @@ export async function fetchMovieAndCurSource(params: { movie_id: string }) {
       file_name: string;
       parent_paths: string;
     }[];
-    subtitles: SubtitleResp[];
+    subtitles: SubtitleFileResp[];
     cur_source: {
       file_id: string;
       file_name: string;
@@ -36,7 +34,9 @@ export async function fetchMovieAndCurSource(params: { movie_id: string }) {
     current_time: number;
     /** 当前进度截图 */
     thumbnail: string | null;
-  }>(`/api/movie/play/${movie_id}`);
+  }>(`/api/v2/wechat/season/playing`, {
+    media_id: body.movie_id,
+  });
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -53,7 +53,7 @@ export async function fetchMovieAndCurSource(params: { movie_id: string }) {
   });
 }
 /** 电影详情 */
-export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMovieAndCurSource>>>;
+export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMoviePlayingSource>>>;
 
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息
@@ -93,7 +93,7 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
       /** 影片高度 */
       height: number;
     }[];
-    subtitles: SubtitleResp[];
+    subtitles: SubtitleFileResp[];
   }>(`/api/movie/${id}`, {
     type: params.type,
   });
@@ -381,13 +381,13 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
         genres: origin_country
           .split("|")
           .map((country) => {
-            return MovieSourceTexts[country as MediaSource] ?? "unknown";
+            return MovieMediaOriginCountryTexts[country as MediaOriginCountry] ?? "unknown";
           })
           .concat(
             genres
               .split("|")
               .map((g) => {
-                return MovieGenresTexts[g];
+                return MovieMediaGenresTexts[g];
               })
               .filter(Boolean)
           ),

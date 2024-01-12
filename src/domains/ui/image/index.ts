@@ -14,31 +14,32 @@ type TheTypesOfEvents = {
   [Events.Loaded]: void;
   [Events.Error]: void;
 };
-type ImageProps = {
-  /** 图片宽度 */
-  width: number;
-  /** 图片高度 */
-  height: number;
-  /** 图片地址 */
-  src?: string;
-  /** 说明 */
-  alt?: string;
-  /** 模式 */
-  fit?: "cover" | "contain";
-};
-type ImageState = ImageProps & {
-  step: ImageStep;
-};
 const prefix = window.location.origin;
 // const prefix = "https://img.funzm.com";
 // const DEFAULT_IMAGE1 = prefix + "/placeholder.png";
-
 export enum ImageStep {
   Pending,
   Loading,
   Loaded,
   Failed,
 }
+
+type ImageProps = {
+  /** 图片宽度 */
+  width?: number;
+  /** 图片高度 */
+  height?: number;
+  /** 图片地址 */
+  src?: string;
+  /** 说明 */
+  alt?: string;
+  /** 模式 */
+  fit?: "cover" | "contain";
+  unique_id?: unknown;
+};
+type ImageState = ImageProps & {
+  step: ImageStep;
+};
 
 export class ImageCore extends BaseDomain<TheTypesOfEvents> {
   static url(url?: string | null) {
@@ -51,6 +52,7 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
     return prefix + url;
   }
 
+  unique_id: unknown;
   src: string;
   width: number;
   height: number;
@@ -68,15 +70,18 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(options: Partial<{}> & ImageProps) {
+  constructor(props: Partial<{}> & ImageProps) {
     super();
 
-    const { width, height, src, fit = "cover" } = options;
+    const { unique_id, width = 200, height = 200, src, fit = "cover" } = props;
     this.width = width;
     this.height = height;
     this.src = "";
     this.fit = fit;
     this.realSrc = src;
+    if (unique_id) {
+      this.unique_id = unique_id;
+    }
   }
 
   updateSrc(src: string) {
@@ -86,14 +91,13 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
   /** 图片进入可视区域 */
   handleShow() {
     // console.log("[IMAGE_CORE]handleShow", this.realSrc);
-    (() => {
-      if (!this.realSrc) {
-        this.step = ImageStep.Failed;
-        return;
-      }
-      this.step = ImageStep.Loading;
-      this.src = ImageCore.url(this.realSrc);
-    })();
+    if (!this.realSrc) {
+      this.step = ImageStep.Failed;
+      this.emit(Events.StateChange, { ...this.state });
+      return;
+    }
+    this.step = ImageStep.Loading;
+    this.src = ImageCore.url(this.realSrc);
     this.emit(Events.StateChange, { ...this.state });
   }
   /** 图片加载完成 */
@@ -120,5 +124,46 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
   }
   onError(handler: Handler<TheTypesOfEvents[Events.Error]>) {
     return this.on(Events.Error, handler);
+  }
+}
+
+export class ImageInListCore extends BaseDomain<TheTypesOfEvents> {
+  /** 列表中一类多个按钮 */
+  btns: ImageCore[] = [];
+  /** 按钮点击后，该值被设置为触发点击的那个按钮 */
+  cur: ImageCore | null = null;
+
+  constructor(props: Partial<{ _name: string } & ImageCore> = {}) {
+    super(props);
+  }
+
+  /** 当按钮处于列表中时，使用该方法保存所在列表记录 */
+  bind(unique_id: string) {
+    const existing = this.btns.find((btn) => {
+      return btn.unique_id === unique_id;
+    });
+    if (existing) {
+      return existing;
+    }
+    const btn = new ImageCore({
+      src: unique_id,
+    });
+    this.btns.push(btn);
+    return btn;
+  }
+  select(unique_id: unknown) {
+    const matched = this.btns.find((btn) => btn.unique_id === unique_id);
+    if (!matched) {
+      return;
+    }
+    this.cur = matched;
+  }
+  /** 清空触发点击事件时保存的按钮 */
+  clear() {
+    this.cur = null;
+  }
+
+  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
+    this.on(Events.StateChange, handler);
   }
 }

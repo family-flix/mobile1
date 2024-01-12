@@ -3,6 +3,7 @@
  */
 import React, { useState } from "react";
 import {
+  ArrowLeft,
   Copy,
   HelpCircle,
   HelpingHand,
@@ -18,23 +19,14 @@ import {
 import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
-import { ButtonCore, DialogCore, ScrollViewCore, InputCore } from "@/domains/ui";
+import { Show } from "@/components/ui/show";
+import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
+import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { sleep } from "@/utils";
-import { Show } from "@/components/ui/show";
-import {
-  messagesPage,
-  infoRequest,
-  inviteeListPage,
-  messageList,
-  rootView,
-  tvChannelListPage,
-  tvChannelTestPlayingPage,
-} from "@/store";
-import { MultipleClickCore } from "@/domains/utils/multiple_click";
+import { messagesPage, infoRequest, inviteeListPage, messageList } from "@/store";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -61,6 +53,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
         },
       })
   );
+  const avatar = useInstance(() => new ImageCore(app.user.avatar));
   const workInProgressTipDialog = useInstance(
     () =>
       new DialogCore({
@@ -185,12 +178,24 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="bg-w-bg-0 text-w-fg-1" contentClassName="h-full">
+      <ScrollView store={scrollView} className="bg-w-bg-0" contentClassName="h-full">
         <div className="w-full h-full">
-          <div className="relative px-4 py-2 space-y-2 h-full">
+          <div className="">
+            <div className="flex items-center">
+              <div
+                className="inline-block p-4"
+                onClick={() => {
+                  app.back();
+                }}
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+          <div className="relative px-4 py-2 space-y-2 text-w-fg-1">
             <div className="py-1 flex space-x-2">
               <div
-                className="p-2 rounded bg-w-bg-2"
+                className="p-2 rounded bg-w-bg-3"
                 onClick={() => {
                   const nextTheme = (() => {
                     if (t === "light") {
@@ -220,7 +225,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             </div>
             <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-3">
               <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
-                <LazyImage className="w-full h-full" src={profile.avatar} />
+                <LazyImage className="w-full h-full" store={avatar} />
               </div>
               <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
               <div></div>
@@ -343,7 +348,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 multipleClick.handleClick();
               }}
             >
-              v1.20.0
+              v2.0.0
             </div>
           </div>
           <div className="h-[1px]"></div>

@@ -1,6 +1,6 @@
 import debounce from "lodash/fp/debounce";
 
-import { MediaResolutionTypes } from "@/domains/movie/constants";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 
 const DEFAULT_CACHE_VALUES = {
   user: {
@@ -9,7 +9,7 @@ const DEFAULT_CACHE_VALUES = {
   player_settings: {
     rate: 1,
     volume: 0.5,
-    type: "SD" as MediaResolutionTypes,
+    type: MediaResolutionTypes.SD,
   },
   token_id: "",
   tv_search: {

@@ -9,7 +9,9 @@ import { BaseDomain } from "@/domains/base";
 type PullToRefreshStep = "pending" | "pulling" | "refreshing" | "releasing";
 enum Events {
   ReachBottom,
+  DisableScroll,
   Scroll,
+  EnableScroll,
   PullToRefresh,
   // CancelPullToRefresh,
   PullToBack,
@@ -20,6 +22,8 @@ type TheTypesOfEvents = {
   [Events.ReachBottom]: void;
   [Events.Scroll]: { scrollTop: number };
   [Events.PullToRefresh]: void;
+  [Events.DisableScroll]: void;
+  [Events.EnableScroll]: void;
   // [Events.CancelPullToRefresh]: void;
   [Events.PullToBack]: void;
   [Events.StateChange]: ScrollViewState;
@@ -154,7 +158,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     (() => {
       if (x < 30) {
         // this._pullToRefresh = false;
-        this.state.scrollable = false;
+        this.disableScroll();
         this._pullToRefresh = false;
         this.emit(Events.StateChange, { ...this.state });
       }
@@ -215,7 +219,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     })();
     // console.log("[DOMAIN]ui/scroll-view - pulling", isPullToRefresh);
     if (this.isPullToBack) {
-      this.state.scrollable = false;
+      this.disableScroll();
       this.pullToRefresh.distX = pullingDistance.x;
       const distance = this.pullToRefresh.distX;
       // const h = this.state.pullToBack.height;
@@ -285,7 +289,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.state.pullToBack.width = 0;
     // 192?
     this.state.pullToBack.height = 192;
-    this.state.scrollable = true;
+    // this.enableScroll();
     this.pullToRefresh.pullStartX = 0;
     this.pullToRefresh.pullMoveX = 0;
     this.pullToRefresh.distX = 0;
@@ -324,23 +328,15 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     // }
     this.startPullToRefresh();
   }
-  /** 页面滚动时调用 */
-  handleScroll(event: { scrollTop: number }) {
-    const { scrollTop } = event;
-    this.emit(Events.Scroll, { scrollTop });
-    const { height = 0, contentHeight = 0 } = this.rect;
-    // console.log("[DOMAIN]ui/scroll-view - scroll", scrollTop, height, contentHeight);
-    if (scrollTop + height + this.threshold >= contentHeight) {
-      if (this.canReachBottom === false) {
-        this.emit(Events.ReachBottom);
-      }
-      this.canReachBottom = true;
-    } else {
-      this.canReachBottom = false;
-    }
-    this.rect.scrollTop = scrollTop;
-    this.state.scrollTop = scrollTop;
-    this.emit(Events.StateChange, { ...this.state });
+  disableScroll() {
+    this.state.scrollable = false;
+    this.scrollable = false;
+    this.emit(Events.DisableScroll);
+  }
+  enableScroll() {
+    this.state.scrollable = true;
+    this.scrollable = true;
+    this.emit(Events.EnableScroll);
   }
   /** 启用下拉刷新 */
   enablePullToRefresh() {
@@ -387,6 +383,25 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     console.log("请在 connect 中实现该方法");
   }
 
+  /** 页面滚动时调用 */
+  handleScroll(event: { scrollTop: number }) {
+    const { scrollTop } = event;
+    this.emit(Events.Scroll, { scrollTop });
+    const { height = 0, contentHeight = 0 } = this.rect;
+    // console.log("[DOMAIN]ui/scroll-view - scroll", scrollTop, height, contentHeight);
+    if (scrollTop + height + this.threshold >= contentHeight) {
+      if (this.canReachBottom === false) {
+        this.emit(Events.ReachBottom);
+      }
+      this.canReachBottom = true;
+    } else {
+      this.canReachBottom = false;
+    }
+    this.rect.scrollTop = scrollTop;
+    this.state.scrollTop = scrollTop;
+    this.emit(Events.StateChange, { ...this.state });
+  }
+
   onScroll(handler: Handler<TheTypesOfEvents[Events.Scroll]>) {
     return this.on(Events.Scroll, handler);
   }
@@ -396,6 +411,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   onPullToRefresh(handler: Handler<TheTypesOfEvents[Events.PullToRefresh]>) {
     this.state.pullToRefresh = true;
     return this.on(Events.PullToRefresh, handler);
+  }
+  onDisableScroll(handler: Handler<TheTypesOfEvents[Events.DisableScroll]>) {
+    return this.on(Events.DisableScroll, handler);
+  }
+  onEnableScroll(handler: Handler<TheTypesOfEvents[Events.EnableScroll]>) {
+    return this.on(Events.EnableScroll, handler);
   }
   // onCancelPullToRefresh(handler: Handler<TheTypesOfEvents[Events.CancelPullToRefresh]>) {
   //   return this.on(Events.CancelPullToRefresh, handler);

@@ -5,13 +5,13 @@ import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
-import { SubtitleResp } from "@/domains/subtitle/types";
+import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { Result } from "@/types";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import {
   MovieProfile,
-  fetchMovieAndCurSource,
+  fetchMoviePlayingSource,
   updateMoviePlayHistory,
   MediaSourceProfile,
   fetch_media_profile,
@@ -38,7 +38,7 @@ type TheTypesOfEvents = {
     enabled: boolean;
     visible: boolean;
     texts: string[];
-    others: (SubtitleResp & { selected: boolean })[];
+    others: (SubtitleFileResp & { selected: boolean })[];
   };
   [Events.StateChange]: MovieProps["profile"];
   [Events.SubtitleLoaded]: SubtitleCore;
@@ -56,7 +56,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("缺少电影 id");
     }
     // this.id = id;
-    const res = await fetchMovieAndCurSource({ movie_id: id });
+    const res = await fetchMoviePlayingSource({ movie_id: id });
     if (res.error) {
       // const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(res.error);
@@ -95,7 +95,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   canAutoPlay = false;
   _subtitleStore: SubtitleCore | null = null;
   /** 字幕文件列表 */
-  _subtitles: SubtitleResp[] = [];
+  _subtitles: SubtitleFileResp[] = [];
   /** 字幕 */
   subtitle: {
     url: string | null;
@@ -103,7 +103,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     enabled: boolean;
     visible: boolean;
     texts: string[];
-    others: (SubtitleResp & { selected: boolean })[];
+    others: (SubtitleFileResp & { selected: boolean })[];
   } = {
     url: null,
     index: "0",
@@ -126,7 +126,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     this.id = id;
-    const res = await fetchMovieAndCurSource({ movie_id: id });
+    const res = await fetchMoviePlayingSource({ movie_id: id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
@@ -291,7 +291,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.loadSubtitleFile(subtitleFile, currentTime);
   }
-  async loadSubtitleFile(subtitleFile: SubtitleResp, currentTime: number) {
+  async loadSubtitleFile(subtitleFile: SubtitleFileResp, currentTime: number) {
     // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this._subtitles);
     if (subtitleFile.url === this.subtitle.url) {
       return;

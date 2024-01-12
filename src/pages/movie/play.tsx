@@ -16,22 +16,21 @@ import {
   Subtitles,
 } from "lucide-react";
 
+import { reportSomething } from "@/services";
 import { Video, Sheet, ScrollView, Dialog, LazyImage } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player";
-import { MediaResolutionTypes } from "@/domains/movie/constants";
 import { MovieCore } from "@/domains/movie";
 import { RefCore } from "@/domains/cur";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCore } from "@/domains/request";
-import { reportSomething } from "@/services";
+import { OrientationTypes } from "@/domains/app";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MovieReportList, ReportTypes, players } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { rootView } from "@/store";
 import { cn } from "@/utils";
-import { OrientationTypes } from "@/domains/app";
 
 export const MoviePlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
@@ -45,7 +44,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       value: app.cache.get("player_settings", {
         volume: 0.5,
         rate: 1,
-        type: "SD",
+        type: MediaResolutionTypes.SD,
       }),
     });
     return r;
@@ -655,7 +654,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
           <p className="mt-2">「{curReportValue}」</p>
         </div>
       </Dialog>
-      <Dialog store={errorTipDialog}>
+      {/* <Dialog store={errorTipDialog}>
         <div className="text-w-fg-1">
           <div>该问题是因为手机无法解析视频</div>
           <div>可以尝试如下解决方案</div>
@@ -706,7 +705,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
             </div>
           </div>
         </div>
-      </Dialog>
+      </Dialog> */}
       <Dialog store={fullscreenDialog}>
         <div className="text-w-fg-1">点击进入全屏播放</div>
       </Dialog>

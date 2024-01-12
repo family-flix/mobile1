@@ -30,6 +30,7 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     loading: false,
     disabled: false,
   };
+  pressTime = 0;
 
   constructor(options: Partial<{ _name: string } & NodeProps<T>> = {}) {
     super(options);
@@ -56,22 +57,40 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     this.longPressTimer = null;
   }
   handleMouseDown = () => {
+    this.pressTime = new Date().valueOf();
     console.log("[DOMAIN]ui/node/index - handleMouseDown");
-    this.longPressTimer = setTimeout(() => {
-      console.log("[DOMAIN]ui/node/index - bingo", this);
-      this.emit(Events.LongPress);
-    }, 1000);
+    // this.longPressTimer = setTimeout(() => {
+    //   console.log("[DOMAIN]ui/node/index - bingo", this);
+    //   this.emit(Events.LongPress);
+    // }, 1000);
   };
-  handleMouseUp() {
-    console.log("[DOMAIN]ui/node/index - handleMouseUp");
-    this.clearLongPressTimer();
+  handleMouseUp(options: { type: string; stopPropagation: () => void }) {
+    const now = new Date().valueOf();
+    const prev = this.pressTime;
+    this.pressTime = 0;
+    console.log("[DOMAIN]ui/node/index - handleMouseUp", options.type, now - prev);
+    if (options.stopPropagation) {
+      options.stopPropagation();
+    }
+    if (now - prev >= 1200) {
+      this.emit(Events.LongPress);
+      return;
+    }
+    this.emit(Events.Click);
+    // this.clearLongPressTimer();
   }
   handleMouseOut() {
     console.log("[DOMAIN]ui/node/index - handleMouseOut");
     this.clearLongPressTimer();
   }
   handleClick() {
+    console.log("[DOMAIN]ui/node/index - handleClick");
     this.click();
+  }
+  handleMounted() {}
+
+  setStyles(value: unknown) {
+    console.log("please implements this function in connect.web.ts");
   }
 
   /** 触发一次按钮点击事件 */

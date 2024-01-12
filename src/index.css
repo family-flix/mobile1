@@ -66,6 +66,95 @@ body {
   clip-path: polygon(0 0, 100% 0, 100% 100%);
 }
 
+.animate-bar1 {
+  animation-name: playing-bar1;
+}
+.animate-bar2 {
+  animation-name: playing-bar2;
+  animation-delay: 0.1s;
+}
+.animate-bar3 {
+  animation-name: playing-bar3;
+  animation-delay: 0.2s;
+}
+.play-animation {
+  display: flex;
+  align-items: flex-end;
+  height: 100px;
+}
+.bar {
+  width: 4px;
+  margin: 0 2px;
+  background-color: var(--weui-FG-1);
+  animation-duration: 0.8s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+.bar1 {
+  animation-name: playing-bar1;
+}
+.bar2 {
+  animation-name: playing-bar2;
+  animation-delay: 0.1s;
+}
+.bar3 {
+  animation-name: playing-bar3;
+  animation-delay: 0.4s;
+}
+@keyframes playing-bar1 {
+  0%,
+  40%,
+  100% {
+    height: 8px;
+  }
+  20% {
+    height: 16px;
+  }
+  60% {
+    height: 28px;
+  }
+}
+
+@keyframes playing-bar2 {
+  0%,
+  40%,
+  100% {
+    height: 8px;
+  }
+  20% {
+    height: 24px;
+  }
+  60% {
+    height: 16px;
+  }
+}
+
+@keyframes playing-bar3 {
+  0%,
+  40%,
+  100% {
+    height: 6px;
+  }
+  20% {
+    height: 14px;
+  }
+  60% {
+    height: 20px;
+  }
+}
+
+.__a {
+  animation: __a 0.1s;
+}
+@keyframes __a {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 @keyframes loading-show {
   100% {
     height: 40px;

@@ -4,7 +4,7 @@ import { fetchTVChannelList } from "@/services";
 import { LazyImage, ListView, ScrollView } from "@/components/ui";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { ScrollViewCore } from "@/domains/ui";
+import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
 import { tvChannelPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
@@ -28,6 +28,7 @@ export const TVLiveListPage: ViewComponent = (props) => {
         },
       })
   );
+  const poster = useInstance(() => new ImageInListCore());
 
   const [listResponse, setListResponse] = useState(list.response);
 
@@ -59,7 +60,7 @@ export const TVLiveListPage: ViewComponent = (props) => {
                 >
                   <div className="p-2 flex flex-col items-center rounded-md bg-w-bg-3">
                     <div>
-                      <LazyImage className="w-[48px] min-h-[48px] object-contain" src={logo} />
+                      <LazyImage className="w-[48px] min-h-[48px] object-contain" store={poster.bind(logo)} />
                     </div>
                     <div className="max-w-full overflow-hidden mt-2 text-sm text-center">{name}</div>
                   </div>

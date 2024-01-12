@@ -1,0 +1,65 @@
+import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { request } from "@/utils/request";
+import { Result, Unpacked, UnpackedResult } from "@/types";
+
+import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";
+
+/**
+ * 获取视频源播放信息
+ */
+export async function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
+  const res = await request.post<{
+    id: string;
+    /** 缩略图 */
+    thumbnail_path: string;
+    /** 视频分辨率 */
+    type: MediaResolutionTypes;
+    /** 视频播放地址 */
+    url: string;
+    /** 视频宽度 */
+    width: number;
+    /** 视频高度 */
+    height: number;
+    /** 该视频其他分辨率 */
+    other: {
+      cur: boolean;
+      /** 影片分辨率 */
+      type: MediaResolutionTypes;
+      /** 影片播放地址 */
+      url: string;
+      /** 影片宽度 */
+      width: number;
+      /** 影片高度 */
+      height: number;
+    }[];
+    subtitles: SubtitleFileResp[];
+  }>("/api/v2/wechat/source", {
+    id: body.id,
+  });
+  if (res.error) {
+    return Result.Err(res.error);
+  }
+  const { id, url, width, height, thumbnail_path, type, other, subtitles } = res.data;
+  return Result.Ok({
+    id,
+    url,
+    type,
+    typeText: MediaResolutionTypeTexts[type],
+    width,
+    height,
+    thumbnailPath: thumbnail_path,
+    resolutions: other.map((t) => {
+      const { cur, url, width, height, type } = t;
+      return {
+        cur,
+        url,
+        type,
+        typeText: MediaResolutionTypeTexts[t.type],
+        width,
+        height,
+      };
+    }),
+    subtitles,
+  });
+}
+export type MediaSourceFile = UnpackedResult<Unpacked<ReturnType<typeof fetchSourcePlayingInfo>>>;

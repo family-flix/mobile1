@@ -21,7 +21,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
     if (focus) {
       setTimeout(() => {
         $input.focus();
-      }, 200);
+      }, 500);
     }
     store.setMounted();
   }, []);
@@ -41,13 +41,13 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
   // console.log("[]Input");
   return (
     <div className="relative">
-      <div className="absolute left-3 top-[50%] translate-y-[-50%] text-w-fg-1 ">
+      <div className="absolute left-3 top-[50%] translate-y-[-50%] text-w-fg-1">
         {(() => {
           if (!prefix) {
             return null;
           }
           if (loading) {
-            return <Loader2 className="w-4 h-4 animate-spin" />;
+            return <Loader2 className="w-5 h-5 animate-spin" />;
           }
           return prefix;
         })()}
@@ -55,11 +55,11 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
       <input
         ref={ref}
         className={cn(
-          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-3 text-w-fg-0 py-2 px-3 text-sm",
+          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-3 text-w-fg-0 py-2 px-3 text-md",
           "focus:outline-none focus:ring-2 focus:ring-fg-4 focus:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "placeholder:text-w-fg-1",
-          prefix ? "pl-8" : "",
+          prefix ? "pl-10" : "",
           props.className
         )}
         style={{

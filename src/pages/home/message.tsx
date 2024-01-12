@@ -6,10 +6,10 @@ import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } fro
 
 import { readAllNotification, readNotification } from "@/services";
 import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
-import { ScrollViewCore, ButtonCore } from "@/domains/ui";
+import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { messageList, moviePlayingPage, rootView, tvPlayingPage } from "@/store";
+import { messageList, moviePlayingPage, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
 import { Show } from "@/components/ui/show";
 import { StepSwitch } from "@/components/ui/step";
@@ -63,6 +63,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
       readAllRequest.run();
     },
   });
+  const poster = useInstance(() => new ImageInListCore());
 
   const [response, setResponse] = useState(messageList.response);
 
@@ -91,7 +92,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
               >
                 <ArrowLeft className="w-6 h-6" />
               </div>
-              <div className="text-2xl">我的消息</div>
+              <div className="text-md">我的消息</div>
             </div>
           </div>
           <div className="flex justify-between mt-2 p-2">
@@ -161,12 +162,11 @@ export const HomeMessagePage: ViewComponent = (props) => {
                         };
                       });
                       if (season) {
-                        const { id, tv_id } = season;
-                        tvPlayingPage.query = {
-                          id: tv_id,
-                          season_id: id,
+                        const { id } = season;
+                        seasonPlayingPageV2.query = {
+                          id,
                         };
-                        app.showView(tvPlayingPage);
+                        app.showView(seasonPlayingPageV2);
                       }
                       if (movie) {
                         const { id } = movie;
@@ -187,7 +187,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                               <div className="relative w-[98px] mr-4">
                                 <LazyImage
                                   className="w-full h-full rounded-lg object-cover"
-                                  src={poster_path}
+                                  store={poster.bind(poster_path)}
                                   alt={name}
                                 />
                               </div>
@@ -206,7 +206,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                               <div className="relative w-[98px] mr-4">
                                 <LazyImage
                                   className="w-full h-full rounded-lg object-cover"
-                                  src={poster_path}
+                                  store={poster.bind(poster_path)}
                                   alt={name}
                                 />
                               </div>

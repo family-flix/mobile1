@@ -7,7 +7,7 @@ import { ArrowLeft, Copy, Film, Pen, Plus, QrCode, Search, Smartphone, Tv2 } fro
 import { fetchInviteeList, inviteMember } from "@/services";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { Qrcode } from "@/components/Qrcode";
+import { Qrcode } from "@/components/qr-code";
 import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
@@ -191,7 +191,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                 >
                   <ArrowLeft className="w-6 h-6" />
                 </div>
-                <div className="text-2xl">好友</div>
+                <div className="text-md">好友</div>
               </div>
               <div>
                 <div
@@ -206,7 +206,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
             </div>
             <div className="flex items-center justify-between w-full p-4 pt-0 pb-0 space-x-4">
               <div className="relative w-full">
-                <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
+                <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
               </div>
             </div>
           </div>

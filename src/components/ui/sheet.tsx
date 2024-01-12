@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { DialogCore } from "@/domains/ui/dialog";
 import * as DialogPrimitive from "@/packages/ui/dialog";
 import { cn } from "@/utils";
+import { Show } from "@/packages/ui/show";
 
 const sheetVariants = cva("fixed z-50 scale-100 gap-4 rounded-tl-xl rounded-tr-xl bg-w-bg-2 text-w-fg-0 opacity-100", {
   variants: {
@@ -107,12 +108,13 @@ export const Sheet = (
   props: {
     store: DialogCore;
     size?: VariantProps<typeof sheetVariants>["size"];
+    hideTitle?: boolean;
   } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
 ) => {
-  const { store, size = "lg" } = props;
+  const { store, size = "lg", hideTitle } = props;
   return (
     <Root store={store}>
-      <Content store={store} position="bottom" size={size}>
+      <Content store={store} hideTitle={hideTitle} position="bottom" size={size}>
         {props.children}
       </Content>
     </Root>
@@ -153,24 +155,26 @@ const Content = (
   } & {
     position?: VariantProps<typeof sheetVariants>["position"];
     size?: VariantProps<typeof sheetVariants>["size"];
+    hideTitle?: boolean;
   } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
 ) => {
-  const { className, store, position, size, children } = props;
+  const { className, store, position, size, hideTitle, children } = props;
   return (
     <Portal store={store} position={position}>
       <Overlay store={store} />
       <DialogPrimitive.Content store={store} className={cn(sheetVariants({ position, size }), className)}>
-        <Header className="flex">
-          {/* <div className="mt-2 mx-auto w-[64px] h-[4px] bg-slate-400 rounded-lg"></div> */}
-          <div
-            className="p-4 self-end"
-            onClick={() => {
-              store.hide();
-            }}
-          >
-            <X className="w-5 h-5 text-w-fg-1" />
-          </div>
-        </Header>
+        <Show when={!hideTitle}>
+          <Header className="flex">
+            <div
+              className="p-4 self-end"
+              onClick={() => {
+                store.hide();
+              }}
+            >
+              <X className="w-5 h-5 text-w-fg-1" />
+            </div>
+          </Header>
+        </Show>
         {children}
       </DialogPrimitive.Content>
     </Portal>

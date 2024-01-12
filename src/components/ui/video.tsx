@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { PlayerCore } from "@/domains/player";
 import { connect } from "@/domains/player/connect.web";
 import { useInitialize } from "@/hooks";
+import { Loader2 } from "lucide-react";
 
 export function Video(props: { store: PlayerCore }) {
   const { store } = props;
@@ -38,9 +39,10 @@ export function Video(props: { store: PlayerCore }) {
 
   return (
     <div
+      className="transition-all"
       style={{
         width,
-        height,
+        // height,
         overflow: "hidden",
         // backgroundColor: "red",
       }}
@@ -58,7 +60,7 @@ export function Video(props: { store: PlayerCore }) {
         ref={videoRef}
         poster={poster}
         className="w-full relative z-10"
-        controls={true}
+        controls={false}
         webkit-playsinline={prepareFullscreen ? undefined : "true"}
         playsInline={!prepareFullscreen}
         preload="none"

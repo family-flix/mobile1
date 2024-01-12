@@ -1,6 +1,10 @@
 /** 后端返回的字幕文件 */
-export type SubtitleResp = {
+export type SubtitleFileResp = {
   id: string;
+  /**
+   * 1 软字幕
+   * 2 外挂字幕
+   */
   type: number;
   name: string;
   lang: string;

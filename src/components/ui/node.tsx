@@ -1,9 +1,10 @@
 /**
  * @file div
  */
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { NodeCore } from "@/domains/ui/node";
+import { connect } from "@/domains/ui/node/connect.web";
 
 function Node<T = unknown>(
   props: {
@@ -13,29 +14,50 @@ function Node<T = unknown>(
   const { store } = props;
 
   const [state, setState] = useState(store.state);
+  const ref = useRef<HTMLDivElement>(null);
 
   store.onStateChange((nextState) => {
     setState(nextState);
   });
 
+  useEffect(() => {
+    if (!ref.current) {
+      return;
+    }
+    connect(ref.current, store);
+  }, []);
+
   return (
     <div
+      ref={ref}
       className={props.className}
+      style={props.style}
       onClick={(event) => {
         event.preventDefault();
-        store.click();
+        event.stopPropagation();
+        // store.click();
       }}
       onTouchStart={() => {
         store.handleMouseDown();
       }}
-      onTouchEnd={() => {
-        store.handleMouseUp();
+      onTouchEnd={(event) => {
+        store.handleMouseUp({
+          type: "touch end",
+          stopPropagation() {
+            event.stopPropagation();
+          },
+        });
       }}
       onMouseDown={() => {
         store.handleMouseDown();
       }}
-      onMouseUp={() => {
-        store.handleMouseUp();
+      onMouseUp={(event) => {
+        store.handleMouseUp({
+          type: "mouse up",
+          stopPropagation() {
+            event.stopPropagation();
+          },
+        });
       }}
       onMouseOut={() => {
         store.handleMouseOut();

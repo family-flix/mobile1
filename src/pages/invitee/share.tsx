@@ -48,7 +48,7 @@ export const MediaSharePage: ViewComponent = (props) => {
             </div>
             <div className="flex items-center justify-between w-full p-4 pt-0 pb-0 space-x-4">
               <div className="relative w-full">
-                <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
+                <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
               </div>
             </div>
           </div>

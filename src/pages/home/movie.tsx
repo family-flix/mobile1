@@ -16,12 +16,12 @@ import {
   Dialog,
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
-import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore } from "@/domains/ui";
+import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { fetchMovieList } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { MovieGenresOptions, MovieSourceOptions } from "@/constants";
+import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants";
 import { moviePlayingPage } from "@/store";
 import { ViewComponentWithMenu } from "@/types";
 
@@ -65,6 +65,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
         },
       })
   );
+  const poster = useInstance(() => new ImageInListCore());
   const settingsSheet = useInstance(() => new DialogCore());
   const searchInput = useInstance(
     () =>
@@ -93,10 +94,10 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       language: [] as string[],
     });
     return new CheckboxGroupCore({
-      values: MovieSourceOptions.filter((opt) => {
+      values: MovieOriginCountryOptions.filter((opt) => {
         return language.includes(opt.value);
       }).map((opt) => opt.value),
-      options: MovieSourceOptions.map((opt) => {
+      options: MovieOriginCountryOptions.map((opt) => {
         return {
           ...opt,
           checked: language.includes(opt.value),
@@ -221,7 +222,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       <div className="fixed z-20 top-0 w-full">
         <div className="flex items-center justify-between w-full py-2 px-4 bg-w-bg-0 text-w-fg-2 space-x-3">
           <div className="w-full">
-            <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
+            <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
           </div>
           <div
             className="relative p-2 rounded-md bg-w-bg-2"
@@ -286,7 +287,11 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                     }}
                   >
                     <div className="relative w-[128px] h-[198px] mr-4">
-                      <LazyImage className="w-full h-full rounded-lg object-cover" src={poster_path} alt={name} />
+                      <LazyImage
+                        className="w-full h-full rounded-lg object-cover"
+                        store={poster.bind(poster_path)}
+                        alt={name}
+                      />
                       {runtime && (
                         <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
                           <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>

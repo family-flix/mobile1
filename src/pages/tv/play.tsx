@@ -22,13 +22,12 @@ import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/compone
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { RequestCore } from "@/domains/request";
-import { MediaResolutionTypes } from "@/domains/movie/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 import { OrientationTypes } from "@/domains/app";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoaderContainer, LoaderOverrideCore } from "@/components/loader";
+import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
@@ -81,7 +80,7 @@ ${url}`;
       value: app.cache.get("player_settings", {
         volume: 0.5,
         rate: 1,
-        type: "SD",
+        type: MediaResolutionTypes.SD,
       }),
     });
     return r;
@@ -220,7 +219,7 @@ ${url}`;
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
-  const nextEpisodeLoader = useInstance(() => new LoaderOverrideCore({}));
+  const nextEpisodeLoader = useInstance(() => new ToggleOverrideCore({}));
   const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
   const scrollView2 = useInstance(() => new ScrollViewCore());
@@ -295,7 +294,7 @@ ${url}`;
     tv.onEpisodeChange((nextEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { currentTime, thumbnail } = nextEpisode;
-      nextEpisodeLoader.unload();
+      nextEpisodeLoader.hide();
       player.setCurrentTime(currentTime);
       player.setPoster(thumbnail);
       player.pause();
@@ -518,19 +517,19 @@ ${url}`;
                         <ArrowBigLeft className="w-8 h-8" />
                         <p className="mt-2 text-sm">上一集</p>
                       </div>
-                      <LoaderContainer className="w-12 h-16" store={nextEpisodeLoader}>
+                      <ToggleOverlay className="w-12 h-16" store={nextEpisodeLoader}>
                         <div
                           className="flex flex-col items-center"
                           onClick={async () => {
-                            nextEpisodeLoader.load();
+                            nextEpisodeLoader.show();
                             await tv.playNextEpisode();
-                            nextEpisodeLoader.unload();
+                            nextEpisodeLoader.hide();
                           }}
                         >
                           <ArrowBigRight className="w-8 h-8 " />
                           <p className="mt-2 text-sm ">下一集</p>
                         </div>
-                      </LoaderContainer>
+                      </ToggleOverlay>
                     </div>
                     <div className="grid grid-cols-5 gap-2 mt-12 w-full px-2">
                       <div
@@ -670,7 +669,7 @@ ${url}`;
           }
           return (
             <div className="relative box-border h-full safe-bottom">
-              <Tabs defaultValue="episode" className="h-full">
+              {/* <Tabs defaultValue="episode" className="h-full">
                 <TabsList className="absolute top-[-50px] left-4 z-10">
                   <TabsTrigger value="episode">集</TabsTrigger>
                   <TabsTrigger value="season">季</TabsTrigger>
@@ -700,7 +699,7 @@ ${url}`;
                     </div>
                   </div>
                 </TabsContent>
-              </Tabs>
+              </Tabs> */}
             </div>
           );
         })()}
@@ -937,7 +936,7 @@ ${url}`;
           <p className="mt-2">「{curReportValue}」</p>
         </div>
       </Dialog>
-      <Dialog store={errorTipDialog}>
+      {/* <Dialog store={errorTipDialog}>
         <div className=" text-w-fg-1">
           <div>该问题是因为手机无法解析视频</div>
           <div>可以尝试如下解决方案</div>
@@ -988,7 +987,7 @@ ${url}`;
             </div>
           </div>
         </div>
-      </Dialog>
+      </Dialog> */}
       <Dialog store={fullscreenDialog}>
         <div className="text-w-fg-1">点击进入全屏播放</div>
       </Dialog>

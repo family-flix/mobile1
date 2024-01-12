@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Dialog, ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
-import { MediaResolutionTypes } from "@/domains/movie/constants";
+import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { OrientationTypes } from "@/domains/app";
@@ -28,7 +28,7 @@ export const TVChannelTestPlayingPage: ViewComponent = (props) => {
       value: app.cache.get("player_settings", {
         volume: 0.5,
         rate: 1,
-        type: "SD",
+        type: MediaResolutionTypes.SD,
       }),
     });
     return r;

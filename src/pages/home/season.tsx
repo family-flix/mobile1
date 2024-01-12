@@ -16,14 +16,14 @@ import {
   Dialog,
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
-import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore } from "@/domains/ui";
-import { fetchSeasonList } from "@/domains/tv/services";
+import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
+import { fetchSeasonList } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions } from "@/constants";
+import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 import { ViewComponentWithMenu } from "@/types";
-import { tvPlayingPage } from "@/store";
+import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store";
 
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
@@ -65,6 +65,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
         },
       })
   );
+  const poster = useInstance(() => new ImageInListCore());
   const settingsSheet = useInstance(() => new DialogCore());
   const searchInput = useInstance(
     () =>
@@ -153,7 +154,6 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
     })()
   );
 
-  // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
     view.onShow(() => {
       app.setTitle(view.title);
@@ -207,7 +207,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       <div className="fixed z-20 top-0 w-full bg-w-bg-0">
         <div className="flex items-center justify-between w-full py-2 px-4 text-w-fg-2 space-x-3">
           <div className="w-full">
-            <Input store={searchInput} prefix={<Search className="w-4 h-4" />} />
+            <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
           </div>
           <div
             className="relative p-2 rounded-md bg-w-bg-3"
@@ -259,32 +259,33 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
           >
             {(() => {
               return dataSource.map((season) => {
-                const {
-                  id,
-                  tv_id,
-                  name,
-                  season_text,
-                  episode_count_text,
-                  vote,
-                  genres,
-                  air_date,
-                  poster_path = "",
-                  actors,
-                } = season;
+                const { id, type, name, episode_count_text, vote, genres, air_date, poster_path = "", actors } = season;
                 return (
                   <div
                     key={id}
                     className="flex px-4 py-2 mb-3 bg-w-bg-3 cursor-pointer"
                     onClick={() => {
-                      tvPlayingPage.query = {
-                        id: tv_id,
-                        season_id: id,
-                      };
-                      app.showView(tvPlayingPage);
+                      if (type === MediaTypes.Season) {
+                        seasonPlayingPageV2.query = {
+                          id,
+                        };
+                        app.showView(seasonPlayingPageV2);
+                        return;
+                      }
+                      if (type === MediaTypes.Movie) {
+                        moviePlayingPageV2.query = {
+                          id,
+                        };
+                        app.showView(moviePlayingPageV2);
+                        return;
+                      }
+                      app.tip({
+                        text: ["未知的媒体类型"],
+                      });
                     }}
                   >
                     <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                      <LazyImage className="w-full h-full object-cover" src={poster_path} alt={name} />
+                      <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
                       {episode_count_text && (
                         <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
                           <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
@@ -300,8 +301,6 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                       </div>
                       <div className="flex items-center mt-1">
                         <div>{air_date}</div>
-                        <p className="mx-2 ">·</p>
-                        <p className="whitespace-nowrap">{season_text}</p>
                         <p className="mx-2 ">·</p>
                         <div className="relative flex items-center">
                           <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />

@@ -39,7 +39,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     player.handlePlaying();
   };
   $video.ontimeupdate = (event) => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.ontimeupdate");
+    // console.log("[COMPONENT]VideoPlayer/connect - $video.ontimeupdate");
     const { currentTime, duration } = event.currentTarget as HTMLVideoElement;
     player.handleTimeUpdate({ currentTime, duration });
   };
@@ -115,6 +115,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       return !!$video.canPlayType(type);
     },
     load(url: string) {
+      // console.log("[DOMAIN]player/connect - load", url, $video);
       $video.src = url;
       $video.load();
     },
@@ -125,18 +126,16 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       $video.volume = volume;
     },
     setRate(rate: number) {
-      console.log("[DOMAIN]player/connect - setRate", rate, $video);
+      // console.log("[DOMAIN]player/connect - setRate", rate, $video);
       $video.playbackRate = rate;
     },
     enableFullscreen() {
-      // $video.removeAttribute("webkit-playsinline");
-      // $video.removeAttribute("plays-inline");
-      // ...
+      $video.removeAttribute("webkit-playsinline");
+      $video.removeAttribute("playsinline");
     },
     disableFullscreen() {
-      // $video.setAttribute("webkit-playsinline", "true");
-      // $video.setAttribute("plays-inline", "true");
-      // ...
+      $video.setAttribute("webkit-playsinline", "true");
+      $video.setAttribute("playsinline", "true");
     },
     showSubtitle() {
       if ($video.textTracks[0]) {
@@ -148,6 +147,24 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       if ($video.textTracks[0]) {
         $video.textTracks[0].mode = "hidden";
       }
+    },
+    showAirplay() {
+      // @ts-ignore
+      if ($video.webkitShowPlaybackTargetPicker) {
+        // @ts-ignore
+        $video.webkitShowPlaybackTargetPicker;
+        return;
+      }
+      alert("AirPlay not supported.");
+    },
+    pictureInPicture() {
+      // @ts-ignore
+      if ($video.webkitSetPresentationMode) {
+        // @ts-ignore
+        $video.webkitSetPresentationMode("picture-in-picture");
+        return;
+      }
+      alert("Picture-in-Picture not supported.");
     },
   });
 }

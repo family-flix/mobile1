@@ -109,7 +109,6 @@ export const HomeLayout: ViewComponent = (props) => {
       })
   );
   const [subViews, setSubViews] = useState(view.subViews);
-  const [messageResponse, setMessageResponse] = useState(messageList.response);
   const menus = [homeMenu, seasonMenu, movieMenu, historyMenu, mineMenu];
 
   useInitialize(() => {
@@ -138,10 +137,7 @@ export const HomeLayout: ViewComponent = (props) => {
     view.onCurViewChange((nextCurView) => {
       updateMenuActive(nextCurView);
     });
-    messageList.onStateChange((nextState) => {
-      setMessageResponse(nextState);
-    });
-    messageList.initIfInitial();
+    messageList.initAny();
   });
 
   return (
@@ -160,7 +156,7 @@ export const HomeLayout: ViewComponent = (props) => {
               >
                 <div
                   className={cn(
-                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-0 opacity-100 scroll scroll--hidden",
+                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-3 opacity-100 scroll scroll--hidden",
                     app.env.android ? "scroll--fix" : ""
                   )}
                 >
@@ -182,7 +178,7 @@ export const HomeLayout: ViewComponent = (props) => {
           })}
         </div>
       </div>
-      <div className="relative z-100 h-[68px] box-content safe-bottom">
+      {/* <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
         <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] border-t border-t-w-fg-3 dark:border-t-w-bg-3 bg-w-bg-1 text-w-fg-0 backdrop-blur-md backdrop-filter bg-opacity-50 safe-bottom">
           <BottomMenu store={homeMenu} />
@@ -191,7 +187,7 @@ export const HomeLayout: ViewComponent = (props) => {
           <BottomMenu store={historyMenu} />
           <BottomMenu store={mineMenu} />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
