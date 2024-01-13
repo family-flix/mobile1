@@ -15,6 +15,7 @@ import { fetchPlayingHistories } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import {
+  homeHistoryTab,
   homeMinePage,
   homeMovieTab,
   homeRecommendedTab,
@@ -102,6 +103,10 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
             text: "推荐",
           },
           {
+            id: "history",
+            text: "观看记录",
+          },
+          {
             id: "season",
             text: "电视剧",
           },
@@ -138,16 +143,20 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
             return;
           }
           if (index === 1) {
-            app.showView(homeSeasonTab);
+            app.showView(homeHistoryTab);
             return;
           }
           if (index === 2) {
+            app.showView(homeSeasonTab);
+            return;
+          }
+          if (index === 3) {
             app.showView(homeMovieTab);
             return;
           }
         },
         onMounted() {
-          tab.select(1);
+          tab.select(2);
         },
       })
   );
@@ -195,6 +204,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
     () =>
       new AffixCore({
         top: 0,
+        defaultHeight: 96,
       })
   );
 
@@ -202,6 +212,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   const [messageResponse, setMessageResponse] = useState(messageList.response);
   const [updatedMediaListState, setUpdatedMediaListState] = useState(updatedMediaList.response);
   const [historyState, setHistoryState] = useState(historyList.response);
+  const [height, setHeight] = useState(affix.height);
   const [hasSearch, setHasSearch] = useState(
     (() => {
       const { language = [] } = app.cache.get("tv_search", {
@@ -221,6 +232,9 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
     });
     view.onCurViewChange((nextCurView) => {
       // updateMenuActive(nextCurView);
+    });
+    affix.onMounted(({ height }) => {
+      setHeight(height);
     });
     const search = (() => {
       const { language = [] } = app.cache.get("tv_search", {
@@ -308,8 +322,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           </div>
           <TabHeader store={tab} />
         </Affix>
-        <div className="absolute inset-0 flex flex-col">
-          <AffixPlaceholder store={affix} />
+        <div className="absolute inset-0 flex flex-col" style={{ top: height }}>
           <div className="relative flex-1">
             {subViews.map((subView, i) => {
               // const matchedMenu = menus.find((m) => m.view === subView);

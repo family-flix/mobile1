@@ -419,9 +419,9 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
       $page.prepareHide();
       $page.$time.hide();
     });
-    $logic.$player.onCanPlay((v) => {
-      $page.prepareHide();
-    });
+    // $logic.$player.onCanPlay((v) => {
+    //   $page.prepareHide();
+    // });
     // if (!view.query.hide_menu) {
     //   scrollView.onPullToBack(() => {
     //     app.back();

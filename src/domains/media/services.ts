@@ -417,7 +417,7 @@ export async function updatePlayHistory(body: {
  */
 export async function fetchPlayingHistories(params: FetchParams) {
   const { page, pageSize, ...rest } = params;
-  const r = await request.get<
+  const r = await request.post<
     ListResponseWithCursor<{
       id: string;
       type: MediaTypes;
@@ -479,8 +479,8 @@ export async function fetchPlayingHistories(params: FetchParams) {
         type,
         media_id,
         name,
-        poster_path,
-        episode_count_text: (() => {
+        posterPath: poster_path,
+        episodeCountText: (() => {
           if (type === MediaTypes.Movie) {
             return null;
           }
@@ -492,13 +492,13 @@ export async function fetchPlayingHistories(params: FetchParams) {
           }
           return `更新至${cur_episode_count}集`;
         })(),
-        episode_text: type === MediaTypes.Movie ? null : episode_to_chinese_num(cur_episode_number),
-        has_update: !!has_update,
-        air_date,
+        episodeText: type === MediaTypes.Movie ? null : episode_to_chinese_num(cur_episode_number),
+        hasUpdate: !!has_update,
+        airDate: air_date,
         currentTime: current_time,
-        percent: parseFloat(((current_time / duration) * 100).toFixed(2)),
+        percent: parseFloat(((current_time / duration) * 100).toFixed(0)),
         updated: relative_time_from_now(updated),
-        thumbnail: thumbnail_path,
+        thumbnail_path,
       };
     }),
   });

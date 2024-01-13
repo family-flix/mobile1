@@ -57,10 +57,10 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
       <ScrollView className="bg-w-bg-3" store={scroll}>
         <ListView
           store={list}
-          className="relative space-y-3 pt-4"
+          className="relative space-y-2 pt-2"
           skeleton={
             <>
-              <div className="flex px-4 mb-3 cursor-pointer">
+              <div className="flex px-2 cursor-pointer">
                 <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -70,7 +70,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                   <Skeleton className="mt-2 w-32 h-[22px]"></Skeleton>
                 </div>
               </div>
-              <div className="flex px-4 py-2 mb-3 cursor-pointer">
+              <div className="flex px-2 cursor-pointer">
                 <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -96,7 +96,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
               return (
                 <div
                   key={id}
-                  className="flex px-4 mb-3 cursor-pointer"
+                  className="flex px-2 cursor-pointer"
                   onClick={() => {
                     if (type === MediaTypes.Season) {
                       seasonPlayingPageV2.query = {

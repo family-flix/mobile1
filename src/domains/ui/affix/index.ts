@@ -17,12 +17,13 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.Fixed]: void;
   [Events.UnFixed]: void;
-  [Events.Mounted]: void;
+  [Events.Mounted]: { height: number };
   [Events.SizeChange]: void;
   [Events.StateChange]: AffixState;
 };
 type AffixProps = {
   top: number;
+  defaultHeight?: number;
   onMounted?: () => void;
 };
 type AffixState = {
@@ -57,10 +58,11 @@ export class AffixCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ _name: string }> & AffixProps) {
     super(props);
 
-    const { top, onMounted = null } = props;
+    const { top, defaultHeight = 0, onMounted = null } = props;
 
     // this.name = uniqueName;
     this.targetTop = top;
+    this.height = defaultHeight;
     // this.needRegisterAgain = needRegisterAgain;
     // this.onMounted = onMounted;
     if (onMounted) {
@@ -80,7 +82,7 @@ export class AffixCore extends BaseDomain<TheTypesOfEvents> {
     //   this.targetTop = this.curTop;
     // }
     this.mounted = true;
-    this.emit(Events.Mounted);
+    this.emit(Events.Mounted, { height });
   }
   handleScroll(values: { scrollTop: number }) {
     const { scrollTop } = values;

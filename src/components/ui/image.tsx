@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Image, ImageOff } from "lucide-react";
 
 import { ImageCore, ImageStep } from "@/domains/ui/image";
@@ -46,7 +46,18 @@ export function LazyImage(props: { store: ImageCore; alt?: string } & React.HTML
           return (
             <img
               className={props.className}
-              style={{ objectFit: state.fit }}
+              // style={{
+              //   objectFit: state.fit,
+              // }}
+              style={(() => {
+                const ss: React.CSSProperties = {
+                  objectFit: state.fit,
+                };
+                if (state.scale) {
+                  ss.transform = `scale(${state.scale})`;
+                }
+                return ss;
+              })()}
               src={state.src}
               alt={state.alt}
               onError={() => {

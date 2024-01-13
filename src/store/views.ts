@@ -12,6 +12,7 @@ import { HomeMessagePage } from "@/pages/home/message";
 import { HomeRecommendedTabContent } from "@/pages/home-tabs/recommended";
 import { HomeSeasonTabContent } from "@/pages/home-tabs/season";
 import { HomeMovieTabContent } from "@/pages/home-tabs/movie";
+import { HomeHistoryTabContent } from "@/pages/home-tabs/history";
 import { HomeMinePage } from "@/pages/home/mine";
 /** 搜索 */
 import { MediaSearchPage } from "@/pages/search";
@@ -56,11 +57,16 @@ export const homeMovieTab = new RouteViewCore({
   title: "电影",
   component: HomeMovieTabContent,
 });
+export const homeHistoryTab = new RouteViewCore({
+  key: "/home/index/history",
+  title: "观看记录",
+  component: HomeHistoryTabContent,
+});
 export const homeIndexPage = new RouteViewCore({
   key: "/home/index",
   title: "首页",
   component: HomeIndexPage,
-  children: [homeRecommendedTab, homeSeasonTab, homeMovieTab],
+  children: [homeRecommendedTab, homeSeasonTab, homeMovieTab, homeHistoryTab],
 });
 // mainLayout.curView = aView;
 // mainLayout.appendSubView(aView);

@@ -59,9 +59,10 @@ export const TabHeader = (props: { store: TabHeaderCore<any> }) => {
             );
           })}
         </div>
+        <div className="absolute z-0 bottom-0 w-full h-[1px] bg-w-bg-3" />
         {left !== null ? (
           <div
-            className="absolute bottom-0 w-4 bg-w-brand transition-all"
+            className="absolute z-10 bottom-0 w-4 bg-w-brand transition-all"
             style={{
               left,
               height: 4,
