@@ -216,7 +216,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
                         />
                         <div className="absolute w-full top-0 flex flex-row-reverse items-center">
                           {/* <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div> */}
-                          <div className="relative z-20 p-2 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                          <div className="relative z-20 p-2 text-[12px] text-w-bg-0 dark:text-w-fg-0">
                             {episodeCountText}
                           </div>
                         </div>
@@ -225,8 +225,11 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
                         </div>
                       </div>
                       <Show when={!!hasUpdate}>
-                        <div className="absolute top-4 left-[-5px]">
-                          <div className="huizhang">有更新</div>
+                        <div className="absolute top-2 left-2">
+                          <div className="huizhang">更新</div>
+                          {/* <div className="rounded-md bg-w-brand text-[12px] text-w-bg-0 dark:text-w-fg-0 p-1">
+                            有更新
+                          </div> */}
                         </div>
                       </Show>
                       <div className="p-2 pb-4">

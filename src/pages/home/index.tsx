@@ -307,7 +307,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               >
                 <Bell className="w-6 h-6" />
                 <Show when={!!messageResponse.dataSource.length}>
-                  <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-w-red"></div>
+                  <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-w-red"></div>
                 </Show>
               </div>
               <div

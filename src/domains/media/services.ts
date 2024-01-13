@@ -496,7 +496,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
         hasUpdate: !!has_update,
         airDate: air_date,
         currentTime: current_time,
-        percent: parseFloat(((current_time / duration) * 100).toFixed(0)),
+        percent: current_time === 0 || duration === 0 ? 0 : parseFloat(((current_time / duration) * 100).toFixed(0)),
         updated: relative_time_from_now(updated),
         thumbnail_path,
       };
