@@ -100,13 +100,13 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                         );
                       }
                       return medias.map((media) => {
-                        const { id, name, type, tv_id, poster_path, text: episode_count_text, air_date } = media;
+                        const { id, name, type, poster_path, text: episode_count_text, air_date } = media;
                         return (
                           <div
                             key={id}
                             className="w-[128px]"
                             onClick={() => {
-                              if (type === MediaTypes.Season && tv_id) {
+                              if (type === MediaTypes.Season) {
                                 seasonPlayingPageV2.query = {
                                   id,
                                 };
@@ -114,7 +114,7 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                                 return;
                               }
                               if (type === MediaTypes.Movie) {
-                                moviePlayingPageV2.params = {
+                                moviePlayingPageV2.query = {
                                   id,
                                 };
                                 app.showView(moviePlayingPageV2);

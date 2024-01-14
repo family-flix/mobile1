@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { ReportTypes } from "@/constants";
 import { FetchParams } from "@/domains/list/typing";
-import { ListResponse, RequestedResource, Result } from "@/types";
+import { ListResponse, ListResponseWithCursor, RequestedResource, Result } from "@/types";
 import { request } from "@/utils/request";
 import { MediaTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
@@ -127,14 +127,14 @@ export type InviteeItem = RequestedResource<typeof fetchInviteeList>["list"][num
 
 export async function fetchCollectionList(body: FetchParams) {
   const r = await request.post<
-    ListResponse<{
+    ListResponseWithCursor<{
       id: string;
       title: string;
       desc?: string;
       medias: {
         id: string;
         type: number;
-        tv_id?: string;
+        order: number;
         season_text?: string;
         episode_count?: number;
         cur_episode_count?: number;
@@ -144,7 +144,7 @@ export async function fetchCollectionList(body: FetchParams) {
         text: string;
       }[];
     }>
-  >("/api/collection/list", body);
+  >("/api/v2/wechat/collection/list", body);
   if (r.error) {
     return Result.Err(r.error.message);
   }
@@ -156,18 +156,25 @@ export async function fetchCollectionList(body: FetchParams) {
         id,
         title,
         desc,
-        medias: medias.map((media) => {
-          const { id, type, name, text, poster_path, air_date, cur_episode_count, episode_count } = media;
-          if (type === MediaTypes.Season) {
-            const { tv_id } = media;
+        medias: medias
+          .sort((a, b) => a.order - b.order)
+          .map((media) => {
+            const { id, type, name, text, poster_path, air_date, cur_episode_count, episode_count } = media;
             return {
               id,
               type,
               name,
               poster_path,
-              tv_id,
-              air_date,
+              air_date: (() => {
+                if (type === MediaTypes.Movie) {
+                  return air_date;
+                }
+                return dayjs(air_date).format("YYYY");
+              })(),
               text: (() => {
+                if (type === MediaTypes.Movie) {
+                  return null;
+                }
                 if (text) {
                   return text;
                 }
@@ -177,16 +184,8 @@ export async function fetchCollectionList(body: FetchParams) {
                 return `更新至${cur_episode_count}集`;
               })(),
             } as MediaPayload;
-          }
-          return {
-            id,
-            type,
-            name,
-            poster_path,
-            air_date,
-            text,
-          } as MediaPayload;
-        }),
+          })
+          .filter(Boolean),
       };
     }),
   });
