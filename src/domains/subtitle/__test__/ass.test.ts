@@ -4,8 +4,9 @@ import { SubtitleCore } from "..";
 import { parseSubtitleContent, parseSubtitleUrl } from "../utils";
 
 import { assSubtitleContent1 } from "./mock";
+import { MediaOriginCountry } from "@/constants";
 
-const subtitleLanguage = "chs";
+const subtitleLanguage = [MediaOriginCountry.TW];
 const subtitleUrl = "Reply.1988.E01.720p.HDTV.x264-AREA11.chs.ass";
 
 function play(props: { duration: number; onCurrentTime: (time: number) => void; onFinish: () => void }) {
@@ -42,8 +43,8 @@ describe("播放视频时正确展示字幕", () => {
       const suffix = parseSubtitleUrl(subtitleUrl);
       const paragraphs = parseSubtitleContent(assSubtitleContent1, suffix);
       const store = new SubtitleCore({
-        filename: subtitleLanguage,
-        lang: subtitleLanguage,
+        filename: subtitleLanguage.join("&"),
+        language: subtitleLanguage,
         suffix,
         lines: paragraphs,
       });

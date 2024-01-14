@@ -4,8 +4,9 @@ import { SubtitleCore } from "..";
 import { parseSubtitleContent, parseSubtitleUrl, timeStrToSeconds } from "../utils";
 
 import { vvtSubtitleContent } from "./mock";
+import { MediaOriginCountry } from "@/constants";
 
-const subtitleLanguage = "chi";
+const subtitleLanguage = [MediaOriginCountry.CN];
 const subtitleUrl =
   "https://ccp-bj29-video-preview.oss-enet.aliyuncs.com/lt/C8EEB2891EFF9D4011661F823C7ED63C8CA1BF09_2760902328__sha1_bj29/subtitle/chi_0.vtt?di=bj29";
 
@@ -43,8 +44,8 @@ describe("播放视频时正确展示字幕", () => {
       const suffix = parseSubtitleUrl(subtitleUrl);
       const paragraphs = parseSubtitleContent(vvtSubtitleContent, suffix);
       const store = new SubtitleCore({
-        filename: subtitleLanguage,
-        lang: subtitleLanguage,
+        filename: subtitleLanguage.join("&"),
+        language: subtitleLanguage,
         suffix,
         lines: paragraphs,
       });

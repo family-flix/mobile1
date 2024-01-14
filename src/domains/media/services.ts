@@ -184,18 +184,20 @@ export async function fetchSeasonPlayingEpisode(body: { media_id: string; type: 
     source_groups,
   } = r.data;
   const episodes = sources.map(normalizeEpisode);
-  const sourceGroups = source_groups.map((group) => {
-    const { start, end } = group;
-    const cur = cur_source.order >= start && cur_source.order <= end;
-    return {
-      text: `${start}-${end}`,
-      cur,
-      media_id: body.media_id,
-      start,
-      end,
-      list: cur ? episodes : [],
-    };
-  });
+  const sourceGroups = (() => {
+    return source_groups.map((group) => {
+      const { start, end } = group;
+      const cur = cur_source.order >= start && cur_source.order <= end;
+      return {
+        text: start === end ? start : `${start}-${end}`,
+        cur,
+        media_id: body.media_id,
+        start,
+        end,
+        list: cur ? episodes : [],
+      };
+    });
+  })();
   const curMediaSource = episodes.find((episode) => episode.id === cur_source.id);
   // const curMediaSource = (() => {
   // const matched = sourceGroups.find((group) => group.cur);

@@ -3,8 +3,9 @@ import { describe, it, expect, vi } from "vitest";
 import { SubtitleCore } from "..";
 import { parseSubtitleContent, parseSubtitleUrl } from "../utils";
 import { srtSubtitleContent1 } from "./mock";
+import { MediaOriginCountry } from "@/constants";
 
-const subtitleLanguage = "chi";
+const subtitleLanguage = [MediaOriginCountry.CN];
 const subtitleUrl = "BITCH.X.RICH.S01E01.1080p.WEB-DL.AAC2.0.H.264-Taengoo.FRIDAY.CHS.SRT";
 
 /**
@@ -44,8 +45,8 @@ describe("播放视频时正确展示字幕", () => {
       const suffix = parseSubtitleUrl(subtitleUrl);
       const paragraphs = parseSubtitleContent(srtSubtitleContent1, suffix);
       const store = new SubtitleCore({
-        filename: subtitleLanguage,
-        lang: subtitleLanguage,
+        filename: subtitleLanguage.join("&"),
+        language: subtitleLanguage,
         suffix,
         lines: paragraphs,
       });

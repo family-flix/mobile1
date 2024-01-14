@@ -164,7 +164,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(tip);
     }
     const file = files[0];
-    console.log("[DOMAIN]tv/index - playEpisode before this.$source.load", episode.name);
+    // console.log("[DOMAIN]tv/index - playEpisode before this.$source.load", episode.name);
     const res = await this.$source.load(file);
     if (res.error) {
       this.tip({
@@ -174,8 +174,14 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.currentTime = currentTime;
     this.curSource = { ...episode, currentTime, thumbnailPath: episode.stillPath, curSourceFileId: res.data.id };
-    this.$source.loadSubtitle({ extraSubtitleFiles: episode.subtitles, currentTime });
-    // this.emit(Events.EpisodeChange, { ...this.curEpisode, currentTime });
+    (async () => {
+      const r = await this.$source.loadSubtitle({ extraSubtitleFiles: episode.subtitles, currentTime });
+      if (r.error) {
+        console.log("[DOMAIN]media/season - loadSubtitle failed ", r.error.message);
+        return;
+      }
+      // this.emit(Events.EpisodeChange, { ...this.curEpisode, currentTime });
+    })();
     this.emit(Events.SourceFileChange, { ...res.data, currentTime });
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok(this.curSource);

@@ -6,14 +6,21 @@ import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } fro
 
 import { readAllNotification, readNotification } from "@/services";
 import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
-import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
-import { messageList, moviePlayingPage, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store";
-import { ViewComponent } from "@/types";
 import { Show } from "@/components/ui/show";
 import { StepSwitch } from "@/components/ui/step";
 import { StepCore } from "@/domains/step";
+import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
+import { RequestCore } from "@/domains/request";
+import { useInitialize, useInstance } from "@/hooks";
+import {
+  messageList,
+  moviePlayingPage,
+  moviePlayingPageV2,
+  rootView,
+  seasonPlayingPageV2,
+  tvPlayingPage,
+} from "@/store";
+import { ViewComponent } from "@/types";
 
 enum MessageStatus {
   Normal = 1,
@@ -41,9 +48,9 @@ export const HomeMessagePage: ViewComponent = (props) => {
         onReachBottom() {
           messageList.loadMore();
         },
-        onPullToBack() {
-          app.back();
-        },
+        // onPullToBack() {
+        //   app.back();
+        // },
       })
   );
   const readAllBtn = new ButtonCore({
@@ -82,21 +89,18 @@ export const HomeMessagePage: ViewComponent = (props) => {
     <>
       <ScrollView store={scrollView} className="">
         <div className="min-h-screen w-full">
-          <div className="">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center">
               <div
-                className="inline-block p-4"
+                className="inline-block"
                 onClick={() => {
                   app.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6" />
               </div>
-              <div className="text-md">我的消息</div>
+              {/* <div className="text-md">我的消息</div> */}
             </div>
-          </div>
-          <div className="flex justify-between mt-2 p-2">
-            <div></div>
             <div
               className="flex items-center"
               onClick={() => {
@@ -120,16 +124,8 @@ export const HomeMessagePage: ViewComponent = (props) => {
                 store={step}
                 options={{
                   0: null,
-                  1: <Trash className="w-4 h-4" />,
+                  1: <Trash className="w-6 h-6" />,
                   2: null,
-                }}
-              />
-              <StepSwitch
-                store={step}
-                options={{
-                  0: null,
-                  1: <div className="ml-2">清理</div>,
-                  2: <div className="ml-2">完成</div>,
                 }}
               />
             </div>
@@ -170,14 +166,14 @@ export const HomeMessagePage: ViewComponent = (props) => {
                       }
                       if (movie) {
                         const { id } = movie;
-                        moviePlayingPage.params = {
+                        moviePlayingPageV2.query = {
                           id,
                         };
-                        app.showView(moviePlayingPage);
+                        app.showView(moviePlayingPageV2);
                       }
                     }}
                   >
-                    <div className="text-lg">{msg}</div>
+                    <div className="break-all text-lg">{msg}</div>
                     <div className="">
                       {(() => {
                         if (movie) {

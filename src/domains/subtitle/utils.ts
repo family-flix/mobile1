@@ -1,7 +1,8 @@
 import parse from "url-parse";
 
-import { SubtitleFile, SubtitleFileType, SubtitleParagraph } from "./types";
+import { SubtitleFile, SubtitleFileSuffix, SubtitleParagraph } from "./types";
 import { SubtitleCore } from ".";
+import { MediaOriginCountry } from "@/constants";
 
 export function timeStrToSeconds(durationStr: string) {
   if (durationStr.match(/[0-9]{1,2}:[0-9]{2}:[0-9]{2}[\.,]/)) {
@@ -20,19 +21,19 @@ export function timeStrToSeconds(durationStr: string) {
   return 0;
 }
 
-export function parseSubtitleUrl(url: string): SubtitleFileType {
+export function parseSubtitleUrl(url: string): SubtitleFileSuffix {
   if (!url) {
     return "srt";
   }
   const { pathname } = parse(url);
   const suffix = pathname.split(".").pop();
   if (suffix) {
-    return suffix.toLowerCase() as SubtitleFileType;
+    return suffix.toLowerCase() as SubtitleFileSuffix;
   }
   return "srt";
 }
 
-const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => SubtitleParagraph[]> = {
+const SUBTITLE_PARSER_MAP: Record<SubtitleFileSuffix, (content: string) => SubtitleParagraph[]> = {
   srt: (content: string) => {
     let oriParagraphs = content.split("\r\n\r\n").filter(Boolean);
     if (oriParagraphs.length === 1) {
@@ -170,7 +171,7 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileType, (content: string) => Subtitl
 /**
  * 解析字幕内容
  */
-export function parseSubtitleContent(content: string, format: SubtitleFileType): SubtitleFile["paragraphs"] {
+export function parseSubtitleContent(content: string, format: SubtitleFileSuffix): SubtitleFile["paragraphs"] {
   const parser = SUBTITLE_PARSER_MAP[format];
   if (parser) {
     return parser(content);
@@ -187,17 +188,17 @@ export function parseSubtitleContent(content: string, format: SubtitleFileType):
   ];
 }
 const VVTLanguageLabelMaps = {
-  chi: "简体中文",
-  cht: "繁体中文",
-  jpn: "日语",
-  eng: "英语",
+  [MediaOriginCountry.CN]: "简体中文",
+  [MediaOriginCountry.TW]: "繁体中文",
+  [MediaOriginCountry.JP]: "日语",
+  [MediaOriginCountry.US]: "英语",
   "chi&eng": "中英对照",
 };
 const VVTLanguageLangMaps = {
-  chi: "zh-Hans",
-  cht: "zh-Hant",
-  jpn: "ja",
-  eng: "en",
+  [MediaOriginCountry.CN]: "zh-Hans",
+  [MediaOriginCountry.TW]: "zh-Hant",
+  [MediaOriginCountry.JP]: "ja",
+  [MediaOriginCountry.US]: "en",
   "chi&eng": "中英对照",
 };
 export function createVVTSubtitle(store: SubtitleCore) {
@@ -214,7 +215,9 @@ export function createVVTSubtitle(store: SubtitleCore) {
   const url = URL.createObjectURL(blob);
   return {
     src: url,
-    label: store.lang ? VVTLanguageLabelMaps[store.lang as keyof typeof VVTLanguageLabelMaps] : store.filename,
-    lang: store.lang ? VVTLanguageLangMaps[store.lang as keyof typeof VVTLanguageLangMaps] : store.filename,
+    label: store.lang
+      ? VVTLanguageLabelMaps[store.lang.join("&") as keyof typeof VVTLanguageLabelMaps]
+      : store.filename,
+    lang: store.lang ? VVTLanguageLangMaps[store.lang.join("&") as keyof typeof VVTLanguageLangMaps] : store.filename,
   };
 }

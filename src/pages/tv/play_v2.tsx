@@ -397,6 +397,9 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
       setProfile(v);
     });
     $logic.$tv.onSourceFileChange((v) => {
+      if (v.subtitles.length) {
+        $page.$subtitle.show();
+      }
       setCurSource(v);
     });
     $logic.$tv.$source.onSubtitleChange((v) => {
@@ -558,14 +561,6 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
                 </Show>
               </div>
               <div className="flex items-center">
-                {/* <div
-                  className="inline-block p-4"
-                  onClick={(event) => {
-                    $logic.$player.pictureInPicture();
-                  }}
-                >
-                  <PictureInPicture className="w-6 h-6" />
-                </div> */}
                 <div
                   className="inline-block p-4"
                   onClick={(event) => {
@@ -584,10 +579,13 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
             <Presence store={$page.$subtitle}>
               {(() => {
                 if (subtileState === null) {
-                  return;
+                  return null;
+                }
+                if (!subtileState.visible) {
+                  return null;
                 }
                 return (
-                  <div key={subtileState.index} className="mt-2 space-y-1">
+                  <div key={subtileState.index} className="mb-8 space-y-1">
                     {subtileState.texts.map((text) => {
                       return (
                         <div key={text} className="text-center text-lg">
@@ -657,6 +655,9 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
         {(() => {
           if (state.profile === null) {
             return <div>Loading</div>;
+          }
+          if (state.groups.length === 0) {
+            return null;
           }
           return (
             <div className="relative box-border h-full px-4 safe-bottom">

@@ -18,7 +18,7 @@ export function fetch_subtitle_url(params: { id: string }) {
 }
 
 type AnswerPayload = Partial<{
-  content: string;
+  msg: string;
   season: {
     id: string;
     tv_id: string;
@@ -56,9 +56,7 @@ export async function fetchNotifications(params: FetchParams) {
     no_more,
     list: list.map((notify) => {
       const { id, content, status, created } = notify;
-      const { msg, movie, season } = JSON.parse(content) as {
-        msg: string;
-      } & AnswerPayload;
+      const { msg, movie, season } = JSON.parse(content) as AnswerPayload;
       return {
         id,
         status,

@@ -5,14 +5,13 @@ import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
 import { Show } from "@/packages/ui/show";
 import { Node, ScrollView } from "@/components/ui";
 import { DynamicContent } from "@/components/dynamic-content";
-import { MovieMediaCore } from "@/domains/media/movie";
 import { SeasonMediaCore } from "@/domains/media/season";
 import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
-import { MovieCore } from "@/domains/movie";
 import { PlayerCore } from "@/domains/player";
 import { Application } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks";
 import { cn, sleep } from "@/utils";
+import { MovieMediaCore } from "@/domains/media/movie";
 
 export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Application; store2: PlayerCore }) => {
   const { store, app, store2 } = props;
@@ -36,11 +35,13 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
         value: 2,
       })
   );
+  const subtitleIcon = useInstance(() => new DynamicContentInListCore({ value: 2 }));
   const scroll = useInstance(() => new ScrollViewCore());
 
   const [state, setState] = useState(store.state);
   const [curSource, setCurSource] = useState(store.$source.profile);
   const [playerState, setPlayerState] = useState(store2.state);
+  const [subtitle, setSubtitle] = useState(store.$source.subtitle);
   const [rate, setRate] = useState(store2._curRate);
   const [menuIndex, setMenuIndex] = useState(0);
 
@@ -59,6 +60,9 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
     store.onSourceFileChange((v) => {
       console.log(v);
       setCurSource(v);
+    });
+    store.$source.onSubtitleChange((v) => {
+      setSubtitle(v);
     });
     store2.onRateChange((v) => {
       setRate(v.rate);
@@ -104,28 +108,40 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                 <ChevronRight className="w-5 h-5" />
               </div>
             </div>
-            {/* <div
+            <div
               className="flex items-center justify-between py-2 px-4"
               onClick={() => {
-                showMenuContent(2);
+                store2.toggleSubtitleVisible();
+                store.$source.toggleSubtitleVisible();
               }}
             >
-              <div>启用字幕</div>
+              <div>字幕</div>
               <div className=" text-w-fg-1">
-                <input type="checkbox" />
+                {(() => {
+                  if (subtitle === null) {
+                    return "暂无字幕";
+                  }
+                  if (subtitle.visible) {
+                    return "禁用";
+                  }
+                  return "启用";
+                })()}
               </div>
             </div>
             <div
               className="flex items-center justify-between py-2 px-4"
               onClick={() => {
+                if (subtitle === null) {
+                  return;
+                }
                 showMenuContent(3);
               }}
             >
-              <div>字幕</div>
+              <div>字幕列表</div>
               <div className=" text-w-fg-1">
                 <ChevronRight className="w-5 h-5" />
               </div>
-            </div> */}
+            </div>
             <div
               className="flex items-center justify-between py-2 px-4"
               onClick={() => {
@@ -261,6 +277,7 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                                     const result = await store.changeSourceFile(s);
                                     if (result.error) {
                                       sourceIcon.set(5);
+                                      fileIcon.clear();
                                       return;
                                     }
                                     fileIcon.set(2);
@@ -356,6 +373,11 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                                           </Show>
                                         ),
                                       },
+
+                                      {
+                                        value: 3,
+                                        content: <Loader className="w-6 h-6 animate animate-spin" />,
+                                      },
                                     ]}
                                   />
                                 </div>
@@ -365,6 +387,71 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                         </div>
                       );
                     })()}
+                  </div>
+                );
+              }
+              if (menuIndex === 3) {
+                return (
+                  <div className="max-h-full overflow-y-auto text-w-fg-1">
+                    <div className="pb-24">
+                      {store.$source.subtitles.map((sub, i) => {
+                        return (
+                          <div
+                            key={i}
+                            className={cn(
+                              "flex items-center justify-between p-4 cursor-pointer",
+                              sub.url === subtitle?.url ? "bg-w-bg-active" : ""
+                            )}
+                            onClick={async () => {
+                              subtitleIcon.select(sub.id);
+                              subtitleIcon.set(3);
+                              const r = await store.$source.loadSubtitleFile(sub, store.currentTime);
+                              if (r.error) {
+                                subtitleIcon.set(5);
+                                subtitleIcon.clear();
+                                return;
+                              }
+                              subtitleIcon.set(4);
+                              subtitleIcon.clear();
+                            }}
+                          >
+                            <div className="w-full break-all truncate">{sub.language.join("&")}</div>
+                            <DynamicContent
+                              className="ml-4"
+                              store={subtitleIcon.bind(sub.id)}
+                              options={[
+                                {
+                                  value: 1,
+                                  content: null,
+                                },
+                                {
+                                  value: 2,
+                                  content: (
+                                    <Show when={sub.url === subtitle?.url}>
+                                      <div>
+                                        <CheckCircle2 className="w-6 h-6" />
+                                      </div>
+                                    </Show>
+                                  ),
+                                },
+                                {
+                                  value: 3,
+                                  content: <Loader className="w-6 h-6 animate animate-spin" />,
+                                },
+                                {
+                                  value: 4,
+                                  content: <Check className="w-6 h-6" />,
+                                },
+                                {
+                                  value: 5,
+                                  content: <AlertTriangle className="w-6 h-6" />,
+                                },
+                              ]}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               }
@@ -386,22 +473,6 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                 </div>
               );
             })()}
-            <div className="pt-4 text-w-fg-1">
-              {$logic.$tv.$source.subtitles.map((subtitle, i) => {
-                return (
-                  <div
-                    key={i}
-                    onClick={() => {
-                      $logic.$tv.$source.loadSubtitleFile(subtitle, $logic.$tv.currentTime);
-                    }}
-                  >
-                    <div className={cn("py-2 px-4 cursor-pointer", subtitle.cur ? "bg-w-bg-active" : "")}>
-                      {subtitle.name}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div> */}
         </div>
       </Node>

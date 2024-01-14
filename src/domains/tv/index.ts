@@ -22,6 +22,7 @@ import {
   TVEpisodeProfile,
   fetchSourcePlayingInfo,
 } from "./services";
+import { MediaOriginCountry } from "@/constants";
 
 enum Events {
   /** 电视剧详情加载完成 */
@@ -323,7 +324,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[DOMAIN]tv/index - loadSubtitle2 ", subtitles);
     const subtitleFile = (() => {
       const matched = subtitles.find((s) => {
-        return s.lang === "chi";
+        return s.language.join("&") === MediaOriginCountry.CN;
       });
       if (matched) {
         return matched;
@@ -358,17 +359,17 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const { curLine } = r.data;
-    this.subtitle.others = this._subtitles.map((sub) => {
-      const { id, name, url, lang, type } = sub;
-      return {
-        id,
-        name: lang || name || url,
-        url,
-        lang,
-        type,
-        selected: url === subtitleFile.url,
-      };
-    });
+    // this.subtitle.others = this._subtitles.map((sub) => {
+    //   const { id, name, url, language: lang, type } = sub;
+    //   return {
+    //     id,
+    //     name: lang || name || url,
+    //     url,
+    //     lang,
+    //     type,
+    //     selected: url === subtitleFile.url,
+    //   };
+    // });
     this.subtitle.url = subtitleFile.url;
     this.subtitle.enabled = true;
     this.subtitle.visible = true;

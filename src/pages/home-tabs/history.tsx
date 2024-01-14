@@ -153,7 +153,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
           <div className="">
             <ListView
               store={historyList}
-              className="grid grid-cols-2 gap-2 px-2 md:grid-cols-3 xl:grid-cols-4"
+              className="grid grid-cols-2 gap-2 px-2 md:grid-cols-4 xl:grid-cols-6"
               skeleton={
                 <>
                   <div className="flex py-2 cursor-pointer">
@@ -208,7 +208,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
                         }
                       }}
                     >
-                      <div className="relative w-full h-[124px] overflow-hidden rounded-t-lg">
+                      <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
                         <LazyImage
                           className="w-full h-full object-cover"
                           store={thumbnail.bind(thumbnail_path)}

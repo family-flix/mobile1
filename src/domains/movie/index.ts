@@ -16,6 +16,7 @@ import {
   MediaSourceProfile,
   fetch_media_profile,
 } from "./services";
+import { MediaOriginCountry } from "@/constants";
 
 enum Events {
   /** 电影详情加载完成 */
@@ -168,41 +169,41 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(res.error);
     }
-    this.curSource = (() => {
-      const { file_id, subtitles } = res.data;
-      const { resolutions } = res.data;
-      const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
-      if (!matched_resolution) {
-        const { url, type, typeText, width, height, thumbnail } = resolutions[0];
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-          subtitles,
-        };
-      }
-      const { url, type, typeText, width, height, thumbnail } = matched_resolution;
-      return {
-        url,
-        file_id,
-        type,
-        typeText,
-        width,
-        height,
-        thumbnail,
-        resolutions,
-        subtitles,
-      };
-    })();
+    // this.curSource = (() => {
+    //   const { file_id, subtitles } = res.data;
+    //   const { resolutions } = res.data;
+    //   const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
+    //   if (!matched_resolution) {
+    //     const { url, type, typeText, width, height, thumbnail } = resolutions[0];
+    //     return {
+    //       url,
+    //       file_id,
+    //       type,
+    //       typeText,
+    //       width,
+    //       height,
+    //       thumbnail,
+    //       resolutions,
+    //       subtitles,
+    //     };
+    //   }
+    //   const { url, type, typeText, width, height, thumbnail } = matched_resolution;
+    //   return {
+    //     url,
+    //     file_id,
+    //     type,
+    //     typeText,
+    //     width,
+    //     height,
+    //     thumbnail,
+    //     resolutions,
+    //     subtitles,
+    //   };
+    // })();
     this.loadSubtitle({ currentTime });
     this.currentTime = currentTime;
     this.played = true;
-    this.emit(Events.SourceChange, { ...this.curSource, currentTime });
+    // this.emit(Events.SourceChange, { ...this.curSource, currentTime });
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok(null);
   }
@@ -223,42 +224,42 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(res.error);
     }
     this.canAutoPlay = true;
-    this.curSource = (() => {
-      const { file_id, subtitles } = res.data;
-      const { resolutions } = res.data;
-      const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
-      if (!matched_resolution) {
-        const { url, type, typeText, width, height, thumbnail } = resolutions[0];
-        return {
-          url,
-          file_id,
-          type,
-          typeText,
-          width,
-          height,
-          thumbnail,
-          resolutions,
-          subtitles,
-        };
-      }
-      const { url, type, typeText, width, height, thumbnail } = matched_resolution;
-      return {
-        url,
-        file_id,
-        type,
-        typeText,
-        width,
-        height,
-        thumbnail,
-        resolutions,
-        subtitles,
-      };
-    })();
+    // this.curSource = (() => {
+    //   const { file_id, subtitles } = res.data;
+    //   const { resolutions } = res.data;
+    //   const matched_resolution = resolutions.find((e) => e.type === this.curResolutionType);
+    //   if (!matched_resolution) {
+    //     const { url, type, typeText, width, height, thumbnail } = resolutions[0];
+    //     return {
+    //       url,
+    //       file_id,
+    //       type,
+    //       typeText,
+    //       width,
+    //       height,
+    //       thumbnail,
+    //       resolutions,
+    //       subtitles,
+    //     };
+    //   }
+    //   const { url, type, typeText, width, height, thumbnail } = matched_resolution;
+    //   return {
+    //     url,
+    //     file_id,
+    //     type,
+    //     typeText,
+    //     width,
+    //     height,
+    //     thumbnail,
+    //     resolutions,
+    //     subtitles,
+    //   };
+    // })();
     // console.log("[DOMAIN]Movie - changeSource", this.currentTime);
-    this.emit(Events.SourceChange, {
-      ...this.curSource,
-      currentTime: this.played ? this.currentTime : this.profile.currentTime,
-    });
+    // this.emit(Events.SourceChange, {
+    //   ...this.curSource,
+    //   currentTime: this.played ? this.currentTime : this.profile.currentTime,
+    // });
     this.emit(Events.StateChange, { ...this.profile });
     return Result.Ok(null);
   }
@@ -275,7 +276,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this._subtitles = subtitles;
     const subtitleFile = (() => {
       const matched = subtitles.find((s) => {
-        return s.lang === "chi";
+        return s.language.join("&") === MediaOriginCountry.CN;
       });
       if (matched) {
         return matched;
@@ -307,17 +308,17 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const { curLine } = r.data;
-    this.subtitle.others = this._subtitles.map((sub) => {
-      const { id, name, url, lang, type } = sub;
-      return {
-        id,
-        name: lang || name || url,
-        url,
-        lang,
-        type,
-        selected: url === subtitleFile.url,
-      };
-    });
+    // this.subtitle.others = this._subtitles.map((sub) => {
+    //   const { id, name, url, language: lang, type } = sub;
+    //   return {
+    //     id,
+    //     name: lang || name || url,
+    //     url,
+    //     lang,
+    //     type,
+    //     selected: url === subtitleFile.url,
+    //   };
+    // });
     this.subtitle.url = subtitleFile.url;
     this.subtitle.enabled = true;
     this.subtitle.visible = true;

@@ -9,6 +9,7 @@ import { Result } from "@/types";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import { MediaSourceFile, fetchSourcePlayingInfo } from "./services";
+import { MediaOriginCountry } from "@/constants";
 
 enum Events {
   /** 切换播放的剧集 */
@@ -137,17 +138,17 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     return Result.Ok(this.profile);
   }
   async loadSubtitle(options: { extraSubtitleFiles: SubtitleFileResp[]; currentTime: number }) {
-    // console.log("[DOMAIN]tv/index - loadSubtitle", this.curSource, this._subtitleStore);
+    console.log("[DOMAIN]source/index - loadSubtitle");
     const { extraSubtitleFiles, currentTime } = options;
     if (!this.profile) {
       return Result.Err("请先调用 load 获取视频文件");
     }
     const subtitles = this.profile.subtitles.concat(extraSubtitleFiles).filter(Boolean);
     this.subtitles = subtitles;
-    // console.log("[DOMAIN]tv/index - loadSubtitle2 ", subtitles);
+    console.log("[DOMAIN]tv/index - loadSubtitle2 ", subtitles);
     const subtitleFile = (() => {
       const matched = subtitles.find((s) => {
-        return s.lang === "chi";
+        return s.language.join("&") === MediaOriginCountry.CN;
       });
       if (matched) {
         return matched;
@@ -162,7 +163,6 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     return this.loadSubtitleFile(subtitleFile, currentTime);
   }
   async loadSubtitleFile(subtitleFile: SubtitleFileResp, currentTime: number) {
-    // console.log("[DOMAIN]movie/index - before SubtitleCore.New", this.subtitle);
     if (subtitleFile.url === this.subtitle?.url) {
       return Result.Err("已经是当前字幕了");
     }
@@ -185,6 +185,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       texts: curLine?.texts ?? [],
     };
     this.subtitle = subtitle;
+    console.log("[DOMAIN]movie/index - before emit Events.SubtitleChange", this.subtitle);
     this.emit(Events.SubtitleChange, { ...subtitle });
     this.$subtitle.onStateChange((nextState) => {
       const { curLine } = nextState;
@@ -198,6 +199,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       // console.log("[DOMAIN]tv/index - subtitleStore.onStateChange", this.subtitle, curLine);
       this.emit(Events.SubtitleChange, { ...subtitle });
     });
+    return Result.Ok(null);
   }
   toggleSubtitleVisible() {
     if (!this.subtitle) {
