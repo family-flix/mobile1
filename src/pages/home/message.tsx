@@ -21,6 +21,7 @@ import {
   tvPlayingPage,
 } from "@/store";
 import { ViewComponent } from "@/types";
+import { MediaTypes } from "@/constants";
 
 enum MessageStatus {
   Normal = 1,
@@ -133,7 +134,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
           <div className="px-2 ">
             <ListView store={messageList} className="divide-y divide-gray-300 dark:divide-gray-800">
               {dataSource.map((message) => {
-                const { id: message_id, msg, status, created, movie, season } = message;
+                const { id: message_id, msg, status, created, media } = message;
                 return (
                   <div
                     key={message_id}
@@ -157,17 +158,15 @@ export const HomeMessagePage: ViewComponent = (props) => {
                           // total: response.total - 1,
                         };
                       });
-                      if (season) {
-                        const { id } = season;
+                      if (media && media.type === MediaTypes.Season) {
                         seasonPlayingPageV2.query = {
-                          id,
+                          id: media.id,
                         };
                         app.showView(seasonPlayingPageV2);
                       }
-                      if (movie) {
-                        const { id } = movie;
+                      if (media && media.type === MediaTypes.Movie) {
                         moviePlayingPageV2.query = {
-                          id,
+                          id: media.id,
                         };
                         app.showView(moviePlayingPageV2);
                       }
@@ -176,27 +175,8 @@ export const HomeMessagePage: ViewComponent = (props) => {
                     <div className="break-all text-lg">{msg}</div>
                     <div className="">
                       {(() => {
-                        if (movie) {
-                          const { id, name, poster_path } = movie;
-                          return (
-                            <div className="flex mt-2">
-                              <div className="relative w-[98px] mr-4">
-                                <LazyImage
-                                  className="w-full h-full rounded-lg object-cover"
-                                  store={poster.bind(poster_path)}
-                                  alt={name}
-                                />
-                              </div>
-                              <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                                <div className="flex items-center">
-                                  <h2 className="text-xl">{name}</h2>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                        if (season) {
-                          const { id, tv_id, name, poster_path } = season;
+                        if (media) {
+                          const { id, name, poster_path, air_date } = media;
                           return (
                             <div className="flex mt-2">
                               <div className="relative w-[98px] mr-4">

@@ -134,9 +134,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
           }
           reportRequest.run({
             type: ReportTypes.Want,
-            data: JSON.stringify({
-              content: wantInput.value,
-            }),
+            data: wantInput.value,
           });
         },
       })

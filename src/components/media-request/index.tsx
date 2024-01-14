@@ -47,9 +47,7 @@ export class MediaRequestCore extends BaseDomain<TheTypesOfEvents> {
         }
         request.run({
           type: ReportTypes.Want,
-          data: JSON.stringify({
-            content: input.value,
-          }),
+          data: input.value,
         });
       },
     });

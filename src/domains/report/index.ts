@@ -16,18 +16,19 @@ type TheTypesOfEvents = {
 
 type MediaReportCoreProps = {
   app: Application;
-  season: SeasonMediaCore;
+  // season: SeasonMediaCore;
 };
 type MediaReportCoreState = {};
 
 export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
   $ref = new RefCore<string>({});
+  $media = new RefCore<{ media_id: string; media_source_id?: string }>({});
   $create = new RequestCore(reportSomething, {});
 
   constructor(props: Partial<{ _name: string }> & MediaReportCoreProps) {
     super(props);
 
-    const { app, season } = props;
+    const { app } = props;
 
     const dialog = new DialogCore({
       title: "发现问题",
@@ -38,13 +39,17 @@ export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
           });
           return;
         }
+        if (!this.$media.value) {
+          app.tip({
+            text: ["没有选择影视剧"],
+          });
+          return;
+        }
         this.$create.run({
           type: ReportTypes.TV,
-          data: JSON.stringify({
-            content: this.$ref.value,
-            season_id: season.profile?.id,
-            episode_id: season.curSource?.id,
-          }),
+          data: this.$ref.value,
+          media_id: this.$media.value.media_id,
+          media_source_id: this.$media.value.media_source_id,
         });
       },
     });

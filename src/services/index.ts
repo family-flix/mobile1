@@ -8,8 +8,13 @@ import { MediaTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
 import { CollectionCore, CollectionTypes } from "@/domains/ui/collection";
 
-export function reportSomething(body: { type: ReportTypes; data: string }) {
-  return request.post("/api/report/add", body);
+export function reportSomething(body: {
+  type: ReportTypes;
+  data: string;
+  media_id?: string;
+  media_source_id?: string;
+}) {
+  return request.post("/api/v2/wechat/report/create", body);
 }
 
 export function fetch_subtitle_url(params: { id: string }) {
@@ -19,17 +24,11 @@ export function fetch_subtitle_url(params: { id: string }) {
 
 type AnswerPayload = Partial<{
   msg: string;
-  season: {
+  media: {
     id: string;
-    tv_id: string;
+    type: MediaTypes;
     name: string;
-    first_air_date: string;
-    poster_path: string;
-  };
-  movie: {
-    id: string;
-    name: string;
-    first_air_date: string;
+    air_date: string;
     poster_path: string;
   };
 }>;
@@ -37,7 +36,7 @@ type AnswerPayload = Partial<{
  * 获取消息通知
  */
 export async function fetchNotifications(params: FetchParams) {
-  const r = await request.get<
+  const r = await request.post<
     ListResponse<{
       id: string;
       content: string;
@@ -56,12 +55,11 @@ export async function fetchNotifications(params: FetchParams) {
     no_more,
     list: list.map((notify) => {
       const { id, content, status, created } = notify;
-      const { msg, movie, season } = JSON.parse(content) as AnswerPayload;
+      const { msg, media } = JSON.parse(content) as AnswerPayload;
       return {
         id,
         status,
-        movie,
-        season,
+        media,
         msg,
         created: dayjs(created).format("YYYY-MM-DD HH:mm"),
       };

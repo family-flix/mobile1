@@ -4,7 +4,7 @@ import { Loader2, X } from "lucide-react";
 import { InputCore } from "@/domains/ui/input";
 import { connect } from "@/domains/ui/input/connect.web";
 import { useInitialize } from "@/hooks";
-import { cn } from "@/utils";
+import { cn, sleep } from "@/utils";
 
 const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement; className?: string }) => {
   const { store, prefix, focus } = props;
@@ -86,8 +86,9 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
       />
       <div
         className="absolute right-3 top-[50%] p-2 translate-y-[-50%]"
-        onClick={() => {
+        onClick={async () => {
           store.clear();
+          store.focus();
         }}
       >
         {(() => {
