@@ -75,8 +75,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   /**
    * 以成员身份登录
    */
-  async validate(token: string, force?: string) {
-    // if (this.isLogin) {
+  async validate(values: Record<string, string>) {
+    const { token, force, tmp } = values;
+    // if (this.isLogin && !force) {
     //   return Result.Ok(this.state);
     // }
     if (!token) {
@@ -91,9 +92,11 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     this.id = r.data.id;
     this.token = r.data.token;
     this.isLogin = true;
-    this.emit(Events.Login, {
-      ...this.state,
-    });
+    if (!tmp) {
+      this.emit(Events.Login, {
+        ...this.state,
+      });
+    }
     await sleep(800);
     return Result.Ok({ ...this.state });
   }

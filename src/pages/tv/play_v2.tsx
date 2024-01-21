@@ -1,7 +1,7 @@
 /**
  * @file 电视剧播放页面
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Airplay,
   AlertTriangle,
@@ -36,7 +36,7 @@ import { Application, OrientationTypes } from "@/domains/app";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { ReportTypes, TVReportList, players } from "@/constants";
+import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn, seconds_to_hour } from "@/utils";
 import { RouteViewCore } from "@/domains/route_view";
 import { Show } from "@/packages/ui/show";
@@ -139,7 +139,7 @@ class SeasonPlayingPageLogic {
       // bottomOperation.show();
     });
     tv.$source.onSubtitleLoaded((subtitle) => {
-      player.setSubtitle(createVVTSubtitle(subtitle));
+      player.showSubtitle(createVVTSubtitle(subtitle));
     });
     tv.onEpisodeChange((curEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
@@ -401,15 +401,12 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
     $logic.$tv.onStateChange((v) => {
       setProfile(v);
     });
-    $logic.$tv.onSourceFileChange((v) => {
-      if (v.subtitles.length) {
-        $page.$subtitle.show();
-      }
-      // setCurSource(v);
-    });
-    $logic.$tv.$source.onSubtitleChange((v) => {
-      setCurSubtitleState(v);
-    });
+    // $logic.$tv.$source.onSubtitleLoaded(() => {
+    //   $page.$subtitle.show();
+    // });
+    // $logic.$tv.$source.onSubtitleChange((v) => {
+    //   setCurSubtitleState(v);
+    // });
     // $logic.$player.onRateChange(({ rate }) => {
     //   setRate(rate);
     // });
@@ -463,10 +460,10 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
             className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
             store={$page.$mask}
           >
-            <div className="absolute z-20 inset-0 bg-w-bg-1 opacity-20"></div>
+            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
           </Presence>
           <div
-            className="absolute z-30 top-[50%] left-[50%] min-h-[80px] text-w-fg-0"
+            className="absolute z-30 top-[50%] left-[50%] min-h-[80px] text-w-bg-0 dark:text-w-fg-0"
             style={{ transform: `translate(-50%, -50%)` }}
           >
             <Presence
@@ -477,15 +474,12 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
                 when={!playerState.error}
                 fallback={
                   <div className="flex flex-col justify-center items-center">
-                    <AlertTriangle className="w-16 h-16 text-w-fg-0" />
+                    <AlertTriangle className="w-16 h-16" />
                     <div className="mt-4 text-center">{playerState.error}</div>
                   </div>
                 }
               >
-                <Show
-                  when={!!playerState.ready}
-                  fallback={<Loader2 className="w-16 h-16 text-w-fg-0 animate animate-spin" />}
-                >
+                <Show when={!!playerState.ready} fallback={<Loader2 className="w-16 h-16 animate animate-spin" />}>
                   <div
                     className="flex items-center space-x-8"
                     onClick={(event) => {
@@ -535,9 +529,9 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
             </Presence>
           </div>
         </div>
-        <div className="absolute z-0 inset-0 text-w-fg-0">
+        <div className="absolute z-30 inset-0 text-w-fg-0">
           <div
-            className=""
+            className="absolute top-0 z-40 w-full"
             onClick={(event) => {
               event.stopPropagation();
             }}
@@ -580,11 +574,11 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
               </div>
             </Presence>
           </div>
-          <div className="absolute bottom-12 w-full safe-bottom">
+          <div className="absolute bottom-12 z-40 w-full safe-bottom">
             <Presence store={$page.$time}>
               <div className="text-center text-xl">{targetTime}</div>
             </Presence>
-            <Presence store={$page.$subtitle}>
+            {/* <Presence store={$page.$subtitle}>
               {(() => {
                 if (subtitleState === null) {
                   return null;
@@ -604,7 +598,7 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
                   </div>
                 );
               })()}
-            </Presence>
+            </Presence> */}
             <Presence
               className={cn(
                 "animate-in fade-in slide-in-from-bottom",
@@ -742,7 +736,7 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
           );
         })()}
       </Sheet>
-      <Sheet store={$page.$settings} hideTitle>
+      <Sheet store={$page.$settings} hideTitle size="lg">
         <SeasonMediaSettings store={$logic.$tv} app={app} store2={$logic.$player} />
       </Sheet>
       {/* <Sheet store={dSheet} size="xl">

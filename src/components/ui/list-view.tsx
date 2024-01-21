@@ -30,7 +30,10 @@ export const ListView = React.memo(
         new ButtonCore({
           async onClick() {
             app.cache.clear("user");
-            const r = await app.user.validate(app.router.query.token, "1");
+            const r = await app.user.validate({
+              token: app.router.query.token,
+              force: "1",
+            });
             if (r.error) {
               return;
             }
@@ -53,7 +56,7 @@ export const ListView = React.memo(
           <Show
             when={!response.empty}
             fallback={
-              <div className="w-full h-[480px] flex items-center justify-center">
+              <div className="w-full h-[240px] flex items-center justify-center">
                 <div className="flex flex-col items-center justify-center">
                   <Bird className="w-24 h-24" />
                   <div className="mt-4 flex items-center space-x-2">

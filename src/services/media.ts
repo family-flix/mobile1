@@ -115,3 +115,14 @@ export async function fetchMediaList(params: FetchParams & { type: MediaTypes; n
   });
 }
 export type MediaItem = RequestedResource<typeof fetchMediaList>["list"][0];
+
+export function fetchMemberToken(values: { media_id: string; target_member_id: string }) {
+  const { media_id, target_member_id } = values;
+  return request.post<{ name: string; original_name: string; poster_path: string; token: string }>(
+    "/api/v2/wechat/member/token",
+    {
+      media_id,
+      target_member_id,
+    }
+  );
+}

@@ -23,7 +23,7 @@ import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
-import { ReportTypes } from "@/constants";
+import { ReportTypes, __VERSION__ } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { messagesPage, infoRequest, inviteeListPage, messageList } from "@/store";
@@ -45,7 +45,10 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
       new MultipleClickCore({
         async onBingo() {
           app.user.logout();
-          const r = await app.user.validate(router.query.token, "1");
+          const r = await app.user.validate({
+            token: router.query.token,
+            force: "1",
+          });
           if (r.error) {
             return;
           }
@@ -346,7 +349,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 multipleClick.handleClick();
               }}
             >
-              v2.0.0
+              v{__VERSION__}
             </div>
           </div>
           <div className="h-[1px]"></div>

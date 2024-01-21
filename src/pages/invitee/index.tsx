@@ -12,7 +12,7 @@ import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { mediaSharePage } from "@/store";
+import { homeIndexPage, mediaSharePage } from "@/store";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
@@ -234,13 +234,13 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                               <>
                                 {[
                                   {
-                                    prefix: "/pc/home/index?token=",
+                                    prefix: "/pc/home/index?force=1&token=",
                                     qrcode: false,
                                     platform: 1,
                                     text: "PC 端",
                                   },
                                   {
-                                    prefix: "/mobile/home/index?token=",
+                                    prefix: "/mobile/home/index?force=1&token=",
                                     qrcode: true,
                                     platform: 2,
                                     text: "移动端",
@@ -248,6 +248,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                                 ].map((config) => {
                                   const { prefix, qrcode, platform, text } = config;
                                   // @todo 怎么移除 window 平台相关变量？
+                                  // homeIndexPage.buildUrl2({ token: id });
                                   const url = `${window.location.origin}${prefix}${id}`;
                                   return (
                                     <>

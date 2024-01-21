@@ -3,6 +3,7 @@ import parse from "url-parse";
 import { SubtitleFile, SubtitleFileSuffix, SubtitleParagraph } from "./types";
 import { SubtitleCore } from ".";
 import { MediaOriginCountry } from "@/constants";
+import { padding_zero } from "@/utils";
 
 export function timeStrToSeconds(durationStr: string) {
   if (durationStr.match(/[0-9]{1,2}:[0-9]{2}:[0-9]{2}[\.,]/)) {
@@ -19,6 +20,14 @@ export function timeStrToSeconds(durationStr: string) {
     return minutes * 60 + seconds;
   }
   return 0;
+}
+export function formatHourNumCount(v: string) {
+  const r = v.match(/([0-9]{1,2})(:[0-9]{2}:[0-9]{2}[\.,])([0-9]{1,})/);
+  if (!r) {
+    return v;
+  }
+  const [, a, b, c] = r;
+  return padding_zero(a) + b + padding_zero(c, { count: 3, pos: 2 });
 }
 
 export function parseSubtitleUrl(url: string): SubtitleFileSuffix {
@@ -195,22 +204,22 @@ const VVTLanguageLabelMaps = {
   "chi&eng": "中英对照",
 };
 const VVTLanguageLangMaps = {
-  [MediaOriginCountry.CN]: "zh-Hans",
-  [MediaOriginCountry.TW]: "zh-Hant",
+  [MediaOriginCountry.CN]: "zh",
+  [MediaOriginCountry.TW]: "zh",
   [MediaOriginCountry.JP]: "ja",
   [MediaOriginCountry.US]: "en",
-  "chi&eng": "中英对照",
+  "chi&eng": "zh",
 };
 export function createVVTSubtitle(store: SubtitleCore) {
   const { lines } = store;
   const content = [
     "WEBVTT",
     "",
-    ...lines.map((line) => {
+    ...lines.map((line, i) => {
       const { start, end, texts } = line;
-      return [`${start} --> ${end}`, ...texts].join("\n");
+      return [`${formatHourNumCount(start)} --> ${formatHourNumCount(end)}`, ...texts].join("\n");
     }),
-  ].join("\r\n");
+  ].join("\r\n\r\n");
   const blob = new Blob([content], { type: "text/vtt" });
   const url = URL.createObjectURL(blob);
   return {
@@ -218,6 +227,11 @@ export function createVVTSubtitle(store: SubtitleCore) {
     label: store.lang
       ? VVTLanguageLabelMaps[store.lang.join("&") as keyof typeof VVTLanguageLabelMaps]
       : store.filename,
-    lang: store.lang ? VVTLanguageLangMaps[store.lang.join("&") as keyof typeof VVTLanguageLangMaps] : store.filename,
+    lang: (() => {
+      if (!store.lang) {
+        return "zh";
+      }
+      return VVTLanguageLangMaps[store.lang.join("&") as keyof typeof VVTLanguageLangMaps] || "zh";
+    })(),
   };
 }

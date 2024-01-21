@@ -31,7 +31,7 @@ import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { ReportTypes, TVReportList, players } from "@/constants";
+import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn } from "@/utils";
 import { InviteeSelect } from "@/components/member-select/view";
 import { InviteeSelectCore } from "@/components/member-select/store";
@@ -51,7 +51,7 @@ export const TVPlayingPage: ViewComponent = (props) => {
 ${url}`;
           setShareLink(message);
           shareLinkDialog.show();
-          inviteeSelect.dialog.hide();
+          // inviteeSelect.dialog.hide();
         },
         onFailed(error) {
           const { data } = error;
@@ -62,7 +62,7 @@ ${url}`;
 ${url}`;
             setShareLink(message);
             shareLinkDialog.show();
-            inviteeSelect.dialog.hide();
+            // inviteeSelect.dialog.hide();
             return;
           }
           app.tip({
@@ -193,7 +193,7 @@ ${url}`;
             return;
           }
           reportRequest.run({
-            type: ReportTypes.TV,
+            type: ReportTypes.Season,
             data: JSON.stringify({
               content: curReport.value,
               tv_id: tv.profile?.id,
@@ -289,7 +289,7 @@ ${url}`;
       bottomOperation.show();
     });
     tv.onSubtitleLoaded((subtitle) => {
-      player.setSubtitle(createVVTSubtitle(subtitle));
+      player.showSubtitle(createVVTSubtitle(subtitle));
     });
     tv.onEpisodeChange((nextEpisode) => {
       app.setTitle(tv.getTitle().join(" - "));
@@ -854,19 +854,6 @@ ${url}`;
                           <div className="mt-1 text-sm">提交问题</div>
                         </div>
                       </div>
-                      <div>
-                        <div
-                          className=""
-                          onClick={() => {
-                            inviteeSelect.dialog.show();
-                          }}
-                        >
-                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                            <Share2 className="w-4 h-4" />
-                          </div>
-                          <div className="mt-1 text-sm">分享</div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -878,7 +865,7 @@ ${url}`;
       <Sheet store={reportSheet}>
         <div className="max-h-full text-w-fg-1 overflow-y-auto">
           <div className="pt-4 pb-24">
-            {TVReportList.map((question, i) => {
+            {SeasonReportList.map((question, i) => {
               return (
                 <div
                   key={i}
@@ -893,42 +880,6 @@ ${url}`;
             })}
           </div>
         </div>
-      </Sheet>
-      <Sheet store={subtitleSheet}>
-        <div className="max-h-full text-w-fg-1 pb-24 overflow-y-auto">
-          {(() => {
-            return (
-              <div
-                className="px-4"
-                onClick={() => {
-                  player.toggleSubtitleVisible();
-                  tv.toggleSubtitleVisible();
-                }}
-              >
-                {subtileState.visible ? "隐藏字幕" : "显示字幕"}
-              </div>
-            );
-          })()}
-          <div className="pt-4 text-w-fg-1">
-            {subtileState.others.map((subtitle, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    tv.loadSubtitleFile(subtitle, tv.currentTime);
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-w-bg-active" : "")}>
-                    {subtitle.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet>
-      <Sheet store={inviteeSelect.dialog} size="xl">
-        <InviteeSelect store={inviteeSelect} />
       </Sheet>
       <Dialog store={reportConfirmDialog}>
         <div className="text-w-fg-1">

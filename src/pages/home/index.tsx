@@ -306,8 +306,15 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                 }}
               >
                 <Bell className="w-6 h-6" />
-                <Show when={!!messageResponse.dataSource.length}>
-                  <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-w-red"></div>
+                <Show when={!!messageResponse.total}>
+                  <div
+                    className="absolute top-[-6px] right-0 px-[8px] h-[16px] rounded-xl break-all whitespace-nowrap text-[12px] border-w-bg-0 dark:border-w-fg-0 bg-w-red text-w-bg-0 dark:text-w-fg-0 translate-x-1/2"
+                    style={{
+                      lineHeight: "16px",
+                    }}
+                  >
+                    {messageResponse.total}
+                  </div>
                 </Show>
               </div>
               <div

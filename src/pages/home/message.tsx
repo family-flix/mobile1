@@ -22,6 +22,8 @@ import {
 } from "@/store";
 import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
+import { DynamicContent } from "@/components/dynamic-content";
+import { DynamicContentCore } from "@/domains/ui/dynamic-content";
 
 enum MessageStatus {
   Normal = 1,
@@ -33,8 +35,8 @@ export const HomeMessagePage: ViewComponent = (props) => {
 
   const step = useInstance(
     () =>
-      new StepCore({
-        values: [0, 1, 2],
+      new DynamicContentCore({
+        value: 1,
       })
   );
   const readRequest = useInstance(() => new RequestCore(readNotification));
@@ -77,7 +79,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
 
   useInitialize(() => {
     if (messageList.response.dataSource.length === 0) {
-      step.select(0);
+      step.show(0);
     }
     messageList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
@@ -91,7 +93,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
       <ScrollView store={scrollView} className="">
         <div className="min-h-screen w-full">
           <div className="flex items-center justify-between p-4">
-            <div className="flex items-center">
+            <div className="flex items-center cursor-pointer">
               <div
                 className="inline-block"
                 onClick={() => {
@@ -118,16 +120,21 @@ export const HomeMessagePage: ViewComponent = (props) => {
                   };
                 });
                 readAllRequest.run();
-                step.next();
+                step.show(0);
               }}
             >
-              <StepSwitch
+              <DynamicContent
                 store={step}
-                options={{
-                  0: null,
-                  1: <Trash className="w-6 h-6" />,
-                  2: null,
-                }}
+                options={[
+                  {
+                    value: 0,
+                    content: null,
+                  },
+                  {
+                    value: 1,
+                    content: <Trash className="w-6 h-6" />,
+                  },
+                ]}
               />
             </div>
           </div>
@@ -179,7 +186,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
                           const { id, name, poster_path, air_date } = media;
                           return (
                             <div className="flex mt-2">
-                              <div className="relative w-[98px] mr-4">
+                              <div className="relative w-[98px] h-[147px] mr-4">
                                 <LazyImage
                                   className="w-full h-full rounded-lg object-cover"
                                   store={poster.bind(poster_path)}

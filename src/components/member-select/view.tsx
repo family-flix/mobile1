@@ -19,18 +19,18 @@ export const InviteeSelect = (props: { store: InviteeSelectCore }) => {
   const scrollView = useInstance(() => {
     return new ScrollViewCore({
       onReachBottom() {
-        store.list.loadMore();
+        store.$list.loadMore();
       },
     });
   });
-  const submitBtn = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          store.okBtn.click();
-        },
-      })
-  );
+  // const submitBtn = useInstance(
+  //   () =>
+  //     new ButtonCore({
+  //       onClick() {
+  //         store.okBtn.click();
+  //       },
+  //     })
+  // );
   useInitialize(() => {
     store.onResponseChange((nextState) => {
       setListResponse(nextState);
@@ -40,7 +40,7 @@ export const InviteeSelect = (props: { store: InviteeSelectCore }) => {
       setCur(nextState);
     });
 
-    store.list.init();
+    store.$list.init();
   });
 
   return (
@@ -56,7 +56,7 @@ export const InviteeSelect = (props: { store: InviteeSelectCore }) => {
           <ListView
             wrapClassName="flex-1 overflow-y-auto"
             className="max-h-full flex flex-col h-full"
-            store={store.list}
+            store={store.$list}
             // skeleton={
             //   <div>
             //     <div className="rounded-md border border-slate-300 bg-white shadow-sm">

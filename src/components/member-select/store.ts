@@ -37,23 +37,23 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
   /** 搜索按钮 */
   searchBtn = new ButtonCore({
     onClick: () => {
-      this.list.search({ name: this.nameInput.value });
+      this.$list.search({ name: this.nameInput.value });
     },
   });
-  dialog: DialogCore;
-  /** 弹窗确定按钮 */
-  okBtn: ButtonCore;
+  // dialog: DialogCore;
+  // /** 弹窗确定按钮 */
+  // okBtn: ButtonCore;
   submitBtn: ButtonCore;
-  /** 弹窗取消按钮 */
-  cancelBtn: ButtonCore;
+  // /** 弹窗取消按钮 */
+  // cancelBtn: ButtonCore;
   /** 季列表 */
-  list = new ListCore(new RequestCore(fetchInviteeList), {
+  $list = new ListCore(new RequestCore(fetchInviteeList), {
     onLoadingChange: (loading) => {
       this.searchBtn.setLoading(loading);
     },
   });
   get response() {
-    return this.list.response;
+    return this.$list.response;
   }
   get value() {
     return this.cur.value;
@@ -63,23 +63,23 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
     super(props);
 
     const { onSelect, onOk, onCancel } = props;
-    this.dialog = new DialogCore({
-      title: "选择好友",
-      onOk: () => {
-        if (!this.value) {
-          this.tip({
-            text: ["请先选择好友"],
-          });
-          return;
-        }
-        if (onOk) {
-          onOk(this.value);
-        }
-      },
-      onCancel,
-    });
-    this.okBtn = this.dialog.okBtn;
-    this.cancelBtn = this.dialog.cancelBtn;
+    // this.dialog = new DialogCore({
+    //   title: "选择好友",
+    //   onOk: () => {
+    //     if (!this.value) {
+    //       this.tip({
+    //         text: ["请先选择好友"],
+    //       });
+    //       return;
+    //     }
+    //     if (onOk) {
+    //       onOk(this.value);
+    //     }
+    //   },
+    //   onCancel,
+    // });
+    // this.okBtn = this.dialog.okBtn;
+    // this.cancelBtn = this.dialog.cancelBtn;
     this.submitBtn = new ButtonCore({
       onClick: () => {
         if (!this.value) {
@@ -108,12 +108,12 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
     }
   }
 
-  show() {
-    this.dialog.show();
-  }
-  hide() {
-    this.dialog.hide();
-  }
+  // show() {
+  //   this.dialog.show();
+  // }
+  // hide() {
+  //   this.dialog.hide();
+  // }
   clear() {
     this.cur.clear();
   }
@@ -123,8 +123,8 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Select, invitee);
   }
 
-  onResponseChange(handler: Parameters<typeof this.list.onStateChange>[0]) {
-    return this.list.onStateChange(handler);
+  onResponseChange(handler: Parameters<typeof this.$list.onStateChange>[0]) {
+    return this.$list.onStateChange(handler);
   }
   onCurSeasonChange(handler: Parameters<typeof this.cur.onStateChange>[0]) {
     return this.cur.onStateChange(handler);

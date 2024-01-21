@@ -67,11 +67,11 @@ export const ScrollView = React.memo(
         >
           {children}
         </Content>
-        <div className="z-50 absolute left-0 bottom-[180px] flex items-center h-[200px]">
+        {/* <div className="z-50 absolute left-0 bottom-[180px] flex items-center h-[200px]">
           <BackIndicator store={store}>
             <ChevronLeft className="w-6 h-6 text-w-bg-0 dark:text-w-fg-1" />
           </BackIndicator>
-        </div>
+        </div> */}
       </Root>
     );
   }

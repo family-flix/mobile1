@@ -207,10 +207,10 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           </div> */}
         </div>
       </Affix>
-      <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1 pt-4" style={{ top: height }}>
+      <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
         <ListView
           store={seasonList}
-          className="w-full h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-3"
+          className="w-full h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-3 pt-4"
           extraEmpty={
             <div className="mt-2">
               <Button store={mediaRequestBtn} variant="subtle">

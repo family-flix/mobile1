@@ -34,7 +34,7 @@ import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { Application, OrientationTypes } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { ReportTypes, TVReportList, players } from "@/constants";
+import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn, seconds_to_hour } from "@/utils";
 
 class MoviePlayingPageLogic {
@@ -117,7 +117,7 @@ class MoviePlayingPageLogic {
       //       bottomOperation.show();
     });
     tv.$source.onSubtitleLoaded((subtitle) => {
-      player.setSubtitle(createVVTSubtitle(subtitle));
+      player.showSubtitle(createVVTSubtitle(subtitle));
     });
     tv.onTip((msg) => {
       app.tip(msg);
@@ -402,14 +402,12 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
     $logic.$tv.onStateChange((nextProfile) => {
       setProfile(nextProfile);
     });
-    $logic.$tv.onSourceFileChange((v) => {
-      if (v.subtitles.length) {
-        $page.$subtitle.show();
-      }
-    });
-    $logic.$tv.$source.onSubtitleChange((l) => {
-      setCurSubtitleState(l);
-    });
+    // $logic.$tv.$source.onSubtitleLoaded(() => {
+    //   $page.$subtitle.show();
+    // });
+    // $logic.$tv.$source.onSubtitleChange((v) => {
+    //   setCurSubtitleState(v);
+    // });
     $logic.$player.onStateChange((v) => {
       setPlayerState(v);
     });
@@ -469,10 +467,10 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
             className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
             store={$page.$mask}
           >
-            <div className="absolute z-20 inset-0 bg-w-bg-1 opacity-20"></div>
+            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
           </Presence>
           <div
-            className="absolute z-30 top-[50%] left-[50%] text-w-fg-0"
+            className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0"
             style={{ transform: `translate(-50%, -50%)` }}
           >
             <Presence
@@ -483,15 +481,12 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
                 when={!playerState.error}
                 fallback={
                   <div className="flex flex-col justify-center items-center">
-                    <AlertTriangle className="w-16 h-16 text-w-fg-0" />
+                    <AlertTriangle className="w-16 h-16" />
                     <div className="mt-4 text-center">{playerState.error}</div>
                   </div>
                 }
               >
-                <Show
-                  when={!!playerState.ready}
-                  fallback={<Loader2 className="w-16 h-16 text-w-fg-0 animate animate-spin" />}
-                >
+                <Show when={!!playerState.ready} fallback={<Loader2 className="w-16 h-16 animate animate-spin" />}>
                   <div
                     className="flex items-center space-x-8"
                     onClick={(event) => {
@@ -583,7 +578,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
             <Presence store={$page.$time}>
               <div className="text-center text-xl">{targetTime}</div>
             </Presence>
-            <Presence store={$page.$subtitle}>
+            {/* <Presence store={$page.$subtitle}>
               {(() => {
                 if (subtileState === null) {
                   return;
@@ -600,7 +595,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
                   </div>
                 );
               })()}
-            </Presence>
+            </Presence> */}
             <Presence
               className={cn(
                 "animate-in fade-in slide-in-from-bottom",

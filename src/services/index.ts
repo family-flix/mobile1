@@ -37,22 +37,21 @@ type AnswerPayload = Partial<{
  */
 export async function fetchNotifications(params: FetchParams) {
   const r = await request.post<
-    ListResponse<{
+    ListResponseWithCursor<{
       id: string;
       content: string;
       status: number;
       created: string;
     }>
-  >("/api/notification/list", params);
+  >("/api/v2/wechat/notification/list", params);
   if (r.error) {
     return Result.Err(r.error);
   }
-  const { page, page_size, total, no_more, list } = r.data;
+  const { next_marker, page_size, total, list } = r.data;
   return Result.Ok({
-    page,
     page_size,
     total,
-    no_more,
+    next_marker,
     list: list.map((notify) => {
       const { id, content, status, created } = notify;
       const { msg, media } = JSON.parse(content) as AnswerPayload;
@@ -69,11 +68,13 @@ export async function fetchNotifications(params: FetchParams) {
 
 export function readNotification(params: { id: string }) {
   const { id } = params;
-  return request.get(`/api/notification/${id}/read`);
+  return request.post("/api/v2/wechat/notification/read", {
+    id,
+  });
 }
 
 export function readAllNotification() {
-  return request.get(`/api/notification/read`);
+  return request.post("/api/v2/wechat/notification/read_all", {});
 }
 
 export function fetchInfo() {

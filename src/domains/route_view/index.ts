@@ -354,6 +354,10 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     const url = buildUrl(this.key, this.params, this.query);
     return NavigatorCore.prefix + url;
   }
+  buildUrl2(query: Record<string, string>) {
+    const url = buildUrl(this.key, {}, query);
+    return "https://media.funzm.com" + NavigatorCore.prefix + url;
+  }
   ready() {
     this.emit(Events.Ready);
   }

@@ -202,7 +202,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       bottomOperation.show();
     });
     movie.onSubtitleLoaded((subtitle) => {
-      player.setSubtitle(createVVTSubtitle(subtitle));
+      player.showSubtitle(createVVTSubtitle(subtitle));
     });
     movie.onStateChange((nextProfile) => {
       setProfile(nextProfile);

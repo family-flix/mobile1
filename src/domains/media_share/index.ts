@@ -45,7 +45,7 @@ ${url}`;
       // setShareLink(message);
       this.emit(Events.MessageChange, message);
       // shareLinkDialog.show();
-      this.$inviteeSelect.dialog.hide();
+      // this.$inviteeSelect.dialog.hide();
     },
     onFailed: (error) => {
       const { data } = error;
@@ -56,7 +56,7 @@ ${url}`;
 ${url}`;
         this.emit(Events.MessageChange, message);
         // shareLinkDialog.show();
-        this.$inviteeSelect.dialog.hide();
+        // this.$inviteeSelect.dialog.hide();
         return;
       }
       this.$app.tip({

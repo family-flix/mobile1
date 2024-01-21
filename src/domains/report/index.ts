@@ -46,7 +46,7 @@ export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
           return;
         }
         this.$create.run({
-          type: ReportTypes.TV,
+          type: ReportTypes.Season,
           data: this.$ref.value,
           media_id: this.$media.value.media_id,
           media_source_id: this.$media.value.media_source_id,

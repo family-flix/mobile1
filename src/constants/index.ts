@@ -1,3 +1,4 @@
+export const __VERSION__ = "2.1.0";
 /**
  * @doc https://www.iso.org/standard/63545.html
  */
@@ -206,7 +207,7 @@ export const MovieGenresOptions = MovieMediaGenres.map((text) => {
 
 export enum ReportTypes {
   /** 电视剧问题 */
-  TV,
+  Season,
   /** 电影问题 */
   Movie,
   /** 问题与建议 */
@@ -214,7 +215,7 @@ export enum ReportTypes {
   /** 想看什么剧 */
   Want,
 }
-export const TVReportList = ["信息有误", "无法播放", "重复", "缺少字幕", "集/季数不全"];
+export const SeasonReportList = ["信息有误", "无法播放", "重复", "缺少字幕", "集/季数不全"];
 export const MovieReportList = ["信息有误", "无法播放", "重复", "缺少字幕"];
 export const CommonReportList = [""];
 

@@ -52,7 +52,7 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
           搜索
         </Button>
       </div>
-      <ScrollView className="mt-2 h-[480px] overflow-y-auto" store={scrollView}>
+      <ScrollView className="mt-2 h-[240px] overflow-y-auto scroll--hidden" store={scrollView}>
         <ListView
           store={store.list}
           skeleton={

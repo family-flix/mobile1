@@ -58,17 +58,18 @@ export function Video(props: { store: PlayerCore }) {
     >
       <video
         ref={videoRef}
-        poster={poster}
+        // poster={poster}
         className="w-full relative z-10"
         controls={false}
+        // controls={true}
         webkit-playsinline={prepareFullscreen ? undefined : "true"}
         playsInline={!prepareFullscreen}
-        preload="none"
+        // preload="none"
         width={`${width}px`}
         height={`${height}px`}
       >
         {subtitle ? (
-          <track src={subtitle.src} kind="subtitles" label={subtitle.label} srcLang={subtitle.lang}></track>
+          <track src={subtitle.src} kind="captions" label={subtitle.label} srcLang={subtitle.lang}></track>
         ) : null}
       </video>
     </div>

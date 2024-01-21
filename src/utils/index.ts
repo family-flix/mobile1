@@ -13,9 +13,16 @@ export function cn(...inputs: any[]) {
   return twMerge(inputs);
 }
 
-export function padding_zero(str: number | string) {
-  if (String(str).length === 1) {
-    return `0${str}`;
+export function padding_zero(str: number | string, options: { count: number; pos: number } = { count: 2, pos: 1 }) {
+  const { count, pos } = options;
+  if (String(str).length < count) {
+    const num = count - String(str).length;
+    if (pos === 1) {
+      return `${"0".repeat(num)}${str}`;
+    }
+    if (pos === 2) {
+      return `${str}${"0".repeat(num)}`;
+    }
   }
   return String(str);
 }

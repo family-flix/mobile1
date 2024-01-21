@@ -40,7 +40,7 @@ export const app = new Application({
   cache,
   async beforeReady() {
     // const { query } = router;
-    await user.validate(router.query.token, router.query.force);
+    await user.validate(router.query);
     if (!user.isLogin) {
       app.emit(Application.Events.Error, new Error("请先登录"));
       return Result.Ok(null);

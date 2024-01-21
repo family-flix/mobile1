@@ -186,6 +186,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     };
     this.subtitle = subtitle;
     console.log("[DOMAIN]movie/index - before emit Events.SubtitleChange", this.subtitle);
+    this.emit(Events.SubtitleLoaded, this.$subtitle);
     this.emit(Events.SubtitleChange, { ...subtitle });
     this.$subtitle.onStateChange((nextState) => {
       const { curLine } = nextState;

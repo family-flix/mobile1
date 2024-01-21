@@ -318,7 +318,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   setResolution(values: { type: MediaResolutionTypes; text: string }) {
     this.emit(Events.ResolutionChange, values);
   }
-  setSubtitle(subtitle: { src: string; label: string; lang: string }) {
+  showSubtitle(subtitle: { src: string; label: string; lang: string }) {
     this.subtitle = subtitle;
     this.emit(Events.StateChange, { ...this.state });
     const $video = this._abstractNode;
