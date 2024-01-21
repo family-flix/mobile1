@@ -4,10 +4,15 @@
  */
 import React, { useState } from "react";
 import { ArrowUp, Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, User, Users } from "lucide-react";
+import { debounce } from "lodash/fp";
 
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore } from "@/domains/ui";
+import { BaseDomain, Handler } from "@/domains/base";
+import { Application } from "@/domains/app";
+import { RouteViewCore } from "@/domains/route_view";
+import { BottomMenuCore } from "@/domains/bottom_menu";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import {
@@ -19,13 +24,9 @@ import {
   homeMoviePage,
   homeSeasonPage,
   messageList,
+  app,
 } from "@/store";
 import { cn } from "@/utils";
-import { BaseDomain, Handler } from "@/domains/base";
-import { Application } from "@/domains/app";
-import { RouteViewCore } from "@/domains/route_view";
-import { debounce } from "lodash/fp";
-import { BottomMenuCore } from "@/domains/bottom_menu";
 
 const BottomMenu = (props: { store: BottomMenuCore }) => {
   const { store } = props;

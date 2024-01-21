@@ -25,7 +25,7 @@ export const ListView = React.memo(
     const { store, skeleton = null, extraEmpty = null } = props;
     const [response, setResponse] = useState(store.response);
 
-    const logintBtn = useInstance(
+    const loginBtn = useInstance(
       () =>
         new ButtonCore({
           async onClick() {
@@ -100,7 +100,7 @@ export const ListView = React.memo(
                 <div className="text-center text-xl">{response.error?.message}</div>
               </div>
               <Show when={!!response.error?.message.includes("timestamp check failed")}>
-                <Button store={logintBtn} variant="subtle" size="sm" className="mt-4 py-8 px-4">
+                <Button store={loginBtn} variant="subtle" size="sm" className="mt-4 py-8 px-4">
                   点击刷新
                 </Button>
               </Show>

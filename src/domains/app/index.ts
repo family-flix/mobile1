@@ -44,6 +44,7 @@ enum Events {
   Logout,
   // 一些平台相关的事件
   PopState,
+  ForceUpdate,
   Resize,
   DeviceSizeChange,
   Blur,
@@ -62,6 +63,7 @@ type TheTypesOfEvents = {
   [Events.Error]: Error;
   [Events.Login]: {};
   [Events.Logout]: void;
+  [Events.ForceUpdate]: void;
   [Events.PopState]: {
     type: string;
     pathname: string;
@@ -237,6 +239,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     }
     history.back();
   }
+  tipUpdate() {
+    this.emit(Events.ForceUpdate);
+  }
   /** 手机震动 */
   vibrate() {}
   setSize(size: { width: number; height: number }) {
@@ -313,6 +318,9 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   onDeviceSizeChange(handler: Handler<TheTypesOfEvents[Events.DeviceSizeChange]>) {
     return this.on(Events.DeviceSizeChange, handler);
+  }
+  onUpdate(handler: Handler<TheTypesOfEvents[Events.ForceUpdate]>) {
+    return this.on(Events.ForceUpdate, handler);
   }
   /** 平台相关全局事件 */
   onOrientationChange(handler: Handler<TheTypesOfEvents[Events.OrientationChange]>) {

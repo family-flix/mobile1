@@ -6,6 +6,7 @@ import qs from "qs";
 
 import { JSONObject, Result } from "@/types";
 import { app } from "@/store/app";
+import { __VERSION__ } from "@/constants";
 
 // import dayjs from "dayjs";
 
@@ -23,6 +24,7 @@ export const request = {
       const resp = await client.get(url, {
         headers: {
           Authorization: app.user.token,
+          "Client-Version": __VERSION__,
         },
       });
       const { code, msg, data } = resp.data;
@@ -40,6 +42,7 @@ export const request = {
       const resp = await client.post(url, body, {
         headers: {
           Authorization: app.user.token,
+          "Client-Version": __VERSION__,
         },
       });
       const { code, msg, data } = resp.data;

@@ -12,7 +12,9 @@ import { NavigatorCore } from "./domains/navigator";
 import { ThemeProvider } from "./components/Theme";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
-import { useInitialize } from "./hooks";
+import { Dialog } from "./components/ui";
+import { DialogCore } from "./domains/ui";
+import { useInitialize, useInstance } from "./hooks";
 import { ViewComponent } from "./types";
 import { cn } from "./utils";
 
@@ -57,6 +59,17 @@ connect(app);
 const toast = new ToastCore();
 
 function ApplicationView() {
+  const updateDialog = useInstance(
+    () =>
+      new DialogCore({
+        title: "升级提示",
+        cancel: false,
+        onOk() {
+          window.location.reload();
+        },
+      })
+  );
+
   // const [showMask, setShowMask] = useState(true);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -87,6 +100,9 @@ function ApplicationView() {
       // }
       setSubViews(nextSubViews);
     });
+    app.onUpdate(() => {
+      updateDialog.show();
+    });
     app.onReady(() => {
       setReady(true);
       messageList.init();
@@ -95,7 +111,7 @@ function ApplicationView() {
         const matched = pages.find((v) => {
           return v.key === pathname;
         });
-        console.log("[ROOT]after app.router.prepare", matched);
+        // console.log("[ROOT]after app.router.prepare", matched);
         if (matched) {
           if (matched === rootView) {
             homeIndexPage.query = router.query;
@@ -183,6 +199,9 @@ function ApplicationView() {
         })}
       </div>
       <Toast store={toast} />
+      <Dialog store={updateDialog}>
+        <div>当前版本过旧，点击确定升级</div>
+      </Dialog>
     </>
   );
 }

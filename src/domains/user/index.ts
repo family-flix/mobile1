@@ -13,6 +13,7 @@ export enum Events {
   Logout,
   /** 身份凭证失效 */
   Expired,
+  NeedUpdate,
   StateChange,
 }
 type TheTypesOfEvents = {
@@ -21,6 +22,7 @@ type TheTypesOfEvents = {
   [Events.Login]: UserState & { token: string };
   [Events.Logout]: void;
   [Events.Expired]: void;
+  [Events.NeedUpdate]: void;
   [Events.StateChange]: UserState;
 };
 type UserProps = {
@@ -86,6 +88,10 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     const r = await validate_member_token(token);
     if (r.error) {
+      if (r.error.code === 800) {
+        this.emit(Events.NeedUpdate);
+        return Result.Err(r.error);
+      }
       this.tip({ text: ["校验 token 失败", r.error.message] });
       return Result.Err(r.error);
     }
@@ -116,6 +122,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   }
   onLogout(handler: Handler<TheTypesOfEvents[Events.Logout]>) {
     return this.on(Events.Logout, handler);
+  }
+  onNeedUpdate(handler: Handler<TheTypesOfEvents[Events.NeedUpdate]>) {
+    return this.on(Events.NeedUpdate, handler);
   }
   onExpired(handler: Handler<TheTypesOfEvents[Events.Expired]>) {
     return this.on(Events.Expired, handler);

@@ -33,6 +33,9 @@ user.onExpired(() => {
 user.onTip((msg) => {
   app.tip(msg);
 });
+user.onNeedUpdate(() => {
+  app.tipUpdate();
+});
 
 export const app = new Application({
   user,

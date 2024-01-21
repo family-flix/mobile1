@@ -91,7 +91,7 @@ export async function fetchMediaList(params: FetchParams & { type: MediaTypes; n
             .filter(Boolean),
           ...genres
             .map((g) => {
-              return MovieMediaGenresTexts[g.value];
+              return g.label;
             })
             .filter(Boolean),
         ],
