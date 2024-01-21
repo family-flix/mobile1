@@ -529,7 +529,7 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
             </Presence>
           </div>
         </div>
-        <div className="absolute z-30 inset-0 text-w-fg-0">
+        <div className="absolute z-0 inset-0 text-w-fg-0">
           <div
             className="absolute top-0 z-40 w-full"
             onClick={(event) => {
