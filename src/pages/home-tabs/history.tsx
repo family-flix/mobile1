@@ -148,109 +148,102 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
 
   return (
     <>
-      <ScrollView className="bg-w-bg-3" store={scrollView}>
-        <div className="min-h-screen w-full pt-2">
-          <div className="">
-            <ListView
-              store={historyList}
-              className="grid grid-cols-2 gap-2 px-2 md:grid-cols-4 xl:grid-cols-6"
-              skeleton={
-                <>
-                  <div className="flex py-2 cursor-pointer">
-                    <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
-                    <div className="relative flex-1 mt-2">
-                      <Skeleton className="w-full h-[32px]"></Skeleton>
-                      <div className="flex items-center mt-2 text-xl">
-                        <Skeleton className="w-24 h-[28px]"></Skeleton>
+      <ScrollView className="h-full bg-w-bg-3" store={scrollView}>
+        <ListView
+          store={historyList}
+          className="grid grid-cols-2 gap-2 px-3 md:grid-cols-4 xl:grid-cols-6 pt-4"
+          skeleton={
+            <>
+              <div className="flex py-2 cursor-pointer">
+                <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
+                <div className="relative flex-1 mt-2">
+                  <Skeleton className="w-full h-[32px]"></Skeleton>
+                  <div className="flex items-center mt-2 text-xl">
+                    <Skeleton className="w-24 h-[28px]"></Skeleton>
+                  </div>
+                  <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
+                </div>
+              </div>
+            </>
+          }
+        >
+          {dataSource.map((history) => {
+            const {
+              id,
+              type,
+              name,
+              percent,
+              media_id,
+              episodeText,
+              episodeCountText,
+              posterPath,
+              updated,
+              hasUpdate,
+              airDate,
+              thumbnail_path,
+            } = history;
+            return (
+              <Node
+                key={id}
+                store={historyCard.bind(history)}
+                className="relative flex w-full cursor-pointer select-none"
+              >
+                <div
+                  key={id}
+                  className="relative w-full bg-w-bg-2 rounded-lg"
+                  onClick={() => {
+                    if (type === MediaTypes.Season) {
+                      seasonPlayingPageV2.query = {
+                        id: media_id,
+                      };
+                      app.showView(seasonPlayingPageV2);
+                    }
+                    if (type === MediaTypes.Movie) {
+                      moviePlayingPageV2.query = {
+                        id: media_id,
+                      };
+                      app.showView(moviePlayingPageV2);
+                    }
+                  }}
+                >
+                  <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
+                    <LazyImage
+                      className="w-full h-full object-cover"
+                      store={thumbnail.bind(thumbnail_path)}
+                      alt={name}
+                    />
+                    <div className="absolute w-full top-0 flex flex-row-reverse items-center">
+                      {/* <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div> */}
+                      <div className="relative z-20 p-2 text-[12px] text-w-bg-0 dark:text-w-fg-0">
+                        {episodeCountText}
                       </div>
-                      <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
+                    </div>
+                    <div className="absolute bottom-0 w-full">
+                      <div className="w-full h-[2px] rounded-md bg-w-brand" style={{ width: `${percent}%` }}></div>
                     </div>
                   </div>
-                </>
-              }
-            >
-              {dataSource.map((history) => {
-                const {
-                  id,
-                  type,
-                  name,
-                  percent,
-                  media_id,
-                  episodeText,
-                  episodeCountText,
-                  posterPath,
-                  updated,
-                  hasUpdate,
-                  airDate,
-                  thumbnail_path,
-                } = history;
-                return (
-                  <Node
-                    key={id}
-                    store={historyCard.bind(history)}
-                    className="relative flex w-full cursor-pointer select-none"
-                  >
-                    <div
-                      key={id}
-                      className="relative w-full bg-w-bg-2 rounded-lg"
-                      onClick={() => {
-                        if (type === MediaTypes.Season) {
-                          seasonPlayingPageV2.query = {
-                            id: media_id,
-                          };
-                          app.showView(seasonPlayingPageV2);
-                        }
-                        if (type === MediaTypes.Movie) {
-                          moviePlayingPageV2.query = {
-                            id: media_id,
-                          };
-                          app.showView(moviePlayingPageV2);
-                        }
-                      }}
-                    >
-                      <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
-                        <LazyImage
-                          className="w-full h-full object-cover"
-                          store={thumbnail.bind(thumbnail_path)}
-                          alt={name}
-                        />
-                        <div className="absolute w-full top-0 flex flex-row-reverse items-center">
-                          {/* <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div> */}
-                          <div className="relative z-20 p-2 text-[12px] text-w-bg-0 dark:text-w-fg-0">
-                            {episodeCountText}
-                          </div>
-                        </div>
-                        <div className="absolute bottom-0 w-full">
-                          <div className="w-full h-[2px] rounded-md bg-w-brand" style={{ width: `${percent}%` }}></div>
-                        </div>
-                      </div>
-                      <Show when={!!hasUpdate}>
-                        <div className="absolute top-2 left-2">
-                          <div className="huizhang">更新</div>
-                          {/* <div className="rounded-md bg-w-brand text-[12px] text-w-bg-0 dark:text-w-fg-0 p-1">
-                            有更新
-                          </div> */}
-                        </div>
-                      </Show>
-                      <div className="p-2 pb-4">
-                        <div className="text-w-fg-0">{name}</div>
-                        <div className="flex items-center mt-2 text-[12px] text-w-fg-1">
-                          {updated}
-                          <p className="mx-1">·</p>
-                          <Show when={!!episodeText}>
-                            <p className="">{episodeText}</p>
-                            <p className="mx-1">·</p>
-                          </Show>
-                          {percent}%
-                        </div>
-                      </div>
+                  <Show when={!!hasUpdate}>
+                    <div className="absolute top-2 left-2">
+                      <div className="huizhang">更新</div>
                     </div>
-                  </Node>
-                );
-              })}
-            </ListView>
-          </div>
-        </div>
+                  </Show>
+                  <div className="p-2 pb-4">
+                    <div className="text-w-fg-0">{name}</div>
+                    <div className="flex items-center mt-2 text-[12px] text-w-fg-1">
+                      {updated}
+                      <p className="mx-1">·</p>
+                      <Show when={!!episodeText}>
+                        <p className="">{episodeText}</p>
+                        <p className="mx-1">·</p>
+                      </Show>
+                      {percent}%
+                    </div>
+                  </div>
+                </div>
+              </Node>
+            );
+          })}
+        </ListView>
       </ScrollView>
       <Dialog store={deletingConfirmDialog}>
         <div>确认删除吗？</div>

@@ -57,10 +57,10 @@ export const HomeMovieTabContent: ViewComponent = (props) => {
       <ScrollView className="h-full bg-w-bg-3" store={scroll}>
         <ListView
           store={list}
-          className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 space-y-2 pt-2"
+          className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 space-y-3 pt-4"
           skeleton={
             <>
-              <div className="flex px-2 cursor-pointer">
+              <div className="flex px-3 cursor-pointer">
                 <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -96,7 +96,7 @@ export const HomeMovieTabContent: ViewComponent = (props) => {
               return (
                 <div
                   key={id}
-                  className="flex px-2 cursor-pointer"
+                  className="flex px-3 cursor-pointer"
                   onClick={() => {
                     if (type === MediaTypes.Season) {
                       seasonPlayingPageV2.query = {

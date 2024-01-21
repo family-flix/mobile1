@@ -41,8 +41,9 @@ export const TabHeader = (props: { store: TabHeaderCore<any> }) => {
               <div
                 key={index}
                 className={cn(
-                  "__a py-2 px-4 text-md text-w-fg-1 break-keep",
-                  current === index ? "active-item-class" : ""
+                  "__a py-2 px-4 break-keep text-md transition-all",
+                  current === index ? "active-item-class" : "",
+                  current === index ? "text-w-fg-0" : "text-w-fg-1"
                 )}
                 // style="{{current === index ? activeItemStyle : itemStyle}}"
                 onClick={() => {

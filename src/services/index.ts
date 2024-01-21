@@ -4,9 +4,8 @@ import { ReportTypes } from "@/constants";
 import { FetchParams } from "@/domains/list/typing";
 import { ListResponse, ListResponseWithCursor, RequestedResource, Result } from "@/types";
 import { request } from "@/utils/request";
-import { MediaTypes } from "@/constants";
+import { MediaTypes, CollectionTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
-import { CollectionCore, CollectionTypes } from "@/domains/ui/collection";
 
 export function reportSomething(body: {
   type: ReportTypes;
@@ -17,9 +16,10 @@ export function reportSomething(body: {
   return request.post("/api/v2/wechat/report/create", body);
 }
 
-export function fetch_subtitle_url(params: { id: string }) {
-  const { id } = params;
-  return request.get<{ name: string; url: string }>(`/api/subtitle/${id}/url`);
+export function fetchSubtitleContent(body: { url: string }) {
+  const { url } = body;
+  const prefix = window.location.origin;
+  return request.get<string>(prefix + url);
 }
 
 type AnswerPayload = Partial<{

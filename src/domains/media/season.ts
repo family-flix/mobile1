@@ -13,7 +13,7 @@ import {
   MediaSource,
   MediaSourceFile,
   updatePlayHistory,
-  fetchSeasonPlayingEpisode,
+  fetchMediaPlayingEpisode,
   SeasonEpisodeGroup,
   fetchSourceInGroup,
   CurMediaSource,
@@ -116,12 +116,13 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少季 id 参数"] });
       return Result.Err(msg);
     }
-    const res = await fetchSeasonPlayingEpisode({ media_id: season_id, type: MediaTypes.Season });
+    const res = await fetchMediaPlayingEpisode({ media_id: season_id, type: MediaTypes.Season });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
     }
     const { id, name, overview, sourceCount, posterPath, curSource, sourceGroups } = res.data;
+    // console.log("[DOMAIN]media/season - fetchProfile result", curSource);
     if (curSource === null) {
       const msg = this.tip({ text: ["该电视剧尚未收录影片"] });
       return Result.Err(msg);
@@ -164,7 +165,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(tip);
     }
     const file = files[0];
-    // console.log("[DOMAIN]tv/index - playEpisode before this.$source.load", episode.name);
+    console.log("[DOMAIN]media/season - playEpisode before this.$source.load", episode);
     const res = await this.$source.load(file);
     if (res.error) {
       this.tip({
@@ -173,7 +174,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(res.error);
     }
     this.currentTime = currentTime;
-    this.curSource = { ...episode, currentTime, thumbnailPath: episode.stillPath, curSourceFileId: res.data.id };
+    this.curSource = { ...episode, currentTime, thumbnailPath: episode.stillPath, curFileId: file.id };
     (async () => {
       const r = await this.$source.loadSubtitle({ extraSubtitleFiles: episode.subtitles, currentTime });
       if (r.error) {
@@ -298,7 +299,12 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
+    if (this.curSource === null) {
+      const msg = this.tip({ text: ["视频还未加载完成"] });
+      return Result.Err(msg);
+    }
     const res = await this.$source.load({ id: sourceFile.id });
+    this.curSource.curFileId = sourceFile.id;
     if (res.error) {
       this.tip({
         text: [res.error.message],
@@ -331,6 +337,24 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
   setCurResolution(type: MediaResolutionTypes) {
     this.curResolutionType = type;
+  }
+  markFileInvalid(id: string) {
+    if (!this.curSource) {
+      return;
+    }
+    const matched = this.curSource.files.find((f) => f.id === id);
+    if (!matched) {
+      return;
+    }
+    this.curSource.files = this.curSource.files.map((f) => {
+      if (f.id === id) {
+        return {
+          ...f,
+          invalid: true,
+        };
+      }
+      return f;
+    });
   }
   updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
     const { currentTime = this.currentTime, duration = 0 } = values;

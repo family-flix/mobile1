@@ -24,6 +24,8 @@ import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store";
 import { fetchMediaList } from "@/services/media";
+import { Affix } from "@/components/ui/affix";
+import { AffixCore } from "@/domains/ui/affix";
 
 export const MediaSearchPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -38,6 +40,13 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
         afterSearch() {
           searchInput.setLoading(false);
         },
+      })
+  );
+  const affix = useInstance(
+    () =>
+      new AffixCore({
+        top: 0,
+        defaultHeight: 56,
       })
   );
   const scrollView = useInstance(() => new ScrollViewCore({}));
@@ -124,6 +133,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
   );
 
   const [response, setResponse] = useState(seasonList.response);
+  const [height, setHeight] = useState(affix.height);
   const [hasSearch, setHasSearch] = useState(
     (() => {
       const { language = [] } = app.cache.get("tv_search", {
@@ -146,6 +156,9 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     // });
     scrollView.onReachBottom(() => {
       seasonList.loadMore();
+    });
+    affix.onMounted((rect) => {
+      setHeight(rect.height);
     });
     seasonList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
@@ -172,7 +185,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <div className="fixed z-20 top-0 w-full bg-w-bg-0">
+      <Affix store={affix} className="z-50 w-full bg-w-bg-0">
         <div className="flex items-center justify-between w-full py-2 px-4 text-w-fg-0 space-x-3">
           <ChevronLeft
             className="w-6 h-6"
@@ -193,97 +206,95 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
             {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-w-red"></div>}
           </div> */}
         </div>
-      </div>
-      <ScrollView store={scrollView} className="box-border text-w-fg-1 pt-[56px]">
-        <div className="w-full h-full">
-          <ListView
-            store={seasonList}
-            className="h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5"
-            extraEmpty={
-              <div className="mt-2">
-                <Button store={mediaRequestBtn} variant="subtle">
-                  提交想看的影视剧
-                </Button>
-              </div>
-            }
-          >
-            {(() => {
-              return dataSource.map((season) => {
-                const { id, type, name, episode_count_text, vote, genres, air_date, poster_path = "", actors } = season;
-                return (
-                  <div
-                    key={id}
-                    className="flex px-4 py-2 mb-3 cursor-pointer"
-                    onClick={() => {
-                      if (type === MediaTypes.Season) {
-                        seasonPlayingPageV2.query = {
-                          id,
-                        };
-                        app.showView(seasonPlayingPageV2);
-                        return;
-                      }
-                      if (type === MediaTypes.Movie) {
-                        moviePlayingPageV2.query = {
-                          id,
-                        };
-                        app.showView(moviePlayingPageV2);
-                        return;
-                      }
-                      app.tip({
-                        text: ["未知的媒体类型"],
-                      });
-                    }}
-                  >
-                    <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                      <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
-                      {episode_count_text && (
-                        <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
-                          <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
-                          <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
-                            {episode_count_text}
-                          </div>
+      </Affix>
+      <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1 pt-4" style={{ top: height }}>
+        <ListView
+          store={seasonList}
+          className="w-full h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-3"
+          extraEmpty={
+            <div className="mt-2">
+              <Button store={mediaRequestBtn} variant="subtle">
+                提交想看的影视剧
+              </Button>
+            </div>
+          }
+        >
+          {(() => {
+            return dataSource.map((season) => {
+              const { id, type, name, episode_count_text, vote, genres, air_date, poster_path = "", actors } = season;
+              return (
+                <div
+                  key={id}
+                  className="flex px-3 cursor-pointer"
+                  onClick={() => {
+                    if (type === MediaTypes.Season) {
+                      seasonPlayingPageV2.query = {
+                        id,
+                      };
+                      app.showView(seasonPlayingPageV2);
+                      return;
+                    }
+                    if (type === MediaTypes.Movie) {
+                      moviePlayingPageV2.query = {
+                        id,
+                      };
+                      app.showView(moviePlayingPageV2);
+                      return;
+                    }
+                    app.tip({
+                      text: ["未知的媒体类型"],
+                    });
+                  }}
+                >
+                  <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
+                    <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
+                    {episode_count_text && (
+                      <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                        <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                        <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                          {episode_count_text}
                         </div>
-                      )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                    <div className="flex items-center">
+                      <h2 className="text-xl text-w-fg-0">{name}</h2>
                     </div>
-                    <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                      <div className="flex items-center">
-                        <h2 className="text-xl text-w-fg-0">{name}</h2>
+                    <div className="flex items-center mt-1">
+                      <div>{air_date}</div>
+                      <p className="mx-2 ">·</p>
+                      <div className="relative flex items-center">
+                        <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
+                        <div className="pl-4">{vote}</div>
                       </div>
-                      <div className="flex items-center mt-1">
-                        <div>{air_date}</div>
-                        <p className="mx-2 ">·</p>
-                        <div className="relative flex items-center">
-                          <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
-                          <div className="pl-4">{vote}</div>
-                        </div>
+                    </div>
+                    {actors ? (
+                      <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
+                        {actors}
                       </div>
-                      {actors ? (
-                        <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
-                          {actors}
-                        </div>
-                      ) : null}
-                      <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
-                        {genres.map((tag) => {
-                          return (
-                            <div
-                              key={tag}
-                              className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
-                              style={{
-                                lineHeight: "12px",
-                              }}
-                            >
-                              {tag}
-                            </div>
-                          );
-                        })}
-                      </div>
+                    ) : null}
+                    <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
+                      {genres.map((tag) => {
+                        return (
+                          <div
+                            key={tag}
+                            className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
+                            style={{
+                              lineHeight: "12px",
+                            }}
+                          >
+                            {tag}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              });
-            })()}
-          </ListView>
-        </div>
+                </div>
+              );
+            });
+          })()}
+        </ListView>
         <div style={{ height: 1 }} />
       </ScrollView>
       <Sheet store={settingsSheet}>

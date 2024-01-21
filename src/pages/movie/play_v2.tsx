@@ -4,25 +4,20 @@
 import { useState } from "react";
 import {
   Airplay,
+  AlertTriangle,
   ArrowLeft,
   FastForward,
-  Layers,
-  Loader,
   Loader2,
   Maximize,
   Pause,
-  PictureInPicture,
   Play,
   Rewind,
   Settings,
-  SkipForward,
 } from "lucide-react";
 
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
-import { InviteeSelect } from "@/components/member-select/view";
-import { InviteeSelectCore } from "@/components/member-select/store";
 import { MovieMediaSettings } from "@/components/movie-media-settings";
 import { PlayingIcon } from "@/components/playing";
 import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
@@ -53,14 +48,11 @@ class MoviePlayingPageLogic {
   }>;
   $report: RefCore<string>;
 
-  $$view: RouteViewCore;
-
   _createReport = new RequestCore(reportSomething);
 
-  constructor(props: { app: Application; view: RouteViewCore }) {
-    const { app, view } = props;
+  constructor(props: { app: Application }) {
+    const { app } = props;
     this.$app = app;
-    this.$$view = view;
 
     const settings = app.cache.get("player_settings", {
       volume: 0.5,
@@ -75,19 +67,14 @@ class MoviePlayingPageLogic {
       value: settings,
     });
     const { type: resolution, volume, rate } = settings;
-    this.$tv = new MovieMediaCore({
+    const tv = new MovieMediaCore({
       resolution,
     });
-    this.$player = new PlayerCore({ app, volume, rate });
+    this.$tv = tv;
+    const player = new PlayerCore({ app, volume, rate });
     this.$report = new RefCore<string>();
     //     const reportSheet = new DialogCore();
-  }
-  load() {
-    console.log("[PAGE]play - useInitialize");
-    const app = this.$app;
-    const tv = this.$tv;
-    const player = this.$player;
-    const view = this.$$view;
+    this.$player = player;
 
     app.onHidden(() => {
       player.pause();
@@ -150,17 +137,10 @@ class MoviePlayingPageLogic {
     });
     player.onCanPlay(() => {
       const { currentTime } = tv;
-      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible, currentTime);
-      if (!view.state.visible) {
-        return;
-      }
+      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, currentTime);
       const _self = this;
       function applySettings() {
         player.setCurrentTime(currentTime);
-        if (view.query.rate) {
-          player.changeRate(Number(view.query.rate));
-          return;
-        }
         const { rate } = _self.$settings.value!;
         if (rate) {
           player.changeRate(Number(rate));
@@ -221,15 +201,24 @@ class MoviePlayingPageLogic {
       //       resolutionSheet.hide();
     });
     // console.log("[PAGE]play - before player.onError");
-    player.onError((error) => {
+    player.onError(async (error) => {
       console.log("[PAGE]play - player.onError", error);
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      (() => {
-        // if (error.message.includes("格式")) {
-        //   errorTipDialog.show();
-        //   return;
-        // }
-        app.tip({ text: ["视频加载错误", error.message] });
+      await (async () => {
+        if (!tv.curSource) {
+          return;
+        }
+        const files = tv.curSource.files;
+        const curFileId = tv.curSource.curFileId;
+        const curFileIndex = files.findIndex((f) => f.id === curFileId);
+        const nextIndex = curFileIndex + 1;
+        const nextFile = files[nextIndex];
+        if (!nextFile) {
+          app.tip({ text: ["视频加载错误", error.message] });
+          player.setInvalid(error.message);
+          return;
+        }
+        await tv.changeSourceFile(nextFile);
       })();
       player.pause();
     });
@@ -252,7 +241,6 @@ class MoviePlayingPageLogic {
       }
       player.load(url);
     });
-    tv.fetchProfile(view.query.id);
   }
 }
 
@@ -282,18 +270,21 @@ class MoviePlayingPageView {
     this.$bottom.show();
     this.$control.show();
     this.$mask.show();
+    this.visible = true;
   }
   hide() {
     this.$top.hide();
     this.$bottom.hide();
     this.$control.hide();
     this.$mask.hide();
+    this.visible = false;
   }
   toggle() {
     this.$top.toggle();
     this.$bottom.toggle();
     this.$control.toggle();
     this.$mask.toggle();
+    this.visible = !this.visible;
   }
   attemptToShow() {
     if (this.timer !== null) {
@@ -309,7 +300,7 @@ class MoviePlayingPageView {
     this.timer = setTimeout(() => {
       this.hide();
       this.timer = null;
-    }, 2400);
+    }, 5000);
   }
   stopHide() {
     if (this.timer !== null) {
@@ -378,15 +369,8 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
   //         },
   //       })
   //   );
-  const $logic = useInstance(() => new MoviePlayingPageLogic({ app, view }));
+  const $logic = useInstance(() => new MoviePlayingPageLogic({ app }));
   const $page = useInstance(() => new MoviePlayingPageView({ view }));
-  //   const reportSheet = useInstance(() => new DialogCore());
-  //   const cover = useInstance(() => new ToggleCore({ boolean: true }));
-  //   const subtitleSheet = useInstance(() => new DialogCore({}));
-  //   const nextEpisodeLoader = useInstance(() => new LoaderOverrideCore({}));
-  //   const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
-  //   const bottomOperation = useInstance(() => new PresenceCore({}));
-  //   const scrollView2 = useInstance(() => new ScrollViewCore());
 
   const [state, setProfile] = useState($logic.$tv.state);
   const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
@@ -397,6 +381,10 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
   const [curReportValue, setCurReportValue] = useState($logic.$report.value);
 
   useInitialize(() => {
+    if (view.query.rate) {
+      $logic.$player.changeRate(Number(view.query.rate));
+      return;
+    }
     view.onHidden(() => {
       $logic.$player.pause();
     });
@@ -413,6 +401,11 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
     }
     $logic.$tv.onStateChange((nextProfile) => {
       setProfile(nextProfile);
+    });
+    $logic.$tv.onSourceFileChange((v) => {
+      if (v.subtitles.length) {
+        $page.$subtitle.show();
+      }
     });
     $logic.$tv.$source.onSubtitleChange((l) => {
       setCurSubtitleState(l);
@@ -448,7 +441,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
     });
 
     //     setCurReportValue(v);
-    $logic.load();
+    $logic.$tv.fetchProfile(view.query.id);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
@@ -465,15 +458,8 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
     <>
       <ScrollView
         store={$page.$scroll}
-        className="fixed h-screen bg-w-fg-0 dark:bg-w-bg-0"
+        className="fixed h-screen bg-w-bg-0"
         onClick={(event) => {
-          if ($logic.$player.playing) {
-            const needPause = $page.attemptToShow();
-            if (needPause) {
-              $logic.$player.pause();
-            }
-            return;
-          }
           $page.toggle();
         }}
       >
@@ -483,10 +469,10 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
             className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
             store={$page.$mask}
           >
-            <div className="absolute z-20 inset-0 bg-w-fg-1 opacity-20 dark:bg-w-bg-1"></div>
+            <div className="absolute z-20 inset-0 bg-w-bg-1 opacity-20"></div>
           </Presence>
           <div
-            className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0"
+            className="absolute z-30 top-[50%] left-[50%] text-w-fg-0"
             style={{ transform: `translate(-50%, -50%)` }}
           >
             <Presence
@@ -494,58 +480,68 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
               store={$page.$control}
             >
               <Show
-                when={!!playerState.ready}
-                fallback={<Loader2 className="w-16 h-16 text-w-fg-0 animate animate-spin" />}
+                when={!playerState.error}
+                fallback={
+                  <div className="flex flex-col justify-center items-center">
+                    <AlertTriangle className="w-16 h-16 text-w-fg-0" />
+                    <div className="mt-4 text-center">{playerState.error}</div>
+                  </div>
+                }
               >
-                <div
-                  className="flex items-center space-x-8"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                  }}
+                <Show
+                  when={!!playerState.ready}
+                  fallback={<Loader2 className="w-16 h-16 text-w-fg-0 animate animate-spin" />}
                 >
-                  <Rewind
-                    className="w-8 h-8"
-                    onClick={() => {
-                      $logic.$player.setCurrentTime($logic.$tv.currentTime - 10);
-                      $page.prepareHide();
+                  <div
+                    className="flex items-center space-x-8"
+                    onClick={(event) => {
+                      event.stopPropagation();
                     }}
-                  />
-                  <div className="p-2">
-                    <Show
-                      when={playerState.playing}
-                      fallback={
+                  >
+                    <Rewind
+                      className="w-8 h-8"
+                      onClick={() => {
+                        $logic.$player.setCurrentTime($logic.$tv.currentTime - 10);
+                        $page.prepareHide();
+                      }}
+                    />
+                    <div className="p-2">
+                      <Show
+                        when={playerState.playing}
+                        fallback={
+                          <div
+                            onClick={() => {
+                              $logic.$player.play();
+                              $page.prepareHide();
+                            }}
+                          >
+                            <Play className="relative left-[6px] w-16 h-16" />
+                          </div>
+                        }
+                      >
                         <div
                           onClick={() => {
-                            $logic.$player.play();
+                            $logic.$player.pause();
                             $page.prepareHide();
                           }}
                         >
-                          <Play className="relative left-[6px] w-16 h-16" />
+                          <Pause className="w-16 h-16" />
                         </div>
-                      }
-                    >
-                      <div
-                        onClick={() => {
-                          $logic.$player.pause();
-                          $page.prepareHide();
-                        }}
-                      >
-                        <Pause className="w-16 h-16" />
-                      </div>
-                    </Show>
+                      </Show>
+                    </div>
+                    <FastForward
+                      className="w-8 h-8"
+                      onClick={() => {
+                        $logic.$player.setCurrentTime($logic.$tv.currentTime + 10);
+                      }}
+                    />
                   </div>
-                  <FastForward
-                    className="w-8 h-8"
-                    onClick={() => {
-                      $logic.$player.setCurrentTime($logic.$tv.currentTime + 10);
-                    }}
-                  />
-                </div>
+                </Show>
               </Show>
             </Presence>
           </div>
         </div>
-        <div className="absolute z-0 inset-0 text-w-bg-0 dark:text-w-fg-0">
+        <div className="absolute z-0 inset-0 text-w-fg-0">
           <div
             className=""
             onClick={(event) => {
@@ -593,7 +589,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
                   return;
                 }
                 return (
-                  <div key={subtileState.index} className="mt-2 space-y-1">
+                  <div key={subtileState.index} className="mb-16 space-y-1">
                     {subtileState.texts.map((text) => {
                       return (
                         <div key={text} className="text-center text-lg">

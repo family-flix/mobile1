@@ -139,6 +139,7 @@ type SeasonEpisodeResp = {
     file_name: string;
     parent_paths: string;
   }[];
+  subtitles: SubtitleFileResp[];
 };
 type SeasonAndCurEpisodeResp = {
   id: string;
@@ -161,7 +162,7 @@ type SeasonAndCurEpisodeResp = {
  * 获取电视剧及当前播放的剧集详情
  * @param body
  */
-export async function fetchSeasonPlayingEpisode(body: { media_id: string; type: MediaTypes }) {
+export async function fetchMediaPlayingEpisode(body: { media_id: string; type: MediaTypes }) {
   // console.log("[]fetch_tv_profile params", params);
   const r = await request.post<SeasonAndCurEpisodeResp>(`/api/v2/wechat/media/playing`, {
     media_id: body.media_id,
@@ -261,6 +262,7 @@ function normalizeEpisode(episode: SeasonAndCurEpisodeResp["sources"][number]) {
     runtime,
     // current_time,
     sources,
+    subtitles,
   } = episode;
   return {
     id,
@@ -284,8 +286,15 @@ function normalizeEpisode(episode: SeasonAndCurEpisodeResp["sources"][number]) {
       return minute_to_hour2(runtime);
     })(),
     stillPath: still_path,
-    files: sources,
-    subtitles: [] as SubtitleFileResp[],
+    files: sources.map((s, index) => {
+      return {
+        id: s.id,
+        name: `源${index + 1}`,
+        invalid: false,
+        order: index + 1,
+      };
+    }),
+    subtitles,
   };
 }
 function normalizeCurEpisode(episode: {
@@ -299,18 +308,19 @@ function normalizeCurEpisode(episode: {
     id,
     currentTime: current_time,
     thumbnailPath: thumbnail_path,
-    curSourceFileId: cur_source_file_id,
+    curFileId: cur_source_file_id,
   };
 }
 /** 电视剧详情 */
-export type MediaAndCurSource = UnpackedResult<Unpacked<ReturnType<typeof fetchSeasonPlayingEpisode>>>;
-export type SeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchSeasonPlayingEpisode>>>;
+export type MediaAndCurSource = UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>;
+export type SeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>;
 export type SeasonEpisodeGroup = UnpackedResult<
-  Unpacked<ReturnType<typeof fetchSeasonPlayingEpisode>>
+  Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>
 >["sourceGroups"][number];
+/** 剧集 */
 export type MediaSource = SeasonEpisodeGroup["list"][number];
 export type CurMediaSource = NonNullable<
-  UnpackedResult<Unpacked<ReturnType<typeof fetchSeasonPlayingEpisode>>>["curSource"]
+  UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>["curSource"]
 >;
 export async function fetchSourceInGroup(body: { media_id: string; start: number; end: number }) {
   const r = await request.post<{

@@ -261,7 +261,7 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                         <div className="max-h-full overflow-y-auto text-w-fg-1">
                           <div className="pb-24">
                             {state.curSource.files.map((s) => {
-                              const { id, file_name, parent_paths } = s;
+                              const { id, name, invalid } = s;
                               return (
                                 <div
                                   key={id}
@@ -284,9 +284,7 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                                     fileIcon.clear();
                                   }}
                                 >
-                                  <div className="break-all">
-                                    {parent_paths}/{file_name}
-                                  </div>
+                                  <div className="break-all">{name}</div>
                                   <DynamicContent
                                     className="ml-4"
                                     store={fileIcon.bind(id)}
@@ -298,10 +296,17 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
                                       {
                                         value: 2,
                                         content: (
-                                          <Show when={curSource?.id === id}>
-                                            <div>
-                                              <CheckCircle2 className="w-6 h-6" />
-                                            </div>
+                                          <Show
+                                            when={invalid}
+                                            fallback={
+                                              <Show when={curSource?.id === id}>
+                                                <div>
+                                                  <CheckCircle2 className="w-6 h-6" />
+                                                </div>
+                                              </Show>
+                                            }
+                                          >
+                                            <AlertTriangle className="w-6 h-6" />
                                           </Show>
                                         ),
                                       },

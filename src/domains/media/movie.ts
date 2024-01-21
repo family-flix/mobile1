@@ -11,7 +11,7 @@ import { Result } from "@/types";
 
 import {
   CurMediaSource,
-  fetchSeasonPlayingEpisode,
+  fetchMediaPlayingEpisode,
   MediaAndCurSource,
   MediaSource,
   MediaSourceFile,
@@ -82,7 +82,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少电影 id 参数"] });
       return Result.Err(msg);
     }
-    const res = await fetchSeasonPlayingEpisode({ media_id, type: MediaTypes.Movie });
+    const res = await fetchMediaPlayingEpisode({ media_id, type: MediaTypes.Movie });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
@@ -98,7 +98,6 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["当前没有可播放的视频源"] });
       return Result.Err(msg);
     }
-    // this.curSource = curSource;
     this.emit(Events.ProfileLoaded, { profile: this.profile, curSource });
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok({ ...this.profile });
@@ -126,6 +125,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(tip);
     }
     const file = files[0];
+    // console.log("[DOMAIN]media/season - playSource before this.$source.load", source);
     const res = await this.$source.load(file);
     if (res.error) {
       const msg = this.tip({
@@ -135,7 +135,15 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     }
     // this.profile.curEpisode = { ...episode, currentTime, thumbnail };
     this.currentTime = currentTime;
-    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curSourceFileId: res.data.id };
+    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: res.data.id };
+    (async () => {
+      const r = await this.$source.loadSubtitle({ extraSubtitleFiles: source.subtitles, currentTime });
+      if (r.error) {
+        console.log("[DOMAIN]media/season - loadSubtitle failed ", r.error.message);
+        return;
+      }
+      // this.emit(Events.EpisodeChange, { ...this.curEpisode, currentTime });
+    })();
     this.emit(Events.SourceFileChange, { ...res.data, currentTime });
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok(res.data);

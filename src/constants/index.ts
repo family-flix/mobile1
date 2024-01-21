@@ -252,3 +252,12 @@ export const players: { icon: string; name: string; scheme: string }[] = [
   //   scheme: "intent:$durl#Intent;package=com.mxtech.videoplayer.pro;S.title=$name;end",
   // },
 ];
+
+export enum CollectionTypes {
+  /** 手动创建 */
+  Manually = 1,
+  /** 每日更新 */
+  DailyUpdate = 2,
+  /** 每日更新草稿 */
+  DailyUpdateDraft = 3,
+}

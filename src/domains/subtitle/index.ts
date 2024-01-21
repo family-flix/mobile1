@@ -1,7 +1,7 @@
 import { Handler } from "mitt";
 import axios from "axios";
 
-import { fetch_subtitle_url } from "@/services";
+// import { fetchSubtitleContent } from "@/services";
 import { BaseDomain } from "@/domains/base";
 import { Result } from "@/types";
 import { MediaOriginCountry } from "@/constants";
@@ -31,7 +31,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     subtitle: { id: string; type: SubtitleFileTypes; url: string; name: string; language: MediaOriginCountry[] },
     extra: Partial<{ currentTime: number }> = {}
   ) {
-    const { id, type, url, language } = subtitle;
+    const { id, name, type, url, language } = subtitle;
     const content_res = await (async () => {
       if (type === SubtitleFileTypes.MediaInnerFile) {
         const r = await (async () => {
@@ -47,32 +47,21 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
           return Result.Err(r.error);
         }
         return Result.Ok({
-          name: url,
+          name,
           content: r.data,
         });
       }
       if (type === SubtitleFileTypes.LocalFile) {
-        const r1 = await fetch_subtitle_url({ id });
-        if (r1.error) {
-          return Result.Err(r1.error);
+        try {
+          const r = await axios.get(url);
+          return Result.Ok({
+            name,
+            content: r.data,
+          });
+        } catch (err) {
+          const e = err as Error;
+          return Result.Err(e.message);
         }
-        const { name, url: download_url } = r1.data;
-        const r = await (async () => {
-          try {
-            const r = await axios.get(download_url);
-            return Result.Ok(r.data);
-          } catch (err) {
-            const e = err as Error;
-            return Result.Err(e.message);
-          }
-        })();
-        if (r.error) {
-          return Result.Err(r.error);
-        }
-        return Result.Ok({
-          name,
-          content: r.data,
-        });
       }
       return Result.Err("未知字幕类型");
     })();
@@ -82,6 +71,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
     const { content, name: subtitle_name } = content_res.data;
     const suffix = parseSubtitleUrl(subtitle_name);
     const paragraphs = parseSubtitleContent(content, suffix);
+    // console.log("[DOMAIN]subtitle/index - paragraphs", paragraphs);
     const store = new SubtitleCore({
       filename: subtitle_name,
       language,

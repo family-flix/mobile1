@@ -114,6 +114,7 @@ type PlayerState = {
     lang: string;
     src: string;
   };
+  error?: string;
 };
 
 export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
@@ -141,6 +142,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   prepareFullscreen = false;
   _progress = 0;
   virtualProgress = 0;
+  errorMsg = "";
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
   private _abstractNode: {
@@ -168,6 +170,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       width: this._size.width,
       height: this._size.height,
       ready: this._canPlay,
+      error: this.errorMsg,
       rate: this._curRate,
       volume: this._curVolume,
       currentTime: this._currentTime,
@@ -276,6 +279,20 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._currentTime = currentTime || 0;
     this._abstractNode.setCurrentTime(currentTime || 0);
   }
+  speedUp() {
+    let target = this._currentTime + 10;
+    if (this._duration && target >= this._duration) {
+      target = this._duration;
+    }
+    this.setCurrentTime(target);
+  }
+  rewind() {
+    let target = this._currentTime - 10;
+    if (target <= 0) {
+      target = 0;
+    }
+    this.setCurrentTime(target);
+  }
   setSize(size: { width: number; height: number }) {
     if (
       this._size.width !== 0 &&
@@ -335,15 +352,14 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     $video.enableFullscreen();
     this.pause();
     this.enableFullscreen();
-    setTimeout(() => {
-      this.play();
-      // 300 的延迟是 video 保证重渲染 play inline 后，才开始播放
-    }, 800);
+    this.play();
   }
   loadSource(video: { url: string }) {
     this.metadata = video;
     this._canPlay = false;
+    this.errorMsg = "";
     this.emit(Events.UrlChange, video);
+    this.emit(Events.StateChange, { ...this.state });
   }
   preloadSource(url: string) {
     this.emit(Events.Preload, { url });
@@ -428,6 +444,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Mounted);
     this.emit(Events.Ready);
   }
+  setInvalid(msg: string) {
+    this.errorMsg = msg;
+    this.emit(Events.StateChange, { ...this.state });
+  }
   isFullscreen = false;
   /** ------ 平台 video 触发的事件 start -------- */
   handleFullscreenChange(isFullscreen: boolean) {
@@ -489,6 +509,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   }
   handleError(msg: string) {
     // console.log("[DOMAIN]Player - throwError", msg);
+    // this.errorMsg = msg;
     this.emit(Events.Error, new Error(msg));
   }
 

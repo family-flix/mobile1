@@ -260,7 +260,7 @@ export const SeasonMediaSettings = (props: { store: SeasonMediaCore; app: Applic
                         <div className="max-h-full overflow-y-auto text-w-fg-1">
                           <div className="pb-24">
                             {state.curSource.files.map((s) => {
-                              const { id, file_name, parent_paths } = s;
+                              const { id, name, invalid } = s;
                               return (
                                 <div
                                   key={id}
@@ -269,8 +269,6 @@ export const SeasonMediaSettings = (props: { store: SeasonMediaCore; app: Applic
                                     curSource?.id === id ? "bg-w-bg-active" : ""
                                   )}
                                   onClick={async () => {
-                                    // loadingPresence.show();
-                                    // loadingPresence.hide();
                                     fileIcon.select(id);
                                     fileIcon.set(3);
                                     const result = await store.changeSourceFile(s);
@@ -283,9 +281,7 @@ export const SeasonMediaSettings = (props: { store: SeasonMediaCore; app: Applic
                                     fileIcon.clear();
                                   }}
                                 >
-                                  <div className="break-all">
-                                    {parent_paths}/{file_name}
-                                  </div>
+                                  <div className="break-all">{name}</div>
                                   <DynamicContent
                                     className="ml-4"
                                     store={fileIcon.bind(id)}
@@ -297,10 +293,17 @@ export const SeasonMediaSettings = (props: { store: SeasonMediaCore; app: Applic
                                       {
                                         value: 2,
                                         content: (
-                                          <Show when={curSource?.id === id}>
-                                            <div>
-                                              <CheckCircle2 className="w-6 h-6" />
-                                            </div>
+                                          <Show
+                                            when={invalid}
+                                            fallback={
+                                              <Show when={curSource?.id === id}>
+                                                <div>
+                                                  <CheckCircle2 className="w-6 h-6" />
+                                                </div>
+                                              </Show>
+                                            }
+                                          >
+                                            <AlertTriangle className="w-6 h-6" />
                                           </Show>
                                         ),
                                       },
