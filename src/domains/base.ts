@@ -58,7 +58,7 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
       ...args,
     ];
   }
-  error(...args: unknown[]) {
+  errorTip(...args: unknown[]) {
     if (!this.debug) {
       return;
     }

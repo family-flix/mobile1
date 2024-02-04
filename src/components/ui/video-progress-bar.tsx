@@ -59,14 +59,10 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
   };
 
   return (
-    <div className="user-select-none">
-      <div className="flex items-center text-sm">
-        <div>{times.currentTime}</div>
-        <div className="mx-2">/</div>
-        <div>{times.duration}</div>
-      </div>
+    <div className="flex items-center user-select-none">
+      <div className="text-sm">{times.currentTime}</div>
       <div
-        className="__a mt-2 w-full bg-gray-300 cursor-pointer rounded-md overflow-hidden"
+        className="__a mx-4 w-full bg-gray-300 cursor-pointer rounded-md overflow-hidden"
         onAnimationEnd={(event) => {
           const { currentTarget: target } = event;
           const client = target.getBoundingClientRect();
@@ -102,6 +98,7 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
       >
         <div className="h-[4px] bg-green-500" style={{ width: `${progress}%` }}></div>
       </div>
+      <div className="text-sm">{times.duration}</div>
     </div>
   );
 });

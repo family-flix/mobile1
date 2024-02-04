@@ -4,26 +4,22 @@
 import React, { useState } from "react";
 import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } from "lucide-react";
 
+import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { messageList } from "@/store/index";
 import { readAllNotification, readNotification } from "@/services";
 import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
+import { DynamicContent } from "@/components/dynamic-content";
+import { DynamicContentCore } from "@/domains/ui/dynamic-content";
 import { StepSwitch } from "@/components/ui/step";
 import { StepCore } from "@/domains/step";
 import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import {
-  messageList,
-  moviePlayingPage,
-  moviePlayingPageV2,
-  rootView,
-  seasonPlayingPageV2,
-  tvPlayingPage,
-} from "@/store";
 import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
-import { DynamicContent } from "@/components/dynamic-content";
-import { DynamicContentCore } from "@/domains/ui/dynamic-content";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { request } from "@/store/request";
 
 enum MessageStatus {
   Normal = 1,
@@ -39,8 +35,20 @@ export const HomeMessagePage: ViewComponent = (props) => {
         value: 1,
       })
   );
-  const readRequest = useInstance(() => new RequestCore(readNotification));
-  const readAllRequest = useInstance(() => new RequestCore(readAllNotification));
+  const readRequest = useInstance(
+    () =>
+      new RequestCoreV2({
+        fetch: readNotification,
+        client: request,
+      })
+  );
+  const readAllRequest = useInstance(
+    () =>
+      new RequestCoreV2({
+        fetch: readAllNotification,
+        client: request,
+      })
+  );
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({

@@ -16,6 +16,7 @@ import {
   Subtitles,
 } from "lucide-react";
 
+import { request } from "@/store/request";
 import { reportSomething } from "@/services";
 import { Video, Sheet, ScrollView, Dialog, LazyImage } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
@@ -27,6 +28,7 @@ import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCore } from "@/domains/request";
 import { OrientationTypes } from "@/domains/app";
 import { MediaResolutionTypes } from "@/domains/source/constants";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { MovieReportList, ReportTypes, players } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
@@ -81,7 +83,9 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   );
   const reportRequest = useInstance(
     () =>
-      new RequestCore(reportSomething, {
+      new RequestCoreV2({
+        client: request,
+        fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
         },

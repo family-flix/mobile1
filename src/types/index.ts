@@ -78,6 +78,7 @@ export type ListResponseWithCursor<T> = {
 };
 
 export type RequestedResource<T extends (...args: any[]) => any> = UnpackedResult<Unpacked<ReturnType<T>>>;
+export type Shift<T extends any[]> = ((...args: T) => void) extends (arg1: any, ...rest: infer R) => void ? R : never;
 
 export type ViewComponent = (props: {
   app: Application;

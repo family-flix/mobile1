@@ -12,11 +12,14 @@ import { Result } from "@/types";
 import {
   CurMediaSource,
   fetchMediaPlayingEpisode,
+  fetchMediaPlayingEpisodeProcess,
   MediaAndCurSource,
   MediaSource,
   MediaSourceFile,
   updatePlayHistory,
 } from "./services";
+import { RequestCoreV2 } from "../request_v2";
+import { request } from "@/store/request";
 
 enum Events {
   /** 电影详情加载完成 */
@@ -82,7 +85,12 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少电影 id 参数"] });
       return Result.Err(msg);
     }
-    const res = await fetchMediaPlayingEpisode({ media_id, type: MediaTypes.Movie });
+    const fetch = new RequestCoreV2({
+      fetch: fetchMediaPlayingEpisode,
+      process: fetchMediaPlayingEpisodeProcess,
+      client: request,
+    });
+    const res = await fetch.run({ media_id, type: MediaTypes.Movie });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);

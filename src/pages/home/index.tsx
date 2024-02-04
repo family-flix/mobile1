@@ -4,8 +4,25 @@
 import React, { useState } from "react";
 import { ArrowUp, Bell, Bird, Search, User } from "lucide-react";
 
-import { fetchCollectionList, fetchUpdatedMediaToday } from "@/services";
+import { request } from "@/store/request";
+import {
+  homeHistoryTab,
+  homeMinePage,
+  homeMovieTab,
+  homeRecommendedTab,
+  homeSeasonTab,
+  mediaSearchPage,
+  messagesPage,
+} from "@/store/views";
+import { messageList } from "@/store/index";
+import {
+  fetchCollectionList,
+  fetchCollectionListProcess,
+  fetchUpdatedMediaToday,
+  fetchUpdatedMediaTodayProcess,
+} from "@/services";
 import { Input, KeepAliveRouteView } from "@/components/ui";
+import { Affix } from "@/components/ui/affix";
 import { MediaRequestCore } from "@/components/media-request";
 import { Show } from "@/components/ui/show";
 import { TabHeader } from "@/components/ui/tab-header";
@@ -14,42 +31,52 @@ import { ScrollViewCore, InputCore, ButtonCore, DialogCore } from "@/domains/ui"
 import { fetchPlayingHistories } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import {
-  homeHistoryTab,
-  homeMinePage,
-  homeMovieTab,
-  homeRecommendedTab,
-  homeSeasonTab,
-  mediaSearchPage,
-  messageList,
-  messagesPage,
-} from "@/store";
+import { AffixCore } from "@/domains/ui/affix";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { MediaTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { cn } from "@/utils";
-import { Affix } from "@/components/ui/affix";
-import { AffixCore } from "@/domains/ui/affix";
-import { AffixPlaceholder } from "@/components/ui/affix-placeholder";
 
 export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
 
   const collectionList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchCollectionList), {
-        pageSize: 6,
-        onLoadingChange(loading) {
-          searchInput.setLoading(!collectionList.response.initial && loading);
-        },
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchCollectionList,
+          process: fetchCollectionListProcess,
+          client: request,
+        }),
+        {
+          pageSize: 6,
+          onLoadingChange(loading) {
+            searchInput.setLoading(!collectionList.response.initial && loading);
+          },
+        }
+      )
+  );
+  const updatedMediaList = useInstance(
+    () =>
+      new RequestCoreV2({
+        fetch: fetchUpdatedMediaToday,
+        process: fetchUpdatedMediaTodayProcess,
+        client: request,
       })
   );
-  const updatedMediaList = useInstance(() => new RequestCore(fetchUpdatedMediaToday));
   const historyList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchPlayingHistories), {
-        pageSize: 12,
-      })
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchPlayingHistories,
+          client: request,
+        }),
+        {
+          pageSize: 12,
+        }
+      )
   );
   const scrollView = useInstance(
     () =>

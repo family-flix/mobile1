@@ -17,8 +17,12 @@ import {
   Wand2,
 } from "lucide-react";
 
+import { request } from "@/store/request";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
+import { InviteeSelect } from "@/components/member-select/view";
+import { InviteeSelectCore } from "@/components/member-select/store";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { RequestCore } from "@/domains/request";
@@ -33,15 +37,15 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn } from "@/utils";
-import { InviteeSelect } from "@/components/member-select/view";
-import { InviteeSelectCore } from "@/components/member-select/store";
 
 export const TVPlayingPage: ViewComponent = (props) => {
   const { app, view } = props;
 
   const shareMediaRequest = useInstance(
     () =>
-      new RequestCore(shareMediaToInvitee, {
+      new RequestCoreV2({
+        client: request,
+        fetch: shareMediaToInvitee,
         onLoading(loading) {
           inviteeSelect.submitBtn.setLoading(loading);
         },
@@ -112,7 +116,9 @@ ${url}`;
   );
   const reportRequest = useInstance(
     () =>
-      new RequestCore(reportSomething, {
+      new RequestCoreV2({
+        client: request,
+        fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
         },

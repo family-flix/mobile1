@@ -1,10 +1,9 @@
 import dayjs from "dayjs";
 
-import { ReportTypes } from "@/constants";
 import { FetchParams } from "@/domains/list/typing";
-import { ListResponse, ListResponseWithCursor, RequestedResource, Result } from "@/types";
-import { request } from "@/utils/request";
-import { MediaTypes, CollectionTypes } from "@/constants";
+import { TmpRequestResp, request } from "@/domains/request_v2/utils";
+import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types";
+import { MediaTypes, CollectionTypes, ReportTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
 
 export function reportSomething(body: {
@@ -35,8 +34,8 @@ type AnswerPayload = Partial<{
 /**
  * 获取消息通知
  */
-export async function fetchNotifications(params: FetchParams) {
-  const r = await request.post<
+export function fetchNotifications(params: FetchParams) {
+  return request.post<
     ListResponseWithCursor<{
       id: string;
       content: string;
@@ -44,6 +43,8 @@ export async function fetchNotifications(params: FetchParams) {
       created: string;
     }>
   >("/api/v2/wechat/notification/list", params);
+}
+export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifications>) {
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -124,10 +125,10 @@ export function fetchInviteeList(params: FetchParams) {
     }>
   >("/api/invitee/list", params);
 }
-export type InviteeItem = RequestedResource<typeof fetchInviteeList>["list"][number];
+export type InviteeItem = UnpackedResult<TmpRequestResp<typeof fetchInviteeList>>["list"][number];
 
-export async function fetchCollectionList(body: FetchParams) {
-  const r = await request.post<
+export function fetchCollectionList(body: FetchParams) {
+  return request.post<
     ListResponseWithCursor<{
       id: string;
       title: string;
@@ -146,6 +147,8 @@ export async function fetchCollectionList(body: FetchParams) {
       }[];
     }>
   >("/api/v2/wechat/collection/list", body);
+}
+export function fetchCollectionListProcess(r: TmpRequestResp<typeof fetchCollectionList>) {
   if (r.error) {
     return Result.Err(r.error.message);
   }
@@ -193,8 +196,8 @@ export async function fetchCollectionList(body: FetchParams) {
 }
 
 /** 获取今日新增影视剧 */
-export async function fetchUpdatedMediaToday() {
-  const r = await request.get<
+export function fetchUpdatedMediaToday() {
+  return request.get<
     ListResponse<{
       id: string;
       title: string;
@@ -211,6 +214,8 @@ export async function fetchUpdatedMediaToday() {
       }[];
     }>
   >("/api/collection/list", { type: CollectionTypes.DailyUpdate });
+}
+export function fetchUpdatedMediaTodayProcess(r: TmpRequestResp<typeof fetchUpdatedMediaToday>) {
   if (r.error) {
     return Result.Err(r.error.message);
   }

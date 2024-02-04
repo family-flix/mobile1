@@ -4,25 +4,38 @@
 import React, { useState } from "react";
 import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
+import { request } from "@/store/request";
+import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
+import { Show } from "@/components/ui/show";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
-import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/media/services";
+import { PlayHistoryItem, deleteHistory, fetchPlayingHistories } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store";
 import { MediaTypes } from "@/constants";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { Show } from "@/components/ui/show";
 
 export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
   const { app, router, view, menu } = props;
 
-  const historyList = useInstance(() => new ListCore(new RequestCore(fetchPlayingHistories)));
+  const historyList = useInstance(
+    () =>
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchPlayingHistories,
+          client: request,
+        })
+      )
+  );
   const deletingRequest = useInstance(
     () =>
-      new RequestCore(delete_history, {
+      new RequestCoreV2({
+        client: request,
+        fetch: deleteHistory,
         onLoading(loading) {
           deletingConfirmDialog.okBtn.setLoading(loading);
         },

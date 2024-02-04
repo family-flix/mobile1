@@ -6,6 +6,16 @@ import React, { useState } from "react";
 import { ArrowUp, Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, User, Users } from "lucide-react";
 import { debounce } from "lodash/fp";
 
+import {
+  homeHistoriesPage,
+  homeIndexPage,
+  homeLayout,
+  messagesPage,
+  homeMinePage,
+  homeMoviePage,
+  homeSeasonPage,
+} from "@/store/views";
+import { messageList } from "@/store/index";
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore } from "@/domains/ui";
@@ -15,17 +25,6 @@ import { RouteViewCore } from "@/domains/route_view";
 import { BottomMenuCore } from "@/domains/bottom_menu";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import {
-  homeHistoriesPage,
-  homeIndexPage,
-  homeLayout,
-  messagesPage,
-  homeMinePage,
-  homeMoviePage,
-  homeSeasonPage,
-  messageList,
-  app,
-} from "@/store";
 import { cn } from "@/utils";
 
 const BottomMenu = (props: { store: BottomMenuCore }) => {

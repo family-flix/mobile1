@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 
+import { request } from "@/store/request";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
-import { request } from "@/utils/request";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
 import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts } from "@/constants";
 

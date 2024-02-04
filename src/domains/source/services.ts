@@ -1,5 +1,5 @@
+import { request } from "@/store/request";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { request } from "@/utils/request";
 import { Result, Unpacked, UnpackedResult } from "@/types";
 
 import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";

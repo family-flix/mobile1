@@ -2,6 +2,7 @@
  * @file 使用外部播放器打开指定视频文件
  */
 import { useState } from "react";
+import { stringify } from "qs";
 
 import { TVCore } from "@/domains/tv";
 import { useInitialize, useInstance } from "@/hooks";
@@ -9,9 +10,7 @@ import { ViewComponent } from "@/types";
 import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { ScrollView } from "@/components/ui";
 import { ScrollViewCore } from "@/domains/ui";
-import { homeIndexPage, rootView } from "@/store";
 import { NavigatorCore } from "@/domains/navigator";
-import { stringify } from "qs";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 
 const players: { icon: string; name: string; scheme: string }[] = [

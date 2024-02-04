@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Bird, Star } from "lucide-react";
 
-import { fetchMediaList } from "@/services/media";
+import { request } from "@/store/request";
+import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCore } from "@/domains/list";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store";
 import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
 import { cn } from "@/utils";
@@ -18,12 +21,19 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
 
   const list = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchMediaList), {
-        pageSize: 20,
-        search: {
-          type: MediaTypes.Season,
-        },
-      })
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchMediaList,
+          process: fetchMediaListProcess,
+          client: request,
+        }),
+        {
+          pageSize: 20,
+          search: {
+            type: MediaTypes.Season,
+          },
+        }
+      )
   );
   const scroll = new ScrollViewCore({
     _name: "inner",
@@ -57,10 +67,10 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
       <ScrollView className="bg-w-bg-3" store={scroll}>
         <ListView
           store={list}
-          className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 space-y-3 pt-4"
+          className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
           skeleton={
             <>
-              <div className="flex px-3 cursor-pointer">
+              <div className="flex px-3 pb-3 cursor-pointer">
                 <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -70,7 +80,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                   <Skeleton className="mt-2 w-32 h-[22px]"></Skeleton>
                 </div>
               </div>
-              <div className="flex px-2 cursor-pointer">
+              <div className="flex px-3 pb-3 cursor-pointer">
                 <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
@@ -96,7 +106,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
               return (
                 <div
                   key={id}
-                  className="flex px-3 cursor-pointer"
+                  className="flex px-3 pb-3 cursor-pointer"
                   onClick={() => {
                     if (type === MediaTypes.Season) {
                       seasonPlayingPageV2.query = {

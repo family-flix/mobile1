@@ -1,12 +1,11 @@
-import { request } from "@/utils/request";
+import { request } from "@/domains/request_v2/utils";
 
 /**
  * 用户登录
  * @param body
  * @returns
  */
-export async function login(body: { email: string; password: string }) {
-  console.log("[]login params", body);
+export function login(body: { email: string; password: string }) {
   return request.post<{
     id: string;
     username: string;
@@ -19,28 +18,27 @@ export async function login(body: { email: string; password: string }) {
   }>("/api/user/login", body);
 }
 
-export async function logout(body: { email: string; password: string }) {
-  console.log("[]login params", body);
-  return await request.post("/api/user/logout", body);
+export function logout(body: { email: string; password: string }) {
+  return request.post("/api/user/logout", body);
 }
 
-export async function get_token() {
-  return await request.post("/api/token", {});
+export function get_token() {
+  return request.post("/api/token", {});
 }
 
 /**
  * 获取当前登录用户信息详情
  * @returns
  */
-export async function fetch_user_profile() {
+export function fetch_user_profile() {
   return request.get("/api/user/profile");
 }
 
 /**
  * 成员通过授权链接访问首页时，验证该链接是否有效
  */
-export async function validate_member_token(token: string) {
+export function validate_member_token(v: { token: string }) {
   return request.post<{ token: string; id: string }>("/api/validate", {
-    token,
+    token: v.token,
   });
 }

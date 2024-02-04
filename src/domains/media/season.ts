@@ -3,8 +3,10 @@
  */
 import { debounce } from "lodash/fp";
 
+import { request } from "@/store/request";
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaSourceFileCore } from "@/domains/source";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MediaTypes } from "@/constants";
 import { Result } from "@/types";
@@ -18,6 +20,8 @@ import {
   fetchSourceInGroup,
   CurMediaSource,
   fetchMediaSeries,
+  fetchMediaPlayingEpisodeProcess,
+  fetchSourceInGroupProcess,
 } from "./services";
 
 enum Events {
@@ -116,7 +120,12 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少季 id 参数"] });
       return Result.Err(msg);
     }
-    const res = await fetchMediaPlayingEpisode({ media_id: season_id, type: MediaTypes.Season });
+    const fetch = new RequestCoreV2({
+      fetch: fetchMediaPlayingEpisode,
+      process: fetchMediaPlayingEpisodeProcess,
+      client: request,
+    });
+    const res = await fetch.run({ media_id: season_id, type: MediaTypes.Season });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
@@ -150,7 +159,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   /** 播放该电视剧下指定影片 */
   async playEpisode(episode: MediaSource, extra: { currentTime: number }) {
     const { currentTime = 0 } = extra;
-    console.log("[DOMAIN]tv/index - playEpisode", episode, this.curSource);
+    console.log("[DOMAIN]media/season - playEpisode", episode, this.curSource);
     const { id, files } = episode;
     if (this.curSource && id === this.curSource.id) {
       this.tip({
@@ -228,7 +237,12 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (!nextGroup) {
       return Result.Err("已经是最后一集了2");
     }
-    const r = await fetchSourceInGroup({ media_id: nextGroup.media_id, start: nextGroup.start, end: nextGroup.end });
+    const fetch = new RequestCoreV2({
+      fetch: fetchSourceInGroup,
+      process: fetchSourceInGroupProcess,
+      client: request,
+    });
+    const r = await fetch.run({ media_id: nextGroup.media_id, start: nextGroup.start, end: nextGroup.end });
     if (r.error) {
       return Result.Err(r.error);
     }
@@ -243,6 +257,8 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     // nextEpisode.cur = true;
     return Result.Ok(nextEpisode);
   }
+  /** 为播放下一集进行准备 */
+  prepareNextEpisode() {}
   /** 播放下一集 */
   async playNextEpisode() {
     if (this._pending) {
@@ -278,7 +294,12 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(msg);
     }
-    const r = await fetchSourceInGroup({ media_id: this.profile.id, start: matchedGroup.start, end: matchedGroup.end });
+    const fetch = new RequestCoreV2({
+      fetch: fetchSourceInGroup,
+      process: fetchSourceInGroupProcess,
+      client: request,
+    });
+    const r = await fetch.run({ media_id: this.profile.id, start: matchedGroup.start, end: matchedGroup.end });
     if (r.error) {
       return Result.Err(r.error);
     }

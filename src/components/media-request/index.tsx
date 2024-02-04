@@ -1,8 +1,10 @@
 import { ReportTypes } from "@/constants";
 import { BaseDomain } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { DialogCore, InputCore } from "@/domains/ui";
 import { reportSomething } from "@/services";
+import { request } from "@/store/request";
 
 enum Events {}
 type TheTypesOfEvents = {};
@@ -16,7 +18,9 @@ export class MediaRequestCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: MediaRequestProps) {
     super(props);
 
-    const request = new RequestCore(reportSomething, {
+    const fetch = new RequestCoreV2({
+      client: request,
+      fetch: reportSomething,
       onLoading(loading) {
         dialog.okBtn.setLoading(loading);
       },
@@ -45,7 +49,7 @@ export class MediaRequestCore extends BaseDomain<TheTypesOfEvents> {
           });
           return;
         }
-        request.run({
+        fetch.run({
           type: ReportTypes.Want,
           data: input.value,
         });

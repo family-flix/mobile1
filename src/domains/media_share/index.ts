@@ -1,8 +1,10 @@
+import { request } from "@/store/request";
 import { shareMediaToInvitee } from "@/services";
+import { InviteeSelectCore } from "@/components/member-select/store";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
 import { Application } from "@/domains/app";
-import { InviteeSelectCore } from "@/components/member-select/store";
+import { RequestCoreV2 } from "@/domains/request_v2";
 
 enum Events {
   StateChange,
@@ -34,7 +36,9 @@ export class MediaShareCore extends BaseDomain<TheTypesOfEvents> {
       });
     },
   });
-  $request = new RequestCore(shareMediaToInvitee, {
+  $request = new RequestCoreV2({
+    client: request,
+    fetch: shareMediaToInvitee,
     onLoading: (loading) => {
       this.$inviteeSelect.submitBtn.setLoading(loading);
     },

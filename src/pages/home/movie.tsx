@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
+import { moviePlayingPage } from "@/store/views";
 import {
   ScrollView,
   Sheet,
@@ -22,7 +23,6 @@ import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants";
-import { moviePlayingPage } from "@/store";
 import { ViewComponentWithMenu } from "@/types";
 
 export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {

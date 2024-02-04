@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 
+import { UnpackedRequestPayload, request } from "@/domains/request_v2/utils";
 import {
   MediaOriginCountry,
   MediaTypes,
@@ -9,14 +10,13 @@ import {
 } from "@/constants";
 import { FetchParams } from "@/domains/list/typing";
 import { ListResponseWithCursor, RequestedResource, Result } from "@/types";
-import { request } from "@/utils/request";
 
 /**
  * 获取电影列表
  */
-export async function fetchMediaList(params: FetchParams & { type: MediaTypes; name: string }) {
+export function fetchMediaList(params: FetchParams & { type: MediaTypes; name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.post<
+  return request.post<
     ListResponseWithCursor<{
       id: string;
       type: MediaTypes;
@@ -44,6 +44,8 @@ export async function fetchMediaList(params: FetchParams & { type: MediaTypes; n
     page,
     page_size: pageSize,
   });
+}
+export function fetchMediaListProcess(resp: Result<UnpackedRequestPayload<RequestedResource<typeof fetchMediaList>>>) {
   if (resp.error) {
     return Result.Err(resp.error);
   }
@@ -114,7 +116,7 @@ export async function fetchMediaList(params: FetchParams & { type: MediaTypes; n
     }),
   });
 }
-export type MediaItem = RequestedResource<typeof fetchMediaList>["list"][0];
+export type MediaItem = RequestedResource<typeof fetchMediaListProcess>["list"][0];
 
 export function fetchMemberToken(values: { media_id: string; target_member_id: string }) {
   const { media_id, target_member_id } = values;

@@ -2,8 +2,13 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { SeasonItem, fetchSeasonList } from "@/domains/media/services";
+import { SeasonItem, fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { HttpClientCore } from "@/domains/http_client";
+import { UnpackedResult } from "@/types";
+import { TmpRequestResp } from "@/domains/request_v2/utils";
 
 enum Events {
   StateChange,
@@ -18,6 +23,7 @@ type TheTypesOfEvents = {
   [Events.Clear]: void;
 };
 type TVSeasonSelectProps = {
+  client: HttpClientCore;
   onSelect?: (v: SeasonItem) => void;
 } & DialogProps;
 
@@ -31,30 +37,31 @@ export class TVSeasonSelectCore extends BaseDomain<TheTypesOfEvents> {
       this.searchBtn.click();
     },
   });
+  list: ListCoreV2<
+    RequestCoreV2<{ fetch: typeof fetchSeasonList; process: typeof fetchSeasonListProcess; client: HttpClientCore }>,
+    SeasonItem
+  >;
   /** 搜索按钮 */
   searchBtn = new ButtonCore({
     onClick: () => {
       this.list.search({ name: this.nameInput.value });
     },
   });
+  client: HttpClientCore;
   dialog: DialogCore;
   /** 弹窗确定按钮 */
   okBtn: ButtonCore;
   /** 弹窗取消按钮 */
   cancelBtn: ButtonCore;
   /** 季列表 */
-  list = new ListCore(new RequestCore(fetchSeasonList), {
-    onLoadingChange: (loading) => {
-      this.searchBtn.setLoading(loading);
-    },
-  });
-  response = this.list.response;
+  response: (typeof this.list)["response"];
   value = this.curSeason.value;
 
   constructor(props: Partial<{ _name: string }> & TVSeasonSelectProps) {
     super(props);
 
-    const { onSelect, onOk, onCancel } = props;
+    const { client, onSelect, onOk, onCancel } = props;
+    this.client = client;
     this.dialog = new DialogCore({
       title: "选择电视剧",
       onOk,
@@ -62,7 +69,19 @@ export class TVSeasonSelectCore extends BaseDomain<TheTypesOfEvents> {
     });
     this.okBtn = this.dialog.okBtn;
     this.cancelBtn = this.dialog.cancelBtn;
-
+    this.list = new ListCoreV2(
+      new RequestCoreV2({
+        client: this.client,
+        fetch: fetchSeasonList,
+        process: fetchSeasonListProcess,
+      }),
+      {
+        onLoadingChange: (loading) => {
+          this.searchBtn.setLoading(loading);
+        },
+      }
+    );
+    this.response = this.list.response;
     this.list.onStateChange((nextState) => {
       this.response = nextState;
     });

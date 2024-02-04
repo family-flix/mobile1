@@ -1,12 +1,15 @@
 /**
  * @file 成员选择
  */
+import { request } from "@/store/request";
+import { InviteeItem, fetchInviteeList } from "@/services";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCore } from "@/domains/request";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
-import { InviteeItem, fetchInviteeList } from "@/services";
 
 enum Events {
   StateChange,
@@ -47,11 +50,17 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
   // /** 弹窗取消按钮 */
   // cancelBtn: ButtonCore;
   /** 季列表 */
-  $list = new ListCore(new RequestCore(fetchInviteeList), {
-    onLoadingChange: (loading) => {
-      this.searchBtn.setLoading(loading);
-    },
-  });
+  $list = new ListCoreV2(
+    new RequestCoreV2({
+      client: request,
+      fetch: fetchInviteeList,
+    }),
+    {
+      onLoadingChange: (loading) => {
+        this.searchBtn.setLoading(loading);
+      },
+    }
+  );
   get response() {
     return this.$list.response;
   }

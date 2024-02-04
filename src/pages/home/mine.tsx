@@ -16,17 +16,20 @@ import {
   Tv,
 } from "lucide-react";
 
+import { request } from "@/store/request";
+import { infoRequest, messageList } from "@/store/index";
+import { messagesPage, inviteeListPage } from "@/store/views";
 import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { RequestCore } from "@/domains/request";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes, __VERSION__ } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
-import { messagesPage, infoRequest, inviteeListPage, messageList } from "@/store";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
@@ -77,7 +80,9 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   );
   const reportRequest = useInstance(
     () =>
-      new RequestCore(reportSomething, {
+      new RequestCoreV2({
+        client: request,
+        fetch: reportSomething,
         onLoading(loading) {
           if (reportConfirmDialog.open) {
             reportConfirmDialog.okBtn.setLoading(loading);

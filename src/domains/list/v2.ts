@@ -2,13 +2,13 @@
  * @file 分页领域
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { RequestCore } from "@/domains/request";
-import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestPayload, UnpackedRequestPayload } from "@/domains/request_v2/utils";
+import { RequestedResource, Result, UnpackedResult } from "@/types";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
-import { omit } from "./utils";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
-import { RequestCoreV2 } from "../request_v2";
+import { omit } from "./utils";
 
 /**
  * 只处理
@@ -120,9 +120,9 @@ interface ListState<T> extends Response<T> {}
 /**
  * 分页类
  */
-export class ListCore<
-  S extends (...args: any[]) => Promise<Result<any>>,
-  T extends RequestedResource<S>["list"][number]
+export class ListCoreV2<
+  S extends RequestCoreV2<any>,
+  T extends UnpackedResult<S["response"]>["list"][number]
 > extends BaseDomain<TheTypesOfEvents<T>> {
   debug: boolean = false;
 
@@ -132,7 +132,7 @@ export class ListCore<
   static commonProcessor = RESPONSE_PROCESSOR;
 
   /** 原始请求方法 */
-  private originalFetch: RequestCore<S>;
+  private originalFetch: S;
   // private originalFetch: (...args: unknown[]) => Promise<OriginalResponse>;
   /** 支持请求前对参数进行处理（formToBody） */
   private beforeRequest: ParamsProcessor = (currentParams, prevParams) => {
@@ -149,10 +149,10 @@ export class ListCore<
   response: Response<T> = { ...DEFAULT_RESPONSE };
   rowKey: string;
 
-  constructor(fetch: RequestCore<S>, options: ListProps<T> = {}) {
+  constructor(fetch: S, options: ListProps<T> = {}) {
     super();
 
-    if (!(fetch instanceof RequestCore)) {
+    if (!(fetch instanceof RequestCoreV2)) {
       throw new Error("fetch must be a instance of RequestCore");
     }
 
@@ -173,7 +173,7 @@ export class ListCore<
     this.processor = (originalResponse): Response<T> => {
       const nextResponse = {
         ...this.response,
-        ...ListCore.commonProcessor<T>(originalResponse),
+        ...ListCoreV2.commonProcessor<T>(originalResponse),
       } as Response<T>;
       if (processor) {
         const r = processor<T>(nextResponse, originalResponse);
@@ -230,7 +230,7 @@ export class ListCore<
     }
     this.params = { ...this.initialParams };
     this.response = {
-      ...ListCore.defaultResponse(),
+      ...ListCoreV2.defaultResponse(),
       ...this.extraResponse,
     };
     const { page: p, pageSize: ps, ...restParams } = this.params;
@@ -289,7 +289,7 @@ export class ListCore<
     if (processedParams === undefined) {
       processedParams = mergedParams;
     }
-    const processedArgs = [processedParams, ...restArgs] as Parameters<S>;
+    const processedArgs = [processedParams, ...restArgs] as Parameters<S["service"]>;
     const res = await this.originalFetch.run(...processedArgs);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);

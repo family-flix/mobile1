@@ -4,25 +4,44 @@
 import React, { useState } from "react";
 import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
+import { request } from "@/store/request";
+import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
+import { Show } from "@/components/ui/show";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
-import { PlayHistoryItem, delete_history, fetchPlayingHistories } from "@/domains/media/services";
+import {
+  PlayHistoryItem,
+  deleteHistory,
+  fetchPlayingHistories,
+  fetchPlayingHistoriesProcess,
+} from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store";
 import { MediaTypes } from "@/constants";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { Show } from "@/components/ui/show";
 
 export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
   const { app, router, view, menu } = props;
 
-  const historyList = useInstance(() => new ListCore(new RequestCore(fetchPlayingHistories)));
+  const historyList = useInstance(
+    () =>
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchPlayingHistories,
+          process: fetchPlayingHistoriesProcess,
+          client: request,
+        })
+      )
+  );
   const deletingRequest = useInstance(
     () =>
-      new RequestCore(delete_history, {
+      new RequestCoreV2({
+        client: request,
+        fetch: deleteHistory,
         onLoading(loading) {
           deletingConfirmDialog.okBtn.setLoading(loading);
         },
@@ -154,14 +173,22 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = (props) => {
           className="grid grid-cols-2 gap-2 px-3 md:grid-cols-4 xl:grid-cols-6 pt-4"
           skeleton={
             <>
-              <div className="flex py-2 cursor-pointer">
-                <Skeleton className="relative w-[128px] h-[198px] mr-4"></Skeleton>
-                <div className="relative flex-1 mt-2">
-                  <Skeleton className="w-full h-[32px]"></Skeleton>
-                  <div className="flex items-center mt-2 text-xl">
-                    <Skeleton className="w-24 h-[28px]"></Skeleton>
-                  </div>
-                  <Skeleton className="mt-2 w-36 h-[24px]"></Skeleton>
+              <div className="relative w-full rounded-lg">
+                <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
+                  <Skeleton className="w-full h-full object-cover" />
+                </div>
+                <div className="py-2 pb-4">
+                  <Skeleton className="w-[68%] h-[24px]"></Skeleton>
+                  <Skeleton className="mt-2 w-[20%] h-[18px]"></Skeleton>
+                </div>
+              </div>
+              <div className="relative w-full rounded-lg">
+                <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
+                  <Skeleton className="w-full h-full object-cover" />
+                </div>
+                <div className="py-2 pb-4">
+                  <Skeleton className="w-[38%] h-[24px]"></Skeleton>
+                  <Skeleton className="mt-2 w-[72%] h-[18px]"></Skeleton>
                 </div>
               </div>
             </>

@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Film, Pen, Plus, QrCode, Search, Smartphone, Tv2 } from "lucide-react";
 
+import { homeIndexPage, mediaSharePage } from "@/store/views";
 import { fetchInviteeList, inviteMember } from "@/services";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
 import { Show } from "@/components/ui/show";
@@ -12,10 +13,12 @@ import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { homeIndexPage, mediaSharePage } from "@/store";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { request } from "@/store/request";
 
 enum Events {
   StateChange,
@@ -71,13 +74,21 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
 
   const helper = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchInviteeList), {
-        onLoadingChange(loading) {
-          searchInput.setLoading(!helper.response.initial && loading);
-        },
-      })
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchInviteeList,
+          client: request,
+        }),
+        {
+          onLoadingChange(loading) {
+            searchInput.setLoading(!helper.response.initial && loading);
+          },
+        }
+      )
   );
-  const inviteMemberRequest = new RequestCore(inviteMember, {
+  const inviteMemberRequest = new RequestCoreV2({
+    client: request,
+    fetch: inviteMember,
     onLoading(loading) {
       inviteDialog.okBtn.setLoading(loading);
     },

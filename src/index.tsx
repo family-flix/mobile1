@@ -5,7 +5,9 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 // store 必须第一个
-import { app, rootView, homeIndexPage, pages, messageList } from "./store";
+import { app } from "./store/app";
+import { messageList } from "./store";
+import { rootView, homeIndexPage, pages } from "./store/views";
 import { ToastCore } from "./domains/ui/toast";
 import { connect } from "./domains/app/connect.web";
 import { NavigatorCore } from "./domains/navigator";

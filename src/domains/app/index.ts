@@ -4,9 +4,8 @@ import { UserCore } from "@/domains/user";
 import { BaseDomain } from "@/domains/base";
 import { RouteViewCore } from "@/domains/route_view";
 import { NavigatorCore } from "@/domains/navigator";
+import { StorageCore } from "@/domains/storage";
 import { JSONObject, Result } from "@/types";
-
-import { LocalCache } from "./cache";
 
 export enum OrientationTypes {
   Horizontal = "horizontal",
@@ -92,13 +91,20 @@ type ApplicationState = {
   theme: ThemeTypes;
   deviceSize: DeviceSizeTypes;
 };
+type ApplicationProps = {
+  user: UserCore;
+  router: NavigatorCore;
+  cache: StorageCore<any>;
+  beforeReady?: () => Promise<Result<null>>;
+  onReady?: () => void;
+};
 type DeviceSizeTypes = keyof typeof mediaSizes;
 type ThemeTypes = "dark" | "light" | "system";
 
 export class Application extends BaseDomain<TheTypesOfEvents> {
   user: UserCore;
   router: NavigatorCore;
-  cache: LocalCache;
+  cache: StorageCore<any>;
   lifetimes: Partial<{
     beforeReady: () => Promise<Result<null>>;
     onReady: () => void;
@@ -140,16 +146,10 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
 
   static Events = Events;
 
-  constructor(
-    options: {
-      user: UserCore;
-      router: NavigatorCore;
-      cache: LocalCache;
-    } & Application["lifetimes"]
-  ) {
+  constructor(props: ApplicationProps) {
     super();
 
-    const { user, router, cache, beforeReady, onReady } = options;
+    const { user, router, cache, beforeReady, onReady } = props;
     this.lifetimes = {
       beforeReady,
       onReady,

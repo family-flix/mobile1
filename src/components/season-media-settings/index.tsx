@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
 
+import { request } from "@/store/request";
+import { seasonPlayingPageV2 } from "@/store/views";
 import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
 import { Show } from "@/packages/ui/show";
 import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
@@ -15,10 +17,10 @@ import { useInitialize, useInstance } from "@/hooks";
 import { cn, sleep } from "@/utils";
 import { RequestCore } from "@/domains/request";
 import { reportSomething, shareMediaToInvitee } from "@/services";
-import { seasonPlayingPageV2 } from "@/store";
 import { fetchMemberToken } from "@/services/media";
 import { ReportTypes, SeasonReportList } from "@/constants";
 import { RefCore } from "@/domains/cur";
+import { RequestCoreV2 } from "@/domains/request_v2";
 
 enum MediaSettingsMenuKey {
   Resolution = 1,
@@ -60,7 +62,9 @@ export const SeasonMediaSettings = (props: { store: SeasonMediaCore; app: Applic
 
   const memberTokenRequest = useInstance(
     () =>
-      new RequestCore(fetchMemberToken, {
+      new RequestCoreV2({
+        client: request,
+        fetch: fetchMemberToken,
         onLoading(loading) {
           inviteeSelect.submitBtn.setLoading(loading);
         },
@@ -87,7 +91,9 @@ ${url}`;
   );
   const reportRequest = useInstance(
     () =>
-      new RequestCore(reportSomething, {
+      new RequestCoreV2({
+        client: request,
+        fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
         },
@@ -196,7 +202,7 @@ ${url}`;
 
   const showMenuContent = (index: MediaSettingsMenuKey) => {
     setMenuIndex(index);
-    wrap.setStyles(`transform: translate(-375px);`);
+    wrap.setStyles(`transform: translate(-100%);`);
   };
   const returnMainContent = () => {
     wrap.setStyles(`transform: translate(0);`);
@@ -207,7 +213,6 @@ ${url}`;
       setState(v);
     });
     store.onSourceFileChange((v) => {
-      console.log(v);
       setCurSource(v);
     });
     store.$source.onSubtitleChange((v) => {

@@ -1,25 +1,35 @@
 import { useState } from "react";
-
-import { fetchCollectionList } from "@/services";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { cn } from "@/utils";
 import { Bird } from "lucide-react";
-import { MediaTypes } from "@/constants";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store";
+
+import { request } from "@/store/request";
+import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
+import { fetchCollectionList, fetchCollectionListProcess } from "@/services";
 import { LazyImage, ListView, Skeleton } from "@/components/ui";
 import { ImageInListCore } from "@/domains/ui";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { useInitialize, useInstance } from "@/hooks";
+import { ViewComponent } from "@/types";
+import { MediaTypes } from "@/constants";
+import { cn } from "@/utils";
 
 export const HomeRecommendedTabContent: ViewComponent = (props) => {
   const { app } = props;
 
   const collectionList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchCollectionList), {
-        pageSize: 10,
-      })
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchCollectionList,
+          process: fetchCollectionListProcess,
+          client: request,
+        }),
+        {
+          pageSize: 10,
+        }
+      )
   );
   const poster = useInstance(() => new ImageInListCore());
 
@@ -84,7 +94,7 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                   </div>
                   <div
                     className={cn(
-                      "flex mt-2 py-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
+                      "flex py-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
                       app.env.android ? "scroll--fix" : ""
                     )}
                   >
@@ -125,27 +135,29 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                               });
                             }}
                           >
-                            <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
-                              <LazyImage
-                                className="w-full h-full object-cover"
-                                store={poster.bind(poster_path)}
-                                alt={name}
-                              />
-                              {episode_count_text && (
-                                <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
-                                  <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
-                                  <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
-                                    {episode_count_text}
+                            <div className="w-[112px]">
+                              <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
+                                <LazyImage
+                                  className="w-full h-full object-cover"
+                                  store={poster.bind(poster_path)}
+                                  alt={name}
+                                />
+                                {episode_count_text && (
+                                  <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                                    <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                                    <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                                      {episode_count_text}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                            <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                              <div className="flex items-center overflow-hidden text-ellipsis">
-                                <h2 className="break-all truncate">{name}</h2>
+                                )}
                               </div>
-                              <div className="flex items-center">
-                                <div className="text-sm text-w-fg-1">{air_date}</div>
+                              <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                                <div className="flex items-center overflow-hidden text-ellipsis">
+                                  <h2 className="break-all truncate">{name}</h2>
+                                </div>
+                                <div className="flex items-center">
+                                  <div className="text-sm text-w-fg-1">{air_date}</div>
+                                </div>
                               </div>
                             </div>
                           </div>

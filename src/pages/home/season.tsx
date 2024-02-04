@@ -4,6 +4,8 @@
 import React, { useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
+import { request } from "@/store/request";
+import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import {
   Skeleton,
   ListView,
@@ -17,28 +19,36 @@ import {
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { fetchSeasonList } from "@/domains/media/services";
+import { fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 import { ViewComponentWithMenu } from "@/types";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { ListCoreV2 } from "@/domains/list/v2";
 
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, router, view, menu } = props;
 
   const seasonList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchSeasonList), {
-        pageSize: 6,
-        beforeSearch() {
-          searchInput.setLoading(true);
-        },
-        afterSearch() {
-          searchInput.setLoading(false);
-        },
-      })
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchSeasonList,
+          process: fetchSeasonListProcess,
+          client: request,
+        }),
+        {
+          pageSize: 6,
+          beforeSearch() {
+            searchInput.setLoading(true);
+          },
+          afterSearch() {
+            searchInput.setLoading(false);
+          },
+        }
+      )
   );
   const scrollView = useInstance(
     () =>

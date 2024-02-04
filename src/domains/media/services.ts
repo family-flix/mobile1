@@ -1,19 +1,19 @@
 import dayjs from "dayjs";
 
+import { request, TmpRequestResp } from "@/domains/request_v2/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
 import { ListResponse, ListResponseWithCursor, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
-import { request } from "@/utils/request";
 import { MediaTypes, MediaOriginCountry, SeasonGenresTexts, SeasonMediaOriginCountryTexts } from "@/constants";
 import { episode_to_chinese_num, minute_to_hour2, relative_time_from_now } from "@/utils";
 
 /**
  * 获取季列表
  */
-export async function fetchSeasonList(params: FetchParams & { name: string }) {
+export function fetchSeasonList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.post<
+  return request.post<
     ListResponse<{
       id: string;
       type: MediaTypes;
@@ -40,12 +40,14 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
+}
+export function fetchSeasonListProcess(r: TmpRequestResp<typeof fetchSeasonList>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
   return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((season) => {
+    ...r.data,
+    list: r.data.list.map((season) => {
       const {
         id,
         type,
@@ -100,7 +102,7 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
     }),
   });
 }
-export type SeasonItem = RequestedResource<typeof fetchSeasonList>["list"][0];
+export type SeasonItem = UnpackedResult<TmpRequestResp<typeof fetchSeasonListProcess>>["list"][0];
 
 type MediaSourceProfileRes = {
   id: string;
@@ -162,12 +164,14 @@ type SeasonAndCurEpisodeResp = {
  * 获取电视剧及当前播放的剧集详情
  * @param body
  */
-export async function fetchMediaPlayingEpisode(body: { media_id: string; type: MediaTypes }) {
+export function fetchMediaPlayingEpisode(body: { media_id: string; type: MediaTypes }) {
   // console.log("[]fetch_tv_profile params", params);
-  const r = await request.post<SeasonAndCurEpisodeResp>(`/api/v2/wechat/media/playing`, {
+  return request.post<SeasonAndCurEpisodeResp>(`/api/v2/wechat/media/playing`, {
     media_id: body.media_id,
     type: body.type,
   });
+}
+export function fetchMediaPlayingEpisodeProcess(r: TmpRequestResp<typeof fetchMediaPlayingEpisode>) {
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -192,7 +196,7 @@ export async function fetchMediaPlayingEpisode(body: { media_id: string; type: M
       return {
         text: start === end ? start : `${start}-${end}`,
         cur,
-        media_id: body.media_id,
+        media_id: id,
         start,
         end,
         list: cur ? episodes : [],
@@ -278,7 +282,7 @@ function normalizeEpisode(episode: SeasonAndCurEpisodeResp["sources"][number]) {
     // currentTime: current_time ?? null,
     // cur,
     order,
-    airDae: air_date,
+    // airDate: air_date,
     runtime: (() => {
       if (!runtime) {
         return null;
@@ -312,24 +316,22 @@ function normalizeCurEpisode(episode: {
   };
 }
 /** 电视剧详情 */
-export type MediaAndCurSource = UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>;
-export type SeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>;
-export type SeasonEpisodeGroup = UnpackedResult<
-  Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>
->["sourceGroups"][number];
+export type MediaAndCurSource = RequestedResource<typeof fetchMediaPlayingEpisodeProcess>;
+export type SeasonProfile = RequestedResource<typeof fetchMediaPlayingEpisodeProcess>;
+export type SeasonEpisodeGroup = RequestedResource<typeof fetchMediaPlayingEpisodeProcess>["sourceGroups"][number];
 /** 剧集 */
 export type MediaSource = SeasonEpisodeGroup["list"][number];
-export type CurMediaSource = NonNullable<
-  UnpackedResult<Unpacked<ReturnType<typeof fetchMediaPlayingEpisode>>>["curSource"]
->;
-export async function fetchSourceInGroup(body: { media_id: string; start: number; end: number }) {
-  const r = await request.post<{
+export type CurMediaSource = NonNullable<RequestedResource<typeof fetchMediaPlayingEpisodeProcess>["curSource"]>;
+export function fetchSourceInGroup(body: { media_id: string; start: number; end: number }) {
+  return request.post<{
     list: SeasonEpisodeResp[];
   }>("/api/v2/wechat/media/episode", {
     media_id: body.media_id,
     start: body.start,
     end: body.end,
   });
+}
+export function fetchSourceInGroupProcess(r: TmpRequestResp<typeof fetchSourceInGroup>) {
   if (r.error) {
     return Result.Err(r.error.message);
   }
@@ -343,8 +345,8 @@ export async function fetchSourceInGroup(body: { media_id: string; start: number
 /**
  * 获取视频源播放信息
  */
-export async function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
-  const res = await request.post<{
+export function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
+  return request.post<{
     id: string;
     /** 缩略图 */
     thumbnail_path: string;
@@ -372,10 +374,12 @@ export async function fetchSourcePlayingInfo(body: { id: string; type: MediaReso
   }>("/api/v2/wechat/source", {
     id: body.id,
   });
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchSourcePlayingInfoProcess(r: TmpRequestResp<typeof fetchSourcePlayingInfo>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { id, url, width, height, thumbnail_path, type, other, subtitles } = res.data;
+  const { id, url, width, height, thumbnail_path, type, other, subtitles } = r.data;
   return Result.Ok({
     id,
     url,
@@ -398,7 +402,7 @@ export async function fetchSourcePlayingInfo(body: { id: string; type: MediaReso
     subtitles,
   });
 }
-export type MediaSourceFile = UnpackedResult<Unpacked<ReturnType<typeof fetchSourcePlayingInfo>>>;
+export type MediaSourceFile = RequestedResource<typeof fetchSourcePlayingInfoProcess>;
 
 /**
  * 更新播放记录
@@ -427,9 +431,9 @@ export async function updatePlayHistory(body: {
  * @param params
  * @returns
  */
-export async function fetchPlayingHistories(params: FetchParams) {
+export function fetchPlayingHistories(params: FetchParams) {
   const { page, pageSize, ...rest } = params;
-  const r = await request.post<
+  return request.post<
     ListResponseWithCursor<{
       id: string;
       type: MediaTypes;
@@ -460,12 +464,13 @@ export async function fetchPlayingHistories(params: FetchParams) {
     page,
     page_size: pageSize,
   });
+}
+export function fetchPlayingHistoriesProcess(r: TmpRequestResp<typeof fetchPlayingHistories>) {
   if (r.error) {
     return r;
   }
   const { list, total, page_size, next_marker } = r.data;
   return Result.Ok({
-    page,
     page_size,
     total,
     next_marker,
@@ -515,9 +520,9 @@ export async function fetchPlayingHistories(params: FetchParams) {
     }),
   });
 }
-export type PlayHistoryItem = RequestedResource<typeof fetchPlayingHistories>["list"][0];
+export type PlayHistoryItem = UnpackedResult<TmpRequestResp<typeof fetchPlayingHistoriesProcess>>["list"][number];
 
-export function delete_history(body: { history_id: string }) {
+export function deleteHistory(body: { history_id: string }) {
   return request.post(`/api/v2/wechat/history/delete`, {
     history_id: body.history_id,
   });

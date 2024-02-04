@@ -4,10 +4,11 @@
 import React, { useState } from "react";
 import { AlertCircle, ArrowDown, Bird, Loader } from "lucide-react";
 
+import { app } from "@/store/app";
 import { ListCore } from "@/domains/list";
+import { ListCoreV2 } from "@/domains/list/v2";
 import { ButtonCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
-import { app } from "@/store";
 import { cn } from "@/utils";
 
 import { Button } from "./button";
@@ -17,7 +18,7 @@ export const ListView = React.memo(
   (
     props: {
       wrapClassName?: string;
-      store: ListCore<any, any>;
+      store: ListCore<any, any> | ListCoreV2<any, any>;
       skeleton?: React.ReactElement;
       extraEmpty?: React.ReactElement;
     } & React.HTMLAttributes<HTMLDivElement>

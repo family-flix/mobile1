@@ -15,6 +15,7 @@ import {
   Settings,
 } from "lucide-react";
 
+import { request } from "@/store/request";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
@@ -31,6 +32,7 @@ import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { Application, OrientationTypes } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/types";
@@ -48,7 +50,10 @@ class MoviePlayingPageLogic {
   }>;
   $report: RefCore<string>;
 
-  _createReport = new RequestCore(reportSomething);
+  _createReport = new RequestCoreV2({
+    fetch: reportSomething,
+    client: request,
+  });
 
   constructor(props: { app: Application }) {
     const { app } = props;

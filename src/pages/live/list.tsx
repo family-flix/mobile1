@@ -1,18 +1,29 @@
 import { useState } from "react";
 
+import { request } from "@/store/request";
 import { fetchTVChannelList } from "@/services";
 import { LazyImage, ListView, ScrollView } from "@/components/ui";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
-import { tvChannelPlayingPage } from "@/store";
+import { tvChannelPlayingPage } from "@/store/views";
 import { ViewComponent } from "@/types";
 
 export const TVLiveListPage: ViewComponent = (props) => {
   const { app, view } = props;
 
-  const list = useInstance(() => new ListCore(new RequestCore(fetchTVChannelList)));
+  const list = useInstance(
+    () =>
+      new ListCoreV2(
+        new RequestCoreV2({
+          fetch: fetchTVChannelList,
+          client: request,
+        })
+      )
+  );
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({

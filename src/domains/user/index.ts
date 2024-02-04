@@ -1,7 +1,9 @@
 import { Handler } from "mitt";
 
-import { Result } from "@/types";
 import { BaseDomain } from "@/domains/base";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { HttpClientCore } from "@/domains/http_client";
+import { Result } from "@/types";
 import { sleep } from "@/utils";
 
 import { fetch_user_profile, login, validate_member_token } from "./services";
@@ -42,6 +44,11 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
 
   _name = "UserCore";
   debug = false;
+
+  $client = new HttpClientCore({
+    hostname: window.location.hostname,
+    user: this,
+  });
 
   id: string = "";
   username: string = "Anonymous";
@@ -86,7 +93,11 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少 token"] });
       return Result.Err(msg);
     }
-    const r = await validate_member_token(token);
+    const request = new RequestCoreV2({
+      fetch: validate_member_token,
+      client: this.$client,
+    });
+    const r = await request.run({ token });
     if (r.error) {
       if (r.error.code === 800) {
         this.emit(Events.NeedUpdate);
@@ -110,7 +121,12 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!this.isLogin) {
       return Result.Err("请先登录");
     }
-    const r = await fetch_user_profile();
+
+    const request = new RequestCoreV2({
+      fetch: fetch_user_profile,
+      client: this.$client,
+    });
+    const r = await request.run();
     if (r.error) {
       return r;
     }

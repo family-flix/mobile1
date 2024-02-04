@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import relative_time from "dayjs/plugin/relativeTime";
 import { twMerge } from "tailwind-merge";
+import { JSONObject } from "@/types";
 
 const nzhcn = Nzh.cn;
 dayjs.extend(relative_time);
@@ -82,12 +83,13 @@ export function update<T>(arr: T[], index: number, nextItem: T) {
   return [...arr.slice(0, index), nextItem, ...arr.slice(index + 1)];
 }
 
-export function query_stringify(query: Record<string, string | number | undefined>) {
+export function query_stringify(query: JSONObject) {
   return Object.keys(query)
     .filter((key) => {
       return query[key] !== undefined;
     })
     .map((key) => {
+      // @ts-ignore
       return `${key}=${encodeURIComponent(query[key]!)}`;
     })
     .join("&");

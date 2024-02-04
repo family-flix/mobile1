@@ -4,6 +4,8 @@
 import React, { useState } from "react";
 import { ArrowUp, ChevronLeft, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
+import { request } from "@/store/request";
+import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
 import {
   Skeleton,
   ListView,
@@ -17,22 +19,21 @@ import {
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store";
-import { fetchMediaList } from "@/services/media";
+import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Affix } from "@/components/ui/affix";
 import { AffixCore } from "@/domains/ui/affix";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCoreV2 } from "@/domains/request_v2";
 
 export const MediaSearchPage: ViewComponent = React.memo((props) => {
   const { app, router, view } = props;
 
   const seasonList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchMediaList), {
+      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client: request }), {
         pageSize: 20,
         beforeSearch() {
           searchInput.setLoading(true);
