@@ -4,16 +4,12 @@
  */
 import { ListCore } from "@/domains/list";
 import { Application } from "@/domains/app";
-import { LocalCache } from "@/domains/app/cache";
-import { UserCore } from "@/domains/user";
 import { NavigatorCore } from "@/domains/navigator";
 import { ImageCore } from "@/domains/ui/image";
 import { Result } from "@/types";
-import { MediaResolutionTypes } from "@/domains/source/constants";
-import { StorageCore } from "@/domains/storage";
 
+import { storage } from "./storage";
 import { user } from "./user";
-import { cache } from "./storage";
 
 NavigatorCore.prefix = "/mobile";
 ImageCore.setPrefix(window.location.origin);
@@ -21,29 +17,27 @@ ImageCore.setPrefix(window.location.origin);
 const router = new NavigatorCore();
 export const app = new Application({
   user,
-  router,
-  cache,
   async beforeReady() {
     // const { query } = router;
     await user.validate(router.query);
     if (!user.isLogin) {
-      app.emit(Application.Events.Error, new Error("请先登录"));
+      // app.emit(Application.Events.Error, new Error("请先登录"));
       return Result.Ok(null);
     }
-    app.emit(Application.Events.Ready);
+    // app.emit(Application.Events.Ready);
     return Result.Ok(null);
   },
 });
 
 user.onLogin((profile) => {
-  cache.set("user", profile);
+  storage.set("user", profile);
 });
 user.onLogout(() => {
-  cache.clear("user");
+  storage.clear("user");
   // router.push("/login");
 });
 user.onExpired(() => {
-  cache.clear("user");
+  storage.clear("user");
   app.tip({
     text: ["token 已过期，请重新登录"],
   });

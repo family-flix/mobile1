@@ -4,8 +4,9 @@
 import React, { useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+// import { client } from "@/store/request";
+// import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { ViewComponentWithMenu } from "@/store/types";
 import {
   Skeleton,
   ListView,
@@ -22,14 +23,13 @@ import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, I
 import { fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
-import { ViewComponentWithMenu } from "@/types";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCoreV2 } from "@/domains/list/v2";
+import { useInitialize, useInstance } from "@/hooks";
+import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
-  const { app, router, view, menu } = props;
+  const { app, history, client, storage, view, menu } = props;
 
   const seasonList = useInstance(
     () =>
@@ -37,7 +37,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
         new RequestCoreV2({
           fetch: fetchSeasonList,
           process: fetchSeasonListProcess,
-          client: request,
+          client,
         }),
         {
           pageSize: 6,
@@ -101,9 +101,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       })
   );
   const sourceCheckboxGroup = useInstance(() => {
-    const { language = [] } = app.cache.get("tv_search", {
-      language: [] as string[],
-    });
+    const { language = [] } = storage.get("tv_search");
     return new CheckboxGroupCore({
       values: TVSourceOptions.filter((opt) => {
         return language.includes(opt.value);
@@ -115,7 +113,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
         };
       }),
       onChange(options) {
-        app.cache.merge("tv_search", {
+        storage.merge("tv_search", {
           language: options,
         });
         setHasSearch(!!options.length);
@@ -143,7 +141,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       },
     });
   });
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -157,9 +155,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const [response, setResponse] = useState(seasonList.response);
   const [hasSearch, setHasSearch] = useState(
     (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
+      const { language = [] } = storage.get("tv_search");
       return language.length !== 0;
     })()
   );
@@ -195,9 +191,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       app.tip(msg);
     });
     const search = (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
+      const { language = [] } = storage.get("tv_search");
       if (!language.length) {
         return {};
       }
@@ -276,17 +270,19 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
                     className="flex px-4 py-2 mb-3 bg-w-bg-3 cursor-pointer"
                     onClick={() => {
                       if (type === MediaTypes.Season) {
-                        seasonPlayingPageV2.query = {
-                          id,
-                        };
-                        app.showView(seasonPlayingPageV2);
+                        // seasonPlayingPageV2.query = {
+                        //   id,
+                        // };
+                        // app.showView(seasonPlayingPageV2);
+                        history.push("root.season_playing", { id });
                         return;
                       }
                       if (type === MediaTypes.Movie) {
-                        moviePlayingPageV2.query = {
-                          id,
-                        };
-                        app.showView(moviePlayingPageV2);
+                        // moviePlayingPageV2.query = {
+                        //   id,
+                        // };
+                        // app.showView(moviePlayingPageV2);
+                        history.push("root.movie_playing", { id });
                         return;
                       }
                       app.tip({

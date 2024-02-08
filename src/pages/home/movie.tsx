@@ -4,7 +4,8 @@
 import React, { useEffect, useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
-import { moviePlayingPage } from "@/store/views";
+// import { moviePlayingPage } from "@/store/views";
+import { ViewComponentWithMenu } from "@/store/types";
 import {
   ScrollView,
   Sheet,
@@ -18,19 +19,20 @@ import {
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { fetchMovieList } from "@/domains/movie/services";
+import { fetchMovieList, fetchMovieListProcess } from "@/domains/movie/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants";
-import { ViewComponentWithMenu } from "@/types";
+import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCoreV2 } from "@/domains/request_v2";
 
 export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
-  const { app, router, view, menu } = props;
+  const { app, history, client, storage, view, menu } = props;
 
   const movieList = useInstance(
     () =>
-      new ListCore(new RequestCore(fetchMovieList), {
+      new ListCoreV2(new RequestCoreV2({ fetch: fetchMovieList, process: fetchMovieListProcess, client }), {
         pageSize: 6,
         beforeSearch() {
           searchInput.setLoading(true);
@@ -90,9 +92,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       })
   );
   const sourceCheckboxGroup = useInstance(() => {
-    const { language = [] } = app.cache.get("movie_search", {
-      language: [] as string[],
-    });
+    const { language = [] } = storage.get("movie_search");
     return new CheckboxGroupCore({
       values: MovieOriginCountryOptions.filter((opt) => {
         return language.includes(opt.value);
@@ -104,7 +104,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
         };
       }),
       onChange(options) {
-        app.cache.merge("movie_search", {
+        storage.merge("movie_search", {
           language: options,
         });
         setHasSearch(!!options.length);
@@ -131,7 +131,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       },
     });
   });
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -144,9 +144,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
 
   const [hasSearch, setHasSearch] = useState(
     (() => {
-      const { language = [] } = app.cache.get("movie_search", {
-        language: [] as string[],
-      });
+      const { language = [] } = storage.get("movie_search");
       return language.length !== 0;
     })()
   );
@@ -200,9 +198,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   });
   useEffect(() => {
     const search = (() => {
-      const { language = [] } = app.cache.get("movie_search", {
-        language: [] as string[],
-      });
+      const { language = [] } = storage.get("movie_search");
       if (!language.length) {
         return {};
       }
@@ -280,10 +276,11 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
                     key={id}
                     className="flex px-4 py-2 mb-3 bg-w-bg-2 cursor-pointer"
                     onClick={() => {
-                      moviePlayingPage.params = {
-                        id,
-                      };
-                      app.showView(moviePlayingPage);
+                      // moviePlayingPage.params = {
+                      //   id,
+                      // };
+                      // app.showView(moviePlayingPage);
+                      history.push("root.movie_playing", { id });
                     }}
                   >
                     <div className="relative w-[128px] h-[198px] mr-4">

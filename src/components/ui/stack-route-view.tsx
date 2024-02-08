@@ -1,11 +1,11 @@
 /**
  * @file 不销毁的路由视图
  */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { RouteViewCore } from "@/domains/route_view";
-import { cn } from "@/utils";
 import { useInitialize } from "@/hooks";
+import { cn } from "@/utils";
 
 export function StackRouteView(
   props: {
@@ -15,26 +15,45 @@ export function StackRouteView(
 ) {
   const { store, index } = props;
 
+  const container = useRef<HTMLDivElement>(null);
   const [state, setState] = useState(store.state);
 
   useInitialize(() => {
+    store.onStateChange((nextState) => {
+      console.log("[COMPONENT]ui/stack-route-view - store.onStateChange", nextState.visible, store.title);
+      setState(nextState);
+    });
+    store.onBeforeShow(() => {
+      const $div = container.current;
+      if (!$div) {
+        return;
+      }
+      if (store.animation.show) {
+        $div.classList.add("active");
+      }
+    });
+    store.onBeforeHide(() => {
+      const $div = container.current;
+      if (!$div) {
+        return;
+      }
+      if (store.animation.hide) {
+        $div.classList.add(store.animation.hide);
+      }
+    });
     store.ready();
   });
   useEffect(() => {
-    if (store.isMounted) {
+    if (store.mounted) {
       return;
     }
-    // console.log("[COMPONENT]stack-route-view - useEffect");
-    store.setMounted();
+    // store.setMounted();
     store.showed();
     return () => {
       store.setUnmounted();
+      store.destroy();
     };
   }, []);
-
-  store.onStateChange((nextState) => {
-    setState(nextState);
-  });
 
   const { mounted, visible } = state;
 
@@ -46,11 +65,23 @@ export function StackRouteView(
 
   return (
     <div
-      className={cn(props.className)}
+      className={cn(
+        props.className,
+        // "animate",
+        // "animate-in duration-500",
+        // index !== 0 ? (store.animation.show ? ` ${store.animation.show}` : "") : "",
+        // `data-[state=open]:${store.animation.show}`
+        // visible ? `${store.animation.show}` : `${store.animation.hide}`
+        // store.animation.hide
+        //   ? `data-[state=closed]:animate-out data-[state=closed]:duration-500 data-[state=closed]:${store.animation.hide}`
+        //   : ""
+      )}
       style={{
         zIndex: index,
       }}
       data-state={visible ? "open" : "closed"}
+      data-title={store.title}
+      data-href={store.href}
       // onAnimationEnd={() => {
       //   if (store.state.visible) {
       //     return;

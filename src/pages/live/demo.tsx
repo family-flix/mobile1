@@ -1,23 +1,22 @@
 /**
  * @file 直播
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
+import { ViewComponent } from "@/store/types";
 import { Dialog, ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { OrientationTypes } from "@/domains/app";
-import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { cn } from "@/utils";
 import { LiveCore } from "@/domains/live";
+import { cn } from "@/utils";
 
-export const TVChannelTestPlayingPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {
+  const { app, storage, view } = props;
 
   const settingsRef = useInstance(() => {
     const r = new RefCore<{
@@ -25,11 +24,7 @@ export const TVChannelTestPlayingPage: ViewComponent = (props) => {
       rate: number;
       type: MediaResolutionTypes;
     }>({
-      value: app.cache.get("player_settings", {
-        volume: 0.5,
-        rate: 1,
-        type: MediaResolutionTypes.SD,
-      }),
+      value: storage.get("player_settings"),
     });
     return r;
   });
@@ -105,7 +100,7 @@ export const TVChannelTestPlayingPage: ViewComponent = (props) => {
     });
     if (!hide_menu) {
       scrollView.onPullToBack(() => {
-        app.back();
+        history.back();
       });
     }
     player.onExitFullscreen(() => {
@@ -128,7 +123,7 @@ export const TVChannelTestPlayingPage: ViewComponent = (props) => {
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
@@ -265,7 +260,7 @@ export const TVChannelTestPlayingPage: ViewComponent = (props) => {
       </div>
     </>
   );
-};
+});
 
 function build(url: string) {
   const prefix = "https://proxy.f1x.fun/api/proxy/?u=";

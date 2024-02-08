@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Bird, Star } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+// import { client } from "@/store/request";
+// import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { ViewComponent } from "@/store/types";
 import { fetchCollectionList } from "@/services";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
@@ -13,16 +14,15 @@ import { RequestCore } from "@/domains/request";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
 import { cn } from "@/utils";
 
-export const HomeMovieTabContent: ViewComponent = (props) => {
-  const { app } = props;
+export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, view } = props;
 
   const list = useInstance(
     () =>
-      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client: request }), {
+      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
         pageSize: 20,
         search: {
           type: MediaTypes.Movie,
@@ -34,7 +34,7 @@ export const HomeMovieTabContent: ViewComponent = (props) => {
       list.loadMore();
     },
   });
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -102,17 +102,19 @@ export const HomeMovieTabContent: ViewComponent = (props) => {
                   className="flex px-3 pb-3 cursor-pointer"
                   onClick={() => {
                     if (type === MediaTypes.Season) {
-                      seasonPlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(seasonPlayingPageV2);
+                      // seasonPlayingPageV2.query = {
+                      //   id,
+                      // };
+                      // app.showView(seasonPlayingPageV2);
+                      history.push("root.season_playing", { id });
                       return;
                     }
                     if (type === MediaTypes.Movie) {
-                      moviePlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(moviePlayingPageV2);
+                      // moviePlayingPageV2.query = {
+                      //   id,
+                      // };
+                      // app.showView(moviePlayingPageV2);
+                      history.push("root.movie_playing", { id });
                       return;
                     }
                     app.tip({
@@ -172,4 +174,4 @@ export const HomeMovieTabContent: ViewComponent = (props) => {
       </ScrollView>
     </>
   );
-};
+});

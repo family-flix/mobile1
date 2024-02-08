@@ -1,12 +1,11 @@
-import { request } from "@/store/request";
+// import { client } from "@/store/request";
 import { reportSomething } from "@/services";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
-import { RequestCore } from "@/domains/request";
 import { DialogCore } from "@/domains/ui";
 import { Application } from "@/domains/app";
-import { SeasonMediaCore } from "@/domains/media/season";
 import { RequestCoreV2 } from "@/domains/request_v2";
+import { HttpClientCore } from "@/domains/http_client";
 import { ReportTypes } from "@/constants";
 
 enum Events {
@@ -18,6 +17,7 @@ type TheTypesOfEvents = {
 
 type MediaReportCoreProps = {
   app: Application;
+  client: HttpClientCore;
   // season: SeasonMediaCore;
 };
 type MediaReportCoreState = {};
@@ -25,16 +25,17 @@ type MediaReportCoreState = {};
 export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
   $ref = new RefCore<string>({});
   $media = new RefCore<{ media_id: string; media_source_id?: string }>({});
-  $create = new RequestCoreV2({
-    fetch: reportSomething,
-    client: request,
-  });
+  $create: RequestCoreV2<{ fetch: typeof reportSomething; client: HttpClientCore }>;
 
   constructor(props: Partial<{ _name: string }> & MediaReportCoreProps) {
     super(props);
 
-    const { app } = props;
+    const { app, client } = props;
 
+    this.$create = new RequestCoreV2({
+      fetch: reportSomething,
+      client,
+    });
     const dialog = new DialogCore({
       title: "发现问题",
       onOk: () => {

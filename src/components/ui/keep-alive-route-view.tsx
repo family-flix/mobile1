@@ -21,7 +21,7 @@ export function KeepAliveRouteView(
     store.ready();
   });
   useEffect(() => {
-    if (store.isMounted) {
+    if (store.mounted) {
       return;
     }
     console.log("[COMPONENT]keep-alice-route-view - useEffect");
@@ -29,6 +29,7 @@ export function KeepAliveRouteView(
     store.showed();
     return () => {
       store.setUnmounted();
+      store.destroy();
     };
   }, []);
 
@@ -38,14 +39,20 @@ export function KeepAliveRouteView(
 
   const { mounted, visible } = state;
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div
       className={cn(props.className)}
       style={{
-        display: mounted ? "block" : "none",
+        display: visible ? "block" : "none",
         zIndex: index,
       }}
       data-state={visible ? "open" : "closed"}
+      data-title={store.title}
+      data-href={store.href}
       // onAnimationEnd={() => {
       //   if (store.state.visible) {
       //     return;

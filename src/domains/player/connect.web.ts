@@ -137,6 +137,24 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       $video.setAttribute("webkit-playsinline", "true");
       $video.setAttribute("playsinline", "true");
     },
+    requestFullscreen() {
+      if ($video.requestFullscreen) {
+        // 标准 API
+        $video.requestFullscreen();
+      }
+      if (($video as any).webkitRequestFullscreen) {
+        // Webkit 内核（如 Chrome、Safari）前缀版
+        ($video as any).webkitRequestFullscreen();
+      }
+      if (($video as any).mozRequestFullScreen) {
+        // Firefox 前缀版
+        ($video as any).mozRequestFullScreen();
+      }
+      if (($video as any).msRequestFullscreen) {
+        // IE/Edge 前缀版
+        ($video as any).msRequestFullscreen();
+      }
+    },
     showSubtitle() {
       if ($video.textTracks[0]) {
         $video.textTracks[0].mode = "showing";
@@ -152,7 +170,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       // @ts-ignore
       if ($video.webkitShowPlaybackTargetPicker) {
         // @ts-ignore
-        $video.webkitShowPlaybackTargetPicker;
+        $video.webkitShowPlaybackTargetPicker();
         return;
       }
       alert("AirPlay not supported.");

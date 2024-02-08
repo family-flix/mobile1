@@ -4,17 +4,9 @@
 import React, { useState } from "react";
 import { ArrowUp, Bell, Bird, Search, User } from "lucide-react";
 
-import { request } from "@/store/request";
-import {
-  homeHistoryTab,
-  homeMinePage,
-  homeMovieTab,
-  homeRecommendedTab,
-  homeSeasonTab,
-  mediaSearchPage,
-  messagesPage,
-} from "@/store/views";
 import { messageList } from "@/store/index";
+import { ViewComponentWithMenu } from "@/store/types";
+import { PageKeys } from "@/store/routes";
 import {
   fetchCollectionList,
   fetchCollectionListProcess,
@@ -22,6 +14,7 @@ import {
   fetchUpdatedMediaTodayProcess,
 } from "@/services";
 import { Input, KeepAliveRouteView } from "@/components/ui";
+import { StackRouteView } from "@/components/ui/stack-route-view";
 import { Affix } from "@/components/ui/affix";
 import { MediaRequestCore } from "@/components/media-request";
 import { Show } from "@/components/ui/show";
@@ -29,18 +22,15 @@ import { TabHeader } from "@/components/ui/tab-header";
 import { TabHeaderCore } from "@/domains/ui/tab-header";
 import { ScrollViewCore, InputCore, ButtonCore, DialogCore } from "@/domains/ui";
 import { fetchPlayingHistories } from "@/domains/media/services";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { AffixCore } from "@/domains/ui/affix";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { MediaTypes } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { cn } from "@/utils";
+import { MediaOriginCountry } from "@/constants";
 
 export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
-  const { app, router, view, menu } = props;
+  const { app, history, client, storage, pages, view, menu } = props;
 
   const collectionList = useInstance(
     () =>
@@ -48,7 +38,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
         new RequestCoreV2({
           fetch: fetchCollectionList,
           process: fetchCollectionListProcess,
-          client: request,
+          client,
         }),
         {
           pageSize: 6,
@@ -63,7 +53,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
       new RequestCoreV2({
         fetch: fetchUpdatedMediaToday,
         process: fetchUpdatedMediaTodayProcess,
-        client: request,
+        client: client,
       })
   );
   const historyList = useInstance(
@@ -71,7 +61,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
       new ListCoreV2(
         new RequestCoreV2({
           fetch: fetchPlayingHistories,
-          client: request,
+          client: client,
         }),
         {
           pageSize: 12,
@@ -123,23 +113,42 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   });
   const tab = useInstance(
     () =>
-      new TabHeaderCore({
+      new TabHeaderCore<{
+        key: "id";
+        options: {
+          id: string;
+          name: PageKeys;
+          text: string;
+          query: Record<string, string>;
+        }[];
+      }>({
+        key: "id",
         options: [
           {
-            id: "recommend",
+            id: "recommended",
+            name: "root.home_layout.home_index.home_index_recommended",
             text: "推荐",
+            query: {},
           },
           {
             id: "history",
+            name: "root.home_layout.home_index.home_index_history",
             text: "观看记录",
+            query: {},
           },
           {
-            id: "season",
+            id: "china",
+            name: "root.home_layout.home_index.home_index_season",
             text: "电视剧",
+            query: {
+              language: MediaOriginCountry.CN,
+            },
           },
           {
             id: "movie",
+            name: "root.home_layout.home_index.home_index_movie",
             text: "电影",
+            query: {},
           },
           // {
           //   id: "animate",
@@ -149,64 +158,50 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           //   id: "zongyi",
           //   text: "综艺",
           // },
-          // {
-          //   id: "kr-season",
-          //   text: "韩剧",
-          // },
-          // {
-          //   id: "jp-season",
-          //   text: "日剧",
-          // },
-          // {
-          //   id: "us-season",
-          //   text: "美剧",
-          // },
+          {
+            id: "korean",
+            name: "root.home_layout.home_index.home_index_season",
+            text: "韩剧",
+            query: {
+              language: MediaOriginCountry.KR,
+            },
+          },
+          {
+            id: "jp",
+            name: "root.home_layout.home_index.home_index_season",
+            text: "日剧",
+            query: {
+              language: MediaOriginCountry.JP,
+            },
+          },
+          {
+            id: "us",
+            name: "root.home_layout.home_index.home_index_season",
+            text: "美剧",
+            query: {
+              language: MediaOriginCountry.US,
+            },
+          },
         ],
         onChange(value) {
-          const { index } = value;
-          console.log(index);
-          if (index === 0) {
-            app.showView(homeRecommendedTab);
-            return;
-          }
-          if (index === 1) {
-            app.showView(homeHistoryTab);
-            return;
-          }
-          if (index === 2) {
-            app.showView(homeSeasonTab);
-            return;
-          }
-          if (index === 3) {
-            app.showView(homeMovieTab);
-            return;
-          }
+          const { name, query } = value;
+          history.push(name, query);
         },
         onMounted() {
-          tab.select(2);
+          console.log("[PAGE]home/index - tab-header onMounted", history.$router.query);
+          const key = history.$router.query.key;
+          if (!key) {
+            tab.selectById("china", { ignore: true });
+            return;
+          }
+          tab.selectById(key, { ignore: true });
         },
       })
   );
   const searchInput = useInstance(
     () =>
       new InputCore({
-        placeholder: "请输入关键字搜索电视剧",
-        onEnter(v) {
-          collectionList.search({
-            name: v,
-          });
-        },
-        onBlur(v) {
-          collectionList.search({
-            name: v,
-          });
-        },
-        onClear() {
-          // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
-          collectionList.search({
-            name: "",
-          });
-        },
+        placeholder: "请输入关键字搜索",
       })
   );
   const dialog = useInstance(
@@ -217,7 +212,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
         },
       })
   );
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -237,17 +232,15 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
 
   const [subViews, setSubViews] = useState(view.subViews);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
-  const [updatedMediaListState, setUpdatedMediaListState] = useState(updatedMediaList.response);
-  const [historyState, setHistoryState] = useState(historyList.response);
+  // const [updatedMediaListState, setUpdatedMediaListState] = useState(updatedMediaList.response);
+  // const [historyState, setHistoryState] = useState(historyList.response);
   const [height, setHeight] = useState(affix.height);
-  const [hasSearch, setHasSearch] = useState(
-    (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
-      return language.length !== 0;
-    })()
-  );
+  // const [hasSearch, setHasSearch] = useState(
+  //   (() => {
+  //     const { language = [] } = storage.get("tv_search");
+  //     return language.length !== 0;
+  //   })()
+  // );
 
   // const [history_response] = useState(history_helper.response);
   useInitialize(() => {
@@ -257,16 +250,19 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
     view.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
-    view.onCurViewChange((nextCurView) => {
-      // updateMenuActive(nextCurView);
+    history.onRouteChange(({ href, query }) => {
+      const { key } = query;
+      if (!tab.mounted) {
+        return;
+      }
+      console.log("[PAGE]home/index - history.onRouteChange", href, query);
+      tab.handleChangeById(key);
     });
     affix.onMounted(({ height }) => {
       setHeight(height);
     });
     const search = (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
+      const { language = [] } = storage.get("tv_search", { language: [] });
       if (!language.length) {
         return {};
       }
@@ -321,7 +317,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               <div
                 className="absolute z-10 inset-0"
                 onClick={() => {
-                  app.showView(mediaSearchPage);
+                  // app.showView(mediaSearchPage);
+                  history.push("root.search");
                 }}
               ></div>
             </div>
@@ -329,7 +326,11 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               <div
                 className="relative"
                 onClick={() => {
-                  app.showView(messagesPage);
+                  history.push("root.messages");
+                  // app.showView(messagesPage);
+                  // app.tip({
+                  //   text: ["测试消息"],
+                  // });
                 }}
               >
                 <Bell className="w-6 h-6" />
@@ -347,7 +348,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
               <div
                 className="relative"
                 onClick={() => {
-                  app.showView(homeMinePage);
+                  history.push("root.mine");
+                  // app.showView(homeMinePage);
                 }}
               >
                 <User className="w-6 h-6" />
@@ -359,8 +361,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
         <div className="absolute inset-0 flex flex-col" style={{ top: height }}>
           <div className="relative flex-1">
             {subViews.map((subView, i) => {
-              // const matchedMenu = menus.find((m) => m.view === subView);
-              const PageContent = subView.component as ViewComponent;
+              const routeName = subView.name;
+              const PageContent = pages[routeName as Exclude<PageKeys, "root">];
               return (
                 <KeepAliveRouteView key={subView.id} className="absolute inset-0" store={subView} index={i}>
                   <div
@@ -371,15 +373,11 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                   >
                     <PageContent
                       app={app}
-                      router={router}
+                      history={history}
+                      storage={storage}
+                      client={client}
+                      pages={pages}
                       view={subView}
-                      // menu={matchedMenu}
-                      // onScroll={(pos) => {
-                      //   homeMenu.setTextAndIcon({
-                      //     text: "回到顶部",
-                      //     icon: <ArrowUp className="w-6 h-6" />,
-                      //   });
-                      // }}
                     />
                   </div>
                 </KeepAliveRouteView>

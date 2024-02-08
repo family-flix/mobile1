@@ -55,7 +55,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
       <input
         ref={ref}
         className={cn(
-          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-3 text-w-fg-0 py-2 px-3 text-md",
+          "flex items-center h-10 w-full rounded-md leading-none border border-w-bg-2 bg-w-bg-3 text-w-fg-0 py-2 px-3 text-sm",
           "focus:outline-none focus:ring-2 focus:ring-fg-4 focus:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "placeholder:text-w-fg-1",

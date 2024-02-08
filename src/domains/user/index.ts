@@ -6,7 +6,7 @@ import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
 
-import { fetch_user_profile, login, validate_member_token } from "./services";
+import { fetch_user_profile, login, validateMemberToken } from "./services";
 
 export enum Events {
   Tip,
@@ -32,12 +32,13 @@ type UserProps = {
   username: string;
   avatar: string;
   token: string;
+  client: HttpClientCore;
 };
-type UserState = UserProps & {
-  // id: string;
-  // username: string;
-  // avatar: string;
-  // token: string;
+type UserState = {
+  id: string;
+  username: string;
+  avatar: string;
+  token: string;
 };
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
@@ -45,10 +46,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   _name = "UserCore";
   debug = false;
 
-  $client = new HttpClientCore({
-    hostname: window.location.hostname,
-    user: this,
-  });
+  $client: HttpClientCore;
 
   id: string = "";
   username: string = "Anonymous";
@@ -64,19 +62,17 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       token: this.token,
     };
   }
-  constructor(options: Partial<{ _name: string }> & UserProps) {
-    super(options);
+  constructor(props: Partial<{ _name: string }> & UserProps) {
+    super(props);
 
-    if (!options) {
-      return;
-    }
-    const { id, username, avatar, token } = options;
+    const { id, username, avatar, token, client } = props;
     // this.log("constructor", initialUser);
     this.id = id;
     this.username = username;
     this.avatar = avatar;
     this.isLogin = !!token;
     this.token = token;
+    this.$client = client;
   }
   logout() {
     this.emit(Events.Logout);
@@ -94,7 +90,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     const request = new RequestCoreV2({
-      fetch: validate_member_token,
+      fetch: validateMemberToken,
       client: this.$client,
     });
     const r = await request.run({ token });

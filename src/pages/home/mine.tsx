@@ -16,9 +16,9 @@ import {
   Tv,
 } from "lucide-react";
 
-import { request } from "@/store/request";
+// import { client } from "@/store/request";
 import { infoRequest, messageList } from "@/store/index";
-import { messagesPage, inviteeListPage } from "@/store/views";
+// import { messagesPage, inviteeListPage } from "@/store/views";
 import { inviteMember, reportSomething } from "@/services";
 import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
@@ -29,10 +29,10 @@ import { RequestCore } from "@/domains/request";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes, __VERSION__ } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
+import { ViewComponent } from "@/store/types";
 
 export const HomeMinePage: ViewComponent = React.memo((props) => {
-  const { app, router, view } = props;
+  const { app, history, storage, client, view } = props;
 
   const scrollView = useInstance(
     () =>
@@ -47,19 +47,19 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
     () =>
       new MultipleClickCore({
         async onBingo() {
-          app.user.logout();
-          const r = await app.user.validate({
-            token: router.query.token,
+          app.$user.logout();
+          const r = await app.$user.validate({
+            token: history.$router.query.token,
             force: "1",
           });
           if (r.error) {
             return;
           }
-          router.reload();
+          history.reload();
         },
       })
   );
-  const avatar = useInstance(() => new ImageCore(app.user.avatar));
+  const avatar = useInstance(() => new ImageCore(app.$user.avatar));
   const workInProgressTipDialog = useInstance(
     () =>
       new DialogCore({
@@ -81,7 +81,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   const reportRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client: client,
         fetch: reportSomething,
         onLoading(loading) {
           if (reportConfirmDialog.open) {
@@ -151,7 +151,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
   // @todo 主题切换这块逻辑移动到 app 领域中
   const { theme, setTheme } = useTheme();
   const [t, setT] = useState(theme);
-  const [profile, setProfile] = useState(app.user);
+  const [profile, setProfile] = useState(app.$user);
   const [loading, setLoading] = useState(infoRequest.loading);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
   // const [history_response] = useState(history_helper.response);
@@ -191,7 +191,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className="inline-block p-4"
                 onClick={() => {
-                  app.back();
+                  history.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6" />
@@ -256,7 +256,8 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className="flex items-center justify-between"
                 onClick={() => {
-                  app.showView(messagesPage);
+                  // app.showView(messagesPage);
+                  history.push("root.messages");
                 }}
               >
                 <div className="flex items-center">
@@ -335,7 +336,8 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                     });
                     return;
                   }
-                  app.showView(inviteeListPage);
+                  // app.showView(inviteeListPage);
+                  history.push("root.invitee");
                 }}
               >
                 <div className="flex items-center">

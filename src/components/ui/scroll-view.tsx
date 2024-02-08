@@ -150,7 +150,7 @@ const Content = React.memo((props: { store: ScrollViewCore } & React.HTMLAttribu
   const $page = useRef<HTMLDivElement>(null);
 
   const [state, setState] = useState(store.state);
-  const [scrollable, setScrollable] = useState(store.scrollable);
+  // const [scrollable, setScrollable] = useState(store.scrollable);
   const [styles, setStyles] = useState<React.CSSProperties>({});
 
   useEffect(() => {
@@ -160,22 +160,19 @@ const Content = React.memo((props: { store: ScrollViewCore } & React.HTMLAttribu
     }
     connect(store, $container);
   }, []);
-  useEffect(() => {
-    console.log("[COMPONENT]scroll-view/index - scrollable", scrollable, store._name);
-  }, [scrollable]);
 
   useInitialize(() => {
     store.onStateChange((nextState) => {
       setState(nextState);
     });
     store.onDisableScroll(() => {
-      setScrollable(false);
+      // setScrollable(false);
       setStyles({
         overflow: "hidden",
       });
     });
     store.onEnableScroll(() => {
-      setScrollable(true);
+      // setScrollable(true);
       setStyles({
         overflow: "auto",
       });

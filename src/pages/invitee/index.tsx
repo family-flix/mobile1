@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Film, Pen, Plus, QrCode, Search, Smartphone, Tv2 } from "lucide-react";
 
-import { homeIndexPage, mediaSharePage } from "@/store/views";
+// import { homeIndexPage, mediaSharePage } from "@/store/views";
 import { fetchInviteeList, inviteMember } from "@/services";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
 import { Show } from "@/components/ui/show";
@@ -13,12 +13,11 @@ import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { cn } from "@/utils";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { request } from "@/store/request";
+import { useInitialize, useInstance } from "@/hooks";
+import { ViewComponent } from "@/store/types";
+import { cn } from "@/utils";
 
 enum Events {
   StateChange,
@@ -70,14 +69,14 @@ const QrcodeWithStore = (props: { store: QrcodeCore } & React.HTMLAttributes<HTM
 };
 
 export const InviteeListPage: ViewComponent = React.memo((props) => {
-  const { app, router, view } = props;
+  const { app, history, client, view } = props;
 
   const helper = useInstance(
     () =>
       new ListCoreV2(
         new RequestCoreV2({
           fetch: fetchInviteeList,
-          client: request,
+          client,
         }),
         {
           onLoadingChange(loading) {
@@ -87,7 +86,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
       )
   );
   const inviteMemberRequest = new RequestCoreV2({
-    client: request,
+    client,
     fetch: inviteMember,
     onLoading(loading) {
       inviteDialog.okBtn.setLoading(loading);
@@ -116,7 +115,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
         //   helper.refresh();
         // },
         onPullToBack() {
-          app.back();
+          history.back();
         },
       })
   );
@@ -197,7 +196,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                 <div
                   className="inline-block"
                   onClick={() => {
-                    app.back();
+                    history.back();
                   }}
                 >
                   <ArrowLeft className="w-6 h-6" />

@@ -45,13 +45,13 @@ export function fetchMediaList(params: FetchParams & { type: MediaTypes; name: s
     page_size: pageSize,
   });
 }
-export function fetchMediaListProcess(resp: Result<UnpackedRequestPayload<RequestedResource<typeof fetchMediaList>>>) {
-  if (resp.error) {
-    return Result.Err(resp.error);
+export function fetchMediaListProcess(r: Result<UnpackedRequestPayload<RequestedResource<typeof fetchMediaList>>>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
   return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((movie) => {
+    ...r.data,
+    list: r.data.list.map((movie) => {
       const {
         id,
         type,
@@ -96,7 +96,7 @@ export function fetchMediaListProcess(resp: Result<UnpackedRequestPayload<Reques
               return g.label;
             })
             .filter(Boolean),
-        ],
+        ] as string[],
         episode_count_text: extra_text,
         // runtime: (() => {
         //   if (!runtime) {

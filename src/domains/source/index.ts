@@ -5,11 +5,13 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { HttpClientCore } from "@/domains/http_client";
+import { MediaOriginCountry } from "@/constants";
 import { Result } from "@/types";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
-import { MediaSourceFile, fetchSourcePlayingInfo } from "./services";
-import { MediaOriginCountry } from "@/constants";
+import { MediaSourceFile, fetchSourcePlayingInfo, fetchSourcePlayingInfoProcess } from "./services";
 
 enum Events {
   /** 切换播放的剧集 */
@@ -42,6 +44,7 @@ type MediaSourceFileCoreState = {
 type MediaSourceFileCoreProps = {
   //   id: string;
   resolution?: MediaResolutionTypes;
+  client: HttpClientCore;
 };
 
 export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
@@ -58,7 +61,8 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
   /** 正在请求中 */
   loading = false;
 
-  $subtitle: null | SubtitleCore = null;
+  $subtitle: SubtitleCore | null = null;
+  $client: HttpClientCore;
 
   get state(): MediaSourceFileCoreState {
     return {
@@ -69,14 +73,20 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ name: string }> & MediaSourceFileCoreProps) {
     super();
 
-    const { resolution = MediaResolutionTypes.SD } = props;
+    const { client, resolution = MediaResolutionTypes.SD } = props;
     //     this.id = id;
+    this.$client = client;
     this.curResolution = resolution;
   }
 
   /** 播放该电视剧下指定影片 */
   async load(file: { id: string }) {
-    const res = await fetchSourcePlayingInfo({
+    const fetch = new RequestCoreV2({
+      fetch: fetchSourcePlayingInfo,
+      process: fetchSourcePlayingInfoProcess,
+      client: this.$client,
+    });
+    const res = await fetch.run({
       id: file.id,
       type: this.curResolution,
     });

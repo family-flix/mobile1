@@ -18,7 +18,7 @@ type BottomMenuProps = {
   app: Application;
   icon: unknown;
   text: string;
-  view: RouteViewCore;
+  pathname: string;
 };
 type BottomMenuState = {
   icon: unknown;
@@ -33,7 +33,7 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
   defaultText: string;
   icon: unknown;
   text: string;
-  view: RouteViewCore;
+  pathname: string;
   badge: boolean = false;
   active: boolean = false;
   clickForScrollToTop = false;
@@ -50,13 +50,13 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ _name: string }> & BottomMenuProps) {
     super(props);
 
-    const { app, icon, text, view } = props;
+    const { app, icon, text, pathname } = props;
     this.app = app;
     this.defaultIcon = icon;
     this.defaultText = text;
     this.icon = icon;
     this.text = text;
-    this.view = view;
+    this.pathname = pathname;
   }
 
   select() {
@@ -147,7 +147,7 @@ export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
       }
       return;
     }
-    this.app.showView(this.view);
+    // this.app.showView(this.view);
   }
 
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {

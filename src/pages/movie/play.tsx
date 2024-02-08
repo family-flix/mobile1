@@ -1,7 +1,7 @@
 /**
  * @file 视频播放页面
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ArrowLeft,
   Gauge,
@@ -16,7 +16,7 @@ import {
   Subtitles,
 } from "lucide-react";
 
-import { request } from "@/store/request";
+import { ViewComponent } from "@/store/types";
 import { reportSomething } from "@/services";
 import { Video, Sheet, ScrollView, Dialog, LazyImage } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
@@ -31,11 +31,10 @@ import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { MovieReportList, ReportTypes, players } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
 
-export const MoviePlayingPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const MoviePlayingPage: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, view } = props;
 
   const settingsRef = useInstance(() => {
     const r = new RefCore<{
@@ -43,17 +42,13 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       rate: number;
       type: MediaResolutionTypes;
     }>({
-      value: app.cache.get("player_settings", {
-        volume: 0.5,
-        rate: 1,
-        type: MediaResolutionTypes.SD,
-      }),
+      value: storage.get("player_settings"),
     });
     return r;
   });
   const movie = useInstance(() => {
     const { type: resolution } = settingsRef.value!;
-    const movie = new MovieCore({ resolution });
+    const movie = new MovieCore({ resolution, client });
     return movie;
   });
   const player = useInstance(() => {
@@ -65,7 +60,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          app.back();
+          history.back();
         },
       })
   );
@@ -84,7 +79,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
   const reportRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client,
         fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
@@ -275,7 +270,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       });
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
@@ -365,7 +360,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                     <div
                       className="inline-block p-4"
                       onClick={() => {
-                        app.back();
+                        history.back();
                       }}
                     >
                       <ArrowLeft className="w-6 h-6" />
@@ -503,7 +498,7 @@ export const MoviePlayingPage: ViewComponent = (props) => {
                   key={index}
                   onClick={() => {
                     player.changeRate(rateOpt);
-                    app.cache.merge("player_settings", {
+                    storage.merge("player_settings", {
                       rate: rateOpt,
                     });
                   }}
@@ -715,4 +710,4 @@ export const MoviePlayingPage: ViewComponent = (props) => {
       </Dialog>
     </>
   );
-};
+});

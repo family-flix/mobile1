@@ -26,6 +26,7 @@ export const request = {
     const url = `${endpoint}${query ? "?" + qs.stringify(query) : ""}`;
     const resp = {
       url,
+      method: "GET",
       headers: {
         "Client-Version": __VERSION__,
       },

@@ -1,7 +1,7 @@
 /**
  * @file 电视剧播放页面
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   ArrowBigLeft,
   ArrowBigRight,
@@ -17,7 +17,6 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { request } from "@/store/request";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { InviteeSelect } from "@/components/member-select/view";
@@ -34,17 +33,17 @@ import { OrientationTypes } from "@/domains/app";
 import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
+import { ViewComponent } from "@/store/types";
 import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn } from "@/utils";
 
-export const TVPlayingPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const TVPlayingPage: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, view } = props;
 
   const shareMediaRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client,
         fetch: shareMediaToInvitee,
         onLoading(loading) {
           inviteeSelect.submitBtn.setLoading(loading);
@@ -81,11 +80,7 @@ ${url}`;
       rate: number;
       type: MediaResolutionTypes;
     }>({
-      value: app.cache.get("player_settings", {
-        volume: 0.5,
-        rate: 1,
-        type: MediaResolutionTypes.SD,
-      }),
+      value: storage.get("player_settings"),
     });
     return r;
   });
@@ -94,6 +89,7 @@ ${url}`;
     const { type: resolution } = settingsRef.value!;
     const tv = new TVCore({
       resolution,
+      client,
     });
     // @ts-ignore
     window.__tv__ = tv;
@@ -117,7 +113,7 @@ ${url}`;
   const reportRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client: client,
         fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
@@ -151,6 +147,7 @@ ${url}`;
   const inviteeSelect = useInstance(
     () =>
       new InviteeSelectCore({
+        client,
         onOk(invitee) {
           if (!invitee) {
             app.tip({
@@ -220,7 +217,7 @@ ${url}`;
         //   episodeScrollView.stopPullToRefresh();
         // },
         onReachBottom() {
-          tv.episodeList.loadMore();
+          tv.$episodeList.loadMore();
         },
       })
   );
@@ -274,7 +271,7 @@ ${url}`;
     });
     if (!view.query.hide_menu) {
       scrollView.onPullToBack(() => {
-        app.back();
+        history.back();
       });
     }
     player.onExitFullscreen(() => {
@@ -319,9 +316,9 @@ ${url}`;
     });
     tv.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
-      app.cache.merge("player_settings", {
-        type,
-      });
+      // storage.merge("player_settings", {
+      //   type,
+      // });
     });
     tv.onSourceChange((mediaSource) => {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
@@ -366,7 +363,7 @@ ${url}`;
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
@@ -490,7 +487,7 @@ ${url}`;
                       <div
                         className="inline-block p-4"
                         onClick={() => {
-                          app.back();
+                          history.back();
                         }}
                       >
                         <ArrowLeft className="w-6 h-6" />
@@ -642,7 +639,7 @@ ${url}`;
           }
           const { seasons, curEpisodes } = profile;
           const episodes_elm = (
-            <ListView className="" store={tv.episodeList}>
+            <ListView className="" store={tv.$episodeList}>
               {curEpisodes.map((episode) => {
                 const { id, name, episode_text, runtime } = episode;
                 return (
@@ -762,7 +759,7 @@ ${url}`;
                   key={index}
                   onClick={() => {
                     player.changeRate(rateOpt);
-                    app.cache.merge("player_settings", {
+                    storage.merge("player_settings", {
                       rate: rateOpt,
                     });
                   }}
@@ -793,9 +790,9 @@ ${url}`;
                         className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-w-bg-active" : "")}
                         onClick={() => {
                           tv.changeResolution(type);
-                          app.cache.merge("player_settings", {
-                            type,
-                          });
+                          // storage.merge("player_settings", {
+                          //   type,
+                          // });
                         }}
                       >
                         {typeText}
@@ -969,4 +966,4 @@ ${url}`;
       </Dialog>
     </>
   );
-};
+});

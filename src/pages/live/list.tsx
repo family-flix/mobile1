@@ -1,6 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-import { request } from "@/store/request";
+// import { client } from "@/store/request";
+// import { tvChannelPlayingPage } from "@/store/views";
 import { fetchTVChannelList } from "@/services";
 import { LazyImage, ListView, ScrollView } from "@/components/ui";
 import { ListCoreV2 } from "@/domains/list/v2";
@@ -9,18 +10,17 @@ import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
-import { tvChannelPlayingPage } from "@/store/views";
-import { ViewComponent } from "@/types";
+import { ViewComponent } from "@/store/types";
 
-export const TVLiveListPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const TVLiveListPage: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, view } = props;
 
   const list = useInstance(
     () =>
       new ListCoreV2(
         new RequestCoreV2({
           fetch: fetchTVChannelList,
-          client: request,
+          client,
         })
       )
   );
@@ -35,7 +35,7 @@ export const TVLiveListPage: ViewComponent = (props) => {
           // if (view.state.layered) {
           //   return;
           // }
-          app.back();
+          history.back();
         },
       })
   );
@@ -61,12 +61,13 @@ export const TVLiveListPage: ViewComponent = (props) => {
                 <div
                   key={id}
                   onClick={() => {
-                    tvChannelPlayingPage.query = {
-                      id,
-                      name,
-                      url,
-                    };
-                    app.showView(tvChannelPlayingPage);
+                    // tvChannelPlayingPage.query = {
+                    //   id,
+                    //   name,
+                    //   url,
+                    // };
+                    // app.showView(tvChannelPlayingPage);
+                    history.push("root.live", { id, name, url });
                   }}
                 >
                   <div className="p-2 flex flex-col items-center rounded-md bg-w-bg-3">
@@ -83,4 +84,4 @@ export const TVLiveListPage: ViewComponent = (props) => {
       </div>
     </ScrollView>
   );
-};
+});

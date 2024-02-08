@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } from "lucide-react";
 
-import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+// import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { messageList } from "@/store/index";
 import { readAllNotification, readNotification } from "@/services";
 import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
@@ -16,18 +16,17 @@ import { StepCore } from "@/domains/step";
 import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
+import { ViewComponent } from "@/store/types";
 import { MediaTypes } from "@/constants";
 import { RequestCoreV2 } from "@/domains/request_v2";
-import { request } from "@/store/request";
 
 enum MessageStatus {
   Normal = 1,
   Read = 2,
 }
 
-export const HomeMessagePage: ViewComponent = (props) => {
-  const { app, router, view } = props;
+export const HomeMessagePage: ViewComponent = React.memo((props) => {
+  const { app, history, client, view } = props;
 
   const step = useInstance(
     () =>
@@ -39,14 +38,14 @@ export const HomeMessagePage: ViewComponent = (props) => {
     () =>
       new RequestCoreV2({
         fetch: readNotification,
-        client: request,
+        client,
       })
   );
   const readAllRequest = useInstance(
     () =>
       new RequestCoreV2({
         fetch: readAllNotification,
-        client: request,
+        client: client,
       })
   );
   const scrollView = useInstance(
@@ -105,7 +104,7 @@ export const HomeMessagePage: ViewComponent = (props) => {
               <div
                 className="inline-block"
                 onClick={() => {
-                  app.back();
+                  history.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6" />
@@ -174,16 +173,19 @@ export const HomeMessagePage: ViewComponent = (props) => {
                         };
                       });
                       if (media && media.type === MediaTypes.Season) {
-                        seasonPlayingPageV2.query = {
-                          id: media.id,
-                        };
-                        app.showView(seasonPlayingPageV2);
+                        // seasonPlayingPageV2.query = {
+                        //   id: media.id,
+                        // };
+                        // app.showView(seasonPlayingPageV2);
+                        history.push("root.season_playing", { id: media.id });
+                        return;
                       }
                       if (media && media.type === MediaTypes.Movie) {
-                        moviePlayingPageV2.query = {
-                          id: media.id,
-                        };
-                        app.showView(moviePlayingPageV2);
+                        // moviePlayingPageV2.query = {
+                        //   id: media.id,
+                        // };
+                        // app.showView(moviePlayingPageV2);
+                        history.push("root.movie_playing", { id: media.id });
                       }
                     }}
                   >
@@ -258,4 +260,4 @@ export const HomeMessagePage: ViewComponent = (props) => {
       </ScrollView>
     </>
   );
-};
+});

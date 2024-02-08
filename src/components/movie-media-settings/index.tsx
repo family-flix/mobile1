@@ -1,27 +1,22 @@
 import { useState } from "react";
 import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
+import { ViewComponentProps } from "@/store/types";
+import { reportSomething, shareMediaToInvitee } from "@/services";
+import { fetchMemberToken } from "@/services/media";
 import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
 import { Show } from "@/packages/ui/show";
 import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
 import { DynamicContent } from "@/components/dynamic-content";
-import { InviteeSelect } from "@/components/member-select/view";
 import { InviteeSelectCore } from "@/components/member-select/store";
-import { SeasonMediaCore } from "@/domains/media/season";
 import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { PlayerCore } from "@/domains/player";
-import { Application } from "@/domains/app";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn, sleep } from "@/utils";
-import { RequestCore } from "@/domains/request";
-import { reportSomething, shareMediaToInvitee } from "@/services";
-import { fetchMemberToken } from "@/services/media";
-import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
 import { RefCore } from "@/domains/cur";
 import { MovieMediaCore } from "@/domains/media/movie";
 import { RequestCoreV2 } from "@/domains/request_v2";
+import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
+import { useInitialize, useInstance } from "@/hooks";
+import { cn, sleep } from "@/utils";
 
 enum MediaSettingsMenuKey {
   Resolution = 1,
@@ -58,13 +53,20 @@ const menus = [
   },
 ];
 
-export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Application; store2: PlayerCore }) => {
-  const { store, app, store2 } = props;
+export const MovieMediaSettings = (props: {
+  store: MovieMediaCore;
+  store2: PlayerCore;
+  app: ViewComponentProps["app"];
+  client: ViewComponentProps["client"];
+  storage: ViewComponentProps["storage"];
+  history: ViewComponentProps["history"];
+}) => {
+  const { store, app, client, history, storage, store2 } = props;
 
   const memberTokenRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client,
         fetch: fetchMemberToken,
         onLoading(loading) {
           inviteeSelect.submitBtn.setLoading(loading);
@@ -77,7 +79,7 @@ export const MovieMediaSettings = (props: { store: MovieMediaCore; app: Applicat
             });
             return;
           }
-          const url = moviePlayingPageV2.buildUrl2({ id: store.profile.id, token, tmp: "1" });
+          const url = history.buildURLWithPrefix("root.movie_playing", { id: store.profile.id, token, tmp: "1" });
           shareDialog.show();
           const message = `➤➤➤ ${name}
 ${url}`;
@@ -93,7 +95,7 @@ ${url}`;
   const reportRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client: client,
         fetch: reportSomething,
         onLoading(loading) {
           reportConfirmDialog.okBtn.setLoading(loading);
@@ -135,6 +137,7 @@ ${url}`;
   const inviteeSelect = useInstance(
     () =>
       new InviteeSelectCore({
+        client,
         onSelect(v) {
           if (!store.profile) {
             app.tip({
@@ -361,7 +364,7 @@ ${url}`;
             </div>
           </div>
           <div className="h-[1px] bg-w-bg-1" />
-          <ScrollView className="absolute inset-0 top-16 px-4" store={scroll}>
+          <ScrollView className="absolute inset-0 top-16" store={scroll}>
             {(() => {
               if (menuIndex === MediaSettingsMenuKey.Resolution) {
                 return (
@@ -372,7 +375,7 @@ ${url}`;
                       }
                       const { typeText: curTypeText, resolutions } = curSource;
                       return (
-                        <div className="max-h-full text-w-fg-1 overflow-y-auto">
+                        <div className="max-h-full text-w-fg-1 px-4 overflow-y-auto">
                           <div className="pb-24">
                             {resolutions.map((r, i) => {
                               const { type, typeText } = r;
@@ -393,7 +396,7 @@ ${url}`;
                                     }
                                     sourceIcon.set(2);
                                     sourceIcon.clear();
-                                    app.cache.merge("player_settings", {
+                                    storage.merge("player_settings", {
                                       type,
                                     });
                                   }}
@@ -446,13 +449,13 @@ ${url}`;
                   <div>
                     {(() => {
                       if (state === null) {
-                        return <div>Loading</div>;
+                        return <div className=" px-4">Loading</div>;
                       }
                       if (!state.curSource) {
-                        return <div>Error</div>;
+                        return <div className=" px-4">Error</div>;
                       }
                       return (
-                        <div className="max-h-full overflow-y-auto text-w-fg-1">
+                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                           <div className="pb-24">
                             {state.curSource.files.map((s) => {
                               const { id, name, invalid } = s;
@@ -531,7 +534,7 @@ ${url}`;
                   <div>
                     {(() => {
                       return (
-                        <div className="max-h-full overflow-y-auto text-w-fg-1">
+                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                           <div className="pb-24">
                             {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
                               return (
@@ -546,7 +549,7 @@ ${url}`;
                                     rateIcon.set(2);
                                     store2.changeRate(rateOpt);
                                     rateIcon.clear();
-                                    app.cache.merge("player_settings", {
+                                    storage.merge("player_settings", {
                                       rate: rateOpt,
                                     });
                                   }}
@@ -589,7 +592,7 @@ ${url}`;
               }
               if (menuIndex === MediaSettingsMenuKey.Subtitle) {
                 return (
-                  <div className="max-h-full overflow-y-auto text-w-fg-1">
+                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                     <div className="pb-24">
                       {store.$source.subtitles.map((sub, i) => {
                         return (
@@ -654,7 +657,7 @@ ${url}`;
               }
               if (menuIndex === MediaSettingsMenuKey.Share) {
                 return (
-                  <div className="max-h-full overflow-y-auto text-w-fg-1">
+                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                     <div className="pb-24">
                       <ListView
                         wrapClassName="flex-1 overflow-y-auto"
@@ -701,7 +704,7 @@ ${url}`;
               }
               if (menuIndex === MediaSettingsMenuKey.Report) {
                 return (
-                  <div className="max-h-full overflow-y-auto text-w-fg-1">
+                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                     <div className="pb-24">
                       {MovieReportList.map((question, i) => {
                         return (

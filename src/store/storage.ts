@@ -20,9 +20,13 @@ const DEFAULT_CACHE_VALUES = {
   movie_search: {
     language: [] as string[],
   },
+  media_search_histories: [] as string[],
 };
-export const cache = new StorageCore<typeof DEFAULT_CACHE_VALUES>({
-  key: "m_global",
-  values: DEFAULT_CACHE_VALUES,
+const key = "m_global";
+const e = globalThis.localStorage.getItem(key);
+export const storage = new StorageCore<typeof DEFAULT_CACHE_VALUES>({
+  key,
+  defaultValues: DEFAULT_CACHE_VALUES,
+  values: JSON.parse(e || "{}"),
   client: globalThis.localStorage,
 });

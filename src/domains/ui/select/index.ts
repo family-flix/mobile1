@@ -8,7 +8,7 @@ import { CollectionCore } from "@/domains/ui/collection";
 import { DismissableLayerCore } from "@/domains/ui/dismissable-layer";
 import { Direction } from "@/domains/ui/direction";
 import { Rect } from "@/types";
-import { app } from "@/store/app";
+// import { app } from "@/store/app";
 
 import { SelectContentCore } from "./content";
 import { SelectViewportCore } from "./viewport";
@@ -17,6 +17,7 @@ import { SelectTriggerCore } from "./trigger";
 import { SelectWrapCore } from "./wrap";
 import { SelectItemCore } from "./item";
 import { clamp } from "./utils";
+import { Application } from "@/domains/app";
 
 const CONTENT_MARGIN = 10;
 enum Events {
@@ -42,10 +43,14 @@ type SelectState = {
   dir: Direction;
   styles: Partial<CSSStyleDeclaration>;
 };
+type SelectCoreProps = {
+  app: Application;
+};
 export class SelectCore extends BaseDomain<TheTypesOfEvents> {
   _name = "SelectCore";
   debug = true;
 
+  app: Application;
   popper: PopperCore;
   collection: CollectionCore;
   layer: DismissableLayerCore;
@@ -84,9 +89,12 @@ export class SelectCore extends BaseDomain<TheTypesOfEvents> {
 
   _findFirstValidItem = false;
 
-  constructor(options: Partial<{ name: string }> = {}) {
-    super(options);
+  constructor(props: Partial<{ name: string }> & SelectCoreProps) {
+    super(props);
 
+    const { app } = props;
+
+    this.app = app;
     this.popper = new PopperCore();
     this.layer = new DismissableLayerCore();
     this.collection = new CollectionCore();
@@ -197,6 +205,7 @@ export class SelectCore extends BaseDomain<TheTypesOfEvents> {
   }
   setPosition() {
     const { dir } = this.state;
+    const app = this.app;
     const wrapStyles = {
       // width: 0,
       height: 0,

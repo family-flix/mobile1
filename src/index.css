@@ -177,3 +177,15 @@ body {
     height: 0;
   }
 }
+
+.animate {
+  transition: all 0.5s ease-in-out; /* 添加过渡效果 */
+}
+.slide-out {
+  transform: translateX(100%); /* 初始状态时元素向上滑出可视区域 */
+  /* opacity: 0; */
+}
+.slide-in {
+  transform: translateX(0); /* 当添加 .active 类时，元素滑入可视区域 */
+  /* opacity: 1; */
+}

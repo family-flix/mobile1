@@ -1,17 +1,16 @@
 /**
  * @file 使用外部播放器打开指定视频文件
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { stringify } from "qs";
 
+import { ViewComponent } from "@/store/types";
 import { TVCore } from "@/domains/tv";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { EpisodeResolutionTypes } from "@/domains/tv/constants";
 import { ScrollView } from "@/components/ui";
 import { ScrollViewCore } from "@/domains/ui";
 import { NavigatorCore } from "@/domains/navigator";
 import { MediaResolutionTypes } from "@/domains/source/constants";
+import { useInitialize, useInstance } from "@/hooks";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   // { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },
@@ -34,17 +33,14 @@ const players: { icon: string; name: string; scheme: string }[] = [
   //   scheme: "intent:$durl#Intent;package=com.mxtech.videoplayer.pro;S.title=$name;end",
   // },
 ];
-export const TVOuterPlayersPage: ViewComponent = (props) => {
-  const { app, router, view } = props;
+export const TVOuterPlayersPage: ViewComponent = React.memo((props) => {
+  const { app, client, history, storage, view } = props;
 
   const tv = useInstance(() => {
-    const { type: resolution } = app.cache.get("player_settings", {
-      volume: 0.5,
-      rate: 1,
-      type: MediaResolutionTypes.SD,
-    });
+    const { type: resolution } = storage.get("player_settings");
     const tv = new TVCore({
       resolution,
+      client,
     });
     // @ts-ignore
     window.__tv__ = tv;
@@ -54,7 +50,7 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          app.back();
+          history.back();
         },
       })
   );
@@ -63,15 +59,12 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
   const [source, setSource] = useState(tv.curSource);
 
   useInitialize(() => {
-    const url =
-      NavigatorCore.prefix +
-      `/home/index?${stringify({
-        id: view.params.id,
-        season_id: view.query.season_id,
-        token: app.cache.get("token_id") ?? "",
-        outer: 1,
-      })}`;
-    router.replace(url);
+    history.replace("root.home_layout.home_index", {
+      id: view.params.id,
+      season_id: view.query.season_id,
+      token: storage.get("token_id") ?? "",
+      outer: "1",
+    });
     tv.onProfileLoaded((profile) => {
       app.setTitle(tv.getTitle().join(" - "));
       const { curEpisode } = profile;
@@ -91,9 +84,9 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
     });
     tv.onResolutionChange(({ type }) => {
       console.log("[PAGE]play - player.onResolutionChange", type);
-      app.cache.merge("player_settings", {
-        type,
-      });
+      // storage.merge("player_settings", {
+      //   type,
+      // });
     });
     tv.onTip((msg) => {
       app.tip(msg);
@@ -143,4 +136,4 @@ export const TVOuterPlayersPage: ViewComponent = (props) => {
       </div>
     </ScrollView>
   );
-};
+});

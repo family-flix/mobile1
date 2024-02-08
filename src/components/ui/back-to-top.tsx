@@ -3,7 +3,6 @@ import { ArrowUp } from "lucide-react";
 
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
 import { useInitialize } from "@/hooks";
-import { app } from "@/store/app";
 import { cn } from "@/utils";
 
 export function BackToTop(props: { store: ScrollViewCore }) {

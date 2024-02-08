@@ -5,6 +5,8 @@ import { MediaOriginCountry } from "@/constants";
 import { SeasonMediaCore } from "@/domains/media/season";
 import { Result } from "@/types";
 import { originalEpisodes, processedEpisodes, processedEpisodes2 } from "./episodes";
+import { HttpClientCore } from "@/domains/http_client";
+import { UserCore } from "@/domains/user";
 
 // const spy = vi.spyOn(window, "open");
 // const window = vi.fn(() => ({
@@ -29,6 +31,16 @@ vi.mock("@/store/request", async () => {
       get() {},
     },
   };
+});
+const client = new HttpClientCore({
+  hostname: "",
+});
+const user = new UserCore({
+  id: "",
+  username: "",
+  avatar: "",
+  token: "",
+  client,
 });
 
 describe("播放下一集", () => {
@@ -68,7 +80,9 @@ describe("播放下一集", () => {
       ],
       subtitles: [],
     };
-    const $season = new SeasonMediaCore();
+    const $season = new SeasonMediaCore({
+      client,
+    });
     $season.profile = {
       id: "HlqLEtf6b3ZrBiZ",
       name: "迷宫饭",
@@ -144,7 +158,7 @@ describe("播放下一集", () => {
       ],
       subtitles: [],
     };
-    const $season = new SeasonMediaCore();
+    const $season = new SeasonMediaCore({ client });
     $season.profile = {
       id: "HlqLEtf6b3ZrBiZ",
       name: "迷宫饭",
@@ -208,7 +222,7 @@ describe("播放下一集", () => {
       ],
       subtitles: [],
     };
-    const $season = new SeasonMediaCore();
+    const $season = new SeasonMediaCore({ client });
     $season.profile = {
       id: "HlqLEtf6b3ZrBiZ",
       name: "迷宫饭",

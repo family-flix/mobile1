@@ -1,25 +1,29 @@
 import { ReportTypes } from "@/constants";
 import { BaseDomain } from "@/domains/base";
-import { RequestCore } from "@/domains/request";
+import { HttpClientCore } from "@/domains/http_client";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { DialogCore, InputCore } from "@/domains/ui";
 import { reportSomething } from "@/services";
-import { request } from "@/store/request";
 
 enum Events {}
 type TheTypesOfEvents = {};
 
 type MediaRequestState = {};
-type MediaRequestProps = {};
+type MediaRequestProps = {
+  client: HttpClientCore;
+};
 
 export class MediaRequestCore extends BaseDomain<TheTypesOfEvents> {
   dialog: DialogCore;
   input: InputCore;
-  constructor(props: MediaRequestProps) {
+
+  constructor(props: Partial<{ _name: string }> & MediaRequestProps) {
     super(props);
 
+    const { client } = props;
+
     const fetch = new RequestCoreV2({
-      client: request,
+      client,
       fetch: reportSomething,
       onLoading(loading) {
         dialog.okBtn.setLoading(loading);

@@ -128,9 +128,9 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Show);
     this.emit(Events.StateChange, { ...this.state });
   }
-  hide() {
-    // console.log(...this.log("hide"));
-    // console.log("[DOMAIN]ui/presence - hide", new Date().valueOf());
+  hide(options: Partial<{ reason: "show_sibling" | "back" | "forward"; destroy: boolean }> = {}) {
+    console.log("[DOMAIN]ui/presence - hide", options);
+    const { destroy = true } = options;
     this.open = false;
     this.emit(Events.Hidden);
     this.emit(Events.StateChange, { ...this.state });
@@ -138,8 +138,9 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
       if (this.mounted === false) {
         return;
       }
-      // console.log("[DOMAIN]ui/presence - hide before unmounted", new Date().valueOf());
-      this.unmount();
+      if (destroy) {
+        this.unmount();
+      }
     }, 120);
   }
   send(event: "UNMOUNT" | "ANIMATION_OUT" | "MOUNT" | "ANIMATION_END" | "MOUNT") {

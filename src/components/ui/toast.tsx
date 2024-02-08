@@ -42,7 +42,14 @@ const Root = (props: { store: ToastCore } & React.AllHTMLAttributes<HTMLElement>
 const Portal = (props: { store: ToastCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
   const { store } = props;
 
-  return <ToastPrimitive.Portal store={store}>{props.children}</ToastPrimitive.Portal>;
+  return (
+    <ToastPrimitive.Portal
+      store={store}
+      className={cn("data-[state=open]:fade-in-90", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+    >
+      {props.children}
+    </ToastPrimitive.Portal>
+  );
 };
 
 const Overlay = (props: { store: ToastCore } & React.AllHTMLAttributes<HTMLDivElement>) => {

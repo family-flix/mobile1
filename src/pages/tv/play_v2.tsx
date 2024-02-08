@@ -1,7 +1,7 @@
 /**
  * @file 电视剧播放页面
  */
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Airplay,
   AlertTriangle,
@@ -20,10 +20,17 @@ import {
 } from "lucide-react";
 
 import { reportSomething, shareMediaToInvitee } from "@/services";
+import { GlobalStorageValues, ViewComponent } from "@/store/types";
+import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { InviteeSelect } from "@/components/member-select/view";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { HorizontalScrollView } from "@/components/ui/horizontal-scroll-view";
+import { Presence } from "@/components/ui/presence";
+import { PlayingIcon } from "@/components/playing";
+import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
+import { SeasonMediaSettings } from "@/components/season-media-settings";
+import { DynamicContent } from "@/components/dynamic-content";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { HorizontalScrollViewCore } from "@/domains/ui/scroll-view/horizontal";
 import { SeasonMediaCore } from "@/domains/media/season";
@@ -33,21 +40,19 @@ import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { Application, OrientationTypes } from "@/domains/app";
-import { Presence } from "@/components/ui/presence";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { ReportTypes, SeasonReportList, players } from "@/constants";
-import { cn, seconds_to_hour } from "@/utils";
 import { RouteViewCore } from "@/domains/route_view";
-import { Show } from "@/packages/ui/show";
-import { PlayingIcon } from "@/components/playing";
-import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
-import { SeasonMediaSettings } from "@/components/season-media-settings";
-import { DynamicContent } from "@/components/dynamic-content";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";
+import { StorageCore } from "@/domains/storage";
+import { HttpClientCore } from "@/domains/http_client";
+import { useInitialize, useInstance } from "@/hooks";
+import { cn, seconds_to_hour } from "@/utils";
 
-class SeasonPlayingPageLogic {
-  $app: Application;
+class SeasonPlayingPageLogic<
+  P extends { app: Application; client: HttpClientCore; storage: StorageCore<GlobalStorageValues> }
+> {
+  $app: P["app"];
+  $storage: P["storage"];
+  $client: P["client"];
   $tv: SeasonMediaCore;
   $player: PlayerCore;
   $settings: RefCore<{
@@ -62,22 +67,21 @@ class SeasonPlayingPageLogic {
     type: MediaResolutionTypes;
   };
 
-  constructor(props: { app: Application }) {
-    const { app } = props;
+  constructor(props: P) {
+    const { app, storage, client } = props;
 
     this.$app = app;
+    this.$storage = storage;
+    this.$client = client;
 
-    const settings = app.cache.get("player_settings", {
-      volume: 0.5,
-      rate: 1,
-      type: MediaResolutionTypes.SD as MediaResolutionTypes,
-    });
+    const settings = storage.get("player_settings");
     this.settings = settings;
     this.$settings = new RefCore({
       value: settings,
     });
     const { type: resolution, volume, rate } = settings;
     const tv = new SeasonMediaCore({
+      client,
       resolution,
     });
     this.$tv = tv;
@@ -163,7 +167,7 @@ class SeasonPlayingPageLogic {
       console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       player.pause();
       player.setSize({ width: mediaSource.width, height: mediaSource.height });
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         type: mediaSource.type,
       });
       // loadSource 后开始 video loadstart 事件
@@ -198,12 +202,12 @@ class SeasonPlayingPageLogic {
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
     player.onProgress(({ currentTime, duration }) => {
-      // console.log("[PAGE]TVPlaying - onProgress", currentTime);
+      // console.log("[PAGE]tv/play_v2 - onProgress", currentTime, !player._canPlay);
       if (!player._canPlay) {
         return;
       }
@@ -353,8 +357,8 @@ class SeasonPlayingPageView {
   }
 }
 
-export const SeasonPlayingPageV2: ViewComponent = (props) => {
-  const { app, view } = props;
+export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
+  const { app, client, history, storage, view } = props;
 
   // const loadingPresence = useInstance(() => new PresenceCore());
   // const fullscreenDialog = useInstance(
@@ -379,7 +383,7 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
   //   dialog.okBtn.setText("我知道了");
   //   return dialog;
   // });
-  const $logic = useInstance(() => new SeasonPlayingPageLogic({ app }));
+  const $logic = useInstance(() => new SeasonPlayingPageLogic({ app, client, storage }));
   const $page = useInstance(() => new SeasonPlayingPageView({ view }));
 
   const [state, setProfile] = useState($logic.$tv.state);
@@ -424,6 +428,9 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
       $page.prepareHide();
       $page.$time.hide();
     });
+    $logic.$player.onExitFullscreen(() => {
+      $page.show();
+    });
     // $logic.$player.onCanPlay((v) => {
     //   $page.prepareHide();
     // });
@@ -454,18 +461,15 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
           $page.toggle();
         }}
       >
-        <div className="absolute z-10 top-[36%] left-[50%]" style={{ transform: `translate(-50%, -50%)` }}>
+        <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
           <Presence
             className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
             store={$page.$mask}
           >
-            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
+            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
-          <div
-            className="absolute z-30 top-[50%] left-[50%] min-h-[80px] text-w-bg-0 dark:text-w-fg-0"
-            style={{ transform: `translate(-50%, -50%)` }}
-          >
+          <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0  -translate-x-1/2 -translate-y-1/2">
             <Presence
               className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
               store={$page.$control}
@@ -551,7 +555,7 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
                 <div
                   className="inline-block p-4"
                   onClick={() => {
-                    app.back();
+                    history.back();
                   }}
                 >
                   <ArrowLeft className="w-6 h-6" />
@@ -562,16 +566,18 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
                   </div>
                 </Show>
               </div>
-              <div className="flex items-center">
-                <div
-                  className="inline-block p-4"
-                  onClick={(event) => {
-                    $logic.$player.showAirplay();
-                  }}
-                >
-                  <Airplay className="w-6 h-6" />
+              {app.env.ios ? (
+                <div className="flex items-center">
+                  <div
+                    className="inline-block p-4"
+                    onClick={(event) => {
+                      $logic.$player.showAirplay();
+                    }}
+                  >
+                    <Airplay className="w-6 h-6" />
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </Presence>
           </div>
           <div className="absolute bottom-12 z-40 w-full safe-bottom">
@@ -737,7 +743,14 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
         })()}
       </Sheet>
       <Sheet store={$page.$settings} hideTitle size="lg">
-        <SeasonMediaSettings store={$logic.$tv} app={app} store2={$logic.$player} />
+        <SeasonMediaSettings
+          store={$logic.$tv}
+          app={app}
+          client={client}
+          storage={storage}
+          history={history}
+          store2={$logic.$player}
+        />
       </Sheet>
       {/* <Sheet store={dSheet} size="xl">
         {(() => {
@@ -949,4 +962,4 @@ export const SeasonPlayingPageV2: ViewComponent = (props) => {
       </Dialog> */}
     </>
   );
-};
+});

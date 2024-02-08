@@ -1,3 +1,6 @@
+import React from "react";
+
+import { ViewComponent } from "@/store/types";
 import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { Node, Sheet } from "@/components/ui";
 import { SeasonMediaCore } from "@/domains/media/season";
@@ -5,14 +8,13 @@ import { PlayerCore } from "@/domains/player";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { DialogCore, NodeCore } from "@/domains/ui";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { sleep } from "@/utils";
 
-export const TestPage: ViewComponent = (props) => {
-  const { app } = props;
+export const TestPage: ViewComponent = React.memo((props) => {
+  const { app, client } = props;
 
   const dialog = useInstance(() => new DialogCore({}));
-  const media = useInstance(() => new SeasonMediaCore());
+  const media = useInstance(() => new SeasonMediaCore({ client }));
   const player = useInstance(() => new PlayerCore({ app }));
   const node = useInstance(() => new NodeCore());
 
@@ -50,9 +52,9 @@ export const TestPage: ViewComponent = (props) => {
           <Loader2 className="w-10 h-10 text-w-bg-0 dark:text-w-fg-0 animate animate-spin" />
         </div> */}
         <Sheet store={dialog} hideTitle>
-          <SeasonMediaSettings store={media} app={app} store2={player} />
+          {/* <SeasonMediaSettings store={media} app={app} store2={player} /> */}
         </Sheet>
       </div>
     </>
   );
-};
+});

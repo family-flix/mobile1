@@ -1,7 +1,7 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { app } from "@/store/app";
+// import { app } from "@/store/app";
 
 type AbsNode = {};
 enum Events {
@@ -33,9 +33,9 @@ export class DismissableLayerCore extends BaseDomain<TheTypesOfEvents> {
   constructor(options: Partial<{ _name: string }> = {}) {
     super(options);
 
-    app.onEscapeKeyDown(() => {
-      this.emit(Events.Dismiss);
-    });
+    // app.onEscapeKeyDown(() => {
+    //   this.emit(Events.Dismiss);
+    // });
   }
 
   handlePointerOutside(branch: HTMLElement) {}

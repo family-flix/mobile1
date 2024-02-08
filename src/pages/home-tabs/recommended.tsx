@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Bird } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
+// import { client } from "@/store/request";
+import { ViewComponent } from "@/store/types";
+// import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
 import { fetchCollectionList, fetchCollectionListProcess } from "@/services";
 import { LazyImage, ListView, Skeleton } from "@/components/ui";
 import { ImageInListCore } from "@/domains/ui";
@@ -11,12 +12,11 @@ import { RequestCore } from "@/domains/request";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
 import { cn } from "@/utils";
 
-export const HomeRecommendedTabContent: ViewComponent = (props) => {
-  const { app } = props;
+export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
+  const { app, client, history, storage } = props;
 
   const collectionList = useInstance(
     () =>
@@ -24,7 +24,7 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
         new RequestCoreV2({
           fetch: fetchCollectionList,
           process: fetchCollectionListProcess,
-          client: request,
+          client: client,
         }),
         {
           pageSize: 10,
@@ -94,7 +94,7 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                   </div>
                   <div
                     className={cn(
-                      "flex py-4 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
+                      "flex pb-4 py-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
                       app.env.android ? "scroll--fix" : ""
                     )}
                   >
@@ -117,17 +117,19 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                             className="w-[128px]"
                             onClick={() => {
                               if (type === MediaTypes.Season) {
-                                seasonPlayingPageV2.query = {
-                                  id,
-                                };
-                                app.showView(seasonPlayingPageV2);
+                                // seasonPlayingPageV2.query = {
+                                //   id,
+                                // };
+                                // app.showView(seasonPlayingPageV2);
+                                history.push("root.season_playing", { id });
                                 return;
                               }
                               if (type === MediaTypes.Movie) {
-                                moviePlayingPageV2.query = {
-                                  id,
-                                };
-                                app.showView(moviePlayingPageV2);
+                                // moviePlayingPageV2.query = {
+                                //   id,
+                                // };
+                                // app.showView(moviePlayingPageV2);
+                                history.push("root.movie_playing", { id });
                                 return;
                               }
                               app.tip({
@@ -135,7 +137,7 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
                               });
                             }}
                           >
-                            <div className="w-[112px]">
+                            <div className="w-[128px]">
                               <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
                                 <LazyImage
                                   className="w-full h-full object-cover"
@@ -173,4 +175,4 @@ export const HomeRecommendedTabContent: ViewComponent = (props) => {
       </ListView>
     </>
   );
-};
+});

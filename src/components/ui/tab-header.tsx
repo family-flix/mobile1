@@ -1,18 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { TabHeaderCore } from "@/domains/ui/tab-header";
 import { useInitialize } from "@/hooks";
 import { cn } from "@/utils";
 
-export const TabHeader = (props: { store: TabHeaderCore<any> }) => {
+export function TabHeader<T extends { key: "id"; options: { id: string; text: string; [x: string]: any }[] }>(props: {
+  store: TabHeaderCore<T>;
+}) {
   const { store } = props;
 
   const [state, setState] = useState(store.state);
   const [left, setLeft] = useState<null | number>(store.left);
 
+  useInitialize(() => {
+    store.onStateChange((v) => {
+      setState(v);
+    });
+    store.onLinePositionChange((v) => {
+      console.log("[COMPONENT]ui/tab-header - store.onLinePositionChange", left);
+      setLeft(v.left);
+    });
+  });
+
   const { tabs: options, current } = state;
 
-  useInitialize(() => {});
+  console.log("[COMPONENT]ui/tab-header - render", left);
 
   return (
     <div
@@ -20,12 +32,12 @@ export const TabHeader = (props: { store: TabHeaderCore<any> }) => {
       //       style="{{style}}"
       onAnimationStart={(event) => {
         const { width, height, left } = event.currentTarget.getBoundingClientRect();
-        store.onStateChange((v) => {
-          setState(v);
-        });
-        store.onLinePositionChange((v) => {
-          setLeft(v.left);
-        });
+        // store.onStateChange((v) => {
+        //   setState(v);
+        // });
+        // store.onLinePositionChange((v) => {
+        //   setLeft(v.left);
+        // });
         store.updateContainerClient({ width, height, left });
       }}
     >
@@ -74,4 +86,4 @@ export const TabHeader = (props: { store: TabHeaderCore<any> }) => {
       </div>
     </div>
   );
-};
+}

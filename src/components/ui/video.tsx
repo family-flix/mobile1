@@ -61,9 +61,10 @@ export function Video(props: { store: PlayerCore }) {
         // poster={poster}
         className="w-full relative z-10"
         controls={false}
-        // controls={true}
         webkit-playsinline={prepareFullscreen ? undefined : "true"}
         playsInline={!prepareFullscreen}
+        // webkit-playsinline="false"
+        // playsInline={false}
         // preload="none"
         width={`${width}px`}
         height={`${height}px`}

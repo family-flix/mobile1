@@ -1,12 +1,9 @@
 /**
  * @file 播放器
  */
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { Application } from "@/domains/app";
-import { app } from "@/store/app";
 
 enum Events {
   Mounted,
@@ -98,7 +95,9 @@ type TheTypesOfEvents = {
   [Events.StateChange]: PlayerState;
 };
 
-type PlayerProps = {};
+type PlayerProps = {
+  app: Application;
+};
 type PlayerState = {
   playing: boolean;
   poster?: string;
@@ -121,6 +120,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   /** 视频信息 */
   metadata: { url: string; thumbnail?: string } | null = null;
   static Events = Events;
+
+  $app: Application;
 
   private _timer: null | number = null;
   _canPlay = false;
@@ -156,12 +157,12 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     setRate: (v: number) => void;
     enableFullscreen: () => void;
     disableFullscreen: () => void;
+    requestFullscreen: () => void;
     showSubtitle: () => void;
     hideSubtitle: () => void;
     showAirplay: () => void;
     pictureInPicture: () => void;
   } | null = null;
-  private _app: Application;
 
   get state(): PlayerState {
     return {
@@ -189,7 +190,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     if (rate) {
       this._curRate = rate;
     }
-    this._app = app;
+    this.$app = app;
   }
 
   bindAbstractNode(node: PlayerCore["_abstractNode"]) {
@@ -302,6 +303,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     ) {
       return;
     }
+    const app = this.$app;
     const { width, height } = size;
     const h = Math.ceil((height / width) * app.screen.width);
     console.log("[DOMAIN]player/index - setSize", app.screen.width, h);
@@ -348,10 +350,14 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     if (!$video) {
       return;
     }
+    if (this.$app.env.android) {
+      this.play();
+      $video.requestFullscreen();
+      return;
+    }
     // 这里不暂停，就没法先允许全屏，再通过播放来全屏了
-    $video.enableFullscreen();
     this.pause();
-    this.enableFullscreen();
+    $video.enableFullscreen();
     this.play();
   }
   loadSource(video: { url: string }) {
@@ -432,11 +438,21 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._passPoint = false;
   }
   enableFullscreen() {
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
     this.prepareFullscreen = true;
+    $video.enableFullscreen();
     this.emit(Events.StateChange, { ...this.state });
   }
   disableFullscreen() {
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
     this.prepareFullscreen = false;
+    $video.disableFullscreen();
     this.emit(Events.StateChange, { ...this.state });
   }
   setMounted() {

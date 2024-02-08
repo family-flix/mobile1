@@ -107,7 +107,7 @@ enum Events {
 type TheTypesOfEvents<T> = {
   [Events.LoadingChange]: boolean;
   [Events.BeforeSearch]: void;
-  [Events.AfterSearch]: void;
+  [Events.AfterSearch]: { params: Search };
   [Events.ParamsChange]: FetchParams;
   [Events.DataSourceAdded]: unknown[];
   [Events.DataSourceChange]: T[];
@@ -132,7 +132,7 @@ export class ListCoreV2<
   static commonProcessor = RESPONSE_PROCESSOR;
 
   /** 原始请求方法 */
-  private originalFetch: S;
+  private request: S;
   // private originalFetch: (...args: unknown[]) => Promise<OriginalResponse>;
   /** 支持请求前对参数进行处理（formToBody） */
   private beforeRequest: ParamsProcessor = (currentParams, prevParams) => {
@@ -169,7 +169,7 @@ export class ListCoreV2<
     } = options;
     this.debug = !!debug;
     this.rowKey = rowKey;
-    this.originalFetch = fetch;
+    this.request = fetch;
     this.processor = (originalResponse): Response<T> => {
       const nextResponse = {
         ...this.response,
@@ -290,7 +290,7 @@ export class ListCoreV2<
       processedParams = mergedParams;
     }
     const processedArgs = [processedParams, ...restArgs] as Parameters<S["service"]>;
-    const res = await this.originalFetch.run(...processedArgs);
+    const res = await this.request.run(...processedArgs);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);
     if (this.response.initial) {
@@ -508,7 +508,7 @@ export class ListCoreV2<
       ...this.initialParams,
       ...params,
     });
-    this.emit(Events.AfterSearch);
+    this.emit(Events.AfterSearch, { params });
     if (res.error) {
       this.tip({ icon: "error", text: [res.error.message] });
       this.response.error = res.error;
@@ -624,7 +624,7 @@ export class ListCoreV2<
       nextDataSource.push(r);
     }
     this.response.dataSource = nextDataSource;
-    console.log("[DOMAIN]list/index - modifyItem", nextDataSource[0]);
+    // console.log("[DOMAIN]list/index - modifyItem", nextDataSource[0]);
     this.emit(Events.StateChange, { ...this.response });
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }

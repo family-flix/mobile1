@@ -6,16 +6,19 @@ import React, { useState } from "react";
 import { ArrowUp, Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, User, Users } from "lucide-react";
 import { debounce } from "lodash/fp";
 
-import {
-  homeHistoriesPage,
-  homeIndexPage,
-  homeLayout,
-  messagesPage,
-  homeMinePage,
-  homeMoviePage,
-  homeSeasonPage,
-} from "@/store/views";
+// import {
+//   homeHistoriesPage,
+//   homeIndexPage,
+//   homeLayout,
+//   messagesPage,
+//   homeMinePage,
+//   homeMoviePage,
+//   homeSeasonPage,
+// } from "@/store/views";
+import { PageKeys } from "@/store/routes";
+import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
 import { messageList } from "@/store/index";
+import { StackRouteView } from "@/components/ui/stack-route-view";
 import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore } from "@/domains/ui";
@@ -24,7 +27,6 @@ import { Application } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { BottomMenuCore } from "@/domains/bottom_menu";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
 import { cn } from "@/utils";
 
 const BottomMenu = (props: { store: BottomMenuCore }) => {
@@ -60,15 +62,16 @@ const BottomMenu = (props: { store: BottomMenuCore }) => {
   );
 };
 
-export const HomeLayout: ViewComponent = (props) => {
-  const { app, router, view } = props;
+export const HomeLayout: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, pages, view } = props;
 
   const homeMenu = useInstance(
     () =>
       new BottomMenuCore({
         app,
         icon: <Home className="w-6 h-6" />,
-        view: homeIndexPage,
+        // view: homeIndexPage,
+        pathname: "root.home_layout.home_index" as PageKeys,
         text: "首页",
       })
   );
@@ -77,7 +80,8 @@ export const HomeLayout: ViewComponent = (props) => {
       new BottomMenuCore({
         app,
         icon: <Tv2 className="w-6 h-6" />,
-        view: homeSeasonPage,
+        // view: homeSeasonPage,
+        pathname: "root.home_layout.home_index.home_index_season" as PageKeys,
         text: "电视剧",
       })
   );
@@ -86,7 +90,8 @@ export const HomeLayout: ViewComponent = (props) => {
       new BottomMenuCore({
         app,
         icon: <Film className="w-6 h-6" />,
-        view: homeMoviePage,
+        // view: homeMoviePage,
+        pathname: "root.home_layout.home_index.home_index_movie" as PageKeys,
         text: "电影",
       })
   );
@@ -95,7 +100,8 @@ export const HomeLayout: ViewComponent = (props) => {
       new BottomMenuCore({
         app,
         icon: <HardDrive className="w-6 h-6" />,
-        view: homeHistoriesPage,
+        // view: homeHistoriesPage,
+        pathname: "root.home_layout.home_index.home_index_history" as PageKeys,
         text: "观看记录",
       })
   );
@@ -104,7 +110,8 @@ export const HomeLayout: ViewComponent = (props) => {
       new BottomMenuCore({
         app,
         icon: <User className="w-6 h-6" />,
-        view: homeMinePage,
+        // view: homeMinePage,
+        pathname: "root.mine" as PageKeys,
         text: "我的",
       })
   );
@@ -112,15 +119,15 @@ export const HomeLayout: ViewComponent = (props) => {
   const menus = [homeMenu, seasonMenu, movieMenu, historyMenu, mineMenu];
 
   useInitialize(() => {
-    function updateMenuActive(curView: RouteViewCore) {
+    function updateMenuActive(pathname: PageKeys) {
       const matchedMenu = menus.find((menu) => {
-        return menu.view === curView;
+        return menu.pathname === pathname;
       });
       if (!matchedMenu) {
         return;
       }
       const otherMenus = menus.filter((m) => {
-        return m.view !== curView;
+        return m.pathname !== pathname;
       });
       for (let i = 0; i < otherMenus.length; i += 1) {
         const m = otherMenus[i];
@@ -128,15 +135,13 @@ export const HomeLayout: ViewComponent = (props) => {
       }
       matchedMenu.select();
     }
-    if (view.curView) {
-      updateMenuActive(view.curView);
-    }
+    updateMenuActive(view.name as PageKeys);
     view.onSubViewsChange((nextSubViews) => {
       setSubViews(nextSubViews);
     });
-    view.onCurViewChange((nextCurView) => {
-      updateMenuActive(nextCurView);
-    });
+    // view.onCurViewChange((nextCurView) => {
+    //   updateMenuActive(nextCurView);
+    // });
     messageList.initAny();
   });
 
@@ -145,10 +150,10 @@ export const HomeLayout: ViewComponent = (props) => {
       <div className="relative z-90 flex-1 h-full">
         <div className="relative w-full h-full">
           {subViews.map((subView, i) => {
-            const matchedMenu = menus.find((m) => m.view === subView);
-            const PageContent = subView.component as ViewComponentWithMenu;
+            const routeName = subView.name;
+            const PageContent = pages[routeName as Exclude<PageKeys, "root">];
             return (
-              <KeepAliveRouteView
+              <StackRouteView
                 key={subView.id}
                 className="absolute left-0 top-0 w-full h-full"
                 store={subView}
@@ -162,18 +167,14 @@ export const HomeLayout: ViewComponent = (props) => {
                 >
                   <PageContent
                     app={app}
-                    router={router}
+                    history={history}
+                    client={client}
+                    storage={storage}
+                    pages={pages}
                     view={subView}
-                    menu={matchedMenu}
-                    // onScroll={(pos) => {
-                    //   homeMenu.setTextAndIcon({
-                    //     text: "回到顶部",
-                    //     icon: <ArrowUp className="w-6 h-6" />,
-                    //   });
-                    // }}
                   />
                 </div>
-              </KeepAliveRouteView>
+              </StackRouteView>
             );
           })}
         </div>
@@ -190,4 +191,4 @@ export const HomeLayout: ViewComponent = (props) => {
       </div> */}
     </div>
   );
-};
+});

@@ -1,4 +1,4 @@
-import { request } from "@/store/request";
+import { TmpRequestResp, request } from "@/domains/request_v2/utils";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { Result, Unpacked, UnpackedResult } from "@/types";
 
@@ -7,8 +7,8 @@ import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";
 /**
  * 获取视频源播放信息
  */
-export async function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
-  const res = await request.post<{
+export function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
+  return request.post<{
     id: string;
     /** 缩略图 */
     thumbnail_path: string;
@@ -36,10 +36,12 @@ export async function fetchSourcePlayingInfo(body: { id: string; type: MediaReso
   }>("/api/v2/wechat/source", {
     id: body.id,
   });
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchSourcePlayingInfoProcess(r: TmpRequestResp<typeof fetchSourcePlayingInfo>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { id, url, width, height, thumbnail_path, type, other, subtitles } = res.data;
+  const { id, url, width, height, thumbnail_path, type, other, subtitles } = r.data;
   return Result.Ok({
     id,
     url,
@@ -62,4 +64,4 @@ export async function fetchSourcePlayingInfo(body: { id: string; type: MediaReso
     subtitles,
   });
 }
-export type MediaSourceFile = UnpackedResult<Unpacked<ReturnType<typeof fetchSourcePlayingInfo>>>;
+export type MediaSourceFile = UnpackedResult<Unpacked<ReturnType<typeof fetchSourcePlayingInfoProcess>>>;

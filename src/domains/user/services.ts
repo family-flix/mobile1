@@ -37,7 +37,7 @@ export function fetch_user_profile() {
 /**
  * 成员通过授权链接访问首页时，验证该链接是否有效
  */
-export function validate_member_token(v: { token: string }) {
+export function validateMemberToken(v: { token: string }) {
   return request.post<{ token: string; id: string }>("/api/validate", {
     token: v.token,
   });

@@ -6,6 +6,9 @@ import { Handler } from "mitt";
 import { BaseDomain } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { RequestCoreV2 } from "@/domains/request_v2";
+import { HttpClientCore } from "@/domains/http_client";
+import { MediaOriginCountry } from "@/constants";
 import { Result } from "@/types";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
@@ -14,9 +17,10 @@ import {
   fetchMoviePlayingSource,
   updateMoviePlayHistory,
   MediaSourceProfile,
-  fetch_media_profile,
+  fetchMediaProfile,
+  fetchMoviePlayingSourceProcess,
+  fetchMediaProfileProcess,
 } from "./services";
-import { MediaOriginCountry } from "@/constants";
 
 enum Events {
   /** 电影详情加载完成 */
@@ -30,7 +34,7 @@ enum Events {
   SubtitleLoaded,
 }
 type TheTypesOfEvents = {
-  [Events.ProfileLoaded]: MovieProps["profile"];
+  [Events.ProfileLoaded]: MovieProfile;
   [Events.SourceChange]: MediaSourceProfile & { currentTime: number };
   [Events.ResolutionChange]: MediaSourceProfile & { currentTime: number };
   [Events.SubtitleChange]: {
@@ -41,23 +45,29 @@ type TheTypesOfEvents = {
     texts: string[];
     others: (SubtitleFileResp & { selected: boolean })[];
   };
-  [Events.StateChange]: MovieProps["profile"];
+  [Events.StateChange]: MovieProfile;
   [Events.SubtitleLoaded]: SubtitleCore;
 };
 type MovieState = {};
 type MovieProps = {
-  profile: MovieProfile;
+  // profile: MovieProfile;
   resolution?: MediaResolutionTypes;
+  client: HttpClientCore;
 };
 
 export class MovieCore extends BaseDomain<TheTypesOfEvents> {
-  static async Get(body: { id: string }) {
-    const { id } = body;
+  static async Get(body: { id: string; client: HttpClientCore }) {
+    const { id, client } = body;
     if (id === undefined) {
       return Result.Err("缺少电影 id");
     }
     // this.id = id;
-    const res = await fetchMoviePlayingSource({ movie_id: id });
+    const fetch = new RequestCoreV2({
+      fetch: fetchMoviePlayingSource,
+      process: fetchMoviePlayingSourceProcess,
+      client,
+    });
+    const res = await fetch.run({ movie_id: id });
     if (res.error) {
       // const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(res.error);
@@ -67,16 +77,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     // this.emit(Events.ProfileLoaded, { ...this.profile });
     const { name, overview, currentTime, thumbnail, sources, subtitles, curSource } = res.data;
     const tv = new MovieCore({
-      profile: {
-        id,
-        name,
-        overview,
-        currentTime,
-        thumbnail,
-        sources,
-        curSource,
-        subtitles,
-      },
+      client,
     });
     return Result.Ok(tv);
   }
@@ -84,7 +85,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   /** 电视剧 id */
   id?: string;
   /** 该电视剧名称、剧集等信息 */
-  profile: MovieProps["profile"] | null = null;
+  profile: MovieProfile | null = null;
   /** 当前播放的视频源 */
   curSource: MediaSourceProfile | null = null;
   /** 当前影片播放进度 */
@@ -94,9 +95,8 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   private _pending = false;
   played = false;
   canAutoPlay = false;
-  _subtitleStore: SubtitleCore | null = null;
   /** 字幕文件列表 */
-  _subtitles: SubtitleFileResp[] = [];
+  subtitles: SubtitleFileResp[] = [];
   /** 字幕 */
   subtitle: {
     url: string | null;
@@ -114,10 +114,14 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     others: [],
   };
 
-  constructor(props: Partial<{ name: string } & MovieProps> = {}) {
+  $subtitle: SubtitleCore | null = null;
+  $client: HttpClientCore;
+
+  constructor(props: Partial<{ name: string }> & MovieProps) {
     super();
 
-    const { profile, resolution = "SD" } = props;
+    const { client, resolution = "SD" } = props;
+    this.$client = client;
     // this.profile = profile;
   }
 
@@ -127,7 +131,12 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     this.id = id;
-    const res = await fetchMoviePlayingSource({ movie_id: id });
+    const fetch = new RequestCoreV2({
+      fetch: fetchMoviePlayingSource,
+      process: fetchMoviePlayingSourceProcess,
+      client: this.$client,
+    });
+    const res = await fetch.run({ movie_id: id });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
@@ -160,7 +169,12 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["没有可播放的视频源"] });
       return Result.Err(msg);
     }
-    const res = await fetch_media_profile({
+    const fetch = new RequestCoreV2({
+      fetch: fetchMediaProfile,
+      process: fetchMediaProfileProcess,
+      client: this.$client,
+    });
+    const res = await fetch.run({
       id: curSource.file_id,
     });
     if (res.error) {
@@ -214,7 +228,12 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     console.log("[PAGE](play/index) - change source");
-    const res = await fetch_media_profile({
+    const fetch = new RequestCoreV2({
+      fetch: fetchMediaProfile,
+      process: fetchMediaProfileProcess,
+      client: this.$client,
+    });
+    const res = await fetch.run({
       id: source.file_id,
     });
     if (res.error) {
@@ -273,7 +292,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     const subtitles = this.curSource.subtitles.concat(this.profile.subtitles);
-    this._subtitles = subtitles;
+    this.subtitles = subtitles;
     const subtitleFile = (() => {
       const matched = subtitles.find((s) => {
         return s.language.join("&") === MediaOriginCountry.CN;
@@ -297,10 +316,10 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     if (subtitleFile.url === this.subtitle.url) {
       return;
     }
-    if (this._subtitleStore) {
-      this._subtitleStore.destroy();
+    if (this.$subtitle) {
+      this.$subtitle.destroy();
     }
-    this._subtitleStore = null;
+    this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
     });
@@ -324,11 +343,11 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.subtitle.visible = true;
     this.subtitle.index = curLine?.line ?? "0";
     this.subtitle.texts = curLine?.texts ?? [];
-    this._subtitleStore = r.data;
+    this.$subtitle = r.data;
     this.emit(Events.SubtitleChange, { ...this.subtitle });
-    this.emit(Events.SubtitleLoaded, this._subtitleStore);
+    this.emit(Events.SubtitleLoaded, this.$subtitle);
     // console.log("[DOMAIN]movie/index - after SubtitleCore.New", r.data, curLine);
-    this._subtitleStore.onStateChange((nextState) => {
+    this.$subtitle.onStateChange((nextState) => {
       const { curLine } = nextState;
       this.subtitle.index = curLine?.line ?? "0";
       this.subtitle.texts = curLine?.texts ?? [];
@@ -412,8 +431,8 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
   handleCurTimeChange = (values: Partial<{ currentTime: number; duration: number }> = {}) => {
     const { currentTime = 0 } = values;
     this.currentTime = currentTime;
-    if (this._subtitleStore && this.subtitle.visible) {
-      this._subtitleStore.handleTimeChange(currentTime);
+    if (this.$subtitle && this.subtitle.visible) {
+      this.$subtitle.handleTimeChange(currentTime);
     }
     this.updatePlayProgress(values);
   };

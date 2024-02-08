@@ -407,7 +407,7 @@ export type MediaSourceFile = RequestedResource<typeof fetchSourcePlayingInfoPro
 /**
  * 更新播放记录
  */
-export async function updatePlayHistory(body: {
+export function updatePlayHistory(body: {
   media_id: string;
   media_source_id: string;
   /** 视频当前时间 */

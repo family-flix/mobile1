@@ -4,7 +4,6 @@
 import React, { useState } from "react";
 import { AlertCircle, ArrowDown, Bird, Loader } from "lucide-react";
 
-import { app } from "@/store/app";
 import { ListCore } from "@/domains/list";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { ButtonCore } from "@/domains/ui";
@@ -21,24 +20,28 @@ export const ListView = React.memo(
       store: ListCore<any, any> | ListCoreV2<any, any>;
       skeleton?: React.ReactElement;
       extraEmpty?: React.ReactElement;
+      onRefresh?: () => void;
     } & React.HTMLAttributes<HTMLDivElement>
   ) => {
-    const { store, skeleton = null, extraEmpty = null } = props;
+    const { store, skeleton = null, extraEmpty = null, onRefresh } = props;
     const [response, setResponse] = useState(store.response);
 
     const loginBtn = useInstance(
       () =>
         new ButtonCore({
           async onClick() {
-            app.cache.clear("user");
-            const r = await app.user.validate({
-              token: app.router.query.token,
-              force: "1",
-            });
-            if (r.error) {
-              return;
+            // app.cache.clear("user");
+            // const r = await app.user.validate({
+            //   token: app.router.query.token,
+            //   force: "1",
+            // });
+            // if (r.error) {
+            //   return;
+            // }
+            // app.router.reload();
+            if (onRefresh) {
+              onRefresh();
             }
-            app.router.reload();
           },
         })
     );
@@ -51,29 +54,29 @@ export const ListView = React.memo(
     });
 
     return (
-      <div className={cn("relative z-40 text-w-fg-1", props.wrapClassName)}>
-        <div className={props.className}>
-          <Show when={!!(response.initial && skeleton)}>{skeleton}</Show>
-          <Show
-            when={!response.empty}
-            fallback={
-              <div className="w-full h-[240px] flex items-center justify-center">
-                <div className="flex flex-col items-center justify-center">
-                  <Bird className="w-24 h-24" />
-                  <div className="mt-4 flex items-center space-x-2">
-                    <Show when={response.loading}>
-                      <Loader className="w-6 h-6 animate-spin" />
-                    </Show>
-                    <div className="text-xl">{response.loading ? "加载中" : "列表为空"}</div>
-                  </div>
-                  {extraEmpty}
+      <div className={cn("relative z-40 h-full text-w-fg-1", props.wrapClassName)}>
+        <Show when={!!(response.initial && skeleton)}>
+          <div className={props.className}>{skeleton}</div>
+        </Show>
+        <Show
+          when={!response.empty}
+          fallback={
+            <div className="w-full h-[240px] flex items-center justify-center">
+              <div className="flex flex-col items-center justify-center">
+                <Bird className="w-24 h-24" />
+                <div className="mt-4 flex items-center space-x-2">
+                  <Show when={response.loading}>
+                    <Loader className="w-6 h-6 animate-spin" />
+                  </Show>
+                  <div className="text-xl">{response.loading ? "加载中" : "列表为空"}</div>
                 </div>
+                {extraEmpty}
               </div>
-            }
-          >
-            {props.children}
-          </Show>
-        </div>
+            </div>
+          }
+        >
+          <div className={props.className}>{props.children}</div>
+        </Show>
         <Show
           when={!!response.error}
           fallback={

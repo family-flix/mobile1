@@ -3,6 +3,7 @@
 import { Application } from "@/domains/app";
 import { BottomMenuCore } from "@/domains/bottom_menu";
 import { BizError } from "@/domains/error";
+import { HttpClientCore } from "@/domains/http_client";
 import { NavigatorCore } from "@/domains/navigator";
 import { RouteViewCore } from "@/domains/route_view";
 
@@ -83,12 +84,14 @@ export type Shift<T extends any[]> = ((...args: T) => void) extends (arg1: any, 
 export type ViewComponent = (props: {
   app: Application;
   router: NavigatorCore;
+  client: HttpClientCore;
   view: RouteViewCore;
 }) => React.ReactElement | null;
 
 export type ViewComponentWithMenu = (props: {
   app: Application;
   router: NavigatorCore;
+  client: HttpClientCore;
   view: RouteViewCore;
   menu?: BottomMenuCore;
 }) => React.ReactElement | null;

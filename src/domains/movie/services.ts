@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { request } from "@/store/request";
+import { request, TmpRequestResp } from "@/domains/request_v2/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
@@ -12,9 +12,9 @@ import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts
  * 获取电影和当前播放进度
  * @param body
  */
-export async function fetchMoviePlayingSource(body: { movie_id: string }) {
+export function fetchMoviePlayingSource(body: { movie_id: string }) {
   // console.log("[]fetch_tv_profile params", params);
-  const r = await request.get<{
+  return request.get<{
     id: string;
     name: string;
     overview: string;
@@ -37,6 +37,8 @@ export async function fetchMoviePlayingSource(body: { movie_id: string }) {
   }>(`/api/v2/wechat/season/playing`, {
     media_id: body.movie_id,
   });
+}
+export function fetchMoviePlayingSourceProcess(r: TmpRequestResp<typeof fetchMoviePlayingSource>) {
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -53,15 +55,14 @@ export async function fetchMoviePlayingSource(body: { movie_id: string }) {
   });
 }
 /** 电影详情 */
-export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMoviePlayingSource>>>;
+export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMoviePlayingSourceProcess>>>;
 
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息
  */
-export async function fetch_movie_profile(params: { id: string; type?: MediaResolutionTypes }) {
-  // console.log("[]fetch_episode_profile", params);
+export function fetchMovieProfile(params: { id: string; type?: MediaResolutionTypes }) {
   const { id } = params;
-  const res = await request.get<{
+  return request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -97,10 +98,12 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
   }>(`/api/movie/${id}`, {
     type: params.type,
   });
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchMovieProfileProcess(r: TmpRequestResp<typeof fetchMovieProfile>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = r.data;
   return Result.Ok({
     url,
     file_id,
@@ -127,10 +130,10 @@ export async function fetch_movie_profile(params: { id: string; type?: MediaReso
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息
  */
-export async function fetch_media_profile(params: { id: string; type?: MediaResolutionTypes }) {
+export function fetchMediaProfile(params: { id: string; type?: MediaResolutionTypes }) {
   // console.log("[]fetch_episode_profile", params);
   const { id } = params;
-  const res = await request.get<{
+  return request.get<{
     id: string;
     name: string;
     /** 缩略图 */
@@ -159,20 +162,16 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
       /** 影片高度 */
       height: number;
     }[];
-    subtitles: {
-      id: string;
-      type: number;
-      name: string;
-      url: string;
-      lang: string;
-    }[];
+    subtitles: SubtitleFileResp[];
   }>(`/api/media/${id}`, {
     type: params.type,
   });
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchMediaProfileProcess(r: TmpRequestResp<typeof fetchMediaProfile>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = r.data;
   return Result.Ok({
     url,
     file_id,
@@ -195,7 +194,7 @@ export async function fetch_media_profile(params: { id: string; type?: MediaReso
     subtitles,
   });
 }
-export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_movie_profile>>>;
+export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMediaProfileProcess>>>;
 /**
  * 更新播放记录
  */
@@ -230,9 +229,9 @@ export function hidden_tv(body: { id: string }) {
  * @param params
  * @returns
  */
-export async function fetch_play_histories(params: FetchParams) {
+export function fetchPlayHistories(params: FetchParams) {
   const { page, pageSize, ...rest } = params;
-  const r = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       /** 电视剧名称 */
@@ -272,10 +271,12 @@ export async function fetch_play_histories(params: FetchParams) {
     page,
     page_size: pageSize,
   });
+}
+export function fetchPlayHistoriesProcess(r: TmpRequestResp<typeof fetchPlayHistories>) {
   if (r.error) {
     return r;
   }
-  const { list, total, no_more, page_size } = r.data;
+  const { list, total, no_more, page, page_size } = r.data;
   return Result.Ok({
     page,
     page_size,
@@ -317,14 +318,14 @@ export async function fetch_play_histories(params: FetchParams) {
     }),
   });
 }
-export type PlayHistoryItem = RequestedResource<typeof fetch_play_histories>["list"][0];
+export type PlayHistoryItem = RequestedResource<typeof fetchPlayHistoriesProcess>["list"][0];
 
 /**
  * 获取电影列表
  */
-export async function fetchMovieList(params: FetchParams & { name: string }) {
+export function fetchMovieList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -347,12 +348,14 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
+}
+export function fetchMovieListProcess(r: TmpRequestResp<typeof fetchMovieList>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
   return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((movie) => {
+    ...r.data,
+    list: r.data.list.map((movie) => {
       const {
         id,
         name,
@@ -409,4 +412,4 @@ export async function fetchMovieList(params: FetchParams & { name: string }) {
     }),
   });
 }
-export type MovieItem = RequestedResource<typeof fetchMovieList>["list"][0];
+export type MovieItem = RequestedResource<typeof fetchMovieListProcess>["list"][0];

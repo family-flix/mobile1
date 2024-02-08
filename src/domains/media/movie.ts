@@ -6,6 +6,8 @@ import { Handler } from "mitt";
 import { BaseDomain } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MediaSourceFileCore } from "@/domains/source";
+import { HttpClientCore } from "@/domains/http_client";
+import { RequestCoreV2 } from "@/domains/request_v2";
 import { MediaTypes } from "@/constants";
 import { Result } from "@/types";
 
@@ -13,13 +15,10 @@ import {
   CurMediaSource,
   fetchMediaPlayingEpisode,
   fetchMediaPlayingEpisodeProcess,
-  MediaAndCurSource,
   MediaSource,
   MediaSourceFile,
   updatePlayHistory,
 } from "./services";
-import { RequestCoreV2 } from "../request_v2";
-import { request } from "@/store/request";
 
 enum Events {
   /** 电影详情加载完成 */
@@ -46,7 +45,7 @@ type MovieCoreState = {
   curSource: null | CurMediaSource;
 };
 type MovieCoreProps = {
-  profile: MediaAndCurSource;
+  client: HttpClientCore;
   resolution?: MediaResolutionTypes;
 };
 
@@ -63,6 +62,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   canAutoPlay = false;
 
   $source: MediaSourceFileCore;
+  $client: HttpClientCore;
 
   get state(): MovieCoreState {
     return {
@@ -71,11 +71,13 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(props: Partial<{ name: string } & MovieCoreProps> = {}) {
+  constructor(props: Partial<{ name: string }> & MovieCoreProps) {
     super();
 
-    const { resolution = MediaResolutionTypes.SD } = props;
+    const { client, resolution = MediaResolutionTypes.SD } = props;
+    this.$client = client;
     this.$source = new MediaSourceFileCore({
+      client,
       resolution,
     });
   }
@@ -88,7 +90,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     const fetch = new RequestCoreV2({
       fetch: fetchMediaPlayingEpisode,
       process: fetchMediaPlayingEpisodeProcess,
-      client: request,
+      client: this.$client,
     });
     const res = await fetch.run({ media_id, type: MediaTypes.Movie });
     if (res.error) {

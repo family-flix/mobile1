@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import { ViewComponent } from "@/store/types";
 import { useInitialize } from "@/hooks";
-import { ViewComponent } from "@/types";
 
-export const Test1Page: ViewComponent = (props) => {
+export const Test1Page: ViewComponent = React.memo((props) => {
   const { view } = props;
 
   useInitialize(() => {
@@ -33,4 +33,4 @@ export const Test1Page: ViewComponent = (props) => {
       </div>
     </div>
   );
-};
+});

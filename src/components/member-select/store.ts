@@ -1,15 +1,13 @@
 /**
  * @file 成员选择
  */
-import { request } from "@/store/request";
 import { InviteeItem, fetchInviteeList } from "@/services";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
-import { ListCore } from "@/domains/list";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCore } from "@/domains/request";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
+import { HttpClientCore } from "@/domains/http_client";
 
 enum Events {
   StateChange,
@@ -23,6 +21,7 @@ type TheTypesOfEvents = {
   [Events.Clear]: void;
 };
 type InviteeSelectProps = {
+  client: HttpClientCore;
   onSelect?: (v: InviteeItem) => void;
   onOk?: (v: InviteeItem) => void;
 } & Omit<DialogProps, "onOk">;
@@ -50,17 +49,7 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
   // /** 弹窗取消按钮 */
   // cancelBtn: ButtonCore;
   /** 季列表 */
-  $list = new ListCoreV2(
-    new RequestCoreV2({
-      client: request,
-      fetch: fetchInviteeList,
-    }),
-    {
-      onLoadingChange: (loading) => {
-        this.searchBtn.setLoading(loading);
-      },
-    }
-  );
+  $list: ListCoreV2<RequestCoreV2<{ fetch: typeof fetchInviteeList; client: HttpClientCore }>, InviteeItem>;
   get response() {
     return this.$list.response;
   }
@@ -71,7 +60,19 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ _name: string }> & InviteeSelectProps) {
     super(props);
 
-    const { onSelect, onOk, onCancel } = props;
+    const { client, onSelect, onOk, onCancel } = props;
+
+    this.$list = new ListCoreV2(
+      new RequestCoreV2({
+        client,
+        fetch: fetchInviteeList,
+      }),
+      {
+        onLoadingChange: (loading) => {
+          this.searchBtn.setLoading(loading);
+        },
+      }
+    );
     // this.dialog = new DialogCore({
     //   title: "选择好友",
     //   onOk: () => {

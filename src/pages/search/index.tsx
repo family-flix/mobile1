@@ -2,10 +2,10 @@
  * @file 电视剧列表
  */
 import React, { useState } from "react";
-import { ArrowUp, ChevronLeft, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
+import { ArrowUp, ChevronLeft, Loader, Pen, Search, SlidersHorizontal, Star, Trash } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
+import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
+import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import {
   Skeleton,
   ListView,
@@ -18,22 +18,20 @@ import {
   Dialog,
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
-import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
-import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Affix } from "@/components/ui/affix";
+import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { AffixCore } from "@/domains/ui/affix";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request_v2";
+import { useInitialize, useInstance } from "@/hooks";
+import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 
 export const MediaSearchPage: ViewComponent = React.memo((props) => {
-  const { app, router, view } = props;
+  const { app, history, client, storage, view } = props;
 
   const seasonList = useInstance(
     () =>
-      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client: request }), {
+      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
         pageSize: 20,
         beforeSearch() {
           searchInput.setLoading(true);
@@ -69,10 +67,12 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           });
         },
         onClear() {
+          setKeyword("");
+          setShowPlaceholder(true);
           // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
-          seasonList.search({
-            name: "",
-          });
+          // seasonList.search({
+          //   name: "",
+          // });
         },
         onMounted() {
           searchInput.focus();
@@ -80,9 +80,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
       })
   );
   const sourceCheckboxGroup = useInstance(() => {
-    const { language = [] } = app.cache.get("tv_search", {
-      language: [] as string[],
-    });
+    const { language = [] } = storage.get("tv_search");
     return new CheckboxGroupCore({
       values: TVSourceOptions.filter((opt) => {
         return language.includes(opt.value);
@@ -94,10 +92,10 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
         };
       }),
       onChange(options) {
-        app.cache.merge("tv_search", {
+        storage.merge("tv_search", {
           language: options,
         });
-        setHasSearch(!!options.length);
+        // setHasSearch(!!options.length);
         seasonList.search({
           language: options.join("|"),
         });
@@ -114,7 +112,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
         // app.cache.merge("tv_search", {
         //   genres: options,
         // });
-        setHasSearch(!!options.length);
+        // setHasSearch(!!options.length);
         // settingsSheet.hide();
         seasonList.search({
           genres: options.join("|"),
@@ -122,7 +120,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
       },
     });
   });
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -134,15 +132,16 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
   );
 
   const [response, setResponse] = useState(seasonList.response);
+  const [keyword, setKeyword] = useState(searchInput.value);
   const [height, setHeight] = useState(affix.height);
-  const [hasSearch, setHasSearch] = useState(
-    (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
-      return language.length !== 0;
-    })()
-  );
+  const [showPlaceholder, setShowPlaceholder] = useState(true);
+  const [histories, setHistories] = useState(storage.values.media_search_histories);
+  // const [hasSearch, setHasSearch] = useState(
+  //   (() => {
+  //     const { language = [] } = storage.get("tv_search");
+  //     return language.length !== 0;
+  //   })()
+  // );
 
   useInitialize(() => {
     view.onShow(() => {
@@ -161,23 +160,34 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     affix.onMounted((rect) => {
       setHeight(rect.height);
     });
+    searchInput.onChange((v) => {
+      setKeyword(v);
+    });
     seasonList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
+    });
+    seasonList.onAfterSearch(({ params }) => {
+      const { name } = params as { name: string };
+      if (name && !storage.values.media_search_histories.includes(name)) {
+        storage.merge("media_search_histories", [name]);
+      }
+      setShowPlaceholder(false);
+    });
+    storage.onStateChange((v) => {
+      setHistories(v.values.media_search_histories);
     });
     mediaRequest.onTip((msg) => {
       app.tip(msg);
     });
-    const search = (() => {
-      const { language = [] } = app.cache.get("tv_search", {
-        language: [] as string[],
-      });
-      if (!language.length) {
-        return {};
-      }
-      return {
-        language: language.join("|"),
-      };
-    })();
+    // const search = (() => {
+    //   const { language = [] } = storage.get("tv_search");
+    //   if (!language.length) {
+    //     return {};
+    //   }
+    //   return {
+    //     language: language.join("|"),
+    //   };
+    // })();
   });
 
   const { dataSource } = response;
@@ -188,116 +198,178 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     <>
       <Affix store={affix} className="z-50 w-full bg-w-bg-0">
         <div className="flex items-center justify-between w-full py-2 px-4 text-w-fg-0 space-x-3">
-          <ChevronLeft
-            className="w-6 h-6"
-            onClick={() => {
-              app.back();
-            }}
-          />
           <div className="flex-1 w-0">
             <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
           </div>
-          {/* <div
-            className="relative w-6 h-6 p-2 rounded-md bg-w-bg-3"
+          <div
+            className="relative py-2 w-12 text-center"
             onClick={() => {
-              settingsSheet.show();
+              if (searchInput.value) {
+                seasonList.search({
+                  name: searchInput.value,
+                });
+                return;
+              }
+              history.back();
             }}
           >
-            <SlidersHorizontal className="w-5 h-5" />
-            {hasSearch && <div className="absolute top-[2px] right-[2px] w-2 h-2 rounded-full bg-w-red"></div>}
-          </div> */}
+            {keyword ? "搜索" : "取消"}
+          </div>
         </div>
       </Affix>
-      <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
-        <ListView
-          store={seasonList}
-          className="w-full h-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 space-y-3 pt-4"
-          extraEmpty={
-            <div className="mt-2">
-              <Button store={mediaRequestBtn} variant="subtle">
-                提交想看的影视剧
-              </Button>
-            </div>
-          }
-        >
-          {(() => {
-            return dataSource.map((season) => {
-              const { id, type, name, episode_count_text, vote, genres, air_date, poster_path = "", actors } = season;
-              return (
-                <div
-                  key={id}
-                  className="flex px-3 cursor-pointer"
-                  onClick={() => {
-                    if (type === MediaTypes.Season) {
-                      seasonPlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(seasonPlayingPageV2);
-                      return;
-                    }
-                    if (type === MediaTypes.Movie) {
-                      moviePlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(moviePlayingPageV2);
-                      return;
-                    }
-                    app.tip({
-                      text: ["未知的媒体类型"],
-                    });
-                  }}
-                >
-                  <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                    <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
-                    {episode_count_text && (
-                      <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
-                        <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
-                        <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
-                          {episode_count_text}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2 flex-1 max-w-full overflow-hidden">
-                    <div className="flex items-center">
-                      <h2 className="text-xl text-w-fg-0">{name}</h2>
-                    </div>
-                    <div className="flex items-center mt-1">
-                      <div>{air_date}</div>
-                      <p className="mx-2 ">·</p>
-                      <div className="relative flex items-center">
-                        <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
-                        <div className="pl-4">{vote}</div>
-                      </div>
-                    </div>
-                    {actors ? (
-                      <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
-                        {actors}
-                      </div>
-                    ) : null}
-                    <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
-                      {genres.map((tag) => {
-                        return (
-                          <div
-                            key={tag}
-                            className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
-                            style={{
-                              lineHeight: "12px",
-                            }}
-                          >
-                            {tag}
-                          </div>
-                        );
-                      })}
-                    </div>
+      {(() => {
+        if (showPlaceholder) {
+          return (
+            <div className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="">搜索历史</div>
+                  <div
+                    onClick={() => {
+                      storage.clear("media_search_histories");
+                    }}
+                  >
+                    <Trash className="w-4 h-4" />
                   </div>
                 </div>
-              );
-            });
-          })()}
-        </ListView>
-        <div style={{ height: 1 }} />
-      </ScrollView>
+                <div className="flex items-center flex-wrap mt-2 gap-2">
+                  {histories.map((keyword) => {
+                    return (
+                      <div
+                        key={keyword}
+                        className="px-4 py-2 rounded-md text-sm bg-w-bg-2"
+                        onClick={() => {
+                          searchInput.change(keyword);
+                          searchInput.enter();
+                        }}
+                      >
+                        {keyword}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
+            <ListView
+              store={seasonList}
+              className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
+              extraEmpty={
+                <div className="mt-2">
+                  <Button store={mediaRequestBtn} variant="subtle">
+                    提交想看的影视剧
+                  </Button>
+                </div>
+              }
+            >
+              {(() => {
+                return dataSource.map((season) => {
+                  const {
+                    id,
+                    type,
+                    name,
+                    episode_count_text,
+                    vote,
+                    genres,
+                    air_date,
+                    poster_path = "",
+                    actors,
+                  } = season;
+                  return (
+                    <div
+                      key={id}
+                      className="flex px-3 mb-2 cursor-pointer"
+                      onClick={() => {
+                        if (type === MediaTypes.Season) {
+                          // seasonPlayingPageV2.query = {
+                          //   id,
+                          // };
+                          // app.showView(seasonPlayingPageV2);
+                          history.push("root.season_playing", { id });
+                          return;
+                        }
+                        if (type === MediaTypes.Movie) {
+                          // moviePlayingPageV2.query = {
+                          //   id,
+                          // };
+                          // app.showView(moviePlayingPageV2);
+                          history.push("root.movie_playing", { id });
+                          return;
+                        }
+                        app.tip({
+                          text: ["未知的媒体类型"],
+                        });
+                      }}
+                    >
+                      <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
+                        <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
+                        <div className="absolute top-2 left-2">
+                          <div className="relative z-20 py-[1px] px-[2px] border text-[12px] rounded-md text-w-bg-1 dark:border-w-fg-1 dark:text-w-fg-1">
+                            {(() => {
+                              if (type === MediaTypes.Season) {
+                                return "电视剧";
+                              }
+                              if (type === MediaTypes.Movie) {
+                                return "电影";
+                              }
+                              return null;
+                            })()}
+                          </div>
+                        </div>
+                        {episode_count_text && (
+                          <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
+                            <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
+                            <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-1 dark:text-w-fg-1">
+                              {episode_count_text}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                        <div className="flex items-center">
+                          <h2 className="text-xl text-w-fg-0">{name}</h2>
+                        </div>
+                        <div className="flex items-center mt-1">
+                          <div>{air_date}</div>
+                          <p className="mx-2 ">·</p>
+                          <div className="relative flex items-center">
+                            <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
+                            <div className="pl-4">{vote}</div>
+                          </div>
+                        </div>
+                        {actors ? (
+                          <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
+                            {actors}
+                          </div>
+                        ) : null}
+                        <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
+                          {genres.map((tag) => {
+                            return (
+                              <div
+                                key={tag}
+                                className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
+                                style={{
+                                  lineHeight: "12px",
+                                }}
+                              >
+                                {tag}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </ListView>
+            <div style={{ height: 1 }} />
+          </ScrollView>
+        );
+      })()}
       <Sheet store={settingsSheet}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
           {response.loading && (

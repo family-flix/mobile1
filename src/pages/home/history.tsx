@@ -4,8 +4,7 @@
 import React, { useState } from "react";
 import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { ViewComponentWithMenu } from "@/store/types";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { RequestCoreV2 } from "@/domains/request_v2";
@@ -13,28 +12,25 @@ import { ListCoreV2 } from "@/domains/list/v2";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
 import { PlayHistoryItem, deleteHistory, fetchPlayingHistories } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MediaTypes } from "@/constants";
-import { ViewComponent, ViewComponentWithMenu } from "@/types";
 
-export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
-  const { app, router, view, menu } = props;
+export const HomeHistoryPage: ViewComponentWithMenu = React.memo((props) => {
+  const { app, client, history, view, menu } = props;
 
   const historyList = useInstance(
     () =>
       new ListCoreV2(
         new RequestCoreV2({
           fetch: fetchPlayingHistories,
-          client: request,
+          client,
         })
       )
   );
   const deletingRequest = useInstance(
     () =>
       new RequestCoreV2({
-        client: request,
+        client,
         fetch: deleteHistory,
         onLoading(loading) {
           deletingConfirmDialog.okBtn.setLoading(loading);
@@ -104,23 +100,25 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
   const historyCard = useInstance(
     () =>
       new NodeInListCore<PlayHistoryItem>({
-        onClick(history) {
-          if (!history) {
+        onClick(record) {
+          if (!record) {
             return;
           }
-          const { type, media_id } = history;
+          const { type, media_id } = record;
           if (type === MediaTypes.Season) {
-            seasonPlayingPageV2.query = {
-              id: media_id,
-            };
-            app.showView(seasonPlayingPageV2);
+            // seasonPlayingPageV2.query = {
+            //   id: media_id,
+            // };
+            // app.showView(seasonPlayingPageV2);
+            history.push("root.season_playing", { id: media_id });
             return;
           }
           if (type === MediaTypes.Movie) {
-            moviePlayingPageV2.query = {
-              id: media_id,
-            };
-            app.showView(moviePlayingPageV2);
+            // moviePlayingPageV2.query = {
+            //   id: media_id,
+            // };
+            // app.showView(moviePlayingPageV2);
+            history.push("root.movie_playing", { id: media_id });
             return;
           }
         },
@@ -267,4 +265,4 @@ export const HomeHistoryPage: ViewComponentWithMenu = (props) => {
       </Dialog>
     </>
   );
-};
+});

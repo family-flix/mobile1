@@ -1,11 +1,11 @@
 /**
  * @file 使用外部播放器打开指定视频文件
  */
-import { useState } from "react";
+import React, { useState } from "react";
 
+import { ViewComponent } from "@/store/types";
 import { SeasonMediaCore } from "@/domains/media/season";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },
@@ -28,10 +28,10 @@ const players: { icon: string; name: string; scheme: string }[] = [
     scheme: "intent:$durl#Intent;package=com.mxtech.videoplayer.pro;S.title=$name;end",
   },
 ];
-export const OuterPlayersPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const OuterPlayersPage: ViewComponent = React.memo((props) => {
+  const { app, client, view } = props;
 
-  const tv = useInstance(() => new SeasonMediaCore());
+  const tv = useInstance(() => new SeasonMediaCore({ client }));
   const [profile, setProfile] = useState(tv.profile);
   const [source, setSource] = useState(tv.$source.profile);
 
@@ -83,4 +83,4 @@ export const OuterPlayersPage: ViewComponent = (props) => {
       </div>
     </div>
   );
-};
+});

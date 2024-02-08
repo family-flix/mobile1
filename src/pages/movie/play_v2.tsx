@@ -1,7 +1,7 @@
 /**
  * @file 电影播放页面
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Airplay,
   AlertTriangle,
@@ -15,7 +15,8 @@ import {
   Settings,
 } from "lucide-react";
 
-import { request } from "@/store/request";
+// import { client } from "@/store/request";
+import { GlobalStorageValues, ViewComponent } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
@@ -27,20 +28,23 @@ import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { RouteViewCore } from "@/domains/route_view";
 import { MovieMediaCore } from "@/domains/media/movie";
-import { RequestCore } from "@/domains/request";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { Application, OrientationTypes } from "@/domains/app";
+import { HttpClientCore } from "@/domains/http_client";
+import { StorageCore } from "@/domains/storage";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
-import { ReportTypes, SeasonReportList, players } from "@/constants";
 import { cn, seconds_to_hour } from "@/utils";
 
-class MoviePlayingPageLogic {
-  $app: Application;
+class MoviePlayingPageLogic<
+  P extends { app: Application; client: HttpClientCore; storage: StorageCore<GlobalStorageValues> }
+> {
+  $app: P["app"];
+  $client: P["client"];
+  $storage: P["storage"];
   $tv: MovieMediaCore;
   $player: PlayerCore;
   $settings: RefCore<{
@@ -49,21 +53,19 @@ class MoviePlayingPageLogic {
     type: MediaResolutionTypes;
   }>;
   $report: RefCore<string>;
+  $createReport: RequestCoreV2<{ fetch: typeof reportSomething; client: HttpClientCore }>;
 
-  _createReport = new RequestCoreV2({
-    fetch: reportSomething,
-    client: request,
-  });
-
-  constructor(props: { app: Application }) {
-    const { app } = props;
+  constructor(props: P) {
+    const { app, client, storage } = props;
     this.$app = app;
+    this.$client = client;
+    this.$storage = storage;
 
-    const settings = app.cache.get("player_settings", {
-      volume: 0.5,
-      rate: 1,
-      type: MediaResolutionTypes.SD,
+    this.$createReport = new RequestCoreV2({
+      fetch: reportSomething,
+      client,
     });
+    const settings = storage.get("player_settings");
     this.$settings = new RefCore<{
       volume: number;
       rate: number;
@@ -74,6 +76,7 @@ class MoviePlayingPageLogic {
     const { type: resolution, volume, rate } = settings;
     const tv = new MovieMediaCore({
       resolution,
+      client,
     });
     this.$tv = tv;
     const player = new PlayerCore({ app, volume, rate });
@@ -131,7 +134,7 @@ class MoviePlayingPageLogic {
       // console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
       player.pause();
       player.setSize({ width: mediaSource.width, height: mediaSource.height });
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         type: mediaSource.type,
       });
       // loadSource 后开始 video loadstart 事件
@@ -166,7 +169,7 @@ class MoviePlayingPageLogic {
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
@@ -315,8 +318,8 @@ class MoviePlayingPageView {
   }
 }
 
-export const MoviePlayingPageV2: ViewComponent = (props) => {
-  const { app, view } = props;
+export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
+  const { app, history, client, storage, view } = props;
 
   //   const shareMediaRequest = useInstance(
   //     () =>
@@ -374,7 +377,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
   //         },
   //       })
   //   );
-  const $logic = useInstance(() => new MoviePlayingPageLogic({ app }));
+  const $logic = useInstance(() => new MoviePlayingPageLogic({ app, client, storage }));
   const $page = useInstance(() => new MoviePlayingPageView({ view }));
 
   const [state, setProfile] = useState($logic.$tv.state);
@@ -427,21 +430,19 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
       $page.prepareHide();
       $page.$time.hide();
     });
-    $logic._createReport.onSuccess(() => {
-      app.tip({
-        text: ["提交成功"],
-      });
-      //       reportConfirmDialog.hide();
-      //       reportSheet.hide();
-    });
-    $logic._createReport.onLoadingChange((loading) => {
-      //       reportConfirmDialog.okBtn.setLoading(loading);
-    });
-    $logic._createReport.onFailed((error) => {
-      app.tip({
-        text: ["提交失败", error.message],
-      });
-    });
+    // $logic._createReport.onSuccess(() => {
+    //   app.tip({
+    //     text: ["提交成功"],
+    //   });
+    // });
+    // $logic._createReport.onLoadingChange((loading) => {
+    //       reportConfirmDialog.okBtn.setLoading(loading);
+    // });
+    // $logic._createReport.onFailed((error) => {
+    //   app.tip({
+    //     text: ["提交失败", error.message],
+    //   });
+    // });
 
     //     setCurReportValue(v);
     $logic.$tv.fetchProfile(view.query.id);
@@ -466,7 +467,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
           $page.toggle();
         }}
       >
-        <div className="absolute z-10 top-[36%] left-[50%]" style={{ transform: `translate(-50%, -50%)` }}>
+        <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2" style={{ transform: `translate(-50%, -50%)` }}>
           <Video store={$logic.$player} />
           <Presence
             className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
@@ -559,7 +560,7 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
               <div
                 className="inline-block p-4"
                 onClick={() => {
-                  app.back();
+                  history.back();
                 }}
               >
                 <ArrowLeft className="w-6 h-6" />
@@ -639,7 +640,14 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
         </div>
       </ScrollView>
       <Sheet store={$page.$settings} hideTitle>
-        <MovieMediaSettings store={$logic.$tv} app={app} store2={$logic.$player} />
+        <MovieMediaSettings
+          store={$logic.$tv}
+          store2={$logic.$player}
+          app={app}
+          client={client}
+          history={history}
+          storage={storage}
+        />
       </Sheet>
       {/* <Sheet store={dSheet} size="xl">
         {(() => {
@@ -851,4 +859,4 @@ export const MoviePlayingPageV2: ViewComponent = (props) => {
       </Dialog> */}
     </>
   );
-};
+});

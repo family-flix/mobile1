@@ -1,8 +1,9 @@
 import { HttpClientCore } from "@/domains/http_client";
+import { __VERSION__ } from "@/constants";
 
-import { user } from "./user";
-
-export const request = new HttpClientCore({
-  hostname: window.location.hostname,
-  user,
+export const client = new HttpClientCore({
+  hostname: window.location.origin,
+  headers: {
+    "client-version": __VERSION__,
+  },
 });

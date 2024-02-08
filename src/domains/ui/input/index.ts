@@ -95,7 +95,9 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       this.onChange(onChange);
     }
     if (onEnter) {
-      this.onEnter(onEnter);
+      this.onEnter(() => {
+        onEnter(this.value);
+      });
     }
     if (onBlur) {
       this.onBlur(onBlur);
@@ -154,6 +156,9 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   reset() {
     this.value = this._defaultValue;
     this.emit(Events.StateChange, { ...this.state });
+  }
+  enter() {
+    this.emit(Events.Enter);
   }
 
   onChange(handler: Handler<TheTypesOfEvents[Events.Change]>) {

@@ -5,16 +5,35 @@ import { useEffect, useMemo, useRef, useState } from "react";
  */
 export function useInitialize(fn: Function) {
   const initialized_ref = useRef(false);
-  useEffect(() => {
-    // console.log("[hooks]useInitialize - useEffect", initialized_ref.current, fn);
+  // const [initialized, setInitialized] = useState(false);
+
+  useState(() => {
     if (initialized_ref.current) {
       return;
     }
     initialized_ref.current = true;
-    if (fn) {
-      fn();
-    }
-  }, []);
+    fn();
+  });
+  // const constructor = () => {
+  //   if (initialized_ref.current) {
+  //     return;
+  //   }
+  //   initialized_ref.current = true;
+  //   if (fn) {
+  //     fn();
+  //   }
+  // };
+  // useMemo(() => {
+  //   if (initialized) {
+  //     return;
+  //   }
+  //   // initialized_ref.current = true;
+  //   // setInitialized(true);
+  //   if (fn) {
+  //     fn();
+  //   }
+  // }, [initialized]);
+  // constructor();
 }
 export function useUnmounted(fn: Function) {
   useEffect(() => {

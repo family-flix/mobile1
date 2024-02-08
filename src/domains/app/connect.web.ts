@@ -1,7 +1,6 @@
 import { Application, MEDIA } from "@/domains/app";
 
 export function connect(app: Application) {
-  const { router } = app;
   const ownerDocument = globalThis.document;
   app.getComputedStyle = (el: HTMLElement) => {
     return window.getComputedStyle(el);
@@ -27,11 +26,6 @@ export function connect(app: Application) {
   });
   window.addEventListener("load", () => {
     // console.log("2");
-  });
-  window.addEventListener("popstate", (event) => {
-    const { type } = event;
-    const { pathname } = window.location;
-    app.emit(app.Events.PopState, { type, pathname });
   });
   window.addEventListener("beforeunload", (event) => {
     // // 取消事件
@@ -136,67 +130,6 @@ export function connect(app: Application) {
   ownerDocument.addEventListener("keydown", (event) => {
     const { key } = event;
     app.keydown({ key });
-  });
-  ownerDocument.addEventListener("click", (event) => {
-    let target = event.target;
-    if (target instanceof Document) {
-      return;
-    }
-    if (target === null) {
-      return;
-    }
-    let matched = false;
-    while (target) {
-      const t = target as HTMLElement;
-      if (t.tagName === "A") {
-        matched = true;
-        break;
-      }
-      target = t.parentNode;
-    }
-    if (!matched) {
-      return;
-    }
-    const t = target as HTMLElement;
-    const href = t.getAttribute("href");
-    if (!href) {
-      return;
-    }
-    if (!href.startsWith("/")) {
-      return;
-    }
-    if (href.startsWith("http")) {
-      return;
-    }
-    event.preventDefault();
-    app.emit(app.Events.ClickLink, { href });
-  });
-  router.back = () => {
-    window.history.back();
-  };
-  router.reload = () => {
-    window.location.reload();
-  };
-  router.onPushState(({ from, to, path }) => {
-    // router.log("[Application ]- onPushState", path);
-    window.history.pushState(
-      {
-        from,
-        to,
-      },
-      "",
-      path
-    );
-  });
-  router.onReplaceState(({ from, path, pathname }) => {
-    // router.log("[Application ]- onReplaceState");
-    window.history.replaceState(
-      {
-        from,
-      },
-      "",
-      path
-    );
   });
 
   const originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;

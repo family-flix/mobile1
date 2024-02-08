@@ -1,9 +1,10 @@
 /**
  * @file 直播
  */
-import { useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
+import { ViewComponent } from "@/store/types";
 import { Dialog, ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { MediaResolutionTypes } from "@/domains/source/constants";
@@ -12,11 +13,10 @@ import { PlayerCore } from "@/domains/player";
 import { OrientationTypes } from "@/domains/app";
 import { Presence } from "@/components/ui/presence";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { cn } from "@/utils";
 
-export const TVChannelPlayingPage: ViewComponent = (props) => {
-  const { app, view } = props;
+export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
+  const { app, storage, history, client, view } = props;
 
   const settingsRef = useInstance(() => {
     const r = new RefCore<{
@@ -24,11 +24,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
       rate: number;
       type: MediaResolutionTypes;
     }>({
-      value: app.cache.get("player_settings", {
-        volume: 0.5,
-        rate: 1,
-        type: MediaResolutionTypes.SD,
-      }),
+      value: storage.get("player_settings"),
     });
     return r;
   });
@@ -37,7 +33,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
       new ScrollViewCore({
         onPullToBack() {
           console.log("[PAGE]live/playing - onPullToBack");
-          app.back();
+          history.back();
         },
       })
   );
@@ -109,7 +105,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
     });
     if (!hide_menu) {
       scrollView.onPullToBack(() => {
-        app.back();
+        history.back();
       });
     }
     player.onExitFullscreen(() => {
@@ -132,7 +128,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
       player.play();
     });
     player.onVolumeChange(({ volume }) => {
-      app.cache.merge("player_settings", {
+      storage.merge("player_settings", {
         volume,
       });
     });
@@ -226,7 +222,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
                       <div
                         className="inline-block p-4"
                         onClick={() => {
-                          app.back();
+                          history.back();
                         }}
                       >
                         <ArrowLeft className="w-6 h-6" />
@@ -273,7 +269,7 @@ export const TVChannelPlayingPage: ViewComponent = (props) => {
       </Dialog>
     </>
   );
-};
+});
 
 function build(url: string) {
   const prefix = "https://proxy.f1x.fun/api/proxy/?u=";

@@ -1,23 +1,19 @@
 import React, { useState } from "react";
-import { Bird, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
-import { request } from "@/store/request";
-import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
+import { ViewComponent } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request_v2";
-import { ListCore } from "@/domains/list";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/types";
 import { MediaTypes } from "@/constants";
 import { cn } from "@/utils";
 
 export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
-  const { app } = props;
+  const { app, client, history, view, storage } = props;
 
   const list = useInstance(
     () =>
@@ -25,7 +21,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
         new RequestCoreV2({
           fetch: fetchMediaList,
           process: fetchMediaListProcess,
-          client: request,
+          client,
         }),
         {
           pageSize: 20,
@@ -42,7 +38,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
     },
   });
   const image = useInstance(() => new ImageInListCore());
-  const mediaRequest = useInstance(() => new MediaRequestCore({}));
+  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -59,7 +55,13 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
     list.onStateChange((v) => {
       setResponse(v);
     });
-    list.init();
+    // view.onHidden(() => {
+    //   console.log("[PAGE]home-tabs - view.onHidden");
+    // });
+    // view.onUnmounted(() => {
+    //   console.log("[PAGE]home-tabs - view.onUnmounted");
+    // });
+    list.init({ language: view.query.language });
   });
 
   return (
@@ -109,17 +111,19 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                   className="flex px-3 pb-3 cursor-pointer"
                   onClick={() => {
                     if (type === MediaTypes.Season) {
-                      seasonPlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(seasonPlayingPageV2);
+                      // seasonPlayingPageV2.query = {
+                      //   id,
+                      // };
+                      // app.showView(seasonPlayingPageV2);
+                      history.push("root.season_playing", { id });
                       return;
                     }
                     if (type === MediaTypes.Movie) {
-                      moviePlayingPageV2.query = {
-                        id,
-                      };
-                      app.showView(moviePlayingPageV2);
+                      // moviePlayingPageV2.query = {
+                      //   id,
+                      // };
+                      // app.showView(moviePlayingPageV2);
+                      history.push("root.movie_playing", { id });
                       return;
                     }
                     app.tip({

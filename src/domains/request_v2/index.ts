@@ -170,9 +170,9 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
           token: this.source.token,
           // ...extra,
         });
-        if (this.process) {
-          return Result.Ok(this.process(r)) as Result<Promise<RequestResponse<T>>>;
-        }
+        // if (this.process) {
+        //   return Result.Ok(this.process(r)) as Result<Promise<RequestResponse<T>>>;
+        // }
         return Result.Ok(r) as Result<Promise<RequestResponse<T>>>;
       }
       if (method === "POST") {
@@ -181,9 +181,9 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
           token: this.source.token,
           // ...extra,
         });
-        if (this.process) {
-          return Result.Ok(this.process(r)) as Result<Promise<RequestResponse<T>>>;
-        }
+        // if (this.process) {
+        //   return Result.Ok(this.process(r)) as Result<Promise<RequestResponse<T>>>;
+        // }
         return Result.Ok(r) as Result<Promise<RequestResponse<T>>>;
       }
       return Result.Err(`未知的 method '${method}'`);
@@ -194,22 +194,23 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
     this.pending = r2.data;
     const [r] = await Promise.all([this.pending, this.delay === null ? null : sleep(this.delay)]);
     this.loading = false;
+    const resp = this.process ? (this.process(r) as RequestResponse<T>) : r;
     this.emit(Events.LoadingChange, false);
     this.emit(Events.StateChange, { ...this.state });
     this.emit(Events.Completed);
     this.pending = null;
-    if (r.error) {
-      if (r.error.code === "CANCEL") {
+    if (resp.error) {
+      if (resp.error.code === "CANCEL") {
         this.emit(Events.Canceled);
-        return Result.Err(r.error);
+        return Result.Err(resp.error);
       }
-      this.error = r.error;
-      this.emit(Events.Failed, r.error);
+      this.error = resp.error;
+      this.emit(Events.Failed, resp.error);
       this.emit(Events.StateChange, { ...this.state });
       return Result.Err(r.error);
     }
-    this.response = r.data;
-    const d = r.data as RequestResponse<T>;
+    this.response = resp.data;
+    const d = resp.data as RequestResponse<T>;
     this.emit(Events.Success, d);
     this.emit(Events.StateChange, { ...this.state });
     this.emit(Events.ResponseChange, this.response);

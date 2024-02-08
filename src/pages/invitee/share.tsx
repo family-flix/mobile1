@@ -1,18 +1,19 @@
 import { ArrowLeft, Plus, Search } from "lucide-react";
 
+import { ViewComponent } from "@/store/types";
 import { Input, ScrollView } from "@/components/ui";
 import { InputCore, ScrollViewCore } from "@/domains/ui";
-import { ViewComponent } from "@/types";
 import { useInstance } from "@/hooks";
+import React from "react";
 
-export const MediaSharePage: ViewComponent = (props) => {
-  const { app } = props;
+export const MediaSharePage: ViewComponent = React.memo((props) => {
+  const { app, history } = props;
 
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
         onPullToBack() {
-          app.back();
+          history.back();
         },
       })
   );
@@ -28,7 +29,7 @@ export const MediaSharePage: ViewComponent = (props) => {
                 <div
                   className="inline-block"
                   onClick={() => {
-                    app.back();
+                    history.back();
                   }}
                 >
                   <ArrowLeft className="w-6 h-6" />
@@ -56,4 +57,4 @@ export const MediaSharePage: ViewComponent = (props) => {
       </ScrollView>
     </>
   );
-};
+});

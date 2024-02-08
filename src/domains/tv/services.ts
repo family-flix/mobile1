@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { request } from "@/store/request";
+import { request, TmpRequestResp, UnpackedRequestPayload } from "@/domains/request_v2/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
@@ -12,9 +12,9 @@ import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants"
 /**
  * 获取电视剧列表
  */
-export async function fetch_tv_list(params: FetchParams & { name: string }) {
+export function fetchTVList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -29,24 +29,16 @@ export async function fetch_tv_list(params: FetchParams & { name: string }) {
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
-  }
-  return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((tv) => {
-      return tv;
-    }),
-  });
 }
-export type TVItem = RequestedResource<typeof fetch_tv_list>["list"][0];
+// export type TVItem = RequestedResource<typeof fetchTVList>["list"][0];
+export type TVItem = UnpackedResult<TmpRequestResp<typeof fetchTVList>>["list"][0];
 
 /**
  * 获取季列表
  */
-export async function fetchSeasonList(params: FetchParams & { name: string }) {
+export function fetchSeasonList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       tv_id: string;
@@ -72,12 +64,14 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
+}
+export function fetchSeasonListProcess(r: TmpRequestResp<typeof fetchSeasonList>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
   return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((season) => {
+    ...r.data,
+    list: r.data.list.map((season) => {
       const {
         id,
         tv_id,
@@ -137,7 +131,7 @@ export async function fetchSeasonList(params: FetchParams & { name: string }) {
     }),
   });
 }
-export type SeasonItem = RequestedResource<typeof fetchSeasonList>["list"][0];
+export type SeasonItem = RequestedResource<typeof fetchSeasonListProcess>["list"][0];
 
 type MediaSourceProfileRes = {
   id: string;
@@ -154,10 +148,10 @@ type MediaSourceProfileRes = {
  * 获取电视剧及当前播放的剧集详情
  * @param params
  */
-export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: string }) {
+export function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: string }) {
   // console.log("[]fetch_tv_profile params", params);
   const { tv_id, season_id } = params;
-  const r = await request.get<{
+  return request.get<{
     id: string;
     name: string;
     overview: string;
@@ -204,6 +198,8 @@ export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: 
   }>(`/api/tv/${tv_id}/playing`, {
     season_id,
   });
+}
+export function fetchTVAndCurEpisodeProcess(r: TmpRequestResp<typeof fetchTVAndCurEpisode>) {
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -330,17 +326,21 @@ export async function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: 
   });
 }
 /** 电视剧详情 */
-export type TVAndEpisodesProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>;
-export type TVSeasonProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>["seasons"][number];
-export type TVEpisodeProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisode>>>["curEpisodes"][number];
+export type TVAndEpisodesProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchTVAndCurEpisodeProcess>>>;
+export type TVSeasonProfile = UnpackedResult<
+  Unpacked<ReturnType<typeof fetchTVAndCurEpisodeProcess>>
+>["seasons"][number];
+export type TVEpisodeProfile = UnpackedResult<
+  Unpacked<ReturnType<typeof fetchTVAndCurEpisodeProcess>>
+>["curEpisodes"][number];
 
 /**
  * 获取影片「播放源」信息，包括播放地址、宽高等信息
  */
-export async function fetch_episode_profile(params: { id: string; type?: EpisodeResolutionTypes }) {
+export function fetchEpisodeProfile(params: { id: string; type?: EpisodeResolutionTypes }) {
   // console.log("[]fetch_episode_profile", params);
   const { id } = params;
-  const res = await request.get<{
+  return request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -376,10 +376,12 @@ export async function fetch_episode_profile(params: { id: string; type?: Episode
   }>(`/api/episode/${id}`, {
     type: params.type,
   });
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchEpisodeProfileProcess(r: TmpRequestResp<typeof fetchEpisodeProfile>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = r.data;
   return Result.Ok({
     url,
     file_id,
@@ -402,14 +404,14 @@ export async function fetch_episode_profile(params: { id: string; type?: Episode
     subtitles,
   });
 }
-export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch_episode_profile>>>;
+export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchEpisodeProfileProcess>>>;
 
 /**
  * 获取指定 tv、指定 season 下的所有影片
  */
-export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: string } & FetchParams) {
+export function fetchEpisodesOfSeason(params: { tv_id: string; season_id: string } & FetchParams) {
   const { tv_id, season_id, page, pageSize } = params;
-  const r = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -425,10 +427,12 @@ export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: 
     page,
     page_size: pageSize,
   });
+}
+export function fetchEpisodeOfSeasonProcess(r: TmpRequestResp<typeof fetchEpisodesOfSeason>) {
   if (r.error) {
     return Result.Err(r.error);
   }
-  const { list, total, page_size, no_more } = r.data;
+  const { list, total, page, page_size, no_more } = r.data;
   return Result.Ok({
     page_size,
     page,
@@ -472,8 +476,8 @@ export async function fetchEpisodesOfSeason(params: { tv_id: string; season_id: 
 /**
  * 获取视频源播放信息
  */
-export async function fetchSourcePlayingInfo(body: { episode_id: string; file_id: string }) {
-  const res = await request.get<{
+export function fetchSourcePlayingInfo(body: { episode_id: string; file_id: string }) {
+  return request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -507,10 +511,12 @@ export async function fetchSourcePlayingInfo(body: { episode_id: string; file_id
     }[];
     subtitles: SubtitleFileResp[];
   }>(`/api/episode/${body.episode_id}/source/${body.file_id}`);
-  if (res.error) {
-    return Result.Err(res.error);
+}
+export function fetchSourcePlayingInfoProcess(r: TmpRequestResp<typeof fetchSourcePlayingInfo>) {
+  if (r.error) {
+    return Result.Err(r.error);
   }
-  const { url, file_id, width, height, thumbnail, type, other, subtitles } = res.data;
+  const { url, file_id, width, height, thumbnail, type, other, subtitles } = r.data;
   return Result.Ok({
     url,
     file_id,
@@ -537,7 +543,7 @@ export async function fetchSourcePlayingInfo(body: { episode_id: string; file_id
 /**
  * 更新播放记录
  */
-export async function updatePlayHistory(body: {
+export function updatePlayHistory(body: {
   tv_id: string;
   season_id: string;
   episode_id: string;
@@ -563,9 +569,9 @@ export async function updatePlayHistory(body: {
  * @param params
  * @returns
  */
-export async function fetchPlayingHistories(params: FetchParams) {
+export function fetchPlayingHistories(params: FetchParams) {
   const { page, pageSize, ...rest } = params;
-  const r = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       type: number;
@@ -607,10 +613,12 @@ export async function fetchPlayingHistories(params: FetchParams) {
     page,
     page_size: pageSize,
   });
+}
+export function fetchPlayingHistoriesProcess(r: TmpRequestResp<typeof fetchPlayingHistories>) {
   if (r.error) {
     return r;
   }
-  const { list, total, no_more, page_size } = r.data;
+  const { list, total, page, no_more, page_size } = r.data;
   return Result.Ok({
     no_more,
     page,
@@ -683,7 +691,7 @@ export async function fetchPlayingHistories(params: FetchParams) {
     }),
   });
 }
-export type PlayHistoryItem = RequestedResource<typeof fetchPlayingHistories>["list"][0];
+export type PlayHistoryItem = RequestedResource<typeof fetchPlayingHistoriesProcess>["list"][0];
 
 export enum MediaTypes {
   TV = 1,
@@ -699,9 +707,9 @@ export function delete_history(body: { history_id: string }) {
  * 获取电视剧列表
  * @deprecated
  */
-export async function search_tv_and_movie(params: FetchParams & { name: string }) {
+export function search_tv_and_movie(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  const resp = await request.get<
+  return request.get<
     ListResponse<{
       id: string;
       tv_id: string;
@@ -717,18 +725,5 @@ export async function search_tv_and_movie(params: FetchParams & { name: string }
     page,
     page_size: pageSize,
   });
-  if (resp.error) {
-    return Result.Err(resp.error);
-  }
-  return Result.Ok({
-    ...resp.data,
-    list: resp.data.list.map((tv) => {
-      const { ...rest } = tv;
-      return {
-        ...rest,
-        // updated: dayjs(updated).format("YYYY/MM/DD HH:mm"),
-      };
-    }),
-  });
 }
-export type SearchResultItem = RequestedResource<typeof search_tv_and_movie>["list"][0];
+export type SearchResultItem = UnpackedRequestPayload<ReturnType<typeof search_tv_and_movie>>["list"][0];

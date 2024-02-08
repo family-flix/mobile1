@@ -3,11 +3,11 @@
  */
 import { debounce } from "lodash/fp";
 
-import { request } from "@/store/request";
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaSourceFileCore } from "@/domains/source";
 import { RequestCoreV2 } from "@/domains/request_v2";
 import { MediaResolutionTypes } from "@/domains/source/constants";
+import { HttpClientCore } from "@/domains/http_client";
 import { MediaTypes } from "@/constants";
 import { Result } from "@/types";
 
@@ -41,10 +41,10 @@ enum Events {
 type TheTypesOfEvents = {
   [Events.ProfileLoaded]: {
     profile: NonNullable<SeasonCoreState["profile"]>;
-    curSource: NonNullable<SeasonCoreState["curSource"]>;
+    curSource: NonNullable<MediaSource> & { currentTime: number };
   };
   [Events.SourceFileChange]: MediaSourceFile & { currentTime: number };
-  [Events.EpisodeChange]: SeasonCoreProps["curSource"] & {
+  [Events.EpisodeChange]: MediaSource & {
     currentTime: number;
   };
   [Events.EpisodesChange]: MediaSource[];
@@ -66,12 +66,8 @@ type SeasonCoreState = {
   playing: boolean;
 };
 type SeasonCoreProps = {
-  id: string;
-  name: string;
-  overview: string;
-  curSource: MediaSource;
-  episodeGroups: SeasonEpisodeGroup[];
   resolution?: MediaResolutionTypes;
+  client: HttpClientCore;
 };
 
 export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
@@ -94,6 +90,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   private _pending = false;
 
   $source: MediaSourceFileCore;
+  $client: HttpClientCore;
 
   get state(): SeasonCoreState {
     return {
@@ -105,13 +102,15 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(props: Partial<{ name: string } & SeasonCoreProps> = {}) {
+  constructor(props: Partial<{ name: string }> & SeasonCoreProps) {
     super();
 
-    const { resolution = MediaResolutionTypes.SD } = props;
+    const { client, resolution = MediaResolutionTypes.SD } = props;
     this.curResolutionType = resolution;
+    this.$client = client;
     this.$source = new MediaSourceFileCore({
       resolution,
+      client,
     });
   }
 
@@ -123,7 +122,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     const fetch = new RequestCoreV2({
       fetch: fetchMediaPlayingEpisode,
       process: fetchMediaPlayingEpisodeProcess,
-      client: request,
+      client: this.$client,
     });
     const res = await fetch.run({ media_id: season_id, type: MediaTypes.Season });
     if (res.error) {
@@ -240,7 +239,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     const fetch = new RequestCoreV2({
       fetch: fetchSourceInGroup,
       process: fetchSourceInGroupProcess,
-      client: request,
+      client: this.$client,
     });
     const r = await fetch.run({ media_id: nextGroup.media_id, start: nextGroup.start, end: nextGroup.end });
     if (r.error) {
@@ -297,7 +296,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     const fetch = new RequestCoreV2({
       fetch: fetchSourceInGroup,
       process: fetchSourceInGroupProcess,
-      client: request,
+      client: this.$client,
     });
     const r = await fetch.run({ media_id: this.profile.id, start: matchedGroup.start, end: matchedGroup.end });
     if (r.error) {
@@ -379,7 +378,13 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
   updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
     const { currentTime = this.currentTime, duration = 0 } = values;
-    // console.log("[DOMAIN]TVPlay - update_play_progress", currentTime, this.profile, this.curEpisode);
+    console.log(
+      "[DOMAIN]media/season - update_play_progress",
+      currentTime,
+      this.profile,
+      this.curSource,
+      this.$source.profile
+    );
     if (this.profile === null) {
       return;
     }
@@ -389,7 +394,11 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    updatePlayHistory({
+    const request = new RequestCoreV2({
+      fetch: updatePlayHistory,
+      client: this.$client,
+    });
+    request.run({
       media_id: this.profile.id,
       media_source_id: this.curSource.id,
       current_time: parseFloat(currentTime.toFixed(2)),
