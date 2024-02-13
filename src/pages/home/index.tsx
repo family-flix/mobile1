@@ -23,7 +23,7 @@ import { TabHeaderCore } from "@/domains/ui/tab-header";
 import { ScrollViewCore, InputCore, ButtonCore, DialogCore } from "@/domains/ui";
 import { fetchPlayingHistories } from "@/domains/media/services";
 import { AffixCore } from "@/domains/ui/affix";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { cn } from "@/utils";

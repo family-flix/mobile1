@@ -7,7 +7,7 @@ import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 import { ViewComponentWithMenu } from "@/store/types";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
 import { PlayHistoryItem, deleteHistory, fetchPlayingHistories } from "@/domains/media/services";

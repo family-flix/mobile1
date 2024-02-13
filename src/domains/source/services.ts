@@ -1,4 +1,4 @@
-import { TmpRequestResp, request } from "@/domains/request_v2/utils";
+import { TmpRequestResp, request } from "@/domains/request/utils";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { Result, Unpacked, UnpackedResult } from "@/types";
 

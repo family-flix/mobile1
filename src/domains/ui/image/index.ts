@@ -1,6 +1,4 @@
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { Handler, BaseDomain } from "@/domains/base";
 
 enum Events {
   StateChange,

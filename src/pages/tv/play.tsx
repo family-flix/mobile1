@@ -21,7 +21,7 @@ import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
 import { InviteeSelect } from "@/components/member-select/view";
 import { InviteeSelectCore } from "@/components/member-select/store";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { TVCore } from "@/domains/tv";
 import { RequestCore } from "@/domains/request";

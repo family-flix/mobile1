@@ -22,7 +22,7 @@ import { Affix } from "@/components/ui/affix";
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { AffixCore } from "@/domains/ui/affix";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
 

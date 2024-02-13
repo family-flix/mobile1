@@ -5,7 +5,7 @@ import { InviteeItem, fetchInviteeList } from "@/services";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
 import { HttpClientCore } from "@/domains/http_client";
 

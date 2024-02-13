@@ -6,7 +6,7 @@ import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { MediaTypes } from "@/constants";

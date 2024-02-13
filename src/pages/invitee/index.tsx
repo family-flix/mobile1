@@ -13,7 +13,7 @@ import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/store/types";

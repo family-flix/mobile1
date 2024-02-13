@@ -4,7 +4,7 @@ import { ListCoreV2 } from "@/domains/list/v2";
 import { NavigatorCore } from "@/domains/navigator";
 import { RouteViewCore } from "@/domains/route_view";
 import { HistoryCore } from "@/domains/history";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCore } from "@/domains/list";
 import { ImageCore } from "@/domains/ui";
 import { Result } from "@/types";

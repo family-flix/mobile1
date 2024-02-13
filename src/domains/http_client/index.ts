@@ -56,6 +56,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
           // Authorization: user.token,
         },
       });
+      // 这个逻辑应该放到业务，不是所有项目都是这种返回值
       const { code, msg, data } = resp.data;
       if (code !== 0) {
         return Result.Err(msg, code, data);
@@ -105,6 +106,14 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     }
   }
   cancel() {}
+  async fetch<T>(options: {
+    url: string;
+    method: "GET" | "POST" | "PUT" | "DELETE";
+    data?: JSONObject | FormData;
+    headers?: Record<string, string>;
+  }) {
+    return {} as { data: T };
+  }
   setHeaders(headers: Record<string, string>) {
     this.headers = headers;
   }

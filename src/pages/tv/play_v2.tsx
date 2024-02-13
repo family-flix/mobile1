@@ -12,29 +12,22 @@ import {
   Loader2,
   Maximize,
   Pause,
-  PictureInPicture,
   Play,
   Rewind,
   Settings,
   SkipForward,
 } from "lucide-react";
 
-import { reportSomething, shareMediaToInvitee } from "@/services";
 import { GlobalStorageValues, ViewComponent } from "@/store/types";
 import { Show } from "@/packages/ui/show";
-import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
-import { InviteeSelect } from "@/components/member-select/view";
-import { InviteeSelectCore } from "@/components/member-select/store";
-import { HorizontalScrollView } from "@/components/ui/horizontal-scroll-view";
+import { Sheet, ScrollView, Video } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { PlayingIcon } from "@/components/playing";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
 import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { DynamicContent } from "@/components/dynamic-content";
-import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
-import { HorizontalScrollViewCore } from "@/domains/ui/scroll-view/horizontal";
+import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { SeasonMediaCore } from "@/domains/media/season";
-import { RequestCore } from "@/domains/request";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
@@ -752,140 +745,6 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           store2={$logic.$player}
         />
       </Sheet>
-      {/* <Sheet store={dSheet} size="xl">
-        {(() => {
-          if (state === null) {
-            return (
-              <div>
-                <Loader className="animate animate-spin w-6 h-6" />
-              </div>
-            );
-          }
-          const { name, overview } = state;
-          return (
-            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
-              <div className="text-w-fg-1">
-                <div className="">
-                  <div className="px-4">
-                    <div className="text-xl">{name}</div>
-                    <div className="text-sm">{overview}</div>
-                    <div className="mt-4 text-lg underline-offset-1">其他</div>
-                    <div className="flex mt-2 space-x-2">
-                      <div className="">
-                        {(() => {
-                          if (!subtileState.enabled) {
-                            return null;
-                          }
-                          return (
-                            <div
-                              className=""
-                              onClick={() => {
-                                subtitleSheet.show();
-                              }}
-                            >
-                              <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                                <Subtitles className="w-4 h-4" />
-                              </div>
-                              <div className="mt-1 text-sm">字幕</div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                      <div>
-                        <div
-                          className=""
-                          onClick={() => {
-                            reportSheet.show();
-                          }}
-                        >
-                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                            <Send className="w-4 h-4" />
-                          </div>
-                          <div className="mt-1 text-sm">提交问题</div>
-                        </div>
-                      </div>
-                      <div>
-                        <div
-                          className=""
-                          onClick={() => {
-                            inviteeSelect.dialog.show();
-                          }}
-                        >
-                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                            <Share2 className="w-4 h-4" />
-                          </div>
-                          <div className="mt-1 text-sm">分享</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ScrollView>
-          );
-        })()}
-      </Sheet> */}
-      {/* <Sheet store={reportSheet}>
-        <div className="max-h-full text-w-fg-1 overflow-y-auto">
-          <div className="pt-4 pb-24">
-            {TVReportList.map((question, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    curReport.select(question);
-                    reportConfirmDialog.show();
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer")}>{question}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet> */}
-      {/* <Sheet store={subtitleSheet}>
-        <div className="max-h-full text-w-fg-1 pb-24 overflow-y-auto">
-          {(() => {
-            return (
-              <div
-                className="px-4"
-                onClick={() => {
-                  $logic.$player.toggleSubtitleVisible();
-                  $logic.$tv.$source.toggleSubtitleVisible();
-                }}
-              >
-                {subtileState?.visible ? "隐藏字幕" : "显示字幕"}
-              </div>
-            );
-          })()}
-          <div className="pt-4 text-w-fg-1">
-            {$logic.$tv.$source.subtitles.map((subtitle, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    $logic.$tv.$source.loadSubtitleFile(subtitle, $logic.$tv.currentTime);
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.cur ? "bg-w-bg-active" : "")}>
-                    {subtitle.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet> */}
-      {/* <Sheet store={inviteeSelect.dialog} size="xl">
-        <InviteeSelect store={inviteeSelect} />
-      </Sheet>
-      <Dialog store={reportConfirmDialog}>
-        <div className="text-w-fg-1">
-          <p>提交该电视剧的问题</p>
-          <p className="mt-2">「{curReportValue}」</p>
-        </div>
-      </Dialog> */}
       {/* <Dialog store={errorTipDialog}>
         <div className=" text-w-fg-1">
           <div>该问题是因为手机无法解析视频</div>
@@ -935,28 +794,6 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                 <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
               </div>
             </div>
-          </div>
-        </div>
-      </Dialog> */}
-      {/* <Dialog store={fullscreenDialog}>
-        <div className="text-w-fg-1">点击进入全屏播放</div>
-      </Dialog> */}
-      {/* <Dialog store={shareLinkDialog}>
-        <div
-          onClick={() => {
-            if (!shareLink) {
-              return;
-            }
-            app.copy(shareLink);
-            app.tip({
-              text: ["已复制至粘贴板"],
-            });
-            shareLinkDialog.hide();
-          }}
-        >
-          <div>点击复制该信息至粘贴板</div>
-          <div className="mt-4 rounded-md p-4 bg-w-bg-2">
-            <pre className="text-left text-w-fg-1">{shareLink}</pre>
           </div>
         </div>
       </Dialog> */}

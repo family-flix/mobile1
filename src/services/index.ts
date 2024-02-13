@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
-import { TmpRequestResp, request } from "@/domains/request_v2/utils";
+import { TmpRequestResp, request } from "@/domains/request/utils";
 import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types";
 import { MediaTypes, CollectionTypes, ReportTypes } from "@/constants";
 import { season_to_chinese_num } from "@/utils";
@@ -13,12 +13,6 @@ export function reportSomething(body: {
   media_source_id?: string;
 }) {
   return request.post("/api/v2/wechat/report/create", body);
-}
-
-export function fetchSubtitleContent(body: { url: string }) {
-  const { url } = body;
-  const prefix = window.location.origin;
-  return request.get<string>(prefix + url);
 }
 
 type AnswerPayload = Partial<{

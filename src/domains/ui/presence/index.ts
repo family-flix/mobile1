@@ -190,6 +190,6 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   }
 }
 
-function getAnimationName(styles?: CSSStyleDeclaration) {
-  return styles?.animationName || "none";
-}
+// function getAnimationName(styles?: CSSStyleDeclaration) {
+//   return styles?.animationName || "none";
+// }

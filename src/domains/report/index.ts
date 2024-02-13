@@ -4,7 +4,7 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { DialogCore } from "@/domains/ui";
 import { Application } from "@/domains/app";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { HttpClientCore } from "@/domains/http_client";
 import { ReportTypes } from "@/constants";
 

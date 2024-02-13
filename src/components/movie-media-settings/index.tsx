@@ -13,7 +13,7 @@ import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { PlayerCore } from "@/domains/player";
 import { RefCore } from "@/domains/cur";
 import { MovieMediaCore } from "@/domains/media/movie";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { cn, sleep } from "@/utils";

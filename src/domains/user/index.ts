@@ -1,7 +1,7 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";

@@ -28,7 +28,7 @@ import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCore } from "@/domains/request";
 import { OrientationTypes } from "@/domains/app";
 import { MediaResolutionTypes } from "@/domains/source/constants";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { MovieReportList, ReportTypes, players } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
 import { cn } from "@/utils";

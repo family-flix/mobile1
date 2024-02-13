@@ -9,7 +9,7 @@ import { LazyImage, ListView, Skeleton } from "@/components/ui";
 import { ImageInListCore } from "@/domains/ui";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { MediaTypes } from "@/constants";

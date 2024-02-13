@@ -3,8 +3,8 @@ import { shareMediaToInvitee } from "@/services";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { BaseDomain, Handler } from "@/domains/base";
 import { Application } from "@/domains/app";
-import { RequestCoreV2 } from "@/domains/request_v2";
-import { UnpackedRequestPayload } from "@/domains/request_v2/utils";
+import { RequestCoreV2 } from "@/domains/request/v2";
+import { UnpackedRequestPayload } from "@/domains/request/utils";
 import { HttpClientCore } from "@/domains/http_client";
 import { BizError } from "@/domains/error";
 

@@ -1,13 +1,12 @@
 /**
  * @file 电视剧
  */
-import { debounce } from "lodash/fp";
-
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaSourceFileCore } from "@/domains/source";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { HttpClientCore } from "@/domains/http_client";
+import { debounce } from "@/utils/lodash/debounce";
 import { MediaTypes } from "@/constants";
 import { Result } from "@/types";
 

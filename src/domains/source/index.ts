@@ -5,7 +5,7 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { HttpClientCore } from "@/domains/http_client";
 import { MediaOriginCountry } from "@/constants";
 import { Result } from "@/types";
@@ -182,6 +182,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
+      client: this.$client,
     });
     if (r.error) {
       return Result.Err("实例化字幕失败");

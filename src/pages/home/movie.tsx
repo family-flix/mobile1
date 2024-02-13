@@ -25,7 +25,7 @@ import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 
 export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   const { app, history, client, storage, view, menu } = props;

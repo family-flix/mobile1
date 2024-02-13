@@ -1,4 +1,4 @@
-import { request } from "@/domains/request_v2/utils";
+import { request } from "@/domains/request/utils";
 
 /**
  * 用户登录

@@ -18,7 +18,7 @@ import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/store/types";
 import { MediaTypes } from "@/constants";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 
 enum MessageStatus {
   Normal = 1,

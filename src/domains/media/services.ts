@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { request, TmpRequestResp } from "@/domains/request_v2/utils";
+import { request, TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";

@@ -1,7 +1,7 @@
 import { ReportTypes } from "@/constants";
 import { BaseDomain } from "@/domains/base";
 import { HttpClientCore } from "@/domains/http_client";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { DialogCore, InputCore } from "@/domains/ui";
 import { reportSomething } from "@/services";
 

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { UnpackedRequestPayload, request } from "@/domains/request_v2/utils";
+import { UnpackedRequestPayload, request } from "@/domains/request/utils";
 import {
   MediaOriginCountry,
   MediaTypes,

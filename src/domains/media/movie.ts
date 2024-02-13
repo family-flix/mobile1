@@ -1,13 +1,11 @@
 /**
  * @file 电影
  */
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { Handler, BaseDomain } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MediaSourceFileCore } from "@/domains/source";
 import { HttpClientCore } from "@/domains/http_client";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { MediaTypes } from "@/constants";
 import { Result } from "@/types";
 
@@ -215,7 +213,11 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    updatePlayHistory({
+    const request = new RequestCoreV2({
+      fetch: updatePlayHistory,
+      client: this.$client,
+    });
+    request.run({
       media_id: this.profile.id,
       media_source_id: this.curSource.id,
       current_time: parseFloat(currentTime.toFixed(2)),

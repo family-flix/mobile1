@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { fetchTVChannelList } from "@/services";
 import { LazyImage, ListView, ScrollView } from "@/components/ui";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";

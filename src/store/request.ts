@@ -7,3 +7,7 @@ export const client = new HttpClientCore({
     "client-version": __VERSION__,
   },
 });
+
+export const fetch = new HttpClientCore({
+  hostname: "",
+});

@@ -23,7 +23,7 @@ import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, I
 import { fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ListCore } from "@/domains/list";
 import { RequestCore } from "@/domains/request";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";

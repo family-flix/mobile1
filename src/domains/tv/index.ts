@@ -6,7 +6,7 @@ import { debounce } from "lodash/fp";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { BaseDomain, Handler } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { HttpClientCore } from "@/domains/http_client";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { MediaOriginCountry } from "@/constants";
@@ -380,6 +380,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
+      client: this.$client,
     });
     if (r.error) {
       return;

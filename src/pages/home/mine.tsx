@@ -24,7 +24,7 @@ import { getSystemTheme, useTheme } from "@/components/Theme";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { RequestCore } from "@/domains/request";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes, __VERSION__ } from "@/constants";

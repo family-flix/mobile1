@@ -16,7 +16,7 @@ import { Application } from "@/domains/app";
 import { RequestCore } from "@/domains/request";
 import { fetchMemberToken } from "@/services/media";
 import { RefCore } from "@/domains/cur";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { useInitialize, useInstance } from "@/hooks";
 import { ReportTypes, SeasonReportList } from "@/constants";
 import { cn, sleep } from "@/utils";

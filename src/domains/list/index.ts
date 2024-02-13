@@ -8,7 +8,6 @@ import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { omit } from "./utils";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
-import { RequestCoreV2 } from "../request_v2";
 
 /**
  * 只处理

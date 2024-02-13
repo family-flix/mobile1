@@ -32,7 +32,7 @@ import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
-import { RequestCoreV2 } from "@/domains/request_v2";
+import { RequestCoreV2 } from "@/domains/request/v2";
 import { Application, OrientationTypes } from "@/domains/app";
 import { HttpClientCore } from "@/domains/http_client";
 import { StorageCore } from "@/domains/storage";

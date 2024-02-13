@@ -2,9 +2,8 @@
  * @file 分页领域
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request_v2";
-import { RequestPayload, UnpackedRequestPayload } from "@/domains/request_v2/utils";
-import { RequestedResource, Result, UnpackedResult } from "@/types";
+import { RequestCoreV2 } from "@/domains/request/v2";
+import { Result, UnpackedResult } from "@/types";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";

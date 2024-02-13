@@ -1,3 +1,6 @@
+/**
+ * @file 找出该项目使用了哪些 lucide 图标
+ */
 const fs = require("fs");
 const path = require("path");
 
