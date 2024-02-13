@@ -58,7 +58,7 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   }
   handleMouseDown = () => {
     this.pressTime = new Date().valueOf();
-    console.log("[DOMAIN]ui/node/index - handleMouseDown");
+    // console.log("[DOMAIN]ui/node/index - handleMouseDown");
     // this.longPressTimer = setTimeout(() => {
     //   console.log("[DOMAIN]ui/node/index - bingo", this);
     //   this.emit(Events.LongPress);
@@ -68,7 +68,7 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     const now = new Date().valueOf();
     const prev = this.pressTime;
     this.pressTime = 0;
-    console.log("[DOMAIN]ui/node/index - handleMouseUp", options.type, now - prev);
+    // console.log("[DOMAIN]ui/node/index - handleMouseUp", options.type, now - prev);
     if (options.stopPropagation) {
       options.stopPropagation();
     }
@@ -80,11 +80,11 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     // this.clearLongPressTimer();
   }
   handleMouseOut() {
-    console.log("[DOMAIN]ui/node/index - handleMouseOut");
+    // console.log("[DOMAIN]ui/node/index - handleMouseOut");
     this.clearLongPressTimer();
   }
   handleClick() {
-    console.log("[DOMAIN]ui/node/index - handleClick");
+    // console.log("[DOMAIN]ui/node/index - handleClick");
     this.click();
   }
   handleMounted() {}

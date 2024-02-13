@@ -41,6 +41,7 @@ type MediaProfile = {
 type MovieCoreState = {
   profile: null | MediaProfile;
   curSource: null | CurMediaSource;
+  fixTime: number;
 };
 type MovieCoreProps = {
   client: HttpClientCore;
@@ -53,6 +54,8 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   curSource: CurMediaSource | null = null;
   /** 当前影片播放进度 */
   currentTime = 0;
+  /** 手动调整播放进度差值，用于校准字幕 */
+  currentFixTime = 0;
   curResolutionType: MediaResolutionTypes = MediaResolutionTypes.SD;
   /** 正在请求中（获取详情、视频源信息等） */
   _pending = false;
@@ -66,6 +69,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     return {
       profile: this.profile,
       curSource: this.curSource,
+      fixTime: this.currentFixTime,
     };
   }
 
@@ -157,12 +161,16 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     return Result.Ok(res.data);
   }
   async changeSourceFile(sourceFile: { id: string }) {
-    const { id } = sourceFile;
     if (this.profile === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
+    if (this.curSource === null) {
+      const msg = this.tip({ text: ["视频还未加载完成"] });
+      return Result.Err(msg);
+    }
     const res = await this.$source.load({ id: sourceFile.id });
+    this.curSource.curFileId = sourceFile.id;
     if (res.error) {
       this.tip({
         text: [res.error.message],
@@ -225,6 +233,20 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       source_id: this.$source.profile.id,
     });
   }
+  minFixTime(step: number = 1) {
+    this.currentFixTime -= step;
+    if (this.$source.subtitle?.visible) {
+      this.$source.$subtitle?.handleTimeChange(this.currentTime + this.currentFixTime);
+    }
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  addFixTime(step: number = 1) {
+    this.currentFixTime += step;
+    if (this.$source.subtitle?.visible) {
+      this.$source.$subtitle?.handleTimeChange(this.currentTime + this.currentFixTime);
+    }
+    this.emit(Events.StateChange, { ...this.state });
+  }
   /** 更新观看进度 */
   updatePlayProgress = throttle_1(10 * 1000, (values: Partial<{ currentTime: number; duration: number }> = {}) => {
     this.updatePlayProgressForce(values);
@@ -234,7 +256,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     const { currentTime = 0 } = values;
     this.currentTime = currentTime;
     if (this.$source.subtitle?.visible) {
-      this.$source.$subtitle?.handleTimeChange(currentTime);
+      this.$source.$subtitle?.handleTimeChange(currentTime + this.currentFixTime);
     }
     this.updatePlayProgress(values);
   };

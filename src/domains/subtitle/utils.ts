@@ -45,6 +45,9 @@ export function parseSubtitleUrl(url: string): SubtitleFileSuffix {
 
 const SUBTITLE_PARSER_MAP: Record<SubtitleFileSuffix, (content: string) => SubtitleParagraph[]> = {
   srt: (content: string) => {
+    if (!content) {
+      return [];
+    }
     let oriParagraphs = content.split("\r\n\r\n").filter(Boolean);
     if (oriParagraphs.length === 1) {
       oriParagraphs = oriParagraphs[0].split("\n\n").filter(Boolean);
@@ -101,6 +104,9 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileSuffix, (content: string) => Subti
       });
   },
   vtt: (content: string) => {
+    if (!content) {
+      return [];
+    }
     const c = content.replace(/WEBVTT/, "");
     const oriParagraphs = c.split("\n\n").filter(Boolean);
     //     console.log("[DOMAIN]subtitle/utils - vtt", oriParagraphs);
@@ -137,6 +143,9 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileSuffix, (content: string) => Subti
       });
   },
   ass: (content: string) => {
+    if (!content) {
+      return [];
+    }
     const lines = content.match(/Dialogue:[^\n]{1,}\n{0,}/g);
     if (!lines) {
       return [];

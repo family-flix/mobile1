@@ -333,7 +333,7 @@ class SeasonPlayingPageView {
     return true;
   }
   prepareHide() {
-    if (this.timer !== null) {
+    if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
@@ -341,6 +341,14 @@ class SeasonPlayingPageView {
       this.hide();
       this.timer = null;
     }, 5000);
+  }
+  prepareToggle() {
+    if (this.timer === null) {
+      this.toggle();
+      return;
+    }
+    clearTimeout(this.timer);
+    this.toggle();
   }
   stopHide() {
     if (this.timer !== null) {
@@ -451,7 +459,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
         store={$page.$scroll}
         className="fixed h-screen bg-w-bg-0"
         onClick={() => {
-          $page.toggle();
+          $page.prepareToggle();
         }}
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
@@ -573,7 +581,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               ) : null}
             </Presence>
           </div>
-          <div className="absolute bottom-12 z-40 w-full safe-bottom">
+          <div
+            className="absolute bottom-12 z-40 w-full safe-bottom"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <Presence store={$page.$time}>
               <div className="text-center text-xl">{targetTime}</div>
             </Presence>

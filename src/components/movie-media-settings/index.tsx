@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Loader,
+  Loader2,
+  Minus,
+  Plus,
+} from "lucide-react";
 
 import { ViewComponentProps } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
@@ -13,6 +23,7 @@ import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { PlayerCore } from "@/domains/player";
 import { RefCore } from "@/domains/cur";
 import { MovieMediaCore } from "@/domains/media/movie";
+import { SeasonMediaCore } from "@/domains/media/season";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
@@ -185,7 +196,7 @@ ${url}`;
             return;
           }
           reportRequest.run({
-            type: ReportTypes.Season,
+            type: ReportTypes.Movie,
             data: curReport.value,
             media_id: store.profile.id,
             media_source_id: store.curSource?.id,
@@ -217,7 +228,6 @@ ${url}`;
       setState(v);
     });
     store.onSourceFileChange((v) => {
-      console.log(v);
       setCurSource(v);
     });
     store.$source.onSubtitleChange((v) => {
@@ -282,7 +292,7 @@ ${url}`;
               <div>字幕列表</div>
               <div className="flex items-center">
                 <div
-                  className="px-2"
+                  className="px-4"
                   onClick={(event) => {
                     event.stopPropagation();
                     store2.toggleSubtitleVisible();
@@ -299,7 +309,15 @@ ${url}`;
                     return "启用";
                   })()}
                 </div>
-                <div className={cn(subtitle === null ? "text-w-fg-2" : "text-w-fg-1")}>
+                <div
+                  className={cn(subtitle === null ? "text-w-fg-2" : "text-w-fg-1")}
+                  onClick={() => {
+                    if (subtitle === null) {
+                      return;
+                    }
+                    showMenuContent(MediaSettingsMenuKey.Subtitle);
+                  }}
+                >
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </div>
@@ -342,26 +360,54 @@ ${url}`;
           </div>
         </div>
         <div className="panel__second relative w-full h-full flex-shrink-0">
-          <div
-            className="flex items-center mt-2 h-12 space-x-1 px-4 bg-w-bg-2"
-            onClick={() => {
-              returnMainContent();
-            }}
-          >
-            <ChevronLeft className="w-6 h-6" />
-            <div className="flex items-center space-x-2 text-lg">
-              <div className="text-w-fg-2">设置</div>
-              <div>/</div>
-              <div>
-                {(() => {
-                  const matched = menus.find((m) => m.value === menuIndex);
-                  if (matched) {
-                    return matched.title;
-                  }
-                  return null;
-                })()}
+          <div className="flex items-center justify-between mt-2 h-12 px-4 bg-w-bg-2">
+            <div
+              className="flex items-center space-x-1"
+              onClick={() => {
+                returnMainContent();
+              }}
+            >
+              <ChevronLeft className="w-6 h-6" />
+              <div className="flex items-center space-x-2 text-lg">
+                <div className="text-w-fg-2">设置</div>
+                <div>/</div>
+                <div>
+                  {(() => {
+                    const matched = menus.find((m) => m.value === menuIndex);
+                    if (matched) {
+                      return matched.title;
+                    }
+                    return null;
+                  })()}
+                </div>
               </div>
             </div>
+            {/* {menuIndex === MediaSettingsMenuKey.Subtitle ? (
+              <div
+                className="flex items-center space-x-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <div
+                  className="rounded-md bg-w-bg-2"
+                  onClick={() => {
+                    store.minFixTime();
+                  }}
+                >
+                  <Minus className="w-6 h-6" />
+                </div>
+                <div className="text-center">{state.fixTime}</div>
+                <div
+                  className="rounded-md bg-w-bg-2"
+                  onClick={() => {
+                    store.addFixTime();
+                  }}
+                >
+                  <Plus className="w-6 h-6" />
+                </div>
+              </div>
+            ) : null} */}
           </div>
           <div className="h-[1px] bg-w-bg-1" />
           <ScrollView className="absolute inset-0 top-16" store={scroll}>
@@ -763,7 +809,7 @@ ${url}`;
       </Dialog>
       <Dialog store={reportConfirmDialog}>
         <div className="text-w-fg-1">
-          <p>提交你发现的该电视剧的问题</p>
+          <p>提交你发现的该电影的问题</p>
           <p className="mt-2 text-xl">「{curReportValue}」</p>
         </div>
       </Dialog>

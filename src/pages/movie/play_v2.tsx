@@ -210,7 +210,7 @@ class MoviePlayingPageLogic<
     });
     // console.log("[PAGE]play - before player.onError");
     player.onError(async (error) => {
-      console.log("[PAGE]play - player.onError", error);
+      console.log("[PAGE]play - player.onError", tv.curSource?.name, tv.curSource?.curFileId);
       // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
       await (async () => {
         if (!tv.curSource) {
@@ -305,10 +305,22 @@ class MoviePlayingPageView {
     return true;
   }
   prepareHide() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
     this.timer = setTimeout(() => {
       this.hide();
       this.timer = null;
     }, 5000);
+  }
+  prepareToggle() {
+    if (this.timer === null) {
+      this.toggle();
+      return;
+    }
+    clearTimeout(this.timer);
+    this.toggle();
   }
   stopHide() {
     if (this.timer !== null) {
@@ -464,17 +476,24 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
         store={$page.$scroll}
         className="fixed h-screen bg-w-bg-0"
         onClick={(event) => {
-          $page.toggle();
+          $page.prepareToggle();
         }}
       >
-        <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2" style={{ transform: `translate(-50%, -50%)` }}>
-          <Video store={$logic.$player} />
-          <Presence
-            className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-            store={$page.$mask}
-          >
-            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
-          </Presence>
+        <div
+          className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2"
+          style={{ transform: `translate(-50%, -50%)` }}
+        >
+          <div className="max-w-[750px]">
+            <Video store={$logic.$player} />
+          </div>
+          <div className="absolute z-20 inset-0">
+            <Presence
+              className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              store={$page.$mask}
+            >
+              <div className="bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
+            </Presence>
+          </div>
           <div
             className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0"
             style={{ transform: `translate(-50%, -50%)` }}
@@ -580,7 +599,12 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               </div>
             </Presence>
           </div>
-          <div className="absolute bottom-12 w-full safe-bottom">
+          <div
+            className="absolute bottom-12 w-full safe-bottom"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
             <Presence store={$page.$time}>
               <div className="text-center text-xl">{targetTime}</div>
             </Presence>

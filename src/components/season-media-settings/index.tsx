@@ -1,24 +1,32 @@
 import { useState } from "react";
-import { AlertTriangle, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Loader,
+  Loader2,
+  Minus,
+  Plus,
+} from "lucide-react";
 
 import { ViewComponentProps } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
+import { fetchMemberToken } from "@/services/media";
 import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
 import { Show } from "@/packages/ui/show";
 import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
 import { DynamicContent } from "@/components/dynamic-content";
-import { InviteeSelect } from "@/components/member-select/view";
 import { InviteeSelectCore } from "@/components/member-select/store";
-import { SeasonMediaCore } from "@/domains/media/season";
 import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { PlayerCore } from "@/domains/player";
-import { Application } from "@/domains/app";
-import { RequestCore } from "@/domains/request";
-import { fetchMemberToken } from "@/services/media";
 import { RefCore } from "@/domains/cur";
+import { MovieMediaCore } from "@/domains/media/movie";
+import { SeasonMediaCore } from "@/domains/media/season";
 import { RequestCoreV2 } from "@/domains/request/v2";
+import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
-import { ReportTypes, SeasonReportList } from "@/constants";
 import { cn, sleep } from "@/utils";
 
 enum MediaSettingsMenuKey {
@@ -58,13 +66,13 @@ const menus = [
 
 export const SeasonMediaSettings = (props: {
   store: SeasonMediaCore;
+  store2: PlayerCore;
   app: ViewComponentProps["app"];
-  history: ViewComponentProps["history"];
   client: ViewComponentProps["client"];
   storage: ViewComponentProps["storage"];
-  store2: PlayerCore;
+  history: ViewComponentProps["history"];
 }) => {
-  const { store, app, history, storage, client, store2 } = props;
+  const { store, app, client, history, storage, store2 } = props;
 
   const memberTokenRequest = useInstance(
     () =>
@@ -82,9 +90,7 @@ export const SeasonMediaSettings = (props: {
             });
             return;
           }
-          const url =
-            history.$router.origin +
-            history.buildURLWithPrefix("root.season_playing", { id: store.profile.id, token, tmp: "1" });
+          const url = history.buildURLWithPrefix("root.season_playing", { id: store.profile.id, token, tmp: "1" });
           shareDialog.show();
           const message = `➤➤➤ ${name}
 ${url}`;
@@ -286,7 +292,7 @@ ${url}`;
               <div>字幕列表</div>
               <div className="flex items-center">
                 <div
-                  className="px-2"
+                  className="px-4"
                   onClick={(event) => {
                     event.stopPropagation();
                     store2.toggleSubtitleVisible();
@@ -303,7 +309,15 @@ ${url}`;
                     return "启用";
                   })()}
                 </div>
-                <div className={cn(subtitle === null ? "text-w-fg-2" : "text-w-fg-1")}>
+                <div
+                  className={cn(subtitle === null ? "text-w-fg-2" : "text-w-fg-1")}
+                  onClick={() => {
+                    if (subtitle === null) {
+                      return;
+                    }
+                    showMenuContent(MediaSettingsMenuKey.Subtitle);
+                  }}
+                >
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </div>
@@ -346,26 +360,54 @@ ${url}`;
           </div>
         </div>
         <div className="panel__second relative w-full h-full flex-shrink-0">
-          <div
-            className="flex items-center mt-2 h-12 space-x-1 px-4 bg-w-bg-2"
-            onClick={() => {
-              returnMainContent();
-            }}
-          >
-            <ChevronLeft className="w-6 h-6" />
-            <div className="flex items-center space-x-2 text-lg">
-              <div className="text-w-fg-2">设置</div>
-              <div>/</div>
-              <div>
-                {(() => {
-                  const matched = menus.find((m) => m.value === menuIndex);
-                  if (matched) {
-                    return matched.title;
-                  }
-                  return null;
-                })()}
+          <div className="flex items-center justify-between mt-2 h-12 px-4 bg-w-bg-2">
+            <div
+              className="flex items-center space-x-1"
+              onClick={() => {
+                returnMainContent();
+              }}
+            >
+              <ChevronLeft className="w-6 h-6" />
+              <div className="flex items-center space-x-2 text-lg">
+                <div className="text-w-fg-2">设置</div>
+                <div>/</div>
+                <div>
+                  {(() => {
+                    const matched = menus.find((m) => m.value === menuIndex);
+                    if (matched) {
+                      return matched.title;
+                    }
+                    return null;
+                  })()}
+                </div>
               </div>
             </div>
+            {/* {menuIndex === MediaSettingsMenuKey.Subtitle ? (
+              <div
+                className="flex items-center space-x-4"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <div
+                  className="rounded-md bg-w-bg-2"
+                  onClick={() => {
+                    store.minFixTime();
+                  }}
+                >
+                  <Minus className="w-6 h-6" />
+                </div>
+                <div className="text-center">{state.fixTime}</div>
+                <div
+                  className="rounded-md bg-w-bg-2"
+                  onClick={() => {
+                    store.addFixTime();
+                  }}
+                >
+                  <Plus className="w-6 h-6" />
+                </div>
+              </div>
+            ) : null} */}
           </div>
           <div className="h-[1px] bg-w-bg-1" />
           <ScrollView className="absolute inset-0 top-16" store={scroll}>
@@ -453,10 +495,10 @@ ${url}`;
                   <div>
                     {(() => {
                       if (state === null) {
-                        return <div>Loading</div>;
+                        return <div className=" px-4">Loading</div>;
                       }
                       if (!state.curSource) {
-                        return <div>Error</div>;
+                        return <div className=" px-4">Error</div>;
                       }
                       return (
                         <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">

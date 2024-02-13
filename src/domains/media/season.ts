@@ -330,7 +330,6 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(res.error);
     }
-    // this.loadSubtitle({ currentTime: this.currentTime });
     this.emit(Events.SourceFileChange, { ...res.data, currentTime: this.currentTime });
     return Result.Ok(null);
   }
