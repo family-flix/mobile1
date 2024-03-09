@@ -36,6 +36,9 @@ export class DynamicContentCore extends BaseDomain<TheTypesOfEvents> {
     }
   }
 
+  set(value: number) {
+    this.show(value);
+  }
   show(value: number) {
     this.value = value;
     this.emit(Events.StateChange, { ...this.state });

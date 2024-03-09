@@ -285,6 +285,9 @@ class SeasonPlayingPageView {
   $subtitle = new PresenceCore({});
   $settings = new DialogCore();
   $episodes = new DialogCore();
+  $nextEpisode = new DynamicContentCore({
+    value: 1,
+  });
   $icon = new DynamicContentCore({
     value: 1,
   });
@@ -638,11 +641,29 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                 </div>
                 <div
                   className="relative p-2 rounded-md space-x-2"
-                  onClick={() => {
-                    $logic.$tv.playNextEpisode();
+                  onClick={async () => {
+                    $page.$nextEpisode.set(2);
+                    await $logic.$tv.playNextEpisode();
+                    $page.$nextEpisode.set(1);
                   }}
                 >
-                  <SkipForward className="w-6 h-6" />
+                  <DynamicContent
+                    store={$page.$nextEpisode}
+                    options={[
+                      {
+                        value: 1,
+                        content: <SkipForward className="w-6 h-6" />,
+                      },
+                      {
+                        value: 2,
+                        content: (
+                          <div>
+                            <Loader className="w-6 h-6 animate animate-spin" />
+                          </div>
+                        ),
+                      },
+                    ]}
+                  />
                 </div>
                 <div
                   className="relative p-2 rounded-md"
@@ -706,6 +727,13 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                           {}
                         )}
                         onClick={async () => {
+                          // 这种情况是缺少了该集，但仍返回了 order 用于提示用户「这里本该有一集，但缺少了」
+                          if (!id) {
+                            app.tip({
+                              text: ["该集无法播放，请反馈后等待处理"],
+                            });
+                            return;
+                          }
                           $page.$episode.select(id);
                           $page.$episode.set(2);
                           await $logic.$tv.switchEpisode(episode);
@@ -713,32 +741,36 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                           $page.$episode.clear();
                         }}
                       >
-                        <DynamicContent
-                          store={$page.$episode.bind(id)}
-                          options={[
-                            {
-                              value: 1,
-                              content: (
-                                <Show when={state.curSource?.id === id} fallback={<div>{order}</div>}>
-                                  <div>
-                                    <div className="absolute right-1 top-1 text-w-fg-1" style={{ fontSize: 10 }}>
-                                      {order}
+                        {!id ? (
+                          <div className="opacity-20">{order}</div>
+                        ) : (
+                          <DynamicContent
+                            store={$page.$episode.bind(id)}
+                            options={[
+                              {
+                                value: 1,
+                                content: (
+                                  <Show when={state.curSource?.id === id} fallback={<div>{order}</div>}>
+                                    <div>
+                                      <div className="absolute right-1 top-1 text-w-fg-1" style={{ fontSize: 10 }}>
+                                        {order}
+                                      </div>
+                                      <PlayingIcon />
                                     </div>
-                                    <PlayingIcon />
+                                  </Show>
+                                ),
+                              },
+                              {
+                                value: 2,
+                                content: (
+                                  <div>
+                                    <Loader className="w-5 h-5 animate animate-spin" />
                                   </div>
-                                </Show>
-                              ),
-                            },
-                            {
-                              value: 2,
-                              content: (
-                                <div>
-                                  <Loader className="w-5 h-5 animate animate-spin" />
-                                </div>
-                              ),
-                            },
-                          ]}
-                        />
+                                ),
+                              },
+                            ]}
+                          />
+                        )}
                       </div>
                     );
                   });

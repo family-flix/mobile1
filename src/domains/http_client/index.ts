@@ -1,7 +1,6 @@
 import axios, { AxiosError, AxiosInstance, CancelToken } from "axios";
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { UserCore } from "@/domains/user";
 import { JSONObject, Result } from "@/types";
 import { query_stringify } from "@/utils";
 
@@ -44,7 +43,6 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     extra: Partial<{ headers: Record<string, string>; token: CancelToken }> = {}
   ): Promise<Result<T>> {
     const client = this.axios;
-    // const user = this.user;
     try {
       const h = this.hostname;
       const url = `${h}${endpoint}${query ? "?" + query_stringify(query) : ""}`;

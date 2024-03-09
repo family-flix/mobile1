@@ -223,10 +223,15 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     }
     const isLastEpisode = curSourceIndex === curGroup.list.length - 1;
     if (!isLastEpisode) {
-      const nextEpisode = curGroup.list[curSourceIndex + 1];
+      let nextEpisode = curGroup.list[curSourceIndex + 1];
+      if (!nextEpisode.id) {
+        nextEpisode = curGroup.list[curSourceIndex + 2];
+      }
+      if (nextEpisode) {
+        return Result.Ok(nextEpisode);
+      }
       // curEpisode.cur = false;
       // nextEpisode.cur = true;
-      return Result.Ok(nextEpisode);
     }
     if (curGroupIndex === this.sourceGroups.length - 1) {
       return Result.Err("已经是最后一集了");

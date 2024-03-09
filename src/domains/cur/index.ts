@@ -2,9 +2,7 @@
  * @file 一个缓存/当前值
  * 类似 useRef
  */
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { Handler, BaseDomain } from "@/domains/base";
 
 enum Events {
   StateChange,
@@ -40,6 +38,13 @@ export class RefCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   /** 暂存一个值 */
   select(value: T) {
     this.value = value;
+    this.emit(Events.StateChange, this.value);
+  }
+  patch(value: Partial<T>) {
+    this.value = {
+      ...this.value,
+      ...value,
+    } as T;
     this.emit(Events.StateChange, this.value);
   }
   /** 暂存的值是否为空 */

@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 import { messageList, history, app } from "./store/index";
-// import { user } from "./store/user";
 import { PageKeys, routesWithPathname } from "./store/routes";
 import { pages } from "./store/views";
 import { client } from "./store/request";
@@ -14,17 +13,16 @@ import { ThemeProvider } from "./components/Theme";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
 import { Dialog } from "./components/ui";
-// import { HistoryPanel } from "./components/history-debug";
 import { ToastCore } from "./domains/ui/toast";
 import { connect as connectApplication } from "./domains/app/connect.web";
 import { connect as connectHistory } from "./domains/history/connect.web";
 import { NavigatorCore } from "./domains/navigator";
 import { DialogCore } from "./domains/ui";
+import { MediaOriginCountry } from "./constants";
 import { useInitialize, useInstance } from "./hooks";
 import { cn } from "./utils";
 
 import "./index.css";
-import { MediaOriginCountry } from "./constants";
 
 history.onClickLink(({ href, target }) => {
   const { pathname, query } = NavigatorCore.parse(href);
@@ -109,7 +107,7 @@ function ApplicationView() {
       setSubViews(nextSubViews);
     });
     history.onRouteChange(({ ignore, reason, view, href }) => {
-      console.log("[ROOT]rootView.onRouteChange", href);
+      console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
       const { title } = view;
       app.setTitle(title);
       if (ignore) {
