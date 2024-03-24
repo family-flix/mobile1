@@ -86,7 +86,8 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
       />
       <div
         className="absolute right-3 top-[50%] p-2 translate-y-[-50%]"
-        onClick={async () => {
+        onClick={async (event) => {
+          event.stopPropagation();
           store.clear();
           store.focus();
         }}

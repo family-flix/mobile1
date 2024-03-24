@@ -2,7 +2,18 @@
  * @file 电视剧列表
  */
 import React, { useState } from "react";
-import { ArrowUp, ChevronLeft, Loader, Pen, Search, SlidersHorizontal, Star, Trash } from "lucide-react";
+import dayjs from "dayjs";
+import {
+  ArrowUp,
+  ChevronLeft,
+  Loader,
+  MoreHorizontal,
+  Pen,
+  Search,
+  SlidersHorizontal,
+  Star,
+  Trash,
+} from "lucide-react";
 
 import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
@@ -16,10 +27,19 @@ import {
   CheckboxGroup,
   Button,
   Dialog,
+  Node,
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { Affix } from "@/components/ui/affix";
-import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
+import {
+  ScrollViewCore,
+  InputCore,
+  DialogCore,
+  CheckboxGroupCore,
+  ButtonCore,
+  ImageInListCore,
+  NodeCore,
+} from "@/domains/ui";
 import { AffixCore } from "@/domains/ui/affix";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
@@ -61,7 +81,23 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           });
           scrollView.scrollTo({ top: 0 });
         },
+        onChange(v) {
+          setKeyword(v);
+          if (!v) {
+            setShowPlaceholder(true);
+            return;
+          }
+          seasonList.searchDebounce({
+            name: v,
+          });
+        },
         onBlur(v) {
+          if (!v) {
+            return;
+          }
+          if (v === seasonList.params.name) {
+            return;
+          }
           seasonList.search({
             name: v,
           });
@@ -69,10 +105,6 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
         onClear() {
           setKeyword("");
           setShowPlaceholder(true);
-          // console.log("[PAGE]home/index - onClear", helper, helper.response.search);
-          // seasonList.search({
-          //   name: "",
-          // });
         },
         onMounted() {
           searchInput.focus();
@@ -121,6 +153,16 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     });
   });
   const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
+  const node = useInstance(
+    () =>
+      new NodeCore({
+        onMounted(params) {
+          if (!params.canScroll) {
+            return;
+          }
+        },
+      })
+  );
   const mediaRequestBtn = useInstance(
     () =>
       new ButtonCore({
@@ -160,16 +202,22 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     affix.onMounted((rect) => {
       setHeight(rect.height);
     });
-    searchInput.onChange((v) => {
-      setKeyword(v);
-    });
     seasonList.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
     seasonList.onAfterSearch(({ params }) => {
       const { name } = params as { name: string };
-      if (name && !storage.values.media_search_histories.includes(name)) {
-        storage.merge("media_search_histories", [name]);
+      if (!storage.values.media_search_histories.find((h) => h.text === name)) {
+        storage.merge(
+          "media_search_histories",
+          [
+            {
+              sort: dayjs().valueOf(),
+              text: name,
+            },
+          ],
+          { reverse: true, limit: 12 }
+        );
       }
       setShowPlaceholder(false);
     });
@@ -204,16 +252,10 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           <div
             className="relative py-2 w-12 text-center"
             onClick={() => {
-              if (searchInput.value) {
-                seasonList.search({
-                  name: searchInput.value,
-                });
-                return;
-              }
               history.back();
             }}
           >
-            {keyword ? "搜索" : "取消"}
+            取消
           </div>
         </div>
       </Affix>
@@ -221,7 +263,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
         if (showPlaceholder) {
           return (
             <div className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
-              <div className="p-4">
+              <div className="relative p-4">
                 <div className="flex items-center justify-between">
                   <div className="">搜索历史</div>
                   <div
@@ -232,22 +274,34 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                     <Trash className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="flex items-center flex-wrap mt-2 gap-2">
-                  {histories.map((keyword) => {
+                <Node
+                  store={node}
+                  className="relative flex flex-wrap gap-2 mt-2 max-h-48 overflow-y-auto scroll--hidden"
+                >
+                  {histories.map((keyword, i) => {
+                    const { text } = keyword;
                     return (
                       <div
-                        key={keyword}
+                        key={i}
                         className="px-4 py-2 rounded-md text-sm bg-w-bg-2"
                         onClick={() => {
-                          searchInput.change(keyword);
+                          searchInput.change(text);
                           searchInput.enter();
                         }}
                       >
-                        {keyword}
+                        {text}
                       </div>
                     );
                   })}
-                </div>
+                </Node>
+                {/* <div
+                  className="flex items-center justify-center absolute right-6 bottom-6 w-6 h-6 rounded-full bg-w-bg-3 shadow-xl"
+                  onClick={() => {
+                    node.scrollTo({ top: node.rect.scrollHeight });
+                  }}
+                >
+                  <MoreHorizontal className="w-4 h-4 text-w-fg-2" />
+                </div> */}
               </div>
             </div>
           );
@@ -346,10 +400,10 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                           </div>
                         ) : null}
                         <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
-                          {genres.map((tag) => {
+                          {genres.map((tag, i) => {
                             return (
                               <div
-                                key={tag}
+                                key={i}
                                 className="py-1 px-2 text-[12px] leading-none rounded-lg break-keep whitespace-nowrap border border-w-fg-1"
                                 style={{
                                   lineHeight: "12px",

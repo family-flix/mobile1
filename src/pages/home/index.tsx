@@ -2,69 +2,48 @@
  * @file 首页
  */
 import React, { useState } from "react";
-import { ArrowUp, Bell, Bird, Search, User } from "lucide-react";
+import { ArrowRightCircle, ArrowUp, Bell, Bird, Search, User } from "lucide-react";
 
 import { messageList } from "@/store/index";
 import { ViewComponentWithMenu } from "@/store/types";
+import { canShowDialog, dialogHasShow } from "@/store/dialog";
 import { PageKeys } from "@/store/routes";
 import {
   fetchCollectionList,
   fetchCollectionListProcess,
+  fetchUpdatedMediaHasHistory,
+  fetchUpdatedMediaHasHistoryProcess,
   fetchUpdatedMediaToday,
   fetchUpdatedMediaTodayProcess,
 } from "@/services";
-import { Input, KeepAliveRouteView } from "@/components/ui";
-import { StackRouteView } from "@/components/ui/stack-route-view";
+import { Input, KeepAliveRouteView, LazyImage, Sheet } from "@/components/ui";
 import { Affix } from "@/components/ui/affix";
 import { MediaRequestCore } from "@/components/media-request";
 import { Show } from "@/components/ui/show";
 import { TabHeader } from "@/components/ui/tab-header";
 import { TabHeaderCore } from "@/domains/ui/tab-header";
-import { ScrollViewCore, InputCore, ButtonCore, DialogCore } from "@/domains/ui";
+import { ScrollViewCore, InputCore, ButtonCore, DialogCore, ImageInListCore } from "@/domains/ui";
 import { fetchPlayingHistories } from "@/domains/media/services";
 import { AffixCore } from "@/domains/ui/affix";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn } from "@/utils";
-import { MediaOriginCountry } from "@/constants";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { MediaOriginCountry } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, history, client, storage, pages, view, menu } = props;
 
-  const collectionList = useInstance(
+  const updatedMediaList = useInstance(
     () =>
       new ListCoreV2(
         new RequestCoreV2({
-          fetch: fetchCollectionList,
-          process: fetchCollectionListProcess,
+          fetch: fetchUpdatedMediaHasHistory,
+          process: fetchUpdatedMediaHasHistoryProcess,
           client,
         }),
         {
-          pageSize: 6,
-          onLoadingChange(loading) {
-            searchInput.setLoading(!collectionList.response.initial && loading);
-          },
-        }
-      )
-  );
-  const updatedMediaList = useInstance(
-    () =>
-      new RequestCoreV2({
-        fetch: fetchUpdatedMediaToday,
-        process: fetchUpdatedMediaTodayProcess,
-        client: client,
-      })
-  );
-  const historyList = useInstance(
-    () =>
-      new ListCoreV2(
-        new RequestCoreV2({
-          fetch: fetchPlayingHistories,
-          client: client,
-        }),
-        {
-          pageSize: 12,
+          pageSize: 5,
         }
       )
   );
@@ -90,27 +69,8 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           }
           menu.disable();
         },
-        // async onPullToRefresh() {
-        //   updatedMediaList.reload();
-        //   historyList.refresh();
-        //   await collectionList.refresh();
-        //   app.tip({
-        //     text: ["刷新成功"],
-        //   });
-        //   scrollView.stopPullToRefresh();
-        // },
-        onReachBottom() {
-          collectionList.loadMore();
-        },
       })
   );
-  const scrollView2 = useInstance(() => {
-    return new ScrollViewCore({
-      onReachBottom() {
-        // ...
-      },
-    });
-  });
   const tab = useInstance(
     () =>
       new TabHeaderCore<{
@@ -188,7 +148,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           history.push(name, query);
         },
         onMounted() {
-          console.log("[PAGE]home/index - tab-header onMounted", history.$router.query);
+          // console.log("[PAGE]home/index - tab-header onMounted", history.$router.query);
           const key = history.$router.query.key;
           if (!key) {
             tab.selectById("china", { ignore: true });
@@ -204,24 +164,16 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
         placeholder: "请输入关键字搜索",
       })
   );
-  const dialog = useInstance(
-    () =>
-      new DialogCore({
-        onOk() {
-          window.location.reload();
-        },
-      })
-  );
-  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
-  const mediaRequestBtn = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          mediaRequest.input.change(searchInput.value);
-          mediaRequest.dialog.show();
-        },
-      })
-  );
+  // const dialog = useInstance(
+  //   () =>
+  //     new DialogCore({
+  //       onOk() {
+  //         window.location.reload();
+  //       },
+  //     })
+  // );
+  const updatedMediaDialog = useInstance(() => new DialogCore({ footer: false }));
+  const image = useInstance(() => new ImageInListCore({}));
   const affix = useInstance(
     () =>
       new AffixCore({
@@ -232,7 +184,7 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
 
   const [subViews, setSubViews] = useState(view.subViews);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
-  // const [updatedMediaListState, setUpdatedMediaListState] = useState(updatedMediaList.response);
+  const [updatedMediaResponse, setUpdatedMediaResponse] = useState(updatedMediaList.response);
   // const [historyState, setHistoryState] = useState(historyList.response);
   const [height, setHeight] = useState(affix.height);
   // const [hasSearch, setHasSearch] = useState(
@@ -258,49 +210,31 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
       console.log("[PAGE]home/index - history.onRouteChange", href, query);
       tab.handleChangeById(key);
     });
+    updatedMediaList.onStateChange((v) => {
+      if (v.dataSource.length === 0) {
+        return;
+      }
+      if (canShowDialog("updated_history")) {
+        updatedMediaDialog.show();
+        dialogHasShow("updated_history");
+      }
+      setUpdatedMediaResponse(v);
+    });
     affix.onMounted(({ height }) => {
       setHeight(height);
     });
-    const search = (() => {
-      const { language = [] } = storage.get("tv_search", { language: [] });
-      if (!language.length) {
-        return {};
-      }
-      return {
-        language: language.join("|"),
-      };
-    })();
     if (menu) {
       menu.onScrollToTop(() => {
         scrollView.scrollTo({ top: 0 });
       });
       menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
-        collectionList.init(search);
-        historyList.init();
-        updatedMediaList.run().then(() => {
-          scrollView.stopPullToRefresh();
-        });
       });
     }
     messageList.onStateChange((nextState) => {
       setMessageResponse(nextState);
     });
-    // collectionList.onStateChange((nextResponse) => {
-    //   setResponse(nextResponse);
-    // });
-    // updatedMediaList.onSuccess((nextState) => {
-    //   setUpdatedMediaListState(nextState);
-    // });
-    // historyList.onStateChange((nextState) => {
-    //   setHistoryState(nextState);
-    // });
-    // mediaRequest.onTip((msg) => {
-    //   app.tip(msg);
-    // });
-    // collectionList.init(search);
-    // updatedMediaList.run();
-    // historyList.init();
+    updatedMediaList.init();
   });
 
   // const { dataSource } = response;
@@ -386,6 +320,56 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
           </div>
         </div>
       </div>
+      <Sheet title="有更新" store={updatedMediaDialog} size="content">
+        <div className="px-4 pt-4 mb-4 flex w-full h-[280px] overflow-x-auto scroll--hidden safe-bottom">
+          {updatedMediaResponse.dataSource.map((media) => {
+            const { id, name, poster_path, latest_episode } = media;
+            return (
+              <div
+                key={id}
+                className="mr-2"
+                onClick={() => {
+                  history.push("root.season_playing", { id });
+                  updatedMediaDialog.hide();
+                }}
+              >
+                <div className="w-[120px] h-[180px] rounded-md">
+                  <LazyImage
+                    className="w-full h-full rounded-md object-cover"
+                    store={image.bind(poster_path)}
+                    alt={name}
+                  />
+                </div>
+                <div className="w-[120px] mt-2">
+                  <div className="text-lg text-w-fg-1 truncate text-ellipsis">{name}</div>
+                  <div className="">
+                    <div className="max-w-full text-w-fg-2 text-sm truncate text-ellipsis">
+                      <div className="">{latest_episode.name}</div>
+                      <div className="" style={{ fontSize: 12 }}>
+                        {latest_episode.created_at}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <div
+            className=""
+            onClick={() => {
+              history.push("root.history_updated");
+              updatedMediaDialog.hide();
+            }}
+          >
+            <div className="flex items-center justify-center w-[120px] h-[180px] rounded-md bg-w-bg-1">
+              <div className="flex flex-col items-center justify-center text-w-fg-2">
+                <ArrowRightCircle className="w-12 h-12" />
+                <div className="mt-1">查看更多</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Sheet>
     </>
   );
 });

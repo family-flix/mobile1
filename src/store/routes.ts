@@ -80,6 +80,21 @@ const configure = {
           },
         },
       },
+      history_updated: {
+        title: "我的",
+        pathname: "/home/updated_history",
+        options: {
+          keep_alive: true,
+          animation: {
+            in: "slide-in-from-right",
+            out: "slide-out-to-right",
+            show: "slide-in",
+            hide: "slide-out",
+            // show: "slide-in-from-right",
+            // hide: "slide-out-to-right",
+          },
+        },
+      },
       live: {
         title: "电视频道",
         pathname: "/live",
@@ -137,6 +152,10 @@ const configure = {
             // hide: "slide-out-to-right",
           },
         },
+      },
+      test: {
+        title: "测试",
+        pathname: "/test",
       },
       notfound: {
         title: "404",

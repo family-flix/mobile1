@@ -8,6 +8,7 @@ import { Result, UnpackedResult } from "@/types";
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
 import { omit } from "./utils";
+import { debounce } from "@/utils/lodash/debounce";
 
 /**
  * 只处理
@@ -523,6 +524,9 @@ export class ListCoreV2<
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
+  searchDebounce = debounce(800, (args: Search) => {
+    return this.search(args);
+  });
   /**
    * 使用初始参数请求一次，「重置」操作时调用该方法
    */

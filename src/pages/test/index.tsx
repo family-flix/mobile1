@@ -36,24 +36,22 @@ export const TestPage: ViewComponent = React.memo((props) => {
   return (
     <>
       <div>
-        <div
-          onClick={() => {
-            dialog.show();
-          }}
-        >
-          open
+        <div className="grid grid-cols-4 gap-4">
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
+          <div className="w-6 h-6 bg-w-bg-2"></div>
         </div>
-        {/* <Node
-          className="absolute top-[36%] left-[50%] w-full h-[120px] bg-w-fg-2 transition-all"
-          style={{ transform: "translate(-50%, -50%)" }}
-          store={node}
-        ></Node>
-        <div className="absolute top-[50%] left-[50%]" style={{ transform: "translate(-50%, -50%)" }}>
-          <Loader2 className="w-10 h-10 text-w-bg-0 dark:text-w-fg-0 animate animate-spin" />
-        </div> */}
-        <Sheet store={dialog} hideTitle>
-          {/* <SeasonMediaSettings store={media} app={app} store2={player} /> */}
-        </Sheet>
       </div>
     </>
   );

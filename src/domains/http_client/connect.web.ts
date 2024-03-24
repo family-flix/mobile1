@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { HttpClientCore } from ".";
+import { HttpClientCore } from "./index";
 
 export function connect(store: HttpClientCore) {
   store.fetch = (options) => {

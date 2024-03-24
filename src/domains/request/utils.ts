@@ -41,7 +41,7 @@ export const request = {
   /** 构建请求参数 */
   post<T>(
     url: string,
-    body?: Record<string, unknown>,
+    body?: Record<string, unknown> | FormData,
     extra: Partial<{
       process: () => void;
       defaultResponse: T;

@@ -252,7 +252,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                   </div>
                 </div>
               </div> */}
-              <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div>
+              {/* <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div> */}
               <div
                 className="flex items-center justify-between"
                 onClick={() => {

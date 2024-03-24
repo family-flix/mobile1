@@ -4,7 +4,7 @@ import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp, request } from "@/domains/request/utils";
 import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types";
 import { MediaTypes, CollectionTypes, ReportTypes } from "@/constants";
-import { season_to_chinese_num } from "@/utils";
+import { relative_time_from_now, season_to_chinese_num } from "@/utils";
 
 export function reportSomething(body: {
   type: ReportTypes;
@@ -274,4 +274,68 @@ export function fetchTVChannelList(params: FetchParams) {
       url: string;
     }>
   >("/api/tv_live/list", params);
+}
+
+/** 获取有更新的观看历史 */
+export function fetchUpdatedMediaHasHistory(params: FetchParams) {
+  return request.post<
+    ListResponse<{
+      id: string;
+      latest_episode_created: string;
+      cur_episode_name: string;
+      cur_episode_order: number;
+      name: string;
+      poster_path: string;
+      updated: string;
+      thumbnail_path: string;
+      member_name: string;
+      latest_episode_order: number;
+      latest_episode_name: string;
+    }>
+  >("/api/v2/wechat/history/updated", {
+    page: params.page,
+    page_size: params.pageSize,
+  });
+}
+export function fetchUpdatedMediaHasHistoryProcess(r: TmpRequestResp<typeof fetchUpdatedMediaHasHistory>) {
+  if (r.error) {
+    return Result.Err(r.error.message);
+  }
+  const { page, page_size, no_more, list } = r.data;
+  return Result.Ok({
+    page,
+    page_size,
+    no_more,
+    list: list.map((media) => {
+      const {
+        id,
+        name,
+        poster_path,
+        thumbnail_path,
+        updated,
+        latest_episode_order,
+        latest_episode_name,
+        latest_episode_created,
+        cur_episode_name,
+        cur_episode_order,
+      } = media;
+      return {
+        id,
+        name,
+        poster_path,
+        episode_added: latest_episode_order - cur_episode_order,
+        thumbnail_path,
+        cur_episode: {
+          order: cur_episode_order,
+          name: cur_episode_name,
+          updated_at: relative_time_from_now(updated),
+        },
+        latest_episode: {
+          order: latest_episode_order,
+          name: latest_episode_name,
+          created_at: relative_time_from_now(latest_episode_created),
+        },
+      };
+    }),
+  });
 }

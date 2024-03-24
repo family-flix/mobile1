@@ -28,6 +28,8 @@ import { NotFoundPage } from "@/pages/not-found";
 import { InviteeListPage } from "@/pages/invitee";
 import { MediaSharePage } from "@/pages/invitee/share";
 import { TVChannelPlayingPage } from "@/pages/live/play";
+import { TestPage } from "@/pages/test";
+import { UpdatedHistoryListPage } from "@/pages/updated-history";
 // import { TVLiveListPage } from "@/pages/live/list";
 // import { TVChannelTestPlayingPage } from "@/pages/live/demo";
 // import { TestPage } from "@/pages/test";
@@ -43,12 +45,14 @@ export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>
   "root.home_layout.home_index.home_index_movie": HomeMovieTabContent,
   "root.home_layout.home_index.home_index_season": HomeSeasonTabContent,
   "root.mine": HomeMinePage,
+  "root.history_updated": UpdatedHistoryListPage,
   "root.search": MediaSearchPage,
   "root.messages": HomeMessagePage,
   "root.invitee": InviteeListPage,
   "root.live": TVChannelPlayingPage,
   "root.season_playing": SeasonPlayingPageV2,
   "root.movie_playing": MoviePlayingPageV2,
+  "root.test": TestPage,
   "root.notfound": NotFoundPage,
 };
 

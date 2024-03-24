@@ -1,12 +1,12 @@
 /**
  * @file 播放历史记录页面
  */
-import React, { useState } from "react";
-import { ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { ArrowRightCircle, ArrowUp, Flashlight, MoreHorizontal, MoreVertical, Star } from "lucide-react";
 
 import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
 // import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
-import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
+import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
@@ -20,6 +20,7 @@ import {
 import { RefCore } from "@/domains/cur";
 import { useInitialize, useInstance } from "@/hooks";
 import { MediaTypes } from "@/constants";
+import { cn } from "@/utils/index";
 
 export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) => {
   const { app, client, history, view, menu } = props;
@@ -31,7 +32,10 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
           fetch: fetchPlayingHistories,
           process: fetchPlayingHistoriesProcess,
           client,
-        })
+        }),
+        {
+          pageSize: 20,
+        }
       )
   );
   const deletingRequest = useInstance(
@@ -79,26 +83,16 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
     () =>
       new ScrollViewCore({
         onScroll(pos) {
-          if (!menu) {
-            return;
-          }
+          let nextShowTip = false;
           if (pos.scrollTop > app.screen.height) {
-            menu.setCanTop({
-              icon: <ArrowUp className="w-6 h-6" />,
-              text: "回到顶部",
-            });
+            nextShowTip = true;
+          }
+          if (showTipRef.current === nextShowTip) {
             return;
           }
-          if (pos.scrollTop === 0) {
-            menu.setCanRefresh();
-            return;
-          }
-          menu.disable();
+          showTipRef.current = nextShowTip;
+          setShowTip(nextShowTip);
         },
-        // async onPullToRefresh() {
-        //   await historyList.refresh();
-        //   scrollView.stopPullToRefresh();
-        // },
         onReachBottom() {
           historyList.loadMore();
         },
@@ -143,6 +137,8 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
   );
 
   const [response, setResponse] = useState(historyList.response);
+  const showTipRef = useRef(false);
+  const [showTip, setShowTip] = useState(false);
 
   useInitialize(() => {
     if (menu) {
@@ -252,7 +248,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
                   </Show>
                   <div className="p-2 pb-4">
                     <div className="text-w-fg-0">{name}</div>
-                    <div className="flex items-center mt-2 text-[12px] text-w-fg-1">
+                    <div className="flex items-center mt-2 text-sm text-w-fg-1">
                       {updated}
                       <p className="mx-1">·</p>
                       <Show when={!!episodeText}>
@@ -268,6 +264,23 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
           })}
         </ListView>
       </ScrollView>
+      <BackToTop
+        visible={showTip}
+        onClick={() => {
+          scrollView.scrollTo({ top: 0 });
+        }}
+      />
+      <div
+        className={cn("z-100 fixed right-4 bottom-48", showTip ? "block" : "hidden")}
+        style={{ zIndex: 100 }}
+        onClick={() => {
+          history.push("root.history_updated");
+        }}
+      >
+        <div className="flex flex-col items-center justify-center w-[64px] h-[64px] rounded-full bg-w-bg-0 opacity-100">
+          <Star className="w-6 h-6" />
+        </div>
+      </div>
       <Dialog store={deletingConfirmDialog}>
         <div>确认删除吗？</div>
       </Dialog>

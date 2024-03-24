@@ -19,6 +19,8 @@ import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/store/types";
 import { MediaTypes } from "@/constants";
 import { RequestCoreV2 } from "@/domains/request/v2";
+import { Affix } from "@/components/ui/affix";
+import { AffixCore } from "@/domains/ui/affix";
 
 enum MessageStatus {
   Normal = 1,
@@ -63,23 +65,27 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
         // },
       })
   );
-  const readAllBtn = new ButtonCore({
-    onClick() {
-      messageList.modifyResponse((response) => {
-        return {
-          ...response,
-          dataSource: response.dataSource.map((notification) => {
+  const affix = useInstance(() => new AffixCore({ top: 0 }));
+  const readAllBtn = useInstance(
+    () =>
+      new ButtonCore({
+        onClick() {
+          messageList.modifyResponse((response) => {
             return {
-              ...notification,
-              status: MessageStatus.Read,
+              ...response,
+              dataSource: response.dataSource.map((notification) => {
+                return {
+                  ...notification,
+                  status: MessageStatus.Read,
+                };
+              }),
+              total: 0,
             };
-          }),
-          total: 0,
-        };
-      });
-      readAllRequest.run();
-    },
-  });
+          });
+          readAllRequest.run();
+        },
+      })
+  );
   const poster = useInstance(() => new ImageInListCore());
 
   const [response, setResponse] = useState(messageList.response);
@@ -97,62 +103,64 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="">
-        <div className="min-h-screen w-full">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center cursor-pointer">
-              <div
-                className="inline-block"
-                onClick={() => {
-                  history.back();
-                }}
-              >
-                <ArrowLeft className="w-6 h-6" />
-              </div>
-              {/* <div className="text-md">我的消息</div> */}
-            </div>
+      <Affix store={affix} className="z-50 w-full bg-w-bg-0">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center cursor-pointer">
             <div
-              className="flex items-center"
+              className="inline-block"
               onClick={() => {
-                messageList.modifyResponse((response) => {
-                  return {
-                    ...response,
-                    dataSource: response.dataSource.map((notification) => {
-                      return {
-                        ...notification,
-                        status: 2,
-                      };
-                    }),
-                    total: 0,
-                  };
-                });
-                readAllRequest.run();
-                step.show(0);
+                history.back();
               }}
             >
-              <DynamicContent
-                store={step}
-                options={[
-                  {
-                    value: 0,
-                    content: null,
-                  },
-                  {
-                    value: 1,
-                    content: <Trash className="w-6 h-6" />,
-                  },
-                ]}
-              />
+              <ArrowLeft className="w-6 h-6" />
             </div>
+            {/* <div className="text-md">我的消息</div> */}
           </div>
-          <div className="px-2 ">
-            <ListView store={messageList} className="divide-y divide-gray-300 dark:divide-gray-800">
+          <div
+            className="flex items-center"
+            onClick={() => {
+              messageList.modifyResponse((response) => {
+                return {
+                  ...response,
+                  dataSource: response.dataSource.map((notification) => {
+                    return {
+                      ...notification,
+                      status: 2,
+                    };
+                  }),
+                  total: 0,
+                };
+              });
+              readAllRequest.run();
+              step.show(0);
+            }}
+          >
+            <DynamicContent
+              store={step}
+              options={[
+                {
+                  value: 0,
+                  content: null,
+                },
+                {
+                  value: 1,
+                  content: <Trash className="w-6 h-6" />,
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </Affix>
+      <ScrollView store={scrollView} className="">
+        <div className="min-h-screen w-full px-4">
+          <div className="overflow-hidden rounded-xl">
+            <ListView store={messageList} className="divide-y divide-w-bg-0 dark:divide-gray-800">
               {dataSource.map((message) => {
                 const { id: message_id, msg, status, created, media } = message;
                 return (
                   <div
                     key={message_id}
-                    className="relative py-6 px-2"
+                    className="relative py-6"
                     onClick={() => {
                       readRequest.run({
                         id: message_id,
@@ -249,7 +257,7 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
                       </div>
                     </div>
                     <Show when={status === MessageStatus.Read}>
-                      <div className="absolute inset-0 bg-w-bg-0 opacity-50 pointer-events-none"></div>
+                      <div className="absolute inset-0 opacity-50 pointer-events-none"></div>
                     </Show>
                   </div>
                 );

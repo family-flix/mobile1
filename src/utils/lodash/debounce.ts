@@ -5,7 +5,7 @@ export function debounce<T extends (...args: any[]) => any>(wait: number, func: 
       clearTimeout(timeoutId);
     }
     timeoutId = setTimeout(() => {
-      func(args);
+      func(...args);
       timeoutId = null;
     }, wait);
   };

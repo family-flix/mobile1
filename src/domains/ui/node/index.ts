@@ -6,11 +6,13 @@ enum Events {
   Click,
   ContextMenu,
   LongPress,
+  Mounted,
   StateChange,
 }
 type TheTypesOfEvents<T = unknown> = {
   [Events.Click]: T | null;
   [Events.LongPress]: T | null;
+  [Events.Mounted]: { canScroll: boolean };
   [Events.StateChange]: NodeState;
 };
 type NodeState = {
@@ -18,6 +20,7 @@ type NodeState = {
   disabled: boolean;
 };
 type NodeProps<T = unknown> = {
+  onMounted: (params: { canScroll: boolean }) => void;
   onClick: (record: T | null) => void;
   onLongPress: (record: T | null) => void;
 };
@@ -25,6 +28,8 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   id = this.uid();
   cur: RefCore<T>;
   longPressTimer: null | NodeJS.Timeout = null;
+  rect: { width: number; height: number; scrollHeight: number } = { width: 0, height: 0, scrollHeight: 0 };
+  canScroll: boolean = false;
 
   state: NodeState = {
     loading: false,
@@ -36,7 +41,10 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     super(options);
 
     this.cur = new RefCore();
-    const { onClick, onLongPress } = options;
+    const { onMounted, onClick, onLongPress } = options;
+    if (onMounted) {
+      this.onMounted(onMounted);
+    }
     if (onClick) {
       this.onClick(() => {
         onClick(this.cur.value);
@@ -114,6 +122,16 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     this.state.disabled = false;
     this.emit(Events.StateChange, { ...this.state });
   }
+  setRect(rect: { width: number; height: number; scrollHeight: number }) {
+    this.rect = rect;
+    if (rect.scrollHeight > rect.height) {
+      this.canScroll = true;
+    }
+    this.emit(Events.Mounted, { canScroll: this.canScroll });
+  }
+  scrollTo(pos: { top: number }) {
+    console.log("请在 connect 中实现 scrollTo 方法");
+  }
   /** 当按钮处于列表中时，使用该方法保存所在列表记录 */
   bind(v: T) {
     this.cur.select(v);
@@ -127,6 +145,9 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     this.emit(Events.StateChange, { ...this.state });
   }
 
+  onMounted(handler: Handler<TheTypesOfEvents<T>[Events.Mounted]>) {
+    return this.on(Events.Mounted, handler);
+  }
   onClick(handler: Handler<TheTypesOfEvents<T>[Events.Click]>) {
     return this.on(Events.Click, handler);
   }
@@ -199,6 +220,9 @@ export class NodeInListCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   }
   onLongPress(handler: Handler<TheTypesOfEvents<T>[Events.LongPress]>) {
     return this.on(Events.LongPress, handler);
+  }
+  onMounted(handler: Handler<TheTypesOfEvents<T>[Events.Mounted]>) {
+    return this.on(Events.Mounted, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents<T>[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
