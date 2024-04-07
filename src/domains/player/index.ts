@@ -4,6 +4,7 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { Application } from "@/domains/app";
+import { Result } from "@/types/index";
 
 enum Events {
   Mounted,
@@ -396,6 +397,9 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.setCurrentTime(targetTime);
     this.play();
     this.emit(Events.AfterAdjustCurrentTime);
+  }
+  async screenshot(): Promise<Result<string>> {
+    return Result.Err("请实现 screenshot 方法");
   }
   node() {
     if (!this._abstractNode) {

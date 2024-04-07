@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  Bird,
   Check,
   CheckCircle2,
   ChevronLeft,
@@ -93,7 +94,7 @@ export const SeasonMediaSettings = (props: {
           const url = history.buildURLWithPrefix("root.season_playing", { id: store.profile.id, token, tmp: "1" });
           shareDialog.show();
           const message = `➤➤➤ ${name}
-${url}`;
+${history.$router.origin}${url}`;
           setShareLink(message);
         },
         onFailed(error) {
@@ -416,8 +417,15 @@ ${url}`;
                 return (
                   <div>
                     {(() => {
-                      if (!curSource) {
-                        return <div>Loading</div>;
+                      if (!curSource || !curSource.resolutions.length) {
+                        return (
+                          <div className="flex items-center justify-center p-12">
+                            <div className="flex flex-col items-center">
+                              <Bird className="w-24 h-24" />
+                              <div className="mt-2 text-center">暂无可切换的分辨率</div>
+                            </div>
+                          </div>
+                        );
                       }
                       const { typeText: curTypeText, resolutions } = curSource;
                       return (
@@ -495,10 +503,24 @@ ${url}`;
                   <div>
                     {(() => {
                       if (state === null) {
-                        return <div className=" px-4">Loading</div>;
+                        return (
+                          <div className="flex items-center justify-center p-12">
+                            <div className="flex flex-col items-center">
+                              <Loader className="w-24 h-24 animate animate-spin" />
+                              <div className="mt-2 text-center">Loading</div>
+                            </div>
+                          </div>
+                        );
                       }
                       if (!state.curSource) {
-                        return <div className=" px-4">Error</div>;
+                        return (
+                          <div className="flex items-center justify-center p-12">
+                            <div className="flex flex-col items-center">
+                              <Bird className="w-24 h-24" />
+                              <div className="mt-2 text-center">没有可切换的视频源</div>
+                            </div>
+                          </div>
+                        );
                       }
                       return (
                         <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
@@ -513,6 +535,9 @@ ${url}`;
                                     curSource?.id === id ? "bg-w-bg-active" : ""
                                   )}
                                   onClick={async () => {
+                                    if (curSource?.id === id) {
+                                      return;
+                                    }
                                     fileIcon.select(id);
                                     fileIcon.set(3);
                                     const result = await store.changeSourceFile(s);
@@ -538,7 +563,7 @@ ${url}`;
                                         value: 2,
                                         content: (
                                           <Show
-                                            when={invalid}
+                                            when={invalid || !!curSource?.invalid}
                                             fallback={
                                               <Show when={curSource?.id === id}>
                                                 <div>

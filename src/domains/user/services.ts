@@ -42,3 +42,14 @@ export function validateMemberToken(v: { token: string }) {
     token: v.token,
   });
 }
+
+/**
+ * 成员通过授权链接访问首页时，验证该链接是否有效
+ */
+export function loginWithEmailAndPwd(values: { email: string; pwd: string }) {
+  const { email, pwd } = values;
+  return request.post<{ token: string; id: string }>("/api/v2/wechat/auth/login", {
+    email,
+    pwd,
+  });
+}

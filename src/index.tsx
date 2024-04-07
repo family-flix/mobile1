@@ -20,7 +20,7 @@ import { NavigatorCore } from "./domains/navigator";
 import { DialogCore } from "./domains/ui";
 import { MediaOriginCountry } from "./constants";
 import { useInitialize, useInstance } from "./hooks";
-import { cn } from "./utils";
+import { cn } from "./utils/index";
 
 import "./index.css";
 

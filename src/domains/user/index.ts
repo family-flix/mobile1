@@ -6,7 +6,7 @@ import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
 
-import { fetch_user_profile, login, validateMemberToken } from "./services";
+import { fetch_user_profile, login, loginWithEmailAndPwd, validateMemberToken } from "./services";
 
 export enum Events {
   Tip,
@@ -78,7 +78,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.Logout);
   }
   /**
-   * 以成员身份登录
+   * 使用 token 登录
    */
   async validate(values: Record<string, string>) {
     const { token, force, tmp } = values;
@@ -113,11 +113,43 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     await sleep(800);
     return Result.Ok({ ...this.state });
   }
+  /**
+   * 使用用户名和密码登录
+   */
+  async login(values: { email: string; pwd: string }) {
+    const { email, pwd } = values;
+    // if (this.isLogin && !force) {
+    //   return Result.Ok(this.state);
+    // }
+    if (!email) {
+      return Result.Err("请输入邮箱");
+    }
+    if (!pwd) {
+      return Result.Err("请输入密码");
+    }
+    const request = new RequestCoreV2({
+      fetch: loginWithEmailAndPwd,
+      client: this.$client,
+    });
+    const r = await request.run({ email, pwd });
+    if (r.error) {
+      return Result.Err(r.error);
+    }
+    this.id = r.data.id;
+    this.token = r.data.token;
+    this.isLogin = true;
+    this.emit(Events.Login, {
+      ...this.state,
+    });
+    return Result.Ok({
+      id: this.id,
+      token: this.token,
+    });
+  }
   async fetchProfile() {
     if (!this.isLogin) {
       return Result.Err("请先登录");
     }
-
     const request = new RequestCoreV2({
       fetch: fetch_user_profile,
       client: this.$client,

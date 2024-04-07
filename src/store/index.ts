@@ -1,20 +1,18 @@
-import { fetchInfo, fetchNotifications, fetchNotificationsProcess } from "@/services";
-import { Application } from "@/domains/app";
+import { fetchInfo, fetchNotifications, fetchNotificationsProcess } from "@/services/index";
+import { Application } from "@/domains/app/index";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { NavigatorCore } from "@/domains/navigator";
-import { RouteViewCore } from "@/domains/route_view";
-import { HistoryCore } from "@/domains/history";
+import { NavigatorCore } from "@/domains/navigator/index";
+import { RouteViewCore } from "@/domains/route_view/index";
+import { HistoryCore } from "@/domains/history/index";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCore } from "@/domains/list";
-import { ImageCore } from "@/domains/ui";
-import { Result } from "@/types";
+import { ListCore } from "@/domains/list/index";
+import { ImageCore } from "@/domains/ui/image";
+import { Result } from "@/types/index";
 
-// export * from "./app";
 import { client } from "./request";
 import { user } from "./user";
 import { storage } from "./storage";
 import { PageKeys, RouteConfig, routes } from "./routes";
-// export * from "./views";
 
 NavigatorCore.prefix = "/mobile";
 ImageCore.setPrefix(window.location.origin);
@@ -40,29 +38,9 @@ export const app = new Application({
   async beforeReady() {
     await user.validate(router.query);
     if (!user.isLogin) {
-      // app.emit(Application.Events.Error, new Error("请先登录"));
       return Result.Ok(null);
     }
-    // app.emit(Application.Events.Ready);
     return Result.Ok(null);
-    // if (!user.isLogin) {
-    // const r = await has_admin();
-    // if (r.error) {
-    //   return Result.Ok(null);
-    // }
-    // const { existing } = r.data;
-    // if (!existing) {
-    //   app.showView(registerPage);
-    //   user.needRegister = true;
-    //   return Result.Ok(null);
-    // }
-    // app.showView(loginPage);
-    // rootView.showSubView(loginPage);
-    // return Result.Ok(null);
-    // }
-
-    // await app.$user.validate();
-    // return Result.Ok(null);
   },
 });
 

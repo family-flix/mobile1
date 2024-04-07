@@ -1,15 +1,15 @@
 import dayjs from "dayjs";
 
 import { UnpackedRequestPayload, request } from "@/domains/request/utils";
+import { FetchParams } from "@/domains/list/typing";
 import {
   MediaOriginCountry,
   MediaTypes,
   MovieMediaGenresTexts,
   MovieMediaOriginCountryTexts,
   SeasonMediaOriginCountryTexts,
-} from "@/constants";
-import { FetchParams } from "@/domains/list/typing";
-import { ListResponseWithCursor, RequestedResource, Result } from "@/types";
+} from "@/constants/index";
+import { ListResponseWithCursor, RequestedResource, Result } from "@/types/index";
 
 /**
  * 获取电影列表

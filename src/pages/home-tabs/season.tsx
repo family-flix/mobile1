@@ -8,9 +8,8 @@ import { MediaRequestCore } from "@/components/media-request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { MediaTypes } from "@/constants";
-import { cn } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { MediaTypes } from "@/constants/index";
 
 export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
   const { app, client, history, view, storage } = props;

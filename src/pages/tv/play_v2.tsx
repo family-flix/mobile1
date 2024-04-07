@@ -204,6 +204,9 @@ class SeasonPlayingPageLogic<
       if (!player._canPlay) {
         return;
       }
+      // player.screenshot().then((url) => {
+      //   console.log(url);
+      // });
       tv.handleCurTimeChange({
         currentTime,
         duration,

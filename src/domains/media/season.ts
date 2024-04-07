@@ -155,10 +155,10 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   /** 播放该电视剧下指定影片 */
-  async playEpisode(episode: MediaSource, extra: { currentTime: number }) {
+  async playEpisode(source: MediaSource, extra: { currentTime: number }) {
     const { currentTime = 0 } = extra;
-    console.log("[DOMAIN]media/season - playEpisode", episode, this.curSource);
-    const { id, files } = episode;
+    console.log("[DOMAIN]media/season - playEpisode", source, this.curSource);
+    const { id, files } = source;
     if (this.curSource && id === this.curSource.id) {
       this.tip({
         text: ["已经是该剧集了"],
@@ -172,7 +172,8 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(tip);
     }
     const file = files[0];
-    console.log("[DOMAIN]media/season - playEpisode before this.$source.load", episode);
+    console.log("[DOMAIN]media/season - playEpisode before this.$source.load", source);
+    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     const res = await this.$source.load(file);
     if (res.error) {
       this.tip({
@@ -181,9 +182,9 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(res.error);
     }
     this.currentTime = currentTime;
-    this.curSource = { ...episode, currentTime, thumbnailPath: episode.stillPath, curFileId: file.id };
+    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     (async () => {
-      const r = await this.$source.loadSubtitle({ extraSubtitleFiles: episode.subtitles, currentTime });
+      const r = await this.$source.loadSubtitle({ extraSubtitleFiles: source.subtitles, currentTime });
       if (r.error) {
         console.log("[DOMAIN]media/season - loadSubtitle failed ", r.error.message);
         return;

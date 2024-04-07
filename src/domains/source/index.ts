@@ -94,6 +94,19 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       this.tip({
         text: ["获取影片详情失败", res.error.message],
       });
+      this.profile = {
+        id: file.id,
+        invalid: 1,
+        url: "",
+        type: this.curResolution,
+        typeText: "",
+        width: 0,
+        height: 0,
+        thumbnailPath: "",
+        resolutions: [],
+        subtitles: [],
+      };
+      this.emit(Events.StateChange, { ...this.state });
       return Result.Err(res.error);
     }
     const { url, thumbnailPath, typeText, type, width, height, resolutions, subtitles } = res.data;
@@ -103,6 +116,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       url,
       type,
       typeText,
+      invalid: 0,
       width,
       height,
       thumbnailPath,
@@ -137,6 +151,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       url,
       type: targetType,
       typeText,
+      invalid: 0,
       width,
       height,
       resolutions,

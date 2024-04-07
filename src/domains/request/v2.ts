@@ -1,13 +1,13 @@
 /**
  * @file API 请求
  */
-import axios, { CancelToken, CancelTokenSource } from "axios";
+// import axios, { CancelTokenSource } from "axios";
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { BizError } from "@/domains/error";
-import { HttpClientCore } from "@/domains/http_client";
-import { Result, UnpackedResult, Unpacked, Shift } from "@/types";
-import { sleep } from "@/utils";
+import { BizError } from "@/domains/error/index";
+import { HttpClientCore } from "@/domains/http_client/index";
+import { Result, UnpackedResult } from "@/types/index";
+import { sleep } from "@/utils/index";
 
 import { RequestPayload, UnpackedRequestPayload } from "./utils";
 
@@ -85,7 +85,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
   response: RequestResponse<T> | null = null;
   /** 请求失败，保存错误信息 */
   error: BizError | null = null;
-  source: CancelTokenSource;
+  id = String(this.uid());
+  // source: CancelTokenSource;
 
   get state(): RequestState<RequestResponse<T>> {
     return {
@@ -122,8 +123,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
       this.defaultResponse = defaultResponse;
       this.response = defaultResponse;
     }
-    const source = axios.CancelToken.source();
-    this.source = source;
+    // const source = axios.CancelToken.source();
+    // this.source = source;
     if (onSuccess) {
       this.onSuccess(onSuccess);
     }
@@ -157,8 +158,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
     this.loading = true;
     this.response = this.defaultResponse;
     this.error = null;
-    const source = axios.CancelToken.source();
-    this.source = source;
+    // const source = axios.CancelToken.source();
+    // this.source = source;
     this.emit(Events.LoadingChange, true);
     this.emit(Events.StateChange, { ...this.state });
     this.emit(Events.BeforeRequest);
@@ -167,7 +168,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
       if (method === "GET") {
         // const [query, extra = {}] = args;
         const r = this.client.get(url, query, {
-          token: this.source.token,
+          id: this.id,
+          // token: this.source.token,
           // ...extra,
         });
         // if (this.process) {
@@ -178,7 +180,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
       if (method === "POST") {
         // const [body, extra = {}] = args;
         const r = this.client.post(url, body, {
-          token: this.source.token,
+          id: this.id,
+          // token: this.source.token,
           // ...extra,
         });
         // if (this.process) {
@@ -224,7 +227,8 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
     // this.run(...this.args);
   }
   cancel() {
-    this.source.cancel("主动取消");
+    this.client.cancel(this.id);
+    // this.source.cancel("主动取消");
   }
   clear() {
     this.response = null;

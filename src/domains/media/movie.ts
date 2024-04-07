@@ -79,8 +79,8 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     const { client, resolution = MediaResolutionTypes.SD } = props;
     this.$client = client;
     this.$source = new MediaSourceFileCore({
-      client,
       resolution,
+      client,
     });
   }
 
@@ -110,6 +110,8 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["当前没有可播放的视频源"] });
       return Result.Err(msg);
     }
+    // 这里不能设置，否则下面就提示「已经是该剧集了」
+    // this.curSource = curSource;
     this.emit(Events.ProfileLoaded, { profile: this.profile, curSource });
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok({ ...this.profile });
@@ -138,6 +140,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     }
     const file = files[0];
     // console.log("[DOMAIN]media/season - playSource before this.$source.load", source);
+    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     const res = await this.$source.load(file);
     if (res.error) {
       const msg = this.tip({
