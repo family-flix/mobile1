@@ -322,7 +322,6 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
-      client: this.$client,
     });
     if (r.error) {
       return;
