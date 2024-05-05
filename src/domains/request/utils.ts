@@ -2,8 +2,8 @@
  * @file 构建 http 请求载荷
  * 实际请求由 http client 完成
  */
-import { RequestedResource, Result, JSONObject } from "@/types";
-import { query_stringify } from "@/utils";
+import { RequestedResource, Result } from "@/types/index";
+import { query_stringify } from "@/utils/index";
 
 export type RequestPayload<T> = {
   url: string;
@@ -22,19 +22,20 @@ export const request = {
   /** 构建请求参数 */
   get<T>(
     endpoint: string,
-    query?: JSONObject,
+    query?: Record<string, string | number | boolean | null | undefined>,
     extra: Partial<{
-      process: () => void;
+      headers: Record<string, string | number>;
       defaultResponse: T;
     }> = {}
   ) {
-    const { defaultResponse } = extra;
+    // console.log("GET", endpoint);
+    const { headers, defaultResponse } = extra;
     const url = `${endpoint}${query ? "?" + query_stringify(query) : ""}`;
     const resp = {
       url,
       method: "GET",
       defaultResponse,
-      headers: {},
+      headers,
     } as RequestPayload<T>;
     return resp;
   },
@@ -43,17 +44,18 @@ export const request = {
     url: string,
     body?: Record<string, unknown> | FormData,
     extra: Partial<{
-      process: () => void;
+      headers: Record<string, string | number>;
       defaultResponse: T;
     }> = {}
   ) {
-    const { defaultResponse } = extra;
+    // console.log("POST", url);
+    const { headers, defaultResponse } = extra;
     const resp = {
       url,
       method: "POST",
       body,
       defaultResponse,
-      headers: {},
+      headers,
     } as RequestPayload<T>;
     return resp;
   },

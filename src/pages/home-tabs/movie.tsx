@@ -1,21 +1,16 @@
 import React, { useState } from "react";
 import { Bird, Star } from "lucide-react";
 
-// import { client } from "@/store/request";
-// import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ViewComponent } from "@/store/types";
-import { fetchCollectionList } from "@/services";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
-import { MediaRequestCore } from "@/components/media-request";
+import { MediaRequestCore } from "@/components/media-request/index";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { MediaTypes } from "@/constants";
-import { cn } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { MediaTypes } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
   const { app, history, client, storage, view } = props;

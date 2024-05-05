@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import {
   ArrowLeft,
   Copy,
+  Edit,
   HelpCircle,
   HelpingHand,
   MailQuestion,
@@ -16,16 +17,13 @@ import {
   Tv,
 } from "lucide-react";
 
-// import { client } from "@/store/request";
 import { infoRequest, messageList } from "@/store/index";
-// import { messagesPage, inviteeListPage } from "@/store/views";
 import { inviteMember, reportSomething } from "@/services";
-import { getSystemTheme, useTheme } from "@/components/Theme";
+import { getSystemTheme, useTheme } from "@/components/theme-switch";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { RequestCore } from "@/domains/request";
 import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes, __VERSION__ } from "@/constants";
 import { useInitialize, useInstance } from "@/hooks";
@@ -70,12 +68,14 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
     () =>
       new InputCore({
         placeholder: "请输入问题",
+        autoFocus: true,
       })
   );
   const wantInput = useInstance(
     () =>
       new InputCore({
         placeholder: "请输入想看的电视剧/电影",
+        autoFocus: true,
       })
   );
   const reportRequest = useInstance(
@@ -144,6 +144,14 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
             type: ReportTypes.Want,
             data: wantInput.value,
           });
+        },
+      })
+  );
+  const $logout = useInstance(
+    () =>
+      new ButtonCore({
+        onClick() {
+          app.$user.logout();
         },
       })
   );
@@ -229,12 +237,19 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 <Settings2 className="w-5 h-5" />
               </div>
             </div>
-            <div className="relative flex p-4 h-24 rounded-lg bg-w-bg-3">
+            <div
+              className="relative flex p-4 h-24 rounded-lg bg-w-bg-3"
+              onClick={() => {
+                history.push("root.update_mine_profile");
+              }}
+            >
               <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
                 <LazyImage className="w-full h-full" store={avatar} />
               </div>
-              <div className="mt-2 text-xl text-w-fg-0">{profile.id}</div>
-              <div></div>
+              <div className="mt-2 flex items-center">
+                <div className="text-xl text-w-fg-0">{profile.email || profile.id}</div>
+                <Edit className="ml-4 w-4 h-4" />
+              </div>
             </div>
             <div className="rounded-lg bg-w-bg-3 text-w-fg-0">
               {/* <div
@@ -276,7 +291,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className=""
                 onClick={() => {
-                  app.tip({ text: ["敬请期待"] });
+                  history.push("root.help");
                 }}
               >
                 <div className="flex items-center">
@@ -350,6 +365,9 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <Button variant="subtle" store={$logout}>
+              退出登录
+            </Button>
             <div
               className="py-2 text-center text-sm"
               onClick={() => {

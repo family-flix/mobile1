@@ -1,6 +1,6 @@
 import React from "react";
 
-import { user } from "@/store/user";
+// import { user } from "@/store/user";
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { Button, Input } from "@/components/ui";
 import { ButtonCore, InputCore } from "@/domains/ui";
@@ -21,6 +21,7 @@ class PageLogic {
     this.$password = new InputCore({
       placeholder: "请输入密码",
       type: "password",
+      autoComplete: true,
     });
     this.$login = new ButtonCore({
       onClick: async () => {
@@ -29,7 +30,7 @@ class PageLogic {
           pwd: this.$password.value,
         };
         this.$login.setLoading(true);
-        const r = await user.login(values);
+        const r = await app.$user.login(values);
         this.$login.setLoading(false);
         if (r.error) {
           app.tip({
@@ -54,15 +55,18 @@ export const LoginPage: ViewComponent = React.memo((props) => {
 
   return (
     <div className="p-4">
-      <div className="text-center">Slogan</div>
-      <div className="mt-4 p-4">
+      <div className="relative">
+        <div className="z-20 relative text-3xl">FamilyFlix</div>
+        <div className="z-10 absolute bottom-[0px] left-[12px] w-[124px] h-[12px] bg-w-brand rounded-md"></div>
+      </div>
+      <div className="mt-4 py-4 space-y-4 rounded-md">
         <div>
           <div>邮箱</div>
-          <Input store={$logic.$username} />
+          <Input className="mt-1 bg-w-bg-0" store={$logic.$username} />
         </div>
         <div>
           <div>密码</div>
-          <Input store={$logic.$password} />
+          <Input className="mt-1 bg-w-bg-0" store={$logic.$password} />
         </div>
       </div>
       <div className="w-full mt-4">

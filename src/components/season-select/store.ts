@@ -1,14 +1,10 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { SeasonItem, fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { HttpClientCore } from "@/domains/http_client";
-import { UnpackedResult } from "@/types";
-import { TmpRequestResp } from "@/domains/request/utils";
 
 enum Events {
   StateChange,

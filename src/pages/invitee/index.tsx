@@ -4,20 +4,17 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Film, Pen, Plus, QrCode, Search, Smartphone, Tv2 } from "lucide-react";
 
-// import { homeIndexPage, mediaSharePage } from "@/store/views";
-import { fetchInviteeList, inviteMember } from "@/services";
+import { ViewComponent } from "@/store/types";
+import { fetchInviteeList, inviteMember } from "@/services/index";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { Qrcode } from "@/components/qr-code";
+import { Qrcode } from "@/components/qr-code/index";
 import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/store/types";
-import { cn } from "@/utils";
+import { cn } from "@/utils/index";
 
 enum Events {
   StateChange,

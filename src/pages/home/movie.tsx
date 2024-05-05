@@ -4,8 +4,8 @@
 import React, { useEffect, useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
-// import { moviePlayingPage } from "@/store/views";
 import { ViewComponentWithMenu } from "@/store/types";
+import { useInitialize, useInstance } from "@/hooks/index";
 import {
   ScrollView,
   Sheet,
@@ -20,12 +20,9 @@ import {
 import { MediaRequestCore } from "@/components/media-request";
 import { CheckboxGroupCore, ScrollViewCore, InputCore, DialogCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { fetchMovieList, fetchMovieListProcess } from "@/domains/movie/services";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
-import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
+import { MovieGenresOptions, MovieOriginCountryOptions } from "@/constants/index";
 
 export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   const { app, history, client, storage, view, menu } = props;

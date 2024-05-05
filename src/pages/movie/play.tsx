@@ -17,21 +17,20 @@ import {
 } from "lucide-react";
 
 import { ViewComponent } from "@/store/types";
-import { reportSomething } from "@/services";
-import { Video, Sheet, ScrollView, Dialog, LazyImage } from "@/components/ui";
+import { reportSomething } from "@/services/index";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { Video, Sheet, ScrollView, Dialog } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
-import { PlayerCore } from "@/domains/player";
-import { MovieCore } from "@/domains/movie";
-import { RefCore } from "@/domains/cur";
+import { PlayerCore } from "@/domains/player/index";
+import { MovieCore } from "@/domains/movie/index";
+import { RefCore } from "@/domains/cur/index";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
-import { RequestCore } from "@/domains/request";
-import { OrientationTypes } from "@/domains/app";
+import { OrientationTypes } from "@/domains/app/index";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { MovieReportList, ReportTypes, players } from "@/constants";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn } from "@/utils";
+import { MovieReportList, ReportTypes, players } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 export const MoviePlayingPage: ViewComponent = React.memo((props) => {
   const { app, history, client, storage, view } = props;

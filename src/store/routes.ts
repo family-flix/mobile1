@@ -19,6 +19,7 @@ const configure = {
             show: "",
             hide: "",
           },
+          require: ["login"],
         },
         children: {
           home_index: {
@@ -36,6 +37,7 @@ const configure = {
                     show: "slide-in-from-right",
                     hide: "slide-out-to-right",
                   },
+                  require: ["login"],
                 },
               },
               home_index_movie: {
@@ -51,6 +53,11 @@ const configure = {
                 pathname: "/home/index/history",
               },
             },
+            options: {
+              keep_alive: true,
+              animation: {},
+              require: ["login"],
+            },
           },
         },
       },
@@ -65,6 +72,7 @@ const configure = {
             show: "slide-in-from-right",
             hide: "slide-out-to-right",
           },
+          require: ["login"],
         },
       },
       movie_playing: {
@@ -78,6 +86,7 @@ const configure = {
             show: "slide-in-from-right",
             hide: "slide-out-to-right",
           },
+          require: ["login"],
         },
       },
       history_updated: {
@@ -93,6 +102,7 @@ const configure = {
             // show: "slide-in-from-right",
             // hide: "slide-out-to-right",
           },
+          require: ["login"],
         },
       },
       live: {
@@ -110,6 +120,7 @@ const configure = {
             show: "fade-in",
             hide: "fade-out",
           },
+          require: ["login"],
         },
       },
       invitee: {
@@ -123,6 +134,7 @@ const configure = {
             show: "slide-in-from-right",
             hide: "slide-out-to-right",
           },
+          require: ["login"],
         },
       },
       messages: {
@@ -136,11 +148,12 @@ const configure = {
             show: "slide-in-from-right",
             hide: "slide-out-to-right",
           },
+          require: ["login"],
         },
       },
       mine: {
         title: "我的",
-        pathname: "/home/mine",
+        pathname: "/mine/index",
         options: {
           keep_alive: true,
           animation: {
@@ -151,6 +164,41 @@ const configure = {
             // show: "slide-in-from-right",
             // hide: "slide-out-to-right",
           },
+          require: ["login"],
+        },
+      },
+      update_mine_profile: {
+        title: "修改邮箱密码",
+        pathname: "/mine/patch",
+        options: {
+          keep_alive: true,
+          animation: {
+            in: "slide-in-from-right",
+            out: "slide-out-to-right",
+            show: "slide-in",
+            hide: "slide-out",
+          },
+          require: ["login"],
+        },
+      },
+      help: {
+        title: "帮助中心",
+        pathname: "/help",
+        options: {
+          keep_alive: true,
+        },
+        // children: {
+        //   home: {
+        //     title: "帮助中心",
+        //     pathname: "/help/index",
+        //   },
+        // },
+      },
+      login: {
+        title: "登录",
+        pathname: "/login",
+        options: {
+          keep_alive: true,
         },
       },
       test: {
@@ -186,8 +234,9 @@ export type RouteConfig = {
     name: string;
   };
   options?: Partial<{
-    keep_alive: boolean;
-    animation: {
+    require?: string[];
+    keep_alive?: boolean;
+    animation?: {
       in: string;
       out: string;
       show: string;
@@ -202,16 +251,16 @@ type OriginalRouteConfigure = Record<
     title: string;
     pathname: string;
     options?: Partial<{
-      keep_alive: boolean;
-      animation: {
+      keep_alive?: boolean;
+      animation?: Partial<{
         in: string;
         out: string;
         show: string;
         hide: string;
-      };
+      }>;
+      require?: string[];
     }>;
     children?: OriginalRouteConfigure;
-    // component: unknown;
   }
 >;
 function apply(
@@ -236,7 +285,6 @@ function apply(
           title,
           name,
           pathname,
-          // component,
           options,
           layout: true,
           parent: {
@@ -244,20 +292,19 @@ function apply(
           },
         },
         ...subRoutes,
-      ];
+      ] as RouteConfig[];
     }
     return [
       {
         title,
         name,
         pathname,
-        // component,
         options,
         parent: {
           name: parent.name,
         },
       },
-    ];
+    ] as RouteConfig[];
   });
   return routes.reduce((a, b) => {
     return a.concat(b);

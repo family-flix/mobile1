@@ -5,7 +5,6 @@ import { FetchParams } from "@/domains/list/typing";
 import {
   MediaOriginCountry,
   MediaTypes,
-  MovieMediaGenresTexts,
   MovieMediaOriginCountryTexts,
   SeasonMediaOriginCountryTexts,
 } from "@/constants/index";

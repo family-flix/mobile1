@@ -2,20 +2,15 @@
  * @file 电视剧选择
  */
 import { useState } from "react";
-// import { For, Show, createSignal } from "solid-js";
 import { Calendar, Send } from "lucide-react";
 
-import { BaseDomain } from "@/domains/base";
-import { ButtonCore, DialogCore, DialogProps, ImageInListCore, InputCore, ScrollViewCore } from "@/domains/ui";
-import { RefCore } from "@/domains/cur";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
+import { Show } from "@/packages/ui/show";
 import { Button, Input, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
+import { cn } from "@/utils/index";
 
 import { TVSeasonSelectCore } from "./store";
-import { Show } from "@/packages/ui/show";
-import { cn } from "@/utils";
-import { useInitialize, useInstance } from "@/hooks";
 
 export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
   const { store } = props;

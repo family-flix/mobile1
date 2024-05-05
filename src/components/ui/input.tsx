@@ -18,7 +18,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
       return;
     }
     connect(store, $input);
-    if (focus) {
+    if (focus || store.autoFocus) {
       setTimeout(() => {
         $input.focus();
       }, 500);
@@ -31,7 +31,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
     });
   });
 
-  const { loading, value, placeholder, disabled, allowClear, type } = state;
+  const { loading, value, placeholder, disabled, allowClear, autoComplete, type } = state;
 
   // React.useEffect(() => {
   //   return () => {
@@ -69,6 +69,8 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
         placeholder={placeholder}
         disabled={disabled}
         type={type}
+        autoComplete={!autoComplete ? "new-password" : "on"}
+        autoCorrect="false"
         onChange={(event: React.ChangeEvent & { target: HTMLInputElement }) => {
           const { value: v } = event.target;
           // console.log("[COMPONENT]ui/input onchange", v);
@@ -100,7 +102,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
             return null;
           }
           return (
-            <div className="p-1 rounded-full bg-w-fg-1 text-w-bg-0">
+            <div className="p-1 rounded-full bg-w-fg-2 text-w-bg-0">
               <X className="w-2 h-2" />
             </div>
           );

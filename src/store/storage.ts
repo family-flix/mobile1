@@ -6,6 +6,7 @@ const DEFAULT_CACHE_VALUES = {
   user: {
     id: "",
     username: "anonymous",
+    email: "",
     token: "",
     avatar: "",
   },

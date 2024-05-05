@@ -9,7 +9,7 @@ import { PageKeys, routesWithPathname } from "./store/routes";
 import { pages } from "./store/views";
 import { client } from "./store/request";
 import { storage } from "./store/storage";
-import { ThemeProvider } from "./components/Theme";
+import { ThemeProvider } from "./components/theme-switch";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast } from "./components/ui/toast";
 import { Dialog } from "./components/ui";
@@ -93,7 +93,7 @@ function ApplicationView() {
       })
   );
   // const [showMask, setShowMask] = useState(true);
-  const [ready, setReady] = useState(false);
+  // const [ready, setReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [subViews, setSubViews] = useState(view.subViews);
 
@@ -133,15 +133,25 @@ function ApplicationView() {
       updateDialog.show();
     });
     app.onReady(() => {
-      setReady(true);
+      // setReady(true);
+      const { pathname, query } = history.$router;
+      const route = routesWithPathname[pathname];
+      console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
+      if (!route) {
+        history.push("root.notfound");
+        return;
+      }
+      if (!app.$user.isLogin) {
+        if (route.options?.require?.includes("login")) {
+          history.push("root.login");
+          return;
+        }
+      }
       client.appendHeaders({
         Authorization: app.$user.token,
       });
       messageList.init();
-      const { pathname, query } = history.$router;
-      console.log("[ROOT]onMount", pathname);
-      const route = routesWithPathname[pathname];
-      if (route && !history.isLayout(route.name)) {
+      if (!history.isLayout(route.name)) {
         history.push(route.name, query, { ignore: true });
         return;
       }

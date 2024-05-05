@@ -1,19 +1,15 @@
 import React, { useState } from "react";
 import { Bird } from "lucide-react";
 
-// import { client } from "@/store/request";
 import { ViewComponent } from "@/store/types";
-// import { moviePlayingPageV2, seasonPlayingPageV2 } from "@/store/views";
-import { fetchCollectionList, fetchCollectionListProcess } from "@/services";
+import { fetchCollectionList, fetchCollectionListProcess } from "@/services/index";
 import { LazyImage, ListView, Skeleton } from "@/components/ui";
 import { ImageInListCore } from "@/domains/ui";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { MediaTypes } from "@/constants";
-import { cn } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { MediaTypes } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
   const { app, client, history, storage } = props;

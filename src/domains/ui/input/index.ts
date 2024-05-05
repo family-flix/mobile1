@@ -28,6 +28,8 @@ type InputProps = {
   defaultValue: string;
   placeholder: string;
   type: string;
+  autoFocus: boolean;
+  autoComplete: boolean;
   onChange: (v: string) => void;
   onEnter: (v: string) => void;
   onBlur: (v: string) => void;
@@ -41,6 +43,8 @@ type InputState = {
   loading: boolean;
   type: string;
   allowClear: boolean;
+  autoFocus: boolean;
+  autoComplete: boolean;
 };
 
 export class InputCore extends BaseDomain<TheTypesOfEvents> {
@@ -49,6 +53,8 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   placeholder: string;
   disabled: boolean;
   allowClear: boolean = true;
+  autoComplete: boolean = false;
+  autoFocus: boolean = false;
   type: string;
   loading = false;
   valueUsed = "";
@@ -60,6 +66,8 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       disabled: this.disabled,
       loading: this.loading,
       type: this.type,
+      autoComplete: this.autoComplete,
+      autoFocus: this.autoFocus,
       allowClear: this.allowClear,
     };
   }
@@ -73,6 +81,8 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       placeholder = "请输入",
       type = "string",
       disabled = false,
+      autoFocus = false,
+      autoComplete = false,
       onChange,
       onBlur,
       onEnter,
@@ -85,6 +95,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     this.placeholder = placeholder;
     this.type = type;
     this.disabled = disabled;
+    this.autoComplete = autoComplete;
     if (defaultValue) {
       this._defaultValue = defaultValue;
     }

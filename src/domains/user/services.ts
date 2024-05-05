@@ -30,15 +30,23 @@ export function get_token() {
  * 获取当前登录用户信息详情
  * @returns
  */
-export function fetch_user_profile() {
-  return request.get("/api/user/profile");
+export function fetchUserProfile() {
+  return request.post("/api/v2/wechat/user/profile");
+}
+
+/**
+ * 获取当前登录用户信息详情
+ * @returns
+ */
+export function updateUserAccount(values: { email: string; pwd: string }) {
+  return request.post<void>("/api/v2/wechat/mine/update_account", values);
 }
 
 /**
  * 成员通过授权链接访问首页时，验证该链接是否有效
  */
 export function validateMemberToken(v: { token: string }) {
-  return request.post<{ token: string; id: string }>("/api/validate", {
+  return request.post<{ id: string; email: string; token: string }>("/api/validate", {
     token: v.token,
   });
 }

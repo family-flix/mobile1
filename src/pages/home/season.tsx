@@ -4,9 +4,8 @@
 import React, { useState } from "react";
 import { ArrowUp, Loader, Pen, Search, SlidersHorizontal, Star } from "lucide-react";
 
-// import { client } from "@/store/request";
-// import { moviePlayingPage, moviePlayingPageV2, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ViewComponentWithMenu } from "@/store/types";
+import { useInitialize, useInstance } from "@/hooks/index";
 import {
   Skeleton,
   ListView,
@@ -21,12 +20,9 @@ import {
 import { MediaRequestCore } from "@/components/media-request";
 import { ScrollViewCore, InputCore, DialogCore, CheckboxGroupCore, ButtonCore, ImageInListCore } from "@/domains/ui";
 import { fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ListCoreV2 } from "@/domains/list/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
+import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants/index";
 
 export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, history, client, storage, view, menu } = props;

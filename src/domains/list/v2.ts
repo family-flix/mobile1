@@ -234,7 +234,7 @@ export class ListCoreV2<
       ...this.extraResponse,
     };
     const { page: p, pageSize: ps, ...restParams } = this.params;
-    const responseFromPlugin: Partial<FetchParams> = {
+    const responseFromPlugin: { search: any; page?: number; pageSize?: number } = {
       search: restParams,
     };
     if (p) {

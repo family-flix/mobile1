@@ -5,7 +5,6 @@ import { NavigatorCore } from "@/domains/navigator/index";
 import { RouteViewCore } from "@/domains/route_view/index";
 import { HistoryCore } from "@/domains/history/index";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCore } from "@/domains/list/index";
 import { ImageCore } from "@/domains/ui/image";
 import { Result } from "@/types/index";
 
@@ -37,19 +36,19 @@ export const app = new Application({
   user,
   async beforeReady() {
     await user.validate(router.query);
-    if (!user.isLogin) {
-      return Result.Ok(null);
-    }
     return Result.Ok(null);
   },
 });
 
 user.onLogin((profile) => {
+  client.appendHeaders({
+    Authorization: user.token,
+  });
   storage.set("user", profile);
 });
 user.onLogout(() => {
   storage.clear("user");
-  // router.push("/login");
+  history.push("root.login");
 });
 user.onExpired(() => {
   storage.clear("user");
@@ -82,7 +81,7 @@ export const infoRequest = new RequestCoreV2({
   client: client,
 });
 
-ListCore.commonProcessor = ListCoreV2.commonProcessor = <T>(
+ListCoreV2.commonProcessor = <T>(
   originalResponse: any
 ): {
   dataSource: T[];

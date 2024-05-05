@@ -17,14 +17,14 @@ export function TabHeader<T extends { key: "id"; options: { id: string; text: st
       setState(v);
     });
     store.onLinePositionChange((v) => {
-      console.log("[COMPONENT]ui/tab-header - store.onLinePositionChange", left);
+      // console.log("[COMPONENT]ui/tab-header - store.onLinePositionChange", left);
       setLeft(v.left);
     });
   });
 
   const { tabs: options, current } = state;
 
-  console.log("[COMPONENT]ui/tab-header - render", left);
+  // console.log("[COMPONENT]ui/tab-header - render", left);
 
   return (
     <div

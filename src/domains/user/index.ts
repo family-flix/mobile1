@@ -6,7 +6,7 @@ import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
 
-import { fetch_user_profile, login, loginWithEmailAndPwd, validateMemberToken } from "./services";
+import { fetchUserProfile, login, loginWithEmailAndPwd, updateUserAccount, validateMemberToken } from "./services";
 
 export enum Events {
   Tip,
@@ -30,6 +30,7 @@ type TheTypesOfEvents = {
 type UserProps = {
   id: string;
   username: string;
+  email: string;
   avatar: string;
   token: string;
   client: HttpClientCore;
@@ -37,6 +38,7 @@ type UserProps = {
 type UserState = {
   id: string;
   username: string;
+  email: string;
   avatar: string;
   token: string;
 };
@@ -50,6 +52,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
 
   id: string = "";
   username: string = "Anonymous";
+  email: string = "";
   avatar: string = "";
   token: string = "";
   isLogin: boolean = false;
@@ -58,6 +61,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     return {
       id: this.id,
       username: this.username,
+      email: this.email,
       avatar: this.avatar,
       token: this.token,
     };
@@ -65,16 +69,27 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: Partial<{ _name: string }> & UserProps) {
     super(props);
 
-    const { id, username, avatar, token, client } = props;
+    const { id, username, email, avatar, token, client } = props;
     // this.log("constructor", initialUser);
     this.id = id;
     this.username = username;
+    this.email = email;
     this.avatar = avatar;
     this.isLogin = !!token;
     this.token = token;
     this.$client = client;
+    if (token) {
+      this.$client.appendHeaders({
+        Authorization: token,
+      });
+    }
   }
   logout() {
+    this.username = "Anonymous";
+    this.email = "";
+    this.avatar = "";
+    this.isLogin = false;
+    this.token = "";
     this.emit(Events.Logout);
   }
   /**
@@ -82,13 +97,6 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
    */
   async validate(values: Record<string, string>) {
     const { token, force, tmp } = values;
-    // if (this.isLogin && !force) {
-    //   return Result.Ok(this.state);
-    // }
-    if (!token) {
-      const msg = this.tip({ text: ["缺少 token"] });
-      return Result.Err(msg);
-    }
     const request = new RequestCoreV2({
       fetch: validateMemberToken,
       client: this.$client,
@@ -99,10 +107,10 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
         this.emit(Events.NeedUpdate);
         return Result.Err(r.error);
       }
-      this.tip({ text: ["校验 token 失败", r.error.message] });
-      return Result.Err(r.error);
+      return Result.Err(r.error.message, 900);
     }
     this.id = r.data.id;
+    this.email = r.data.email;
     this.token = r.data.token;
     this.isLogin = true;
     if (!tmp) {
@@ -151,10 +159,31 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("请先登录");
     }
     const request = new RequestCoreV2({
-      fetch: fetch_user_profile,
+      fetch: fetchUserProfile,
       client: this.$client,
     });
     const r = await request.run();
+    if (r.error) {
+      return r;
+    }
+    return Result.Ok(r.data);
+  }
+  async updateAccount(values: { email: string; pwd: string }) {
+    if (!this.isLogin) {
+      return Result.Err("请先登录");
+    }
+    const { email, pwd } = values;
+    if (!email) {
+      return Result.Err("请输入邮箱");
+    }
+    if (!pwd) {
+      return Result.Err("请输入密码");
+    }
+    const request = new RequestCoreV2({
+      fetch: updateUserAccount,
+      client: this.$client,
+    });
+    const r = await request.run(values);
     if (r.error) {
       return r;
     }

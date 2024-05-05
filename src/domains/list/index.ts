@@ -3,7 +3,7 @@
  */
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
-import { JSONValue, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
+import { RequestedResource, Result } from "@/types";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { omit } from "./utils";
@@ -233,7 +233,7 @@ export class ListCore<
       ...this.extraResponse,
     };
     const { page: p, pageSize: ps, ...restParams } = this.params;
-    const responseFromPlugin: Partial<FetchParams> = {
+    const responseFromPlugin: { search: any; page?: number; pageSize?: number } = {
       search: restParams,
     };
     if (p) {

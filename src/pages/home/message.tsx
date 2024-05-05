@@ -4,23 +4,19 @@
 import React, { useState } from "react";
 import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } from "lucide-react";
 
-// import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { messageList } from "@/store/index";
 import { readAllNotification, readNotification } from "@/services";
-import { ScrollView, Skeleton, LazyImage, ListView } from "@/components/ui";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { ScrollView, LazyImage, ListView } from "@/components/ui";
+import { Affix } from "@/components/ui/affix";
 import { Show } from "@/components/ui/show";
+import { RequestCoreV2 } from "@/domains/request/v2";
+import { AffixCore } from "@/domains/ui/affix";
 import { DynamicContent } from "@/components/dynamic-content";
 import { DynamicContentCore } from "@/domains/ui/dynamic-content";
-import { StepSwitch } from "@/components/ui/step";
-import { StepCore } from "@/domains/step";
 import { ScrollViewCore, ButtonCore, ImageInListCore } from "@/domains/ui";
-import { RequestCore } from "@/domains/request";
-import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/store/types";
-import { MediaTypes } from "@/constants";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { Affix } from "@/components/ui/affix";
-import { AffixCore } from "@/domains/ui/affix";
+import { MediaTypes } from "@/constants/index";
 
 enum MessageStatus {
   Normal = 1,

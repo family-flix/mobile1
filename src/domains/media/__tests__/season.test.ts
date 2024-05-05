@@ -38,6 +38,7 @@ const client = new HttpClientCore({
 const user = new UserCore({
   id: "",
   username: "",
+  email: "",
   avatar: "",
   token: "",
   client,

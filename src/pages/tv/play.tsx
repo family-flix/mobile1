@@ -17,25 +17,23 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { reportSomething, shareMediaToInvitee } from "@/services";
+import { ViewComponent } from "@/store/types";
+import { reportSomething, shareMediaToInvitee } from "@/services/index";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { Dialog, Sheet, ScrollView, ListView, Video, LazyImage } from "@/components/ui";
-import { InviteeSelect } from "@/components/member-select/view";
+import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
+import { Presence } from "@/components/ui/presence";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
-import { TVCore } from "@/domains/tv";
-import { RequestCore } from "@/domains/request";
-import { RefCore } from "@/domains/cur";
-import { PlayerCore } from "@/domains/player";
+import { TVCore } from "@/domains/tv/index";
+import { RefCore } from "@/domains/cur/index";
+import { PlayerCore } from "@/domains/player/index";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { MediaResolutionTypes } from "@/domains/source/constants";
-import { OrientationTypes } from "@/domains/app";
-import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
-import { Presence } from "@/components/ui/presence";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/store/types";
-import { ReportTypes, SeasonReportList, players } from "@/constants";
-import { cn } from "@/utils";
+import { OrientationTypes } from "@/domains/app/index";
+import { ReportTypes, SeasonReportList, players } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 export const TVPlayingPage: ViewComponent = React.memo((props) => {
   const { app, history, client, storage, view } = props;

@@ -3,13 +3,11 @@ import React, { useState } from "react";
 // import { client } from "@/store/request";
 // import { tvChannelPlayingPage } from "@/store/views";
 import { fetchTVChannelList } from "@/services";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { LazyImage, ListView, ScrollView } from "@/components/ui";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { useInitialize, useInstance } from "@/hooks";
 import { ViewComponent } from "@/store/types";
 
 export const TVLiveListPage: ViewComponent = React.memo((props) => {
