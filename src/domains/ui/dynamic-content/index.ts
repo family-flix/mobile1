@@ -17,7 +17,7 @@ type DynamicContentCoreState = {
 };
 
 export class DynamicContentCore extends BaseDomain<TheTypesOfEvents> {
-  unique_id?: unknown;
+  unique_uid?: unknown;
   value: number;
 
   get state(): DynamicContentCoreState {
@@ -32,7 +32,7 @@ export class DynamicContentCore extends BaseDomain<TheTypesOfEvents> {
     const { value, unique_id } = props;
     this.value = value;
     if (unique_id) {
-      this.unique_id = unique_id;
+      this.unique_uid = unique_id;
     }
   }
 
@@ -66,7 +66,7 @@ export class DynamicContentInListCore extends BaseDomain<TheTypesOfEvents> {
   /** 当按钮处于列表中时，使用该方法保存所在列表记录 */
   bind(unique_id: unknown) {
     const existing = this.btns.find((btn) => {
-      return btn.unique_id === unique_id;
+      return btn.unique_uid === unique_id;
     });
     if (existing) {
       return existing;
@@ -83,7 +83,7 @@ export class DynamicContentInListCore extends BaseDomain<TheTypesOfEvents> {
     this.cur = null;
   }
   select(unique_id: unknown) {
-    const matched = this.btns.find((btn) => btn.unique_id === unique_id);
+    const matched = this.btns.find((btn) => btn.unique_uid === unique_id);
     if (!matched) {
       return;
     }

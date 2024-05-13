@@ -54,7 +54,7 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
     prefix = v;
   }
 
-  unique_id: unknown;
+  unique_uid: unknown;
   src: string;
   width: number;
   height: number;
@@ -86,7 +86,7 @@ export class ImageCore extends BaseDomain<TheTypesOfEvents> {
       this.scale = scale;
     }
     if (unique_id) {
-      this.unique_id = unique_id;
+      this.unique_uid = unique_id;
     }
   }
 
@@ -153,7 +153,7 @@ export class ImageInListCore extends BaseDomain<TheTypesOfEvents> {
   /** 当按钮处于列表中时，使用该方法保存所在列表记录 */
   bind(unique_id: string) {
     const existing = this.btns.find((btn) => {
-      return btn.unique_id === unique_id;
+      return btn.unique_uid === unique_id;
     });
     if (existing) {
       return existing;
@@ -166,7 +166,7 @@ export class ImageInListCore extends BaseDomain<TheTypesOfEvents> {
     return btn;
   }
   select(unique_id: unknown) {
-    const matched = this.btns.find((btn) => btn.unique_id === unique_id);
+    const matched = this.btns.find((btn) => btn.unique_uid === unique_id);
     if (!matched) {
       return;
     }
