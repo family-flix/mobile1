@@ -1,10 +1,13 @@
+/**
+ * @file 输入框
+ */
 import React, { ReactElement, useEffect, useRef, useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Eye, EyeOff, Loader2, X } from "lucide-react";
 
+import { useInitialize } from "@/hooks/index";
 import { InputCore } from "@/domains/ui/input";
 import { connect } from "@/domains/ui/input/connect.web";
-import { useInitialize } from "@/hooks";
-import { cn, sleep } from "@/utils";
+import { cn } from "@/utils/index";
 
 const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement; className?: string }) => {
   const { store, prefix, focus } = props;
@@ -19,9 +22,7 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
     }
     connect(store, $input);
     if (focus || store.autoFocus) {
-      setTimeout(() => {
-        $input.focus();
-      }, 500);
+      $input.focus();
     }
     store.setMounted();
   }, []);
@@ -31,14 +32,8 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
     });
   });
 
-  const { loading, value, placeholder, disabled, allowClear, autoComplete, type } = state;
+  const { loading, value, placeholder, disabled, allowClear, autoComplete, autoFocus, type, tmpType } = state;
 
-  // React.useEffect(() => {
-  //   return () => {
-  //     console.log("Input unmounted");
-  //   };
-  // }, []);
-  // console.log("[]Input");
   return (
     <div className="relative">
       <div className="absolute left-3 top-[50%] translate-y-[-50%] text-w-fg-1">
@@ -68,8 +63,9 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
         value={value}
         placeholder={placeholder}
         disabled={disabled}
-        type={type}
+        type={tmpType || type}
         autoComplete={!autoComplete ? "new-password" : "on"}
+        autoFocus={autoFocus}
         autoCorrect="false"
         onChange={(event: React.ChangeEvent & { target: HTMLInputElement }) => {
           const { value: v } = event.target;
@@ -86,27 +82,58 @@ const Input = (props: { store: InputCore; focus?: boolean; prefix?: ReactElement
           store.handleBlur();
         }}
       />
-      <div
-        className="absolute right-3 top-[50%] p-2 translate-y-[-50%]"
-        onClick={async (event) => {
-          event.stopPropagation();
-          store.clear();
-          store.focus();
-        }}
-      >
-        {(() => {
-          if (!allowClear) {
-            return null;
-          }
-          if (!value) {
-            return null;
-          }
-          return (
-            <div className="p-1 rounded-full bg-w-fg-2 text-w-bg-0">
-              <X className="w-2 h-2" />
-            </div>
-          );
-        })()}
+      <div className="absolute right-3 top-[50%] translate-y-[-50%]">
+        <div className="flex items-center space-x-4">
+          {(() => {
+            if (!allowClear) {
+              return null;
+            }
+            if (!value) {
+              return null;
+            }
+            return (
+              <div
+                className="p-1 rounded-full bg-w-fg-2 text-w-bg-0"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  store.clear();
+                  store.focus();
+                }}
+              >
+                <X className="w-2 h-2" />
+              </div>
+            );
+          })()}
+          {(() => {
+            if (type !== "password") {
+              return null;
+            }
+            if (tmpType) {
+              return (
+                <div
+                  className="text-w-fg-2"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    store.hideText();
+                  }}
+                >
+                  <EyeOff className="w-4 h-4" />
+                </div>
+              );
+            }
+            return (
+              <div
+                className="text-w-fg-2"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  store.showText();
+                }}
+              >
+                <Eye className="w-4 h-4" />
+              </div>
+            );
+          })()}
+        </div>
       </div>
     </div>
   );

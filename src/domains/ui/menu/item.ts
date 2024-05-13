@@ -43,7 +43,7 @@ const defaultMenuItemState: MenuItemState = {
 };
 
 export class MenuItemCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "MenuItemCore";
+  unique_id = "MenuItemCore";
   debug = true;
 
   state: MenuItemState = { ...defaultMenuItemState };

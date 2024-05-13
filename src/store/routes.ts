@@ -11,14 +11,6 @@ const configure = {
         pathname: "/home",
         options: {
           keep_alive: true,
-          // 如果是为了展示兄弟视图，不需要 hide。或者说，触发 hide 但不走 hide 动画
-          // 如果是返回，需要 hide，也需要 hide 动画，并且还要卸载实际视图
-          animation: {
-            in: "slide-in-from-right",
-            out: "slide-out-to-right",
-            show: "",
-            hide: "",
-          },
           require: ["login"],
         },
         children: {
@@ -29,16 +21,6 @@ const configure = {
               home_index_season: {
                 title: "电视剧",
                 pathname: "/home/index/season",
-                options: {
-                  // 需要 hide，需要 hide 动画
-                  animation: {
-                    in: "slide-in-from-right",
-                    out: "slide-out-to-right",
-                    show: "slide-in-from-right",
-                    hide: "slide-out-to-right",
-                  },
-                  require: ["login"],
-                },
               },
               home_index_movie: {
                 title: "电影",
@@ -55,7 +37,6 @@ const configure = {
             },
             options: {
               keep_alive: true,
-              animation: {},
               require: ["login"],
             },
           },
@@ -67,10 +48,8 @@ const configure = {
         options: {
           keep_alive: true,
           animation: {
-            in: "slide-in-from-right",
-            out: "slide-out-to-right",
-            show: "slide-in-from-right",
-            hide: "slide-out-to-right",
+            in: "fade-in",
+            out: "fade-out",
           },
           require: ["login"],
         },
@@ -81,10 +60,8 @@ const configure = {
         options: {
           keep_alive: true,
           animation: {
-            in: "slide-in-from-right",
-            out: "slide-out-to-right",
-            show: "slide-in-from-right",
-            hide: "slide-out-to-right",
+            in: "fade-in",
+            out: "fade-out",
           },
           require: ["login"],
         },
@@ -97,10 +74,6 @@ const configure = {
           animation: {
             in: "slide-in-from-right",
             out: "slide-out-to-right",
-            show: "slide-in",
-            hide: "slide-out",
-            // show: "slide-in-from-right",
-            // hide: "slide-out-to-right",
           },
           require: ["login"],
         },
@@ -113,12 +86,9 @@ const configure = {
         title: "搜索",
         pathname: "/search",
         options: {
-          keep_alive: true,
           animation: {
-            in: "slide-in-from-right",
-            out: "slide-out-to-right",
-            show: "fade-in",
-            hide: "fade-out",
+            // in: "fade-in",
+            out: "fade-out",
           },
           require: ["login"],
         },
@@ -131,8 +101,6 @@ const configure = {
           animation: {
             in: "slide-in-from-right",
             out: "slide-out-to-right",
-            show: "slide-in-from-right",
-            hide: "slide-out-to-right",
           },
           require: ["login"],
         },
@@ -145,8 +113,6 @@ const configure = {
           animation: {
             in: "slide-in-from-right",
             out: "slide-out-to-right",
-            show: "slide-in-from-right",
-            hide: "slide-out-to-right",
           },
           require: ["login"],
         },
@@ -159,10 +125,6 @@ const configure = {
           animation: {
             in: "slide-in-from-right",
             out: "slide-out-to-right",
-            show: "slide-in",
-            hide: "slide-out",
-            // show: "slide-in-from-right",
-            // hide: "slide-out-to-right",
           },
           require: ["login"],
         },
@@ -175,8 +137,18 @@ const configure = {
           animation: {
             in: "slide-in-from-right",
             out: "slide-out-to-right",
-            show: "slide-in",
-            hide: "slide-out",
+          },
+          require: ["login"],
+        },
+      },
+      invitation_code: {
+        title: "邀请码",
+        pathname: "/code",
+        options: {
+          keep_alive: true,
+          animation: {
+            in: "slide-in-from-right",
+            out: "slide-out-to-right",
           },
           require: ["login"],
         },
@@ -186,19 +158,32 @@ const configure = {
         pathname: "/help",
         options: {
           keep_alive: true,
+          animation: {
+            in: "slide-in-from-right",
+            out: "slide-out-to-right",
+          },
         },
-        // children: {
-        //   home: {
-        //     title: "帮助中心",
-        //     pathname: "/help/index",
-        //   },
-        // },
       },
       login: {
         title: "登录",
         pathname: "/login",
         options: {
           keep_alive: true,
+        },
+      },
+      register: {
+        title: "注册",
+        pathname: "/register",
+        options: {
+          keep_alive: true,
+        },
+      },
+      scan: {
+        title: "登录",
+        pathname: "/scan",
+        options: {
+          keep_alive: true,
+          require: ["login"],
         },
       },
       test: {
@@ -340,3 +325,5 @@ export const routesWithPathname: Record<PathnameKey, RouteConfig> = configs
   }, {});
 // @ts-ignore
 window.__routes__ = routes;
+// @ts-ignore
+window.__routes2__ = routesWithPathname;

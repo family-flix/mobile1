@@ -25,15 +25,10 @@ export const TVLiveListPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onReachBottom() {
-          list.loadMore();
-        },
-        onPullToBack() {
-          console.log("[PAGE]live/list - onPullToBack", view.state);
-          // if (view.state.layered) {
-          //   return;
-          // }
-          history.back();
+        os: app.env,
+        async onReachBottom() {
+          await list.loadMore();
+          scrollView.finishLoadingMore();
         },
       })
   );

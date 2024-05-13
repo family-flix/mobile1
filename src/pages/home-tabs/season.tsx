@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
 
-import { ViewComponent } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
@@ -11,47 +11,61 @@ import { ListCoreV2 } from "@/domains/list/v2";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 
+function Page(props: ViewComponentProps) {
+  const { app, client } = props;
+
+  const $list = new ListCoreV2(
+    new RequestCoreV2({
+      fetch: fetchMediaList,
+      process: fetchMediaListProcess,
+      client,
+    }),
+    {
+      pageSize: 20,
+      search: {
+        type: MediaTypes.Season,
+      },
+    }
+  );
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $list.refresh();
+      $scroll.finishPullToRefresh();
+    },
+    async onReachBottom() {
+      await $list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $image = new ImageInListCore();
+  const $mediaRequest = new MediaRequestCore({ client });
+  const $mediaRequestBtn = new ButtonCore({
+    onClick() {
+      $mediaRequest.dialog.show();
+    },
+  });
+
+  return {
+    $list,
+    ui: {
+      $scroll,
+      $image,
+      $mediaRequestBtn,
+    },
+  };
+}
+
 export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
   const { app, client, history, view, storage } = props;
 
-  const list = useInstance(
-    () =>
-      new ListCoreV2(
-        new RequestCoreV2({
-          fetch: fetchMediaList,
-          process: fetchMediaListProcess,
-          client,
-        }),
-        {
-          pageSize: 20,
-          search: {
-            type: MediaTypes.Season,
-          },
-        }
-      )
-  );
-  const scroll = new ScrollViewCore({
-    _name: "inner",
-    onReachBottom() {
-      list.loadMore();
-    },
-  });
-  const image = useInstance(() => new ImageInListCore());
-  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
-  const mediaRequestBtn = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          mediaRequest.dialog.show();
-        },
-      })
-  );
+  const $page = useInstance(() => Page(props));
 
-  const [response, setResponse] = useState(list.response);
+  const [response, setResponse] = useState($page.$list.response);
   const { dataSource } = response;
 
   useInitialize(() => {
-    list.onStateChange((v) => {
+    $page.$list.onStateChange((v) => {
       setResponse(v);
     });
     // view.onHidden(() => {
@@ -60,14 +74,14 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
     // view.onUnmounted(() => {
     //   console.log("[PAGE]home-tabs - view.onUnmounted");
     // });
-    list.init({ language: view.query.language });
+    $page.$list.init({ language: view.query.language });
   });
 
   return (
     <>
-      <ScrollView className="bg-w-bg-3" store={scroll}>
+      <ScrollView className="bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
-          store={list}
+          store={$page.$list}
           className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
           skeleton={
             <>
@@ -95,7 +109,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
           }
           extraEmpty={
             <div className="mt-2">
-              <Button store={mediaRequestBtn} variant="subtle">
+              <Button store={$page.ui.$mediaRequestBtn} variant="subtle">
                 提交想看的电视剧
               </Button>
             </div>
@@ -131,7 +145,11 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                   }}
                 >
                   <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                    <LazyImage className="w-full h-full object-cover" store={image.bind(poster_path)} alt={name} />
+                    <LazyImage
+                      className="w-full h-full object-cover"
+                      store={$page.ui.$image.bind(poster_path)}
+                      alt={name}
+                    />
                     {episode_count_text && (
                       <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
                         {/* <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div> */}

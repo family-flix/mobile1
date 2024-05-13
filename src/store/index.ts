@@ -24,6 +24,7 @@ const view = new RouteViewCore({
   parent: null,
   views: [],
 });
+view.isRoot = true;
 export const history = new HistoryCore<PageKeys, RouteConfig>({
   view,
   router,

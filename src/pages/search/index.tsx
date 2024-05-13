@@ -1,21 +1,11 @@
 /**
- * @file 电视剧列表
+ * @file 影视剧搜索
  */
 import React, { useState } from "react";
 import dayjs from "dayjs";
-import {
-  ArrowUp,
-  ChevronLeft,
-  Loader,
-  MoreHorizontal,
-  Pen,
-  Search,
-  SlidersHorizontal,
-  Star,
-  Trash,
-} from "lucide-react";
+import { Loader, Pen, Search, Star, Trash } from "lucide-react";
 
-import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import {
   Skeleton,
@@ -30,7 +20,7 @@ import {
   Node,
 } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
-import { Affix } from "@/components/ui/affix";
+import { useInitialize, useInstance } from "@/hooks/index";
 import {
   ScrollViewCore,
   InputCore,
@@ -40,172 +30,146 @@ import {
   ImageInListCore,
   NodeCore,
 } from "@/domains/ui";
-import { AffixCore } from "@/domains/ui/affix";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { useInitialize, useInstance } from "@/hooks";
-import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants";
+import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants/index";
 
-export const MediaSearchPage: ViewComponent = React.memo((props) => {
+function Page(props: ViewComponentProps) {
   const { app, history, client, storage, view } = props;
 
-  const seasonList = useInstance(
-    () =>
-      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
-        pageSize: 20,
-        beforeSearch() {
-          searchInput.setLoading(true);
-        },
-        afterSearch() {
-          searchInput.setLoading(false);
-        },
-      })
-  );
-  const affix = useInstance(
-    () =>
-      new AffixCore({
-        top: 0,
-        defaultHeight: 56,
-      })
-  );
-  const scrollView = useInstance(() => new ScrollViewCore({}));
-  const settingsSheet = useInstance(() => new DialogCore());
-  const poster = useInstance(() => new ImageInListCore());
-  const searchInput = useInstance(
-    () =>
-      new InputCore({
-        placeholder: "请输入关键字搜索",
-        onEnter(v) {
-          seasonList.search({
-            name: v,
-          });
-          scrollView.scrollTo({ top: 0 });
-        },
-        onChange(v) {
-          setKeyword(v);
-          if (!v) {
-            setShowPlaceholder(true);
-            return;
-          }
-          seasonList.searchDebounce({
-            name: v,
-          });
-        },
-        onBlur(v) {
-          if (!v) {
-            return;
-          }
-          if (v === seasonList.params.name) {
-            return;
-          }
-          seasonList.search({
-            name: v,
-          });
-        },
-        onClear() {
-          setKeyword("");
-          setShowPlaceholder(true);
-        },
-        onMounted() {
-          searchInput.focus();
-        },
-      })
-  );
-  const sourceCheckboxGroup = useInstance(() => {
-    const { language = [] } = storage.get("tv_search");
-    return new CheckboxGroupCore({
-      values: TVSourceOptions.filter((opt) => {
-        return language.includes(opt.value);
-      }).map((opt) => opt.value),
-      options: TVSourceOptions.map((opt) => {
-        return {
-          ...opt,
-          checked: language.includes(opt.value),
-        };
-      }),
-      onChange(options) {
-        storage.merge("tv_search", {
-          language: options,
-        });
-        // setHasSearch(!!options.length);
-        seasonList.search({
-          language: options.join("|"),
-        });
-      },
-    });
-  });
-  const genresCheckboxGroup = useInstance(() => {
-    // const { genres = [] } = app.cache.get("tv_search", {
-    //   genres: [] as string[],
-    // });
-    return new CheckboxGroupCore({
-      options: TVGenresOptions,
-      onChange(options) {
-        // app.cache.merge("tv_search", {
-        //   genres: options,
-        // });
-        // setHasSearch(!!options.length);
-        // settingsSheet.hide();
-        seasonList.search({
-          genres: options.join("|"),
-        });
-      },
-    });
-  });
-  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
-  const node = useInstance(
-    () =>
-      new NodeCore({
-        onMounted(params) {
-          if (!params.canScroll) {
-            return;
-          }
-        },
-      })
-  );
-  const mediaRequestBtn = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          mediaRequest.input.change(searchInput.value);
-          mediaRequest.dialog.show();
-        },
-      })
-  );
+  const { language = [] } = storage.get("tv_search");
 
-  const [response, setResponse] = useState(seasonList.response);
-  const [keyword, setKeyword] = useState(searchInput.value);
-  const [height, setHeight] = useState(affix.height);
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $list.refresh();
+      app.tip({
+        text: ["刷新成功"],
+      });
+      $scroll.finishPullToRefresh();
+    },
+    async onReachBottom() {
+      await $list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $list = new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
+    pageSize: 20,
+    beforeSearch() {
+      $search.setLoading(true);
+    },
+    afterSearch() {
+      $search.setLoading(false);
+    },
+  });
+  const $search = new InputCore({
+    placeholder: "请输入关键字搜索",
+    autoFocus: true,
+    onEnter(v) {
+      $list.search({
+        name: v,
+      });
+      $scroll.scrollTo({ top: 0 });
+    },
+    onBlur(v) {
+      if (!v) {
+        return;
+      }
+      if (v === $list.params.name) {
+        return;
+      }
+      $list.search({
+        name: v,
+      });
+    },
+  });
+  const $settings = new DialogCore();
+  const $poster = new ImageInListCore();
+  const $source = new CheckboxGroupCore({
+    values: TVSourceOptions.filter((opt) => {
+      return language.includes(opt.value);
+    }).map((opt) => opt.value),
+    options: TVSourceOptions.map((opt) => {
+      return {
+        ...opt,
+        checked: language.includes(opt.value),
+      };
+    }),
+    onChange(options) {
+      storage.merge("tv_search", {
+        language: options,
+      });
+      // setHasSearch(!!options.length);
+      $list.search({
+        language: options.join("|"),
+      });
+    },
+  });
+  const $genres = new CheckboxGroupCore({
+    options: TVGenresOptions,
+    onChange(options) {
+      $list.search({
+        genres: options.join("|"),
+      });
+    },
+  });
+  const $mediaRequest = new MediaRequestCore({ client });
+  const $mediaRequestBtn = new ButtonCore({
+    onClick() {
+      $mediaRequest.input.change($search.value);
+      $mediaRequest.dialog.show();
+    },
+  });
+  const $node = new NodeCore({
+    onMounted(params) {
+      if (!params.canScroll) {
+        return;
+      }
+    },
+  });
+
+  $mediaRequest.onTip((msg) => {
+    app.tip(msg);
+  });
+
+  return {
+    $list,
+    $mediaRequest,
+    ui: {
+      $scroll,
+      $search,
+      $poster,
+      $settings,
+      $source,
+      $genres,
+      $mediaRequestBtn,
+      $node,
+    },
+  };
+}
+
+export const MediaSearchPage: ViewComponent = React.memo((props) => {
+  const { app, history, storage, view } = props;
+
+  const $page = useInstance(() => Page(props));
+
+  const [response, setResponse] = useState($page.$list.response);
+  // const [keyword, setKeyword] = useState($page.ui.$search.value);
+  const [height, setHeight] = useState(56);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const [histories, setHistories] = useState(storage.values.media_search_histories);
-  // const [hasSearch, setHasSearch] = useState(
-  //   (() => {
-  //     const { language = [] } = storage.get("tv_search");
-  //     return language.length !== 0;
-  //   })()
-  // );
 
   useInitialize(() => {
     view.onShow(() => {
       app.setTitle(view.title);
     });
-    // scrollView.onPullToRefresh(async () => {
-    //   await seasonList.refresh();
-    //   app.tip({
-    //     text: ["刷新成功"],
-    //   });
-    //   scrollView.stopPullToRefresh();
-    // });
-    scrollView.onReachBottom(() => {
-      seasonList.loadMore();
+    storage.onStateChange((v) => {
+      setHistories(v.values.media_search_histories);
     });
-    affix.onMounted((rect) => {
-      setHeight(rect.height);
-    });
-    seasonList.onStateChange((nextResponse) => {
+    $page.$list.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-    seasonList.onAfterSearch(({ params }) => {
+    $page.$list.onAfterSearch(({ params }) => {
       const { name } = params as { name: string };
       if (!storage.values.media_search_histories.find((h) => h.text === name)) {
         storage.merge(
@@ -221,33 +185,26 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
       }
       setShowPlaceholder(false);
     });
-    storage.onStateChange((v) => {
-      setHistories(v.values.media_search_histories);
+    $page.ui.$search.onChange((v) => {
+      if (!v) {
+        setShowPlaceholder(true);
+        return;
+      }
+      $page.$list.searchDebounce({
+        name: v,
+      });
     });
-    mediaRequest.onTip((msg) => {
-      app.tip(msg);
+    $page.ui.$search.onClear(() => {
+      setShowPlaceholder(true);
     });
-    // const search = (() => {
-    //   const { language = [] } = storage.get("tv_search");
-    //   if (!language.length) {
-    //     return {};
-    //   }
-    //   return {
-    //     language: language.join("|"),
-    //   };
-    // })();
   });
-
-  const { dataSource } = response;
-
-  // console.log("[PAGE]home - render", dataSource);
 
   return (
     <>
-      <Affix store={affix} className="z-50 w-full bg-w-bg-0">
+      <div className="z-50 w-full bg-w-bg-0">
         <div className="flex items-center justify-between w-full py-2 px-4 text-w-fg-0 space-x-3">
           <div className="flex-1 w-0">
-            <Input store={searchInput} prefix={<Search className="w-5 h-5" />} />
+            <Input store={$page.ui.$search} focus prefix={<Search className="w-5 h-5" />} />
           </div>
           <div
             className="relative py-2 w-12 text-center"
@@ -258,7 +215,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
             取消
           </div>
         </div>
-      </Affix>
+      </div>
       {(() => {
         if (showPlaceholder) {
           return (
@@ -275,7 +232,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                   </div>
                 </div>
                 <Node
-                  store={node}
+                  store={$page.ui.$node}
                   className="relative flex flex-wrap gap-2 mt-2 max-h-48 overflow-y-auto scroll--hidden"
                 >
                   {histories.map((keyword, i) => {
@@ -285,8 +242,8 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                         key={i}
                         className="px-4 py-2 rounded-md text-sm bg-w-bg-2"
                         onClick={() => {
-                          searchInput.change(text);
-                          searchInput.enter();
+                          $page.ui.$search.change(text);
+                          $page.ui.$search.enter();
                         }}
                       >
                         {text}
@@ -307,20 +264,24 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           );
         }
         return (
-          <ScrollView store={scrollView} className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
+          <ScrollView
+            store={$page.ui.$scroll}
+            className="absolute inset-0 box-border text-w-fg-1"
+            style={{ top: height }}
+          >
             <ListView
-              store={seasonList}
+              store={$page.$list}
               className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
               extraEmpty={
                 <div className="mt-2">
-                  <Button store={mediaRequestBtn} variant="subtle">
+                  <Button store={$page.ui.$mediaRequestBtn} variant="subtle">
                     提交想看的影视剧
                   </Button>
                 </div>
               }
             >
               {(() => {
-                return dataSource.map((season) => {
+                return response.dataSource.map((season) => {
                   const {
                     id,
                     type,
@@ -359,7 +320,11 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                       }}
                     >
                       <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
-                        <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
+                        <LazyImage
+                          className="w-full h-full object-cover"
+                          store={$page.ui.$poster.bind(poster_path)}
+                          alt={name}
+                        />
                         <div className="absolute top-2 left-2">
                           <div className="relative z-20 py-[1px] px-[2px] border text-[12px] rounded-md text-w-bg-1 dark:border-w-fg-1 dark:text-w-fg-1">
                             {(() => {
@@ -424,7 +389,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           </ScrollView>
         );
       })()}
-      <Sheet store={settingsSheet}>
+      <Sheet store={$page.ui.$settings}>
         <div className="relative h-[320px] py-4 pb-8 px-2 overflow-y-auto">
           {response.loading && (
             <>
@@ -436,19 +401,19 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           )}
           <div>
             <div>
-              <CheckboxGroup store={sourceCheckboxGroup} />
+              <CheckboxGroup store={$page.ui.$source} />
             </div>
             <div>
-              <CheckboxGroup store={genresCheckboxGroup} />
+              <CheckboxGroup store={$page.ui.$genres} />
             </div>
           </div>
         </div>
       </Sheet>
-      <Dialog store={mediaRequest.dialog}>
+      <Dialog store={$page.$mediaRequest.dialog}>
         <div className="text-w-fg-1">
           <p>输入想看的电视剧</p>
           <div className="mt-4">
-            <Input prefix={<Pen className="w-4 h-4" />} store={mediaRequest.input} />
+            <Input prefix={<Pen className="w-4 h-4" />} store={$page.$mediaRequest.input} />
           </div>
         </div>
       </Dialog>

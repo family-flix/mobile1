@@ -1,11 +1,13 @@
+/**
+ * @file 播放器
+ */
 import React, { useEffect, useRef, useState } from "react";
 
+import { useInitialize } from "@/hooks/index";
 import { PlayerCore } from "@/domains/player";
 import { connect } from "@/domains/player/connect.web";
-import { useInitialize } from "@/hooks";
-import { Loader2 } from "lucide-react";
 
-export function Video(props: { store: PlayerCore }) {
+export const Video = React.memo((props: { store: PlayerCore }) => {
   const { store } = props;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -39,7 +41,7 @@ export function Video(props: { store: PlayerCore }) {
 
   return (
     <div
-      className="transition-all"
+      className="video transition-all"
       style={{
         width,
         // height,
@@ -75,7 +77,7 @@ export function Video(props: { store: PlayerCore }) {
       </video>
     </div>
   );
-}
+});
 
 function VideoTrack(props: { store: PlayerCore } & React.TrackHTMLAttributes<HTMLTrackElement>) {
   const { store, src, kind, label, srcLang } = props;

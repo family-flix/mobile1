@@ -1,9 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { ToggleCore } from "@/domains/ui/toggle";
 import { useInitialize } from "@/hooks";
 
-export function ToggleView(props: { store: ToggleCore } & React.AllHTMLAttributes<HTMLDivElement>) {
+export const ToggleView = React.memo((props: { store: ToggleCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
 
@@ -18,4 +18,4 @@ export function ToggleView(props: { store: ToggleCore } & React.AllHTMLAttribute
     return <div>{props.children}</div>;
   }
   return null;
-}
+});

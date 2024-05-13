@@ -35,12 +35,13 @@ type ToastProps = {
 };
 
 export class ToastCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "ToastCore";
+  unique_id = "ToastCore";
 
-  present: PresenceCore;
   delay = 1200;
   timer: NodeJS.Timeout | null = null;
   open = false;
+
+  $present: PresenceCore;
 
   state: ToastState = {
     icon: null,
@@ -54,13 +55,13 @@ export class ToastCore extends BaseDomain<TheTypesOfEvents> {
     if (delay) {
       this.delay = delay;
     }
-    this.present = new PresenceCore();
-    this.present.onShow(() => {
+    this.$present = new PresenceCore();
+    this.$present.onShow(() => {
       // console.log("[]ToastCore - this.present.onShow");
       this.open = true;
       this.emit(Events.OpenChange, true);
     });
-    this.present.onHidden(() => {
+    this.$present.onHidden(() => {
       // console.log("[]ToastCore - this.present.onHide");
       this.open = false;
       this.emit(Events.OpenChange, false);
@@ -70,9 +71,10 @@ export class ToastCore extends BaseDomain<TheTypesOfEvents> {
   /** 显示弹窗 */
   async show(params: { icon?: unknown; texts: string[] }) {
     const { icon, texts } = params;
+    this.state.icon = icon;
+    this.state.texts = texts;
     this.emit(Events.StateChange, {
-      icon,
-      texts,
+      ...this.state,
     });
     if (this.timer !== null) {
       this.clearTimer();
@@ -82,7 +84,7 @@ export class ToastCore extends BaseDomain<TheTypesOfEvents> {
       }, this.delay);
       return;
     }
-    this.present.show();
+    this.$present.show();
     this.timer = setTimeout(() => {
       this.hide();
       this.clearTimer();
@@ -97,7 +99,7 @@ export class ToastCore extends BaseDomain<TheTypesOfEvents> {
   }
   /** 隐藏弹窗 */
   hide() {
-    this.present.hide();
+    this.$present.hide({ destroy: true });
   }
 
   onShow(handler: Handler<TheTypesOfEvents[Events.Show]>) {

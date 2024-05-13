@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowUp } from "lucide-react";
 
 import { PageKeys } from "@/store/routes";
+import { useInitialize } from "@/hooks/index";
 import { Show } from "@/packages/ui/show";
 import { HistoryCore } from "@/domains/history";
 
@@ -11,11 +12,13 @@ export const HistoryPanel = (props: { store: HistoryCore<string, any> }) => {
   const [state, setState] = useState(store.state);
   const [histories, setHistories] = useState(store.$router.histories);
 
-  store.onStateChange((v) => {
-    setState(v);
-  });
-  store.$router.onHistoriesChange((v) => {
-    setHistories(v);
+  useInitialize(() => {
+    store.onStateChange((v) => {
+      setState(v);
+    });
+    store.$router.onHistoriesChange((v) => {
+      setHistories(v);
+    });
   });
 
   return (

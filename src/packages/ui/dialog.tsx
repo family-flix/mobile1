@@ -13,14 +13,14 @@ import { Portal as PortalPrimitive } from "./portal";
 import { Show } from "./show";
 
 const Root = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
-  return <div>{props.children}</div>;
+  return <>{props.children}</>;
 };
 
 const Portal = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   const { store } = props;
 
   return (
-    <Presence store={store.present}>
+    <Presence store={store.$present}>
       <PortalPrimitive>
         <div className={props.className}>{props.children}</div>
       </PortalPrimitive>

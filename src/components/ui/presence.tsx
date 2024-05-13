@@ -1,40 +1,50 @@
 /**
  * @file 控制内容显隐的组件
  */
-import { useState } from "react";
+import React, { useState } from "react";
 
 import { PresenceCore } from "@/domains/ui/presence";
-import { cn } from "@/utils";
+import { useInitialize } from "@/hooks/index";
+import { cn } from "@/utils/index";
 
 import { Show } from "./show";
 
-export const Presence = (
-  props: {
-    store: PresenceCore;
-  } & React.AllHTMLAttributes<HTMLElement>
-) => {
-  const { store } = props;
+export const Presence = React.memo(
+  (
+    props: {
+      store: PresenceCore;
+      enterClassName?: string;
+      exitClassName?: string;
+    } & React.AllHTMLAttributes<HTMLElement>
+  ) => {
+    const { store, enterClassName, exitClassName } = props;
 
-  const [state, setState] = useState(store.state);
+    const [state, setState] = useState(store.state);
 
-  store.onStateChange((nextState) => {
-    setState(nextState);
-  });
+    useInitialize(() => {
+      store.onStateChange((v) => setState(v));
+    });
 
-  const { open, mounted } = state;
+    const { visible, mounted, text } = state;
 
-  return (
-    <Show when={mounted}>
-      <div
-        className={cn("presence", props.className)}
-        role="presentation"
-        data-state={open ? "open" : "closed"}
-        onAnimationEnd={() => {
-          store.unmount();
-        }}
-      >
-        {props.children}
-      </div>
-    </Show>
-  );
-};
+    return (
+      <Show when={mounted}>
+        <div
+          className={cn(
+            "presence",
+            state.enter && enterClassName ? enterClassName : "",
+            state.exit && exitClassName ? exitClassName : "",
+            props.className
+          )}
+          role="presentation"
+          data-state={visible ? "open" : "closed"}
+          // onAnimationEnd={() => {
+          //   store.unmount();
+          // }}
+        >
+          {props.children}
+        </div>
+      </Show>
+    );
+  }
+);

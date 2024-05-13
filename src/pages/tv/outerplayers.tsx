@@ -49,9 +49,10 @@ export const TVOuterPlayersPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onPullToBack() {
-          history.back();
-        },
+        os: app.env,
+        // onPullToBack() {
+        //   history.back();
+        // },
       })
   );
 

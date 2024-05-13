@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 
+import { useInitialize } from "@/hooks/index";
 import { StepCore } from "@/domains/step";
-import { useInitialize } from "@/hooks";
 
-export const StepSwitch = (
-  props: { store: StepCore; options: Record<number, React.ReactNode> } & React.AllHTMLAttributes<HTMLDivElement>
-) => {
-  const { store, options } = props;
+export const StepSwitch = React.memo(
+  (props: { store: StepCore; options: Record<number, React.ReactNode> } & React.AllHTMLAttributes<HTMLDivElement>) => {
+    const { store, options } = props;
 
-  const [state, setState] = useState(store.state);
+    const [state, setState] = useState(store.state);
 
-  useInitialize(() => {
-    store.onStateChange((nextState) => {
-      setState(nextState);
+    useInitialize(() => {
+      store.onStateChange((nextState) => {
+        setState(nextState);
+      });
     });
-  });
 
-  const elm = options[state.value];
+    const elm = options[state.value];
 
-  return <>{elm}</>;
-};
+    return <>{elm}</>;
+  }
+);

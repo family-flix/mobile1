@@ -47,7 +47,7 @@ export const ListView = React.memo(
 
     useInitialize(() => {
       store.onStateChange((nextState) => {
-        console.log("[COMPONENT]ListView - store.onStateChange", nextState);
+        // console.log("[COMPONENT]ListView - store.onStateChange", nextState);
         setResponse(nextState);
       });
     });

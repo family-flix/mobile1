@@ -27,7 +27,7 @@ type SelectItemState = {
   disabled: boolean;
 };
 export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "SelectItemCore";
+  unique_id = "SelectItemCore";
   debug = true;
 
   value: unknown = undefined;
@@ -62,7 +62,7 @@ export class SelectItemCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[SelectItemCore]constructor", state);
     this.state.value = value;
     if (name) {
-      this._name = `${this._name}_${name}`;
+      this.unique_id = `${this.unique_id}_${name}`;
     }
     this.value = value;
     this.state = {

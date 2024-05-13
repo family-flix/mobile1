@@ -28,7 +28,9 @@ export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {
     });
     return r;
   });
-  const scrollView = useInstance(() => new ScrollViewCore({}));
+  const scrollView = useInstance(() => new ScrollViewCore({
+    os: app.env,
+  }));
   const live = useInstance(() => new LiveCore());
   const player = useInstance(() => {
     const { volume, rate } = settingsRef.value!;
@@ -60,7 +62,7 @@ export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {
     return dialog;
   });
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
-  const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
+  const topOperation = useInstance(() => new PresenceCore({ mounted: true, visible: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
 
   const [profile, setProfile] = useState(live.state);
@@ -98,11 +100,11 @@ export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {
     view.onHidden(() => {
       player.pause();
     });
-    if (!hide_menu) {
-      scrollView.onPullToBack(() => {
-        history.back();
-      });
-    }
+    // if (!hide_menu) {
+    //   scrollView.onPullToBack(() => {
+    //     history.back();
+    //   });
+    // }
     player.onExitFullscreen(() => {
       player.pause();
       if (app.orientation === OrientationTypes.Vertical) {

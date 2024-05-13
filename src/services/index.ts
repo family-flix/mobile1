@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp, request } from "@/domains/request/utils";
 import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types/index";
-import { MediaTypes, CollectionTypes, ReportTypes } from "@/constants/index";
+import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
 import { relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 
 export function reportSomething(body: {
@@ -338,4 +338,35 @@ export function fetchUpdatedMediaHasHistoryProcess(r: TmpRequestResp<typeof fetc
       };
     }),
   });
+}
+
+export function confirmQRCode(values: { code: string; status: AuthCodeStep }) {
+  return request.post("/api/v2/wechat/auth/code/confirm", values);
+}
+
+export function fetchInvitationCodeList(params: FetchParams) {
+  return request.post<
+    ListResponseWithCursor<{
+      id: string;
+      code: string;
+      used_at: string;
+      created: string;
+      invitee: {
+        id: string;
+        nickname: string;
+        email: string;
+        avatar: string;
+      };
+    }>
+  >("/api/v2/wechat/invitation_code/list", params);
+}
+export type InvitationCodeItem = UnpackedResult<TmpRequestResp<typeof fetchInvitationCodeList>>["list"][number];
+
+export function createInvitationCode(values: { count: number }) {
+  return request.post<{
+    list: {
+      code: string;
+      created_at: string;
+    }[];
+  }>("/api/v2/wechat/invitation_code/create", values);
 }

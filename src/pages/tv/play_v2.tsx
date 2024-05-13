@@ -18,7 +18,7 @@ import {
   SkipForward,
 } from "lucide-react";
 
-import { GlobalStorageValues, ViewComponent } from "@/store/types";
+import { GlobalStorageValues, ViewComponent, ViewComponentProps } from "@/store/types";
 import { Show } from "@/packages/ui/show";
 import { Sheet, ScrollView, Video } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
@@ -278,12 +278,12 @@ class SeasonPlayingPageLogic<
 }
 class SeasonPlayingPageView {
   $view: RouteViewCore;
-  $scroll = new ScrollViewCore({});
+  $scroll: ScrollViewCore;
 
-  $mask = new PresenceCore({ mounted: true, open: true });
-  $top = new PresenceCore({ mounted: true, open: true });
-  $bottom = new PresenceCore({ mounted: true, open: true });
-  $control = new PresenceCore({ mounted: true, open: true });
+  $mask = new PresenceCore({ mounted: true, visible: true });
+  $top = new PresenceCore({ mounted: true, visible: true });
+  $bottom = new PresenceCore({ mounted: true, visible: true });
+  $control = new PresenceCore({ mounted: true, visible: true });
   $time = new PresenceCore({});
   $subtitle = new PresenceCore({});
   $settings = new DialogCore();
@@ -302,9 +302,12 @@ class SeasonPlayingPageView {
   visible = true;
   timer: null | NodeJS.Timeout = null;
 
-  constructor(props: { view: RouteViewCore }) {
-    const { view } = props;
+  constructor(props: Pick<ViewComponentProps, "app" | "view">) {
+    const { app, view } = props;
     this.$view = view;
+    this.$scroll = new ScrollViewCore({
+      os: app.env,
+    });
   }
 
   show() {
@@ -391,7 +394,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
   //   return dialog;
   // });
   const $logic = useInstance(() => new SeasonPlayingPageLogic({ app, client, storage }));
-  const $page = useInstance(() => new SeasonPlayingPageView({ view }));
+  const $page = useInstance(() => new SeasonPlayingPageView({ app, view }));
 
   const [state, setProfile] = useState($logic.$tv.state);
   // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
@@ -463,7 +466,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
     <>
       <ScrollView
         store={$page.$scroll}
-        className="fixed h-screen bg-w-bg-0"
+        className="fixed h-screen bg-w-bg-0 scroll--hidden"
         onClick={() => {
           $page.prepareToggle();
         }}
@@ -471,14 +474,18 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
           <Presence
-            className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+            // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+            enterClassName="animate-in fade-in"
+            exitClassName="animate-out fade-out"
             store={$page.$mask}
           >
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
-          <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0  -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
             <Presence
-              className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              enterClassName="animate-in fade-in"
+              exitClassName="animate-out fade-out"
               store={$page.$control}
             >
               <Show
@@ -550,10 +557,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
             <Presence
               store={$page.$top}
               className={cn(
-                "flex items-center justify-between",
-                "animate-in fade-in slide-in-from-top",
-                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
+                "flex items-center justify-between"
+                // "animate-in fade-in slide-in-from-top",
+                // "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
               )}
+              enterClassName="animate-in fade-in slide-in-from-top"
+              exitClassName="animate-out slide-out-to-top fade-out"
               onClick={(event) => {
                 event.stopPropagation();
               }}
@@ -618,10 +627,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               })()}
             </Presence> */}
             <Presence
-              className={cn(
-                "animate-in fade-in slide-in-from-bottom",
-                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
-              )}
+              // className={cn(
+              //   "animate-in fade-in slide-in-from-bottom",
+              //   "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
+              // )}
+              enterClassName="animate-in slide-in-from-bottom fade-in"
+              exitClassName="animate-out slide-out-to-bottom fade-out"
               store={$page.$bottom}
             >
               <div className="px-4">

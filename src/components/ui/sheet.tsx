@@ -1,20 +1,25 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { VariantProps, cva } from "class-variance-authority";
 import { X } from "lucide-react";
 
 import { DialogCore } from "@/domains/ui/dialog";
 import * as DialogPrimitive from "@/packages/ui/dialog";
-import { cn } from "@/utils";
 import { Show } from "@/packages/ui/show";
+import { cn } from "@/utils/index";
+import { useInitialize } from "@/hooks";
 
 const sheetVariants = cva("fixed z-50 scale-100 gap-4 bg-w-bg-2 text-w-fg-0 opacity-100", {
   variants: {
     position: {
-      top: "animate-in slide-in-from-top w-full duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top",
-      bottom:
-        "animate-in slide-in-from-bottom w-full duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
-      left: "animate-in slide-in-from-left h-full duration-300",
-      right: "animate-in slide-in-from-right h-full duration-300",
+      top: "w-full duration-300",
+      bottom: "w-full duration-300",
+      left: "h-full duration-300",
+      right: "h-full duration-300",
+      // top: "animate-in slide-in-from-top w-full duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top",
+      // bottom:
+      //   "animate-in slide-in-from-bottom w-full duration-300 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+      // left: "animate-in slide-in-from-left h-full duration-300",
+      // right: "animate-in slide-in-from-right h-full duration-300",
     },
     size: {
       content: "",
@@ -104,22 +109,24 @@ const portalVariants = cva("fixed inset-0 z-50 flex", {
   defaultVariants: { position: "right" },
 });
 
-export const Sheet = (
-  props: {
-    store: DialogCore;
-    size?: VariantProps<typeof sheetVariants>["size"];
-    hideTitle?: boolean;
-  } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
-) => {
-  const { store, size = "lg", hideTitle } = props;
-  return (
-    <Root store={store}>
-      <Content store={store} hideTitle={hideTitle} position="bottom" size={size}>
-        {props.children}
-      </Content>
-    </Root>
-  );
-};
+export const Sheet = React.memo(
+  (
+    props: {
+      store: DialogCore;
+      size?: VariantProps<typeof sheetVariants>["size"];
+      hideTitle?: boolean;
+    } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
+  ) => {
+    const { store, size = "lg", hideTitle } = props;
+    return (
+      <Root store={store}>
+        <Content store={store} hideTitle={hideTitle} position="bottom" size={size}>
+          {props.children}
+        </Content>
+      </Root>
+    );
+  }
+);
 
 const Root = DialogPrimitive.Root;
 
@@ -133,11 +140,20 @@ const Portal = (props: { store: DialogCore } & SheetPortalProps) => (
 
 const Overlay = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
   const { store } = props;
+
+  const [state, setState] = useState(store.$present.state);
+
+  useInitialize(() => {
+    store.$present.onStateChange((v) => setState(v));
+  });
+
   return (
     <DialogPrimitive.Overlay
       store={store}
       className={cn(
-        "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-all duration-100 data-[state=closed]:animate-out data-[state=open]:fade-in data-[state=closed]:fade-out",
+        "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-all duration-200",
+        state.enter ? "animate-in fade-in" : "",
+        state.exit ? "animate-out fade-out" : "",
         props.className
       )}
       onClick={() => {
@@ -159,10 +175,25 @@ const Content = (
   } & Omit<React.AllHTMLAttributes<HTMLDivElement>, "size">
 ) => {
   const { className, store, position, size, hideTitle, children } = props;
+
+  const [state, setState] = useState(store.$present.state);
+
+  useInitialize(() => {
+    store.$present.onStateChange((v) => setState(v));
+  });
+
   return (
     <Portal store={store} position={position}>
       <Overlay store={store} />
-      <DialogPrimitive.Content store={store} className={cn(sheetVariants({ position, size }), className)}>
+      <DialogPrimitive.Content
+        store={store}
+        className={cn(
+          sheetVariants({ position, size }),
+          state.enter ? "animate-in slide-in-from-bottom" : "",
+          state.exit ? "animate-out slide-out-to-bottom" : "",
+          className
+        )}
+      >
         <Show when={!hideTitle}>
           <Header className="flex absolute -top-14 w-full">
             <div
@@ -190,15 +221,3 @@ const Header = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) =
     {...props}
   />
 );
-
-const Footer = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
-);
-
-const Title = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title className={cn("text-lg font-semibold text-w-fg-1", className)} {...props} />
-));
-// export { Root, Content, Header, Footer, Title };

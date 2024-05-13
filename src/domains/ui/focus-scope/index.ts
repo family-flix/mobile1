@@ -16,7 +16,7 @@ type FocusScopeState = {
 };
 
 export class FocusScopeCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "FocusScopeCore";
+  unique_id = "FocusScopeCore";
 
   state: FocusScopeState = {
     paused: false,

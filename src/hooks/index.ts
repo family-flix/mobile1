@@ -35,11 +35,17 @@ export function useInitialize(fn: Function) {
   // }, [initialized]);
   // constructor();
 }
-export function useUnmounted(fn: Function) {
+export function onUnmount(fn: Function) {
   useEffect(() => {
     return () => {
       fn();
     };
+  }, []);
+}
+
+export function onMount(fn: Function) {
+  useEffect(() => {
+    fn();
   }, []);
 }
 

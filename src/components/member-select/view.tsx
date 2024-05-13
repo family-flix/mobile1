@@ -3,26 +3,38 @@
  */
 import { useState } from "react";
 
+import { ViewComponentProps } from "@/store/types";
 import { ButtonCore, ScrollViewCore } from "@/domains/ui";
 import { Button, Input, ListView, ScrollView, Skeleton } from "@/components/ui";
-import { cn } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { cn } from "@/utils/index";
 
 import { InviteeSelectCore } from "./store";
-import { useInitialize, useInstance } from "@/hooks";
 
-export const InviteeSelect = (props: { store: InviteeSelectCore }) => {
-  const { store } = props;
+function Component(props: { app: ViewComponentProps["app"]; store: InviteeSelectCore }) {
+  const { app, store } = props;
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onReachBottom() {
+      await store.$list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  return {
+    ui: {
+      $scroll,
+    },
+  };
+}
+
+export const InviteeSelect = (props: { store: InviteeSelectCore; app: ViewComponentProps["app"] }) => {
+  const { app, store } = props;
+
+  const $com = useInstance(() => Component(props));
 
   const [listResponse, setListResponse] = useState(store.response);
   const [cur, setCur] = useState(store.value);
 
-  const scrollView = useInstance(() => {
-    return new ScrollViewCore({
-      onReachBottom() {
-        store.$list.loadMore();
-      },
-    });
-  });
   // const submitBtn = useInstance(
   //   () =>
   //     new ButtonCore({
@@ -51,7 +63,7 @@ export const InviteeSelect = (props: { store: InviteeSelectCore }) => {
           搜索
         </Button>
       </div> */}
-      <ScrollView className="mt-2" store={scrollView}>
+      <ScrollView className="mt-2" store={$com.ui.$scroll}>
         <div className="flex flex-col max-h-full pt-[36px]">
           <ListView
             wrapClassName="flex-1 overflow-y-auto"

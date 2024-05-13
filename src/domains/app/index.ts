@@ -116,10 +116,12 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     wechat: boolean;
     ios: boolean;
     android: boolean;
+    pc: boolean;
   } = {
     wechat: false,
     ios: false,
     android: false,
+    pc: false,
   };
   orientation = OrientationTypes.Vertical;
   curDeviceSize: DeviceSizeTypes = "md";
@@ -156,7 +158,7 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     const { width, height } = size;
     this.screen = { width, height };
     this.curDeviceSize = getCurrentDeviceSize(width);
-    console.log('[Application]start');
+    // console.log('[Application]start');
     const { beforeReady } = this.lifetimes;
     if (beforeReady) {
       const r = await beforeReady();

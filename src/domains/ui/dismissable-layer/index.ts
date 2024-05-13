@@ -20,7 +20,7 @@ type TheTypesOfEvents = {
 type DismissableLayerState = {};
 
 export class DismissableLayerCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "DismissableLayerCore";
+  unique_id = "DismissableLayerCore";
 
   layers = new Set();
   layersWithOutsidePointerEventsDisabled = new Set();

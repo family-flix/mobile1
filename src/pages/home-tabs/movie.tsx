@@ -24,11 +24,20 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const scroll = new ScrollViewCore({
-    onReachBottom() {
-      list.loadMore();
-    },
-  });
+  const scroll = useInstance(
+    () =>
+      new ScrollViewCore({
+        os: app.env,
+        async onPullToRefresh() {
+          await list.refresh();
+          scroll.finishPullToRefresh();
+        },
+        async onReachBottom() {
+          await list.loadMore();
+          scroll.finishLoadingMore();
+        },
+      })
+  );
   const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
   const mediaRequestBtn = useInstance(
     () =>

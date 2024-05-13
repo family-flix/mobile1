@@ -3,31 +3,16 @@
  * 包含「首页」、「电视剧搜索」、「历史播放」和「我的」
  */
 import React, { useState } from "react";
-import { ArrowUp, Film, HardDrive, Home, MessageCircle, MessageSquare, Tv2, User, Users } from "lucide-react";
-import { debounce } from "lodash/fp";
+import { Film, HardDrive, Home, Tv2, User } from "lucide-react";
 
-// import {
-//   homeHistoriesPage,
-//   homeIndexPage,
-//   homeLayout,
-//   messagesPage,
-//   homeMinePage,
-//   homeMoviePage,
-//   homeSeasonPage,
-// } from "@/store/views";
 import { PageKeys } from "@/store/routes";
 import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
 import { messageList } from "@/store/index";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { StackRouteView } from "@/components/ui/stack-route-view";
-import { Button, Sheet, KeepAliveRouteView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { ButtonCore, DialogCore } from "@/domains/ui";
-import { BaseDomain, Handler } from "@/domains/base";
-import { Application } from "@/domains/app";
-import { RouteViewCore } from "@/domains/route_view";
 import { BottomMenuCore } from "@/domains/bottom_menu";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn } from "@/utils";
+import { cn } from "@/utils/index";
 
 const BottomMenu = (props: { store: BottomMenuCore }) => {
   const { store } = props;
@@ -146,38 +131,31 @@ export const HomeLayout: ViewComponent = React.memo((props) => {
   });
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <div className="relative z-90 flex-1 h-full">
-        <div className="relative w-full h-full">
-          {subViews.map((subView, i) => {
-            const routeName = subView.name;
-            const PageContent = pages[routeName as Exclude<PageKeys, "root">];
-            return (
-              <StackRouteView
-                key={subView.id}
-                className="absolute left-0 top-0 w-full h-full"
-                store={subView}
-                index={i}
+    <>
+      <div className="relative z-90 w-full h-full">
+        {subViews.map((subView, i) => {
+          const routeName = subView.name;
+          const PageContent = pages[routeName as Exclude<PageKeys, "root">];
+          return (
+            <StackRouteView key={subView.id} className="absolute left-0 top-0 w-full h-full" store={subView} index={i}>
+              <div
+                className={cn(
+                  "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-3 opacity-100 scroll scroll--hidden",
+                  app.env.android ? "scroll--fix" : ""
+                )}
               >
-                <div
-                  className={cn(
-                    "w-full h-full scrollbar-hide overflow-y-auto bg-w-bg-3 opacity-100 scroll scroll--hidden",
-                    app.env.android ? "scroll--fix" : ""
-                  )}
-                >
-                  <PageContent
-                    app={app}
-                    history={history}
-                    client={client}
-                    storage={storage}
-                    pages={pages}
-                    view={subView}
-                  />
-                </div>
-              </StackRouteView>
-            );
-          })}
-        </div>
+                <PageContent
+                  app={app}
+                  history={history}
+                  client={client}
+                  storage={storage}
+                  pages={pages}
+                  view={subView}
+                />
+              </div>
+            </StackRouteView>
+          );
+        })}
       </div>
       {/* <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
@@ -189,6 +167,6 @@ export const HomeLayout: ViewComponent = React.memo((props) => {
           <BottomMenu store={mineMenu} />
         </div>
       </div> */}
-    </div>
+    </>
   );
 });

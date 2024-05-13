@@ -20,7 +20,7 @@ type TabsState = {
 };
 export class TabsCore extends BaseDomain<TheTypesOfEvents> {
   roving: RovingFocusCore;
-  presence: PresenceCore;
+  $presence: PresenceCore;
   prevContent: {
     id: number;
     value: string;
@@ -42,7 +42,7 @@ export class TabsCore extends BaseDomain<TheTypesOfEvents> {
     super(options);
 
     this.roving = new RovingFocusCore();
-    this.presence = new PresenceCore();
+    this.$presence = new PresenceCore();
   }
 
   selectTab(value: string) {

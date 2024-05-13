@@ -42,6 +42,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
+        os: app.env,
         onScroll(pos) {
           console.log("[PAGE]home/movie - onScroll", pos.scrollTop);
           if (!menu) {
@@ -159,7 +160,7 @@ export const HomeMoviePage: ViewComponentWithMenu = React.memo((props) => {
       menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
         await movieList.refresh();
-        scrollView.stopPullToRefresh();
+        scrollView.finishPullToRefresh();
       });
     }
     view.onReady(() => {

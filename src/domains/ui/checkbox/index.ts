@@ -23,7 +23,7 @@ type CheckboxState = CheckboxProps & {
 };
 
 export class CheckboxCore extends BaseDomain<TheTypesOfEvents> {
-  presence: PresenceCore;
+  $presence: PresenceCore;
 
   label: string;
   disabled: CheckboxProps["disabled"];
@@ -47,7 +47,7 @@ export class CheckboxCore extends BaseDomain<TheTypesOfEvents> {
     this.disabled = disabled;
     this.checked = checked;
 
-    this.presence = new PresenceCore();
+    this.$presence = new PresenceCore();
     if (onChange) {
       this.onChange(onChange);
     }
@@ -59,10 +59,10 @@ export class CheckboxCore extends BaseDomain<TheTypesOfEvents> {
     // console.log("[DOMAIN]checkbox - check", prevChecked);
     (() => {
       if (prevChecked) {
-        this.presence.hide();
+        this.$presence.hide();
         return;
       }
-      this.presence.show();
+      this.$presence.show();
     })();
     this.checked = true;
     if (prevChecked) {
@@ -76,7 +76,7 @@ export class CheckboxCore extends BaseDomain<TheTypesOfEvents> {
     if (this.checked === true) {
       return;
     }
-    this.presence.show();
+    this.$presence.show();
     this.prevChecked = this.checked;
     this.checked = true;
     this.emit(Events.StateChange, { ...this.state });
@@ -85,7 +85,7 @@ export class CheckboxCore extends BaseDomain<TheTypesOfEvents> {
     if (this.checked === false) {
       return;
     }
-    this.presence.hide();
+    this.$presence.hide();
     this.prevChecked = this.checked;
     this.checked = false;
     this.emit(Events.StateChange, { ...this.state });

@@ -115,7 +115,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     }
     const uniqueKey = [route1.pathname, query_stringify(query)].filter(Boolean).join("?");
     if (uniqueKey === this.$router.href) {
-      console.log("[DOMAIN]history/index - push target url is", uniqueKey, "and cur href is", this.$router.href);
+      // console.log("[DOMAIN]history/index - push target url is", uniqueKey, "and cur href is", this.$router.href);
       return;
     }
     const view = this.views[uniqueKey];
@@ -294,20 +294,22 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     const viewPrepareShow = this.stacks[targetCursor];
     console.log("[DOMAIN]history - back", this.cursor, targetCursor, viewPrepareShow);
     if (!viewPrepareShow) {
+      // this.$view.showView(this.$view.subViews[0]);
       return;
     }
     const href = viewPrepareShow.href;
     if (!viewPrepareShow.parent) {
+      // this.$view.showView(this.$view.subViews[0]);
       return;
     }
     this.$router.href = href;
     this.$router.name = viewPrepareShow.name;
     this.cursor = targetCursor;
     const viewsAfter = this.stacks.slice(targetCursor + 1);
-    console.log("[DOMAIN]history - back before viewsAfter.length", viewsAfter);
+    // console.log("[DOMAIN]history - back before viewsAfter.length", viewsAfter);
     for (let i = 0; i < viewsAfter.length; i += 1) {
       const v = viewsAfter[i];
-      console.log("[DOMAIN]history - back before removeView", v.parent?.title, v.title);
+      // console.log("[DOMAIN]history - back before removeView", v.parent?.title, v.title);
       v.parent?.removeView(v, {
         reason: "back",
         destroy: true,

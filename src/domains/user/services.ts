@@ -35,11 +35,19 @@ export function fetchUserProfile() {
 }
 
 /**
- * 获取当前登录用户信息详情
+ * 更新邮箱
  * @returns
  */
-export function updateUserAccount(values: { email: string; pwd: string }) {
-  return request.post<void>("/api/v2/wechat/mine/update_account", values);
+export function updateUserEmail(values: { email: string }) {
+  return request.post<void>("/api/v2/wechat/mine/update_email", values);
+}
+
+/**
+ * 更新密码
+ * @returns
+ */
+export function updateUserPwd(values: { pwd: string }) {
+  return request.post<void>("/api/v2/wechat/mine/update_pwd", values);
 }
 
 /**
@@ -52,12 +60,24 @@ export function validateMemberToken(v: { token: string }) {
 }
 
 /**
- * 成员通过授权链接访问首页时，验证该链接是否有效
+ * 使用邮箱、密码登录
  */
 export function loginWithEmailAndPwd(values: { email: string; pwd: string }) {
   const { email, pwd } = values;
   return request.post<{ token: string; id: string }>("/api/v2/wechat/auth/login", {
     email,
     pwd,
+  });
+}
+
+/**
+ * 使用邮箱、密码注册
+ */
+export function registerWithEmailAndPwd(values: { email: string; pwd: string; code: string }) {
+  const { email, pwd, code } = values;
+  return request.post<{ id: string; email: string; token: string }>("/api/v2/wechat/auth/register", {
+    email,
+    pwd,
+    code,
   });
 }

@@ -12,9 +12,10 @@ export const MediaSharePage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onPullToBack() {
-          history.back();
-        },
+        os: app.env,
+        // onPullToBack() {
+        //   history.back();
+        // },
       })
   );
   const searchInput = useInstance(() => new InputCore());

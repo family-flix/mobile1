@@ -7,10 +7,10 @@ import { RouteViewCore } from "@/domains/route_view";
 import { ScrollViewCore } from "@/domains/ui";
 import { HttpClientCore } from "@/domains/http_client";
 import { BottomMenuCore } from "@/domains/bottom_menu";
+import { StorageCore } from "@/domains/storage";
 
 import { PageKeys, RouteConfig } from "./routes";
 import { storage } from "./storage";
-import { StorageCore } from "@/domains/storage";
 
 export type GlobalStorageValues = (typeof storage)["values"];
 export type ViewComponentProps = {
@@ -25,9 +25,8 @@ export type ViewComponentProps = {
     scrollView?: ScrollViewCore;
   };
 };
+export type ViewComponentPropsWithMenu = ViewComponentProps & {
+  menu?: BottomMenuCore;
+};
 export type ViewComponent = NamedExoticComponent<ViewComponentProps>;
-export type ViewComponentWithMenu = NamedExoticComponent<
-  ViewComponentProps & {
-    menu?: BottomMenuCore;
-  }
->;
+export type ViewComponentWithMenu = NamedExoticComponent<ViewComponentPropsWithMenu>;

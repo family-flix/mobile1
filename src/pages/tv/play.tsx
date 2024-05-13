@@ -82,7 +82,12 @@ ${url}`;
     });
     return r;
   });
-  const scrollView = useInstance(() => new ScrollViewCore({}));
+  const scrollView = useInstance(
+    () =>
+      new ScrollViewCore({
+        os: app.env,
+      })
+  );
   const tv = useInstance(() => {
     const { type: resolution } = settingsRef.value!;
     const tv = new TVCore({
@@ -210,20 +215,27 @@ ${url}`;
   const episodeScrollView = useInstance(
     () =>
       new ScrollViewCore({
+        os: app.env,
         // async onPullToRefresh() {
         //   await tv.episodeList.refresh();
         //   episodeScrollView.stopPullToRefresh();
         // },
-        onReachBottom() {
-          tv.$episodeList.loadMore();
+        async onReachBottom() {
+          await tv.$episodeList.loadMore();
+          episodeScrollView.finishLoadingMore();
         },
       })
   );
   const subtitleSheet = useInstance(() => new DialogCore({}));
   const nextEpisodeLoader = useInstance(() => new ToggleOverrideCore({}));
-  const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
+  const topOperation = useInstance(() => new PresenceCore({ mounted: true, visible: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
-  const scrollView2 = useInstance(() => new ScrollViewCore());
+  const scrollView2 = useInstance(
+    () =>
+      new ScrollViewCore({
+        os: app.env,
+      })
+  );
 
   const [profile, setProfile] = useState(tv.profile);
   const [curSource, setCurSource] = useState(tv.curSource);
@@ -267,11 +279,11 @@ ${url}`;
     view.onHidden(() => {
       player.pause();
     });
-    if (!view.query.hide_menu) {
-      scrollView.onPullToBack(() => {
-        history.back();
-      });
-    }
+    // if (!view.query.hide_menu) {
+    //   scrollView.onPullToBack(() => {
+    //     history.back();
+    //   });
+    // }
     player.onExitFullscreen(() => {
       player.pause();
       if (tv.curSource) {
@@ -663,7 +675,7 @@ ${url}`;
           );
           if (seasons.length === 1) {
             return (
-              <ScrollView store={episodeScrollView} className="top-14 fixed" contentClassName="pb-24">
+              <ScrollView store={episodeScrollView} className="top-14 fixed">
                 {episodes_elm}
               </ScrollView>
             );
@@ -814,7 +826,7 @@ ${url}`;
           }
           const { name, overview } = profile;
           return (
-            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
+            <ScrollView store={scrollView2} className="top-14 fixed">
               <div className="text-w-fg-1">
                 <div className="">
                   <div className="px-4">

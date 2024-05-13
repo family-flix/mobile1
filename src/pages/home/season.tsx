@@ -49,6 +49,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
+        os: app.env,
         onScroll(pos) {
           console.log("[PAGE]home/season - onScroll", pos.scrollTop);
           if (!menu) {
@@ -167,7 +168,7 @@ export const HomeSeasonListPage: ViewComponentWithMenu = React.memo((props) => {
       menu.onRefresh(async () => {
         scrollView.startPullToRefresh();
         await seasonList.refresh();
-        scrollView.stopPullToRefresh();
+        scrollView.finishPullToRefresh();
       });
     }
     // scrollView.onPullToRefresh(async () => {

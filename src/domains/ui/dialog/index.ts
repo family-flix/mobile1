@@ -6,7 +6,6 @@ import { Handler } from "mitt";
 import { BaseDomain } from "@/domains/base";
 import { PresenceCore } from "@/domains/ui/presence";
 import { ButtonCore } from "@/domains/ui/button";
-import { sleep } from "@/utils";
 
 enum Events {
   BeforeShow,
@@ -55,7 +54,7 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
   footer: boolean = true;
   showCancel: boolean = true;
 
-  present = new PresenceCore();
+  $present = new PresenceCore();
   okBtn = new ButtonCore();
   cancelBtn = new ButtonCore();
 
@@ -86,18 +85,18 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
     if (onUnmounted) {
       this.onUnmounted(onUnmounted);
     }
-    this.present.onShow(async () => {
+    this.$present.onShow(async () => {
       this.open = true;
       this.emit(Events.VisibleChange, true);
       this.emit(Events.StateChange, { ...this.state });
     });
-    this.present.onHidden(async () => {
+    this.$present.onHidden(async () => {
       this.open = false;
       this.emit(Events.Cancel);
       this.emit(Events.VisibleChange, false);
       this.emit(Events.StateChange, { ...this.state });
     });
-    this.present.onUnmounted(() => {
+    this.$present.onUnmounted(() => {
       this.emit(Events.Unmounted);
     });
     this.okBtn.onClick(() => {
@@ -113,7 +112,7 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     // this.emit(Events.BeforeShow);
-    this.present.show();
+    this.$present.show();
   }
   /** 隐藏弹窗 */
   hide() {
@@ -121,7 +120,7 @@ export class DialogCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     // this.emit(Events.Cancel);
-    this.present.hide();
+    this.$present.hide();
   }
   ok() {
     this.emit(Events.OK);

@@ -9,9 +9,10 @@ import { ButtonCore } from "@/domains/ui/button";
 import { cn } from "@/utils";
 
 import { Show } from "./show";
+import { useInitialize } from "@/hooks";
 
 const buttonVariants = cva(
-  "active:scale-95 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-slate-400 disabled:pointer-events-none dark:focus:ring-offset-slate-900 data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800",
+  "active:scale-95 inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-slate-400 disabled:pointer-events-none dark:focus:ring-offset-slate-900 data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800",
   {
     variants: {
       variant: {
@@ -25,8 +26,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "py-2 px-4",
-        sm: "px-2 rounded-md",
-        lg: "px-8 rounded-md",
+        sm: "px-2 text-sm rounded-md",
+        lg: "py-2 px-8 text-md font-normal rounded-md",
       },
     },
     defaultVariants: {
@@ -36,48 +37,52 @@ const buttonVariants = cva(
   }
 );
 
-function Button<T = unknown>(
-  props: {
-    store: ButtonCore<T>;
-  } & VariantProps<typeof buttonVariants> &
-    Omit<React.HTMLAttributes<HTMLElement>, "size">
-) {
-  const { store, variant, size } = props;
+const Button = React.memo(
+  (
+    props: {
+      store: ButtonCore<any>;
+    } & VariantProps<typeof buttonVariants> &
+      Omit<React.HTMLAttributes<HTMLElement>, "size">
+  ) => {
+    const { store, variant, size } = props;
 
-  const [state, setState] = useState(store.state);
+    const [state, setState] = useState(store.state);
 
-  store.onStateChange((nextState) => {
-    setState(nextState);
-  });
+    useInitialize(() => {
+      store.onStateChange((nextState) => {
+        setState(nextState);
+      });
+    });
 
-  const { disabled, loading } = state;
-  const c = buttonVariants({ variant, size, class: cn(props.className, "w-full space-x-2") });
+    const { disabled, loading } = state;
+    const c = buttonVariants({ variant, size, class: cn(props.className, "w-full space-x-2") });
 
-  return (
-    <button
-      className={c}
-      role="button"
-      disabled={disabled}
-      onClick={(event) => {
-        event.preventDefault();
-        store.click();
-      }}
-    >
-      <Show when={loading}>
-        <Loader className="w-4 h-4 mr-2 animation animate-spin" />
-      </Show>
-      {(() => {
-        if (props.children) {
-          return props.children;
-        }
-        if (state.text) {
-          return state.text;
-        }
-        return "确定";
-      })()}
-    </button>
-  );
-}
+    return (
+      <button
+        className={c}
+        role="button"
+        disabled={disabled}
+        onClick={(event) => {
+          event.preventDefault();
+          store.click();
+        }}
+      >
+        <Show when={loading}>
+          <Loader className="w-4 h-4 mr-2 animation animate-spin" />
+        </Show>
+        {(() => {
+          if (props.children) {
+            return props.children;
+          }
+          if (state.text) {
+            return state.text;
+          }
+          return "确定";
+        })()}
+      </button>
+    );
+  }
+);
 Button.displayName = "Button";
 
 export { Button };

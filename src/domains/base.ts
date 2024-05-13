@@ -23,21 +23,23 @@ type TheTypesOfBaseEvents = {
 type BaseDomainEvents<E> = TheTypesOfBaseEvents & E;
 
 export class BaseDomain<Events extends Record<EventType, unknown>> {
-  _name: string = "BaseDomain";
+  /** 用于自己区别同名 Domain 不同实例的标志 */
+  unique_id: string = "BaseDomain";
   debug: boolean = false;
 
   _emitter = mitt<BaseDomainEvents<Events>>();
   listeners: (() => void)[] = [];
 
   constructor(
-    params: Partial<{
-      _name: string;
-      debug: boolean;
+    props: Partial<{
+      // unique_id: string;
+      // debug: boolean;
     }> = {}
   ) {
-    const { _name: name, debug } = params;
-    if (name) {
-      this._name = name;
+    // @ts-ignore
+    const { unique_id, debug } = props;
+    if (unique_id) {
+      this.unique_id = unique_id;
     }
   }
   uid() {
@@ -51,7 +53,7 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
     // const lineNumber = error.stack.split("\n")[2].trim().split(" ")[1];
     // console.log(error.stack.split("\n"));
     return [
-      `%c CORE %c ${this._name} %c`,
+      `%c CORE %c ${this.unique_id} %c`,
       "color:white;background:#dfa639;border-top-left-radius:2px;border-bottom-left-radius:2px;",
       "color:white;background:#19be6b;border-top-right-radius:2px;border-bottom-right-radius:2px;",
       "color:#19be6b;",
@@ -63,7 +65,7 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
       return;
     }
     console.log(
-      `%c CORE %c ${this._name} %c`,
+      `%c CORE %c ${this.unique_id} %c`,
       "color:white;background:red;border-top-left-radius:2px;border-bottom-left-radius:2px;",
       "color:white;background:#19be6b;border-top-right-radius:2px;border-bottom-right-radius:2px;",
       "color:#19be6b;",

@@ -4,7 +4,7 @@
 import React, { useRef, useState } from "react";
 import { ArrowRightCircle, ArrowUp, Flashlight, MoreHorizontal, MoreVertical, Star } from "lucide-react";
 
-import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
+import { ViewComponent, ViewComponentProps, ViewComponentPropsWithMenu, ViewComponentWithMenu } from "@/store/types";
 // import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
 import { Show } from "@/components/ui/show";
@@ -19,152 +19,156 @@ import {
 } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
 import { useInitialize, useInstance } from "@/hooks";
-import { MediaTypes } from "@/constants";
+import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
+
+function Page(props: ViewComponentPropsWithMenu) {
+  const { app, client, history, menu } = props;
+
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $list.refresh();
+      $scroll.finishPullToRefresh();
+    },
+    async onReachBottom() {
+      await $list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $list = new ListCoreV2(
+    new RequestCoreV2({
+      fetch: fetchPlayingHistories,
+      process: fetchPlayingHistoriesProcess,
+      client,
+    }),
+    {
+      pageSize: 20,
+    }
+  );
+  const $cur = new RefCore<PlayHistoryItem>();
+  const $deletingConfirmDialog = new DialogCore({
+    onOk() {
+      if (!$cur.value) {
+        return;
+      }
+      $deletingRequest.run({ history_id: $cur.value.id });
+    },
+  });
+  const $deletingRequest = new RequestCoreV2({
+    client,
+    fetch: deleteHistory,
+    onLoading(loading) {
+      $deletingConfirmDialog.okBtn.setLoading(loading);
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["删除失败", error.message],
+      });
+    },
+    onSuccess(v) {
+      app.tip({
+        text: ["删除成功"],
+      });
+      $deletingConfirmDialog.hide();
+      $list.deleteItem((history) => {
+        if (history.id === $cur.value?.id) {
+          return true;
+        }
+        return false;
+      });
+      $cur.clear();
+    },
+  });
+  const $poster = new ImageInListCore();
+  const $card = new NodeInListCore<PlayHistoryItem>({
+    onClick(record) {
+      if (!record) {
+        return;
+      }
+      const { type, media_id } = record;
+      if (type === MediaTypes.Season) {
+        // seasonPlayingPageV2.query = {
+        //   id: media_id,
+        // };
+        // app.showView(seasonPlayingPageV2);
+        history.push("root.season_playing", { id: media_id });
+        return;
+      }
+      if (type === MediaTypes.Movie) {
+        // moviePlayingPageV2.query = {
+        //   id: media_id,
+        // };
+        // app.showView(moviePlayingPageV2);
+        history.push("root.movie_playing", { id: media_id });
+        return;
+      }
+    },
+    // onLongPress(record) {
+    //   console.log("123");
+    //   alert(record?.name);
+    // },
+  });
+  const $thumbnail = new ImageInListCore({
+    scale: 1.38,
+  });
+  return {
+    $list,
+    ui: {
+      $scroll,
+      $deletingConfirmDialog,
+      $poster,
+      $thumbnail,
+      $card,
+    },
+  };
+}
 
 export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) => {
   const { app, client, history, view, menu } = props;
 
-  const historyList = useInstance(
-    () =>
-      new ListCoreV2(
-        new RequestCoreV2({
-          fetch: fetchPlayingHistories,
-          process: fetchPlayingHistoriesProcess,
-          client,
-        }),
-        {
-          pageSize: 20,
-        }
-      )
-  );
-  const deletingRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client,
-        fetch: deleteHistory,
-        onLoading(loading) {
-          deletingConfirmDialog.okBtn.setLoading(loading);
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["删除失败", error.message],
-          });
-        },
-        onSuccess(v) {
-          app.tip({
-            text: ["删除成功"],
-          });
-          deletingConfirmDialog.hide();
-          historyList.deleteItem((history) => {
-            if (history.id === cur.value?.id) {
-              return true;
-            }
-            return false;
-          });
-          cur.clear();
-        },
-      })
-  );
-  const deletingConfirmDialog = useInstance(
-    () =>
-      new DialogCore({
-        onOk() {
-          if (!cur.value) {
-            return;
-          }
-          deletingRequest.run({ history_id: cur.value.id });
-        },
-      })
-  );
-  const poster = useInstance(() => new ImageInListCore());
-  const cur = useInstance(() => new RefCore<PlayHistoryItem>());
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        onScroll(pos) {
-          let nextShowTip = false;
-          if (pos.scrollTop > app.screen.height) {
-            nextShowTip = true;
-          }
-          if (showTipRef.current === nextShowTip) {
-            return;
-          }
-          showTipRef.current = nextShowTip;
-          setShowTip(nextShowTip);
-        },
-        onReachBottom() {
-          historyList.loadMore();
-        },
-      })
-  );
-  const historyCard = useInstance(
-    () =>
-      new NodeInListCore<PlayHistoryItem>({
-        onClick(record) {
-          if (!record) {
-            return;
-          }
-          const { type, media_id } = record;
-          if (type === MediaTypes.Season) {
-            // seasonPlayingPageV2.query = {
-            //   id: media_id,
-            // };
-            // app.showView(seasonPlayingPageV2);
-            history.push("root.season_playing", { id: media_id });
-            return;
-          }
-          if (type === MediaTypes.Movie) {
-            // moviePlayingPageV2.query = {
-            //   id: media_id,
-            // };
-            // app.showView(moviePlayingPageV2);
-            history.push("root.movie_playing", { id: media_id });
-            return;
-          }
-        },
-        // onLongPress(record) {
-        //   console.log("123");
-        //   alert(record?.name);
-        // },
-      })
-  );
-  const thumbnail = useInstance(
-    () =>
-      new ImageInListCore({
-        scale: 1.38,
-      })
-  );
+  const $page = useInstance(() => Page(props));
 
-  const [response, setResponse] = useState(historyList.response);
+  const [response, setResponse] = useState($page.$list.response);
   const showTipRef = useRef(false);
   const [showTip, setShowTip] = useState(false);
 
   useInitialize(() => {
     if (menu) {
       menu.onScrollToTop(() => {
-        scrollView.scrollTo({ top: 0 });
+        $page.ui.$scroll.scrollTo({ top: 0 });
       });
       menu.onRefresh(async () => {
-        scrollView.startPullToRefresh();
-        await historyList.refresh();
-        scrollView.stopPullToRefresh();
+        $page.ui.$scroll.startPullToRefresh();
+        await $page.$list.refresh();
+        $page.ui.$scroll.finishPullToRefresh();
       });
     }
+    $page.ui.$scroll.onScroll((pos) => {
+      let nextShowTip = false;
+      if (pos.scrollTop > app.screen.height) {
+        nextShowTip = true;
+      }
+      if (showTipRef.current === nextShowTip) {
+        return;
+      }
+      showTipRef.current = nextShowTip;
+      setShowTip(nextShowTip);
+    });
     // console.log("[PAGE]history - useInitialize");
-    historyList.onStateChange((nextResponse) => {
+    $page.$list.onStateChange((nextResponse) => {
       setResponse(nextResponse);
     });
-    historyList.init();
+    $page.$list.init();
   });
 
   const { dataSource } = response;
 
   return (
     <>
-      <ScrollView className="h-full bg-w-bg-3" store={scrollView}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
-          store={historyList}
+          store={$page.$list}
           className="grid grid-cols-2 gap-2 px-3 md:grid-cols-4 xl:grid-cols-6 pt-4"
           skeleton={
             <>
@@ -228,7 +232,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
                   <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
                     <LazyImage
                       className="w-full h-full object-cover"
-                      store={thumbnail.bind(thumbnail_path)}
+                      store={$page.ui.$thumbnail.bind(thumbnail_path)}
                       alt={name}
                     />
                     <div className="absolute w-full top-0 flex flex-row-reverse items-center">
@@ -267,7 +271,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
       <BackToTop
         visible={showTip}
         onClick={() => {
-          scrollView.scrollTo({ top: 0 });
+          $page.ui.$scroll.scrollTo({ top: 0 });
         }}
       />
       <div
@@ -281,7 +285,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
           <Star className="w-6 h-6" />
         </div>
       </div>
-      <Dialog store={deletingConfirmDialog}>
+      <Dialog store={$page.ui.$deletingConfirmDialog}>
         <div>确认删除吗？</div>
       </Dialog>
     </>

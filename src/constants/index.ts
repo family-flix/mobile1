@@ -1,4 +1,4 @@
-export const __VERSION__ = "2.2.1";
+export const __VERSION__ = "2.3.0";
 /**
  * @doc https://www.iso.org/standard/63545.html
  */
@@ -215,8 +215,8 @@ export enum ReportTypes {
   /** 想看什么剧 */
   Want,
 }
-export const SeasonReportList = ["信息有误", "无法播放", "重复", "缺少字幕", "集/季数不全"];
-export const MovieReportList = ["信息有误", "无法播放", "重复", "缺少字幕"];
+export const SeasonReportList = ["信息有误", "无法播放", "分辨率太低", "重复", "缺少字幕", "集/季数不全"];
+export const MovieReportList = ["信息有误", "无法播放", "分辨率太低", "重复", "缺少字幕"];
 export const CommonReportList = [""];
 
 export enum MediaTypes {
@@ -261,4 +261,13 @@ export enum CollectionTypes {
   DailyUpdate = 2,
   /** 每日更新草稿 */
   DailyUpdateDraft = 3,
+}
+
+export enum AuthCodeStep {
+  Loading = 0,
+  Pending = 1,
+  Scanned = 2,
+  Confirmed = 3,
+  Expired = 4,
+  Error = 5,
 }

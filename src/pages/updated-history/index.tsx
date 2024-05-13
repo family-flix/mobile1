@@ -76,8 +76,14 @@ export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) 
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onReachBottom() {
-          historyList.loadMore();
+        os: app.env,
+        async onPullToRefresh() {
+          await historyList.refresh();
+          scrollView.finishPullToRefresh();
+        },
+        async onReachBottom() {
+          await historyList.loadMore();
+          scrollView.finishLoadingMore();
         },
       })
   );

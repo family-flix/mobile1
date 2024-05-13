@@ -50,7 +50,7 @@ export class StorageCore<T extends Record<string, unknown>> extends BaseDomain<T
 
   get<K extends keyof T>(key: K, defaultValue?: T[K]) {
     const v = this.values[key];
-    console.log("[DOMAIN]storage/index - get", key, v, this.values);
+    // console.log("[DOMAIN]storage/index - get", key, v, this.values);
     if (v === undefined) {
       if (defaultValue) {
         // @ts-ignore

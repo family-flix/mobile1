@@ -2,86 +2,104 @@
  * @file 个人信息编辑
  */
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { infoRequest, messageList } from "@/store/index";
-import { inviteMember, reportSomething } from "@/services";
-import { getSystemTheme, useTheme } from "@/components/theme-switch";
-import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
-import { Show } from "@/components/ui/show";
+import { Button, Dialog, ScrollView, Input } from "@/components/ui";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { MultipleClickCore } from "@/domains/utils/multiple_click";
 import { ReportTypes, __VERSION__ } from "@/constants";
-import { useInitialize, useInstance } from "@/hooks/index";
+import { useInstance } from "@/hooks/index";
 
-class PageLogic {
-  $username: InputCore;
-  $password: InputCore;
-  $login: ButtonCore;
-
-  constructor(props: Pick<ViewComponentProps, "app" | "client" | "history">) {
-    const { app, client, history } = props;
-
-    this.$username = new InputCore({
-      placeholder: "请输入邮箱",
-    });
-    this.$password = new InputCore({
-      placeholder: "请输入密码",
-      type: "password",
-    });
-    this.$login = new ButtonCore({
-      onClick: async () => {
-        const values = {
-          email: this.$username.value,
-          pwd: this.$password.value,
-        };
-        this.$login.setLoading(true);
-        const r = await app.$user.updateAccount(values);
-        this.$login.setLoading(false);
-        if (r.error) {
-          app.tip({
-            text: ["更新失败", r.error.message],
-          });
-          return;
-        }
+function Page(props: ViewComponentProps) {
+  const { app, client, history } = props;
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+  });
+  const $email = new InputCore({
+    defaultValue: "",
+    placeholder: "请输入邮箱",
+    autoFocus: true,
+  });
+  const $emailDialog = new DialogCore({
+    title: "修改邮箱",
+    async onOk() {
+      const email = $email.value;
+      if (!email) {
         app.tip({
-          text: ["更新成功"],
+          text: ["请输入邮箱"],
         });
-      },
-    });
-  }
+        return;
+      }
+      $emailDialog.okBtn.setLoading(true);
+      const r = await app.$user.updateEmail({ email });
+      $emailDialog.okBtn.setLoading(false);
+      if (r.error) {
+        app.tip({
+          text: [r.error.message],
+        });
+        return;
+      }
+      app.tip({
+        text: ["更新邮箱成功"],
+      });
+      $email.clear();
+      $emailDialog.hide();
+    },
+  });
+  const $pwd = new InputCore({
+    defaultValue: "",
+    placeholder: "请输入密码",
+    type: "password",
+    autoComplete: false,
+    autoFocus: true,
+  });
+  const $pwdDialog = new DialogCore({
+    title: "修改密码",
+    async onOk() {
+      const pwd = $pwd.value;
+      if (!pwd) {
+        app.tip({
+          text: ["请输入密码"],
+        });
+        return;
+      }
+      $pwdDialog.okBtn.setLoading(true);
+      const r = await app.$user.updatePwd({ pwd });
+      $pwdDialog.okBtn.setLoading(false);
+      if (r.error) {
+        app.tip({
+          text: [r.error.message],
+        });
+        return;
+      }
+      $pwd.clear();
+      $pwdDialog.hide();
+      app.tip({
+        text: ["更新成功，请重新登录"],
+      });
+      history.replace("root.login");
+    },
+  });
+
+  return {
+    ui: {
+      $email,
+      $pwd,
+      $scroll,
+      $emailDialog,
+      $pwdDialog,
+    },
+  };
 }
 
 export const PersonProfileEditPage: ViewComponent = React.memo((props) => {
   const { app, history, storage, client, view } = props;
 
-  const $logic = useInstance(() => new PageLogic({ app, history, client }));
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        // async onPullToRefresh() {
-        //   await sleep(2000);
-        //   scrollView.stopPullToRefresh();
-        // },
-      })
-  );
-
-  const { theme, setTheme } = useTheme();
-  const [t, setT] = useState(theme);
-  const [profile, setProfile] = useState(app.$user);
-  const [loading, setLoading] = useState(infoRequest.loading);
-  const [messageResponse, setMessageResponse] = useState(messageList.response);
-  // const [history_response] = useState(history_helper.response);
-
-  useInitialize(() => {});
-
-  console.log("[PAGE]mine/profile_edit - render", theme, t);
+  const $page = useInstance(() => Page(props));
 
   return (
     <>
-      <ScrollView store={scrollView} className="bg-w-bg-0" contentClassName="h-full">
+      <ScrollView store={$page.ui.$scroll} className="min-h-screen bg-w-bg-0">
         <div className="w-full h-full">
           <div className="">
             <div className="flex items-center">
@@ -95,21 +113,52 @@ export const PersonProfileEditPage: ViewComponent = React.memo((props) => {
               </div>
             </div>
           </div>
-          <div className="mt-4 p-4 space-y-4">
-            <div>
+          <div className="mt-4">
+            <div
+              className="flex items-center justify-between p-4 bg-w-bg-1"
+              onClick={() => {
+                $page.ui.$emailDialog.show();
+              }}
+            >
               <div>邮箱</div>
-              <Input store={$logic.$username} />
+              <div className="flex items-center text-w-fg-1">
+                <div className="">
+                  {(() => {
+                    if (app.$user.email) {
+                      return app.$user.email;
+                    }
+                    return "设置邮箱";
+                  })()}
+                </div>
+                <div>
+                  <ChevronRight className="w-6 h-6" />
+                </div>
+              </div>
             </div>
-            <div>
+            <div className="w-full h-[1px] transform scale-y-50 bg-w-fg-3" />
+            <div
+              className="flex items-center justify-between p-4 bg-w-bg-1"
+              onClick={() => {
+                $page.ui.$pwdDialog.show();
+              }}
+            >
               <div>密码</div>
-              <Input store={$logic.$password} />
-            </div>
-            <div className="w-full mt-4">
-              <Button store={$logic.$login}>保存</Button>
+              <div className="flex items-center text-w-fg-1">
+                <div className="">修改</div>
+                <div>
+                  <ChevronRight className="w-6 h-6" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </ScrollView>
+      <Dialog store={$page.ui.$emailDialog}>
+        <Input store={$page.ui.$email} />
+      </Dialog>
+      <Dialog store={$page.ui.$pwdDialog}>
+        <Input store={$page.ui.$pwd} />
+      </Dialog>
     </>
   );
 });

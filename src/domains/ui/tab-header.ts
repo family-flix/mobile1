@@ -32,6 +32,7 @@ export class TabHeaderCore<
   T extends { key: any; options: { id: any; text: string; [x: string]: any }[] }
 > extends BaseDomain<TheTypesOfEvents<T>> {
   key: T["key"];
+  keys: T["key"][] = [];
   tabs: T["options"] = [];
   count = 0;
   mounted = false;
@@ -89,6 +90,7 @@ export class TabHeaderCore<
     this.key = key;
     this.targetLeftWhenSelected = targetLeftWhenSelected;
     this.tabs = options;
+    this.keys = options.map((opt) => opt[this.key]);
     if (onChange) {
       this.onChange(onChange);
     }
@@ -137,7 +139,7 @@ export class TabHeaderCore<
     }
     this.current = matchedIndex;
     const left = this.calcLineLeft(this.current);
-    console.log("[DOMAIN]tab-header/index selectById", this.current, this.selectedTab, left);
+    // console.log("[DOMAIN]tab-header/index selectById", this.current, this.selectedTab, left);
     if (left !== null) {
       this.changeLinePosition(left);
     }
@@ -157,7 +159,7 @@ export class TabHeaderCore<
     this.current = matchedIndex;
     // console.log("[DOMAIN]tab-header/index selectById", this.current, this.selectedTab);
     const left = this.calcLineLeft(this.current);
-    console.log("[DOMAIN]tab-header/index handleChangeById", this.current, this.selectedTab, left);
+    // console.log("[DOMAIN]tab-header/index handleChangeById", this.current, this.selectedTab, left);
     if (left !== null) {
       this.changeLinePosition(left);
     }
@@ -192,7 +194,7 @@ export class TabHeaderCore<
     this.emit(Events.Mounted);
   }
   changeLinePosition(left: number) {
-    console.log("[DOMAIN]ui/tab-headers - changeLinePosition", left);
+    // console.log("[DOMAIN]ui/tab-headers - changeLinePosition", left);
     this.emit(Events.LinePositionChange, { left });
   }
   updateTabClientById(id: string, info: { width: number; height: number; left: number }) {

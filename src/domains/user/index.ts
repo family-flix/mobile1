@@ -6,7 +6,15 @@ import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
 
-import { fetchUserProfile, login, loginWithEmailAndPwd, updateUserAccount, validateMemberToken } from "./services";
+import {
+  fetchUserProfile,
+  login,
+  loginWithEmailAndPwd,
+  registerWithEmailAndPwd,
+  updateUserEmail,
+  updateUserPwd,
+  validateMemberToken,
+} from "./services";
 
 export enum Events {
   Tip,
@@ -45,7 +53,7 @@ type UserState = {
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
 
-  _name = "UserCore";
+  unique_id = "UserCore";
   debug = false;
 
   $client: HttpClientCore;
@@ -154,6 +162,41 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       token: this.token,
     });
   }
+  /**
+   * 使用用户名和密码注册
+   */
+  async register(values: { email: string; pwd: string; code: string }) {
+    const { email, pwd, code } = values;
+    if (!email) {
+      return Result.Err("请输入邮箱");
+    }
+    if (!pwd) {
+      return Result.Err("请输入密码");
+    }
+    // if (!code) {
+    //   return Result.Err("请输入邀请码");
+    // }
+    const request = new RequestCoreV2({
+      fetch: registerWithEmailAndPwd,
+      client: this.$client,
+    });
+    const r = await request.run({ email, pwd, code });
+    if (r.error) {
+      return Result.Err(r.error);
+    }
+    this.id = r.data.id;
+    this.email = r.data.email;
+    this.token = r.data.token;
+    this.isLogin = true;
+    this.emit(Events.Login, {
+      ...this.state,
+    });
+    return Result.Ok({
+      id: this.id,
+      email: this.email,
+      token: this.token,
+    });
+  }
   async fetchProfile() {
     if (!this.isLogin) {
       return Result.Err("请先登录");
@@ -168,26 +211,38 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     return Result.Ok(r.data);
   }
-  async updateAccount(values: { email: string; pwd: string }) {
-    if (!this.isLogin) {
-      return Result.Err("请先登录");
-    }
-    const { email, pwd } = values;
+  async updateEmail(values: { email: string }) {
+    const { email } = values;
     if (!email) {
       return Result.Err("请输入邮箱");
     }
+    const $updateEmailRequest = new RequestCoreV2({
+      fetch: updateUserEmail,
+      client: this.$client,
+    });
+    const r = await $updateEmailRequest.run({ email });
+    if (r.error) {
+      return Result.Err(r.error.message);
+    }
+    this.email = email;
+    this.emit(Events.StateChange, { ...this.state });
+    return Result.Ok({});
+  }
+  async updatePwd(values: { pwd: string }) {
+    const { pwd } = values;
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    const request = new RequestCoreV2({
-      fetch: updateUserAccount,
+    const $updatePwdRequest = new RequestCoreV2({
+      fetch: updateUserPwd,
       client: this.$client,
     });
-    const r = await request.run(values);
+    const r = await $updatePwdRequest.run({ pwd });
     if (r.error) {
-      return r;
+      return Result.Err(r.error.message);
     }
-    return Result.Ok(r.data);
+    this.emit(Events.Logout);
+    return Result.Ok({});
   }
 
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {

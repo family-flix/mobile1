@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Calendar, Send } from "lucide-react";
 
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { Show } from "@/packages/ui/show";
 import { Button, Input, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { useInitialize, useInstance } from "@/hooks/index";
@@ -12,21 +13,32 @@ import { cn } from "@/utils/index";
 
 import { TVSeasonSelectCore } from "./store";
 
-export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
-  const { store } = props;
+function Component(props: { store: TVSeasonSelectCore; app: ViewComponentProps["app"] }) {
+  const { app, store } = props;
+
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onReachBottom() {
+      await store.list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $poster = new ImageInListCore();
+  return {
+    ui: {
+      $scroll,
+      $poster,
+    },
+  };
+}
+
+export const TVSeasonSelect = (props: { store: TVSeasonSelectCore; app: ViewComponentProps["app"] }) => {
+  const { app, store } = props;
+
+  const $com = useInstance(() => Component(props));
 
   const [tvListResponse, setTVListResponse] = useState(store.response);
   const [curSeason, setCurSeason] = useState(store.value);
-
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        onReachBottom() {
-          store.list.loadMore();
-        },
-      })
-  );
-  const poster = useInstance(() => new ImageInListCore());
 
   useInitialize(() => {
     store.onResponseChange((nextState) => {
@@ -47,7 +59,7 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
           搜索
         </Button>
       </div>
-      <ScrollView className="mt-2 h-[240px] overflow-y-auto scroll--hidden" store={scrollView}>
+      <ScrollView className="mt-2 h-[240px] overflow-y-auto scroll--hidden" store={$com.ui.$scroll}>
         <ListView
           store={store.list}
           skeleton={
@@ -85,7 +97,7 @@ export const TVSeasonSelect = (props: { store: TVSeasonSelectCore }) => {
                 >
                   <div className="flex">
                     <div className="overflow-hidden mr-2 rounded-sm">
-                      <LazyImage className="w-[120px] h-[180px]" store={poster.bind(poster_path)} alt={name} />
+                      <LazyImage className="w-[120px] h-[180px]" store={$com.ui.$poster.bind(poster_path)} alt={name} />
                     </div>
                     <div className="flex-1 w-0 p-4">
                       <div className="flex items-center">

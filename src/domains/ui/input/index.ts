@@ -42,6 +42,7 @@ type InputState = {
   disabled: boolean;
   loading: boolean;
   type: string;
+  tmpType: string;
   allowClear: boolean;
   autoFocus: boolean;
   autoComplete: boolean;
@@ -58,6 +59,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   type: string;
   loading = false;
   valueUsed = "";
+  tmpType = "";
 
   get state(): InputState {
     return {
@@ -66,6 +68,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       disabled: this.disabled,
       loading: this.loading,
       type: this.type,
+      tmpType: this.tmpType,
       autoComplete: this.autoComplete,
       autoFocus: this.autoFocus,
       allowClear: this.allowClear,
@@ -90,12 +93,13 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       onMounted,
     } = options;
     if (name) {
-      this._name = name;
+      this.unique_id = name;
     }
     this.placeholder = placeholder;
     this.type = type;
     this.disabled = disabled;
     this.autoComplete = autoComplete;
+    this.autoFocus = autoFocus;
     if (defaultValue) {
       this._defaultValue = defaultValue;
     }
@@ -142,7 +146,7 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
   }
   focus() {
-    console.log("请在 connect 中实现该方法");
+    console.log("请在 connect 中实现 focus 方法");
   }
   change(value: string) {
     this.value = value;
@@ -155,6 +159,14 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
   }
   disable() {
     this.disabled = false;
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  showText() {
+    this.tmpType = "text";
+    this.emit(Events.StateChange, { ...this.state });
+  }
+  hideText() {
+    this.tmpType = "";
     this.emit(Events.StateChange, { ...this.state });
   }
   clear() {

@@ -47,7 +47,7 @@ type SelectCoreProps = {
   app: Application;
 };
 export class SelectCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "SelectCore";
+  unique_id = "SelectCore";
   debug = true;
 
   app: Application;

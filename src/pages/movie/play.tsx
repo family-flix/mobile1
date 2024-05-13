@@ -58,9 +58,10 @@ export const MoviePlayingPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onPullToBack() {
-          history.back();
-        },
+        os: app.env,
+        // onPullToBack() {
+        //   history.back();
+        // },
       })
   );
   const sourceSheet = useInstance(() => new DialogCore());
@@ -142,9 +143,11 @@ export const MoviePlayingPage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const topOperation = useInstance(() => new PresenceCore({ open: true, mounted: true }));
+  const topOperation = useInstance(() => new PresenceCore({ visible: true, mounted: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
-  const scrollView2 = useInstance(() => new ScrollViewCore());
+  const scrollView2 = useInstance(() => new ScrollViewCore({
+    os: app.env,
+  }));
 
   const [profile, setProfile] = useState(movie.profile);
   const [curSource, setCurSource] = useState(movie.curSource);
@@ -551,7 +554,7 @@ export const MoviePlayingPage: ViewComponent = React.memo((props) => {
           }
           const { name, overview } = profile;
           return (
-            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
+            <ScrollView store={scrollView2} className="top-14 fixed">
               <div className="text-w-fg-1">
                 <div className="px-4">
                   <div className="text-xl">{name}</div>

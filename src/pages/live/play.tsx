@@ -31,10 +31,11 @@ export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
-        onPullToBack() {
-          console.log("[PAGE]live/playing - onPullToBack");
-          history.back();
-        },
+        os: app.env,
+        // onPullToBack() {
+        //   console.log("[PAGE]live/playing - onPullToBack");
+        //   history.back();
+        // },
       })
   );
   const player = useInstance(() => {
@@ -67,7 +68,7 @@ export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
     return dialog;
   });
   const cover = useInstance(() => new ToggleCore({ boolean: true }));
-  const topOperation = useInstance(() => new PresenceCore({ mounted: true, open: true }));
+  const topOperation = useInstance(() => new PresenceCore({ mounted: true, visible: true }));
   const bottomOperation = useInstance(() => new PresenceCore({}));
 
   useInitialize(() => {
@@ -103,11 +104,11 @@ export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
     view.onHidden(() => {
       player.pause();
     });
-    if (!hide_menu) {
-      scrollView.onPullToBack(() => {
-        history.back();
-      });
-    }
+    // if (!hide_menu) {
+    //   scrollView.onPullToBack(() => {
+    //     history.back();
+    //   });
+    // }
     player.onExitFullscreen(() => {
       player.pause();
       if (app.orientation === OrientationTypes.Vertical) {

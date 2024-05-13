@@ -24,7 +24,7 @@ type TheTypesOfEvents = {
 
 export class PopoverCore extends BaseDomain<TheTypesOfEvents> {
   popper: PopperCore;
-  present: PresenceCore;
+  $present: PresenceCore;
   layer: DismissableLayerCore;
 
   _side: Side;
@@ -41,7 +41,7 @@ export class PopoverCore extends BaseDomain<TheTypesOfEvents> {
       side,
       align,
     });
-    this.present = new PresenceCore();
+    this.$present = new PresenceCore();
     this.layer = new DismissableLayerCore();
     this.layer.onDismiss(() => {
       this.hide();
@@ -62,20 +62,20 @@ export class PopoverCore extends BaseDomain<TheTypesOfEvents> {
   }
   show() {
     this.state.visible = true;
-    this.present.show();
+    this.$present.show();
     this.popper.place();
     this.emit(Events.Show);
   }
   hide() {
     this.state.visible = false;
-    this.present.hide();
+    this.$present.hide();
     this.emit(Events.Hidden);
   }
   destroy() {
     super.destroy();
     this.layer.destroy();
     this.popper.destroy();
-    this.present.destroy();
+    this.$present.destroy();
   }
 
   onShow(handler: Handler<TheTypesOfEvents[Events.Show]>) {

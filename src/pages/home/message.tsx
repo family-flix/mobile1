@@ -49,12 +49,14 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
   const scrollView = useInstance(
     () =>
       new ScrollViewCore({
+        os: app.env,
         // async onPullToRefresh() {
         //   await messageList.refresh();
         //   scrollView.stopPullToRefresh();
         // },
-        onReachBottom() {
-          messageList.loadMore();
+        async onReachBottom() {
+          await messageList.loadMore();
+          scrollView.finishLoadingMore();
         },
         // onPullToBack() {
         //   app.back();

@@ -28,7 +28,7 @@ export class FormFieldCore extends BaseDomain<TheTypesOfEvents> {
 
     const { _name: name, label } = options;
     if (name) {
-      this._name = name;
+      this.unique_id = name;
     }
     if (label) {
       this.state.label = label;

@@ -108,7 +108,7 @@ export class AffixCore extends BaseDomain<TheTypesOfEvents> {
 
   register(size: { top: number; height: number }) {
     const { top, height } = size;
-    console.log("[COMPONENT]FixedTopForHome - register", this._name, this.targetTop, this.curTop, top);
+    console.log("[COMPONENT]FixedTopForHome - register", this.unique_id, this.targetTop, this.curTop, top);
     this.curTop = top;
     this.mounted = true;
     if (this.targetTop >= this.curTop) {

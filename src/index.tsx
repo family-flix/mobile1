@@ -11,8 +11,7 @@ import { client } from "./store/request";
 import { storage } from "./store/storage";
 import { ThemeProvider } from "./components/theme-switch";
 import { StackRouteView } from "./components/ui/stack-route-view";
-import { Toast } from "./components/ui/toast";
-import { Dialog } from "./components/ui";
+import { Toast, Dialog } from "./components/ui";
 import { ToastCore } from "./domains/ui/toast";
 import { connect as connectApplication } from "./domains/app/connect.web";
 import { connect as connectHistory } from "./domains/history/connect.web";
@@ -103,11 +102,11 @@ function ApplicationView() {
     //   setState(nextState);
     // });
     view.onSubViewsChange((nextSubViews) => {
-      console.log("[ROOT]rootView.onSubViewsChange", nextSubViews.length);
+      // console.log("[ROOT]rootView.onSubViewsChange", nextSubViews.length);
       setSubViews(nextSubViews);
     });
     history.onRouteChange(({ ignore, reason, view, href }) => {
-      console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
+      // console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
       const { title } = view;
       app.setTitle(title);
       if (ignore) {
@@ -136,14 +135,14 @@ function ApplicationView() {
       // setReady(true);
       const { pathname, query } = history.$router;
       const route = routesWithPathname[pathname];
-      console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
+      // console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
       if (!route) {
         history.push("root.notfound");
         return;
       }
       if (!app.$user.isLogin) {
         if (route.options?.require?.includes("login")) {
-          history.push("root.login");
+          history.push("root.login", { redirect: route.title });
           return;
         }
       }

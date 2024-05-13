@@ -12,7 +12,12 @@ import { ScrollViewCore } from "@/domains/ui";
 export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
   const { app, history } = props;
 
-  const $scroll = useInstance(() => new ScrollViewCore({}));
+  const $scroll = useInstance(
+    () =>
+      new ScrollViewCore({
+        os: app.env,
+      })
+  );
   const WEBSITE_PC_URL = "https://media.funzm.com/pc/home/index";
 
   return (

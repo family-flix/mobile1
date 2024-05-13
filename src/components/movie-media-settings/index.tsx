@@ -1,22 +1,15 @@
+/**
+ * @file 电影播放设置
+ */
 import { useState } from "react";
-import {
-  AlertTriangle,
-  Bird,
-  Check,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Loader,
-  Loader2,
-  Minus,
-  Plus,
-} from "lucide-react";
+import { AlertTriangle, Bird, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
 
 import { ViewComponentProps } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { fetchMemberToken } from "@/services/media";
 import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
 import { Show } from "@/packages/ui/show";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
 import { DynamicContent } from "@/components/dynamic-content";
 import { InviteeSelectCore } from "@/components/member-select/store";
@@ -26,9 +19,8 @@ import { RefCore } from "@/domains/cur";
 import { MovieMediaCore } from "@/domains/media/movie";
 import { SeasonMediaCore } from "@/domains/media/season";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn, sleep } from "@/utils";
+import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants/index";
+import { cn, sleep } from "@/utils/index";
 
 enum MediaSettingsMenuKey {
   Resolution = 1,
@@ -145,7 +137,7 @@ ${history.$router.origin}${url}`;
       })
   );
   const subtitleIcon = useInstance(() => new DynamicContentInListCore({ value: 2 }));
-  const scroll = useInstance(() => new ScrollViewCore());
+  const $scroll = useInstance(() => new ScrollViewCore({ os: app.env }));
   const inviteeSelect = useInstance(
     () =>
       new InviteeSelectCore({
@@ -411,7 +403,7 @@ ${history.$router.origin}${url}`;
             ) : null} */}
           </div>
           <div className="h-[1px] bg-w-bg-1" />
-          <ScrollView className="absolute inset-0 top-16" store={scroll}>
+          <ScrollView className="overflow-y-auto absolute inset-0 top-16" store={$scroll}>
             {(() => {
               if (menuIndex === MediaSettingsMenuKey.Resolution) {
                 return (
@@ -663,135 +655,153 @@ ${history.$router.origin}${url}`;
               }
               if (menuIndex === MediaSettingsMenuKey.Subtitle) {
                 return (
-                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
-                    <div className="pb-24">
-                      {store.$source.subtitles.map((sub, i) => {
-                        return (
-                          <div
-                            key={i}
-                            className={cn(
-                              "flex items-center justify-between p-4 rounded-md cursor-pointer",
-                              sub.url === subtitle?.url ? "bg-w-bg-active" : ""
-                            )}
-                            onClick={async () => {
-                              subtitleIcon.select(sub.id);
-                              subtitleIcon.set(3);
-                              const r = await store.$source.loadSubtitleFile(sub, store.currentTime);
-                              if (r.error) {
-                                subtitleIcon.set(5);
-                                subtitleIcon.clear();
-                                return;
-                              }
-                              subtitleIcon.set(4);
-                              subtitleIcon.clear();
-                            }}
-                          >
-                            <div className="w-full break-all truncate">{sub.language.join("&")}</div>
-                            <DynamicContent
-                              className="ml-4"
-                              store={subtitleIcon.bind(sub.id)}
-                              options={[
-                                {
-                                  value: 1,
-                                  content: null,
-                                },
-                                {
-                                  value: 2,
-                                  content: (
-                                    <Show when={sub.url === subtitle?.url}>
-                                      <div>
-                                        <CheckCircle2 className="w-6 h-6" />
-                                      </div>
-                                    </Show>
-                                  ),
-                                },
-                                {
-                                  value: 3,
-                                  content: <Loader className="w-6 h-6 animate animate-spin" />,
-                                },
-                                {
-                                  value: 4,
-                                  content: <Check className="w-6 h-6" />,
-                                },
-                                {
-                                  value: 5,
-                                  content: <AlertTriangle className="w-6 h-6" />,
-                                },
-                              ]}
-                            />
+                  <div>
+                    {(() => {
+                      return (
+                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
+                          <div className="pb-24">
+                            {store.$source.subtitles.map((sub, i) => {
+                              return (
+                                <div
+                                  key={i}
+                                  className={cn(
+                                    "flex items-center justify-between p-4 rounded-md cursor-pointer",
+                                    sub.url === subtitle?.url ? "bg-w-bg-active" : ""
+                                  )}
+                                  onClick={async () => {
+                                    subtitleIcon.select(sub.id);
+                                    subtitleIcon.set(3);
+                                    const r = await store.$source.loadSubtitleFile(sub, store.currentTime);
+                                    if (r.error) {
+                                      subtitleIcon.set(5);
+                                      subtitleIcon.clear();
+                                      return;
+                                    }
+                                    subtitleIcon.set(4);
+                                    subtitleIcon.clear();
+                                  }}
+                                >
+                                  <div className="w-full break-all truncate">{sub.language.join("&")}</div>
+                                  <DynamicContent
+                                    className="ml-4"
+                                    store={subtitleIcon.bind(sub.id)}
+                                    options={[
+                                      {
+                                        value: 1,
+                                        content: null,
+                                      },
+                                      {
+                                        value: 2,
+                                        content: (
+                                          <Show when={sub.url === subtitle?.url}>
+                                            <div>
+                                              <CheckCircle2 className="w-6 h-6" />
+                                            </div>
+                                          </Show>
+                                        ),
+                                      },
+                                      {
+                                        value: 3,
+                                        content: <Loader className="w-6 h-6 animate animate-spin" />,
+                                      },
+                                      {
+                                        value: 4,
+                                        content: <Check className="w-6 h-6" />,
+                                      },
+                                      {
+                                        value: 5,
+                                        content: <AlertTriangle className="w-6 h-6" />,
+                                      },
+                                    ]}
+                                  />
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               }
               if (menuIndex === MediaSettingsMenuKey.Share) {
                 return (
-                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
-                    <div className="pb-24">
-                      <ListView
-                        wrapClassName="flex-1 overflow-y-auto"
-                        className="max-h-full flex flex-col h-full"
-                        store={inviteeSelect.$list}
-                        skeleton={
-                          <div className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer">
-                            <div className="w-8 h-8 bg-slate-300 rounded-full">
-                              <Skeleton className="w-[32px] h-[32px]" />
-                            </div>
-                            <div className="flex-1">
-                              <Skeleton className="h-[32px] w-[180px]"></Skeleton>
-                            </div>
-                          </div>
-                        }
-                      >
-                        <div className="space-y-4 flex-1 overflow-y-auto">
-                          {member.dataSource.map((member) => {
-                            const { id, remark } = member;
-                            return (
-                              <div
-                                key={id}
-                                className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer"
-                                onClick={() => {
-                                  inviteeSelect.select(member);
-                                }}
-                              >
-                                <div className="flex items-center justify-between bg-slate-300 rounded-full">
-                                  <div className="w-8 h-8 text-xl text-center text-slate-500">
-                                    {remark.slice(0, 1).toUpperCase()}
+                  <div>
+                    {(() => {
+                      return (
+                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
+                          <div className="pb-24">
+                            <ListView
+                              wrapClassName="flex-1 overflow-y-auto"
+                              className="max-h-full flex flex-col h-full"
+                              store={inviteeSelect.$list}
+                              skeleton={
+                                <div className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer">
+                                  <div className="w-8 h-8 bg-slate-300 rounded-full">
+                                    <Skeleton className="w-[32px] h-[32px]" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <Skeleton className="h-[32px] w-[180px]"></Skeleton>
                                   </div>
                                 </div>
-                                <div className="flex-1 w-0">
-                                  <h2 className="">{remark}</h2>
-                                </div>
+                              }
+                            >
+                              <div className="space-y-4 flex-1 overflow-y-auto">
+                                {member.dataSource.map((member) => {
+                                  const { id, remark } = member;
+                                  return (
+                                    <div
+                                      key={id}
+                                      className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer"
+                                      onClick={() => {
+                                        inviteeSelect.select(member);
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-between bg-slate-300 rounded-full">
+                                        <div className="w-8 h-8 text-xl text-center text-slate-500">
+                                          {remark.slice(0, 1).toUpperCase()}
+                                        </div>
+                                      </div>
+                                      <div className="flex-1 w-0">
+                                        <h2 className="">{remark}</h2>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            );
-                          })}
+                            </ListView>
+                          </div>
                         </div>
-                      </ListView>
-                    </div>
+                      );
+                    })()}
                   </div>
                 );
               }
               if (menuIndex === MediaSettingsMenuKey.Report) {
                 return (
-                  <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
-                    <div className="pb-24">
-                      {MovieReportList.map((question, i) => {
-                        return (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between p-4 rounded-md cursor-pointer"
-                            onClick={() => {
-                              curReport.select(question);
-                              reportConfirmDialog.show();
-                            }}
-                          >
-                            <div>{question}</div>
+                  <div>
+                    {(() => {
+                      return (
+                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
+                          <div className="pb-24">
+                            {MovieReportList.map((question, i) => {
+                              return (
+                                <div
+                                  key={i}
+                                  className="flex items-center justify-between p-4 rounded-md cursor-pointer"
+                                  onClick={() => {
+                                    curReport.select(question);
+                                    reportConfirmDialog.show();
+                                  }}
+                                >
+                                  <div>{question}</div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               }
@@ -834,7 +844,7 @@ ${history.$router.origin}${url}`;
       </Dialog>
       <Dialog store={reportConfirmDialog}>
         <div className="text-w-fg-1">
-          <p>提交你发现的该电影的问题</p>
+          <p>提交该电影的问题</p>
           <p className="mt-2 text-xl">「{curReportValue}」</p>
         </div>
       </Dialog>

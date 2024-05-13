@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 
+import { useInitialize } from "@/hooks/index";
 import { AffixCore } from "@/domains/ui/affix";
-import { cn } from "@/utils";
-import { useInitialize } from "@/hooks";
+import { cn } from "@/utils/index";
 
-export function Affix(props: { store: AffixCore } & React.HTMLAttributes<HTMLDivElement>) {
+export const Affix = React.memo((props: { store: AffixCore } & React.HTMLAttributes<HTMLDivElement>) => {
   const { store, ...restProps } = props;
   const [state, setState] = useState(store.state);
 
@@ -63,4 +63,4 @@ export function Affix(props: { store: AffixCore } & React.HTMLAttributes<HTMLDiv
       {state.fixed && <div style={{ height: state.height }} />}
     </div>
   );
-}
+});

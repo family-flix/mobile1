@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // import { client } from "@/store/request";
-import { GlobalStorageValues, ViewComponent } from "@/store/types";
+import { GlobalStorageValues, ViewComponent, ViewComponentProps } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
@@ -254,12 +254,12 @@ class MoviePlayingPageLogic<
 
 class MoviePlayingPageView {
   $view: RouteViewCore;
-  $scroll = new ScrollViewCore({});
+  $scroll: ScrollViewCore;
 
-  $mask = new PresenceCore({ mounted: true, open: true });
-  $top = new PresenceCore({ mounted: true, open: true });
-  $bottom = new PresenceCore({ mounted: true, open: true });
-  $control = new PresenceCore({ mounted: true, open: true });
+  $mask = new PresenceCore({ mounted: true, visible: true });
+  $top = new PresenceCore({ mounted: true, visible: true });
+  $bottom = new PresenceCore({ mounted: true, visible: true });
+  $control = new PresenceCore({ mounted: true, visible: true });
   $time = new PresenceCore({});
   $subtitle = new PresenceCore({});
   $settings = new DialogCore();
@@ -268,9 +268,12 @@ class MoviePlayingPageView {
   visible = true;
   timer: null | NodeJS.Timeout = null;
 
-  constructor(props: { view: RouteViewCore }) {
-    const { view } = props;
+  constructor(props: Pick<ViewComponentProps, "app" | "view">) {
+    const { app, view } = props;
     this.$view = view;
+    this.$scroll = new ScrollViewCore({
+      os: app.env,
+    });
   }
 
   show() {
@@ -390,7 +393,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
   //       })
   //   );
   const $logic = useInstance(() => new MoviePlayingPageLogic({ app, client, storage }));
-  const $page = useInstance(() => new MoviePlayingPageView({ view }));
+  const $page = useInstance(() => new MoviePlayingPageView({ app, view }));
 
   const [state, setProfile] = useState($logic.$tv.state);
   const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
@@ -474,32 +477,26 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     <>
       <ScrollView
         store={$page.$scroll}
-        className="fixed h-screen bg-w-bg-0"
+        className="fixed h-screen bg-w-bg-0 scroll--hidden"
         onClick={(event) => {
           $page.prepareToggle();
         }}
       >
-        <div
-          className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2"
-          style={{ transform: `translate(-50%, -50%)` }}
-        >
-          <div className="max-w-[750px]">
-            <Video store={$logic.$player} />
-          </div>
-          <div className="absolute z-20 inset-0">
-            <Presence
-              className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-              store={$page.$mask}
-            >
-              <div className="bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
-            </Presence>
-          </div>
-          <div
-            className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0"
-            style={{ transform: `translate(-50%, -50%)` }}
+        <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
+          <Video store={$logic.$player} />
+          <Presence
+            // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+            enterClassName="animate-in fade-in"
+            exitClassName="animate-out fade-out"
+            store={$page.$mask}
           >
+            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
+          </Presence>
+          <div className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
             <Presence
-              className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              enterClassName="animate-in fade-in"
+              exitClassName="animate-out fade-out"
               store={$page.$control}
             >
               <Show
@@ -575,6 +572,8 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                 "animate-in fade-in slide-in-from-top",
                 "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
               )}
+              enterClassName="animate-in fade-in slide-in-from-top"
+              exitClassName="animate-out fade-out slide-out-to-top"
             >
               <div
                 className="inline-block p-4"
@@ -627,10 +626,12 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               })()}
             </Presence> */}
             <Presence
-              className={cn(
-                "animate-in fade-in slide-in-from-bottom",
-                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
-              )}
+              // className={cn(
+              //   "animate-in fade-in slide-in-from-bottom",
+              //   "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
+              // )}
+              enterClassName="animate-in slide-in-from-bottom fade-in"
+              exitClassName="animate-out slide-out-to-bottom fade-out"
               store={$page.$bottom}
             >
               <div className="px-4">

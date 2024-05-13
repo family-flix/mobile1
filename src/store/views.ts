@@ -4,26 +4,15 @@
 /** 首页 */
 import { HomeLayout } from "@/pages/home/layout";
 import { HomeIndexPage } from "@/pages/home";
-// import { HomeSeasonListPage } from "@/pages/home/season";
-// import { HomeMoviePage } from "@/pages/home/movie";
-// import { HomeHistoryPage } from "@/pages/home/history";
 import { HomeMessagePage } from "@/pages/home/message";
 import { HomeRecommendedTabContent } from "@/pages/home-tabs/recommended";
 import { HomeSeasonTabContent } from "@/pages/home-tabs/season";
 import { HomeMovieTabContent } from "@/pages/home-tabs/movie";
 import { HomeHistoryTabContent } from "@/pages/home-tabs/history";
-import { HomeMinePage } from "@/pages/home/mine";
-/** 搜索 */
+import { UserCenterPage } from "@/pages/home/mine";
 import { MediaSearchPage } from "@/pages/search";
-/** 视频播放 */
-// import { TVPlayingPage } from "@/pages/tv/play";
 import { SeasonPlayingPageV2 } from "@/pages/tv/play_v2";
-// import { TVOuterPlayersPage } from "@/pages/tv/outerplayers";
-// import { MoviePlayingPage } from "@/pages/movie/play";
 import { MoviePlayingPageV2 } from "@/pages/movie/play_v2";
-// import { OuterPlayersPage } from "@/pages/outplayers";
-/** 其他 */
-// import { Test1Page } from "@/pages/test1";
 import { NotFoundPage } from "@/pages/not-found";
 import { InviteeListPage } from "@/pages/invitee";
 import { MediaSharePage } from "@/pages/invitee/share";
@@ -31,14 +20,14 @@ import { TVChannelPlayingPage } from "@/pages/live/play";
 import { TestPage } from "@/pages/test";
 import { UpdatedHistoryListPage } from "@/pages/updated-history";
 import { LoginPage } from "@/pages/login";
-// import { TVLiveListPage } from "@/pages/live/list";
-// import { TVChannelTestPlayingPage } from "@/pages/live/demo";
-// import { TestPage } from "@/pages/test";
+import { PersonProfileEditPage } from "@/pages/mine/profile_edit";
+import { HelpCenterHomePage } from "@/pages/help";
+import { QRCodeLoginConfirmPage } from "@/pages/scan";
+import { InvitationCodeListPage } from "@/pages/code/list";
+import { RegisterPage } from "@/pages/register";
 
 import { PageKeys } from "./routes";
 import { ViewComponent, ViewComponentWithMenu } from "./types";
-import { PersonProfileEditPage } from "@/pages/mine/profile_edit";
-import { HelpCenterHomePage } from "@/pages/help";
 
 export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>, "root"> = {
   "root.home_layout": HomeLayout,
@@ -47,7 +36,7 @@ export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>
   "root.home_layout.home_index.home_index_history": HomeHistoryTabContent,
   "root.home_layout.home_index.home_index_movie": HomeMovieTabContent,
   "root.home_layout.home_index.home_index_season": HomeSeasonTabContent,
-  "root.mine": HomeMinePage,
+  "root.mine": UserCenterPage,
   "root.update_mine_profile": PersonProfileEditPage,
   "root.history_updated": UpdatedHistoryListPage,
   "root.search": MediaSearchPage,
@@ -56,8 +45,11 @@ export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>
   "root.live": TVChannelPlayingPage,
   "root.season_playing": SeasonPlayingPageV2,
   "root.movie_playing": MoviePlayingPageV2,
+  "root.invitation_code": InvitationCodeListPage,
   "root.help": HelpCenterHomePage,
   "root.login": LoginPage,
+  "root.register": RegisterPage,
+  "root.scan": QRCodeLoginConfirmPage,
   "root.test": TestPage,
   "root.notfound": NotFoundPage,
 };

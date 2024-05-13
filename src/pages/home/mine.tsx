@@ -4,10 +4,9 @@
 import React, { useState } from "react";
 import {
   ArrowLeft,
-  Copy,
-  Edit,
   HelpCircle,
   HelpingHand,
+  Loader,
   MailQuestion,
   MessageSquare,
   Moon,
@@ -17,191 +16,168 @@ import {
   Tv,
 } from "lucide-react";
 
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { infoRequest, messageList } from "@/store/index";
-import { inviteMember, reportSomething } from "@/services";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { getSystemTheme, useTheme } from "@/components/theme-switch";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
+import { reportSomething } from "@/services/index";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { MultipleClickCore } from "@/domains/utils/multiple_click";
-import { ReportTypes, __VERSION__ } from "@/constants";
-import { useInitialize, useInstance } from "@/hooks";
-import { ViewComponent } from "@/store/types";
+import { ReportTypes, __VERSION__ } from "@/constants/index";
 
-export const HomeMinePage: ViewComponent = React.memo((props) => {
+function Page(props: ViewComponentProps) {
+  const { app, client } = props;
+
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    needHideIndicator: true,
+  });
+  const $avatar = new ImageCore(app.$user.avatar);
+  const $tip = new DialogCore({
+    footer: false,
+  });
+  const $reportInput = new InputCore({
+    defaultValue: "",
+    placeholder: "请输入问题",
+    autoFocus: true,
+  });
+  const $reportDialog = new DialogCore({
+    title: "问题与建议",
+    onOk() {
+      if (!$reportInput.value) {
+        app.tip({
+          text: ["请先输入问题"],
+        });
+        return;
+      }
+      $requireRequest.run({
+        type: ReportTypes.Question,
+        data: JSON.stringify({
+          content: $reportInput.value,
+        }),
+      });
+    },
+  });
+  const $requireInput = new InputCore({
+    defaultValue: "",
+    placeholder: "请输入想看的电视剧/电影",
+    autoFocus: true,
+  });
+  const $requireDialog = new DialogCore({
+    title: "想看",
+    onOk() {
+      if (!$requireInput.value) {
+        app.tip({
+          text: ["请先输入电视剧/电影"],
+        });
+        return;
+      }
+      $requireRequest.run({
+        type: ReportTypes.Want,
+        data: $reportInput.value,
+      });
+    },
+  });
+  const $requireRequest = new RequestCoreV2({
+    client: client,
+    fetch: reportSomething,
+    onLoading(loading) {
+      if ($reportDialog.open) {
+        $reportDialog.okBtn.setLoading(loading);
+      }
+      if ($reportDialog.open) {
+        $reportDialog.okBtn.setLoading(loading);
+      }
+    },
+    onSuccess() {
+      app.tip({
+        text: ["提交成功"],
+      });
+      if ($reportDialog.open) {
+        $reportDialog.hide();
+      }
+      if ($requireDialog.open) {
+        $requireDialog.hide();
+      }
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["提交失败", error.message],
+      });
+    },
+  });
+  const $logout = new ButtonCore({
+    onClick() {
+      app.$user.logout();
+    },
+  });
+
+  return {
+    ui: {
+      $scroll,
+      $avatar,
+      $tip,
+      $reportDialog,
+      $reportInput,
+      $requireDialog,
+      $requireInput,
+      $logout,
+    },
+  };
+}
+
+export const UserCenterPage: ViewComponent = React.memo((props) => {
   const { app, history, storage, client, view } = props;
 
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        // async onPullToRefresh() {
-        //   await sleep(2000);
-        //   scrollView.stopPullToRefresh();
-        // },
-      })
-  );
-  const multipleClick = useInstance(
-    () =>
-      new MultipleClickCore({
-        async onBingo() {
-          app.$user.logout();
-          const r = await app.$user.validate({
-            token: history.$router.query.token,
-            force: "1",
-          });
-          if (r.error) {
-            return;
-          }
-          history.reload();
-        },
-      })
-  );
-  const avatar = useInstance(() => new ImageCore(app.$user.avatar));
-  const workInProgressTipDialog = useInstance(
-    () =>
-      new DialogCore({
-        footer: false,
-      })
-  );
-  const reportInput = useInstance(
-    () =>
-      new InputCore({
-        placeholder: "请输入问题",
-        autoFocus: true,
-      })
-  );
-  const wantInput = useInstance(
-    () =>
-      new InputCore({
-        placeholder: "请输入想看的电视剧/电影",
-        autoFocus: true,
-      })
-  );
-  const reportRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client: client,
-        fetch: reportSomething,
-        onLoading(loading) {
-          if (reportConfirmDialog.open) {
-            reportConfirmDialog.okBtn.setLoading(loading);
-          }
-          if (wantDialog.open) {
-            wantDialog.okBtn.setLoading(loading);
-          }
-        },
-        onSuccess() {
-          app.tip({
-            text: ["提交成功"],
-          });
-          if (wantDialog.open) {
-            wantDialog.hide();
-          }
-          if (reportConfirmDialog.open) {
-            reportConfirmDialog.hide();
-          }
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["提交失败", error.message],
-          });
-        },
-      })
-  );
-  const reportConfirmDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "问题与建议",
-        onOk() {
-          if (!reportInput.value) {
-            app.tip({
-              text: ["请先输入问题"],
-            });
-            return;
-          }
-          reportRequest.run({
-            type: ReportTypes.Question,
-            data: JSON.stringify({
-              content: reportInput.value,
-            }),
-          });
-        },
-      })
-  );
-  const wantDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "想看",
-        onOk() {
-          if (!wantInput.value) {
-            app.tip({
-              text: ["请先输入电视剧/电影"],
-            });
-            return;
-          }
-          reportRequest.run({
-            type: ReportTypes.Want,
-            data: wantInput.value,
-          });
-        },
-      })
-  );
-  const $logout = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          app.$user.logout();
-        },
-      })
-  );
+  const $page = useInstance(() => Page(props));
 
   // @todo 主题切换这块逻辑移动到 app 领域中
   const { theme, setTheme } = useTheme();
   const [t, setT] = useState(theme);
-  const [profile, setProfile] = useState(app.$user);
+  const [profile, setProfile] = useState(app.$user.state);
   const [loading, setLoading] = useState(infoRequest.loading);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
   // const [history_response] = useState(history_helper.response);
 
   useInitialize(() => {
-    infoRequest.run();
+    // view.onHidden(() => {
+    //   alert(2);
+    // });
     infoRequest.onLoadingChange((v) => {
       setLoading(v);
     });
+    // infoRequest.onResponseChange((v) => {
+    //   setProfile(v);
+    // });
     messageList.onStateChange((nextState) => {
       setMessageResponse(nextState);
     });
-    if (theme !== "system") {
-      return;
-    }
-    const system = getSystemTheme();
-    setT(system);
-    //     console.log("hello", system);
-    //     scrollView.onPullToRefresh(async () => {
-    //       await sleep(3000);
-    //       scrollView.stopPullToRefresh();
-    //     });
-    // page.onReady(() => {
-    //   history_helper.init();
-    //   helper.init();
-    // });
+    infoRequest.run();
+    (() => {
+      if (theme !== "system") {
+        return;
+      }
+      const system = getSystemTheme();
+      setT(system);
+    })();
   });
 
-  console.log("[PAGE]home/mine - render", theme, t);
+  // console.log("[PAGE]home/mine - render", theme, t);
 
   return (
     <>
-      <ScrollView store={scrollView} className="bg-w-bg-0" contentClassName="h-full">
+      <ScrollView store={$page.ui.$scroll} className="w-screen h-screen bg-w-bg-0">
         <div className="w-full h-full">
-          <div className="">
+          <div
+            className=""
+            onClick={() => {
+              history.back();
+            }}
+          >
             <div className="flex items-center">
-              <div
-                className="inline-block p-4"
-                onClick={() => {
-                  history.back();
-                }}
-              >
+              <div className="inline-block m-4">
                 <ArrowLeft className="w-6 h-6" />
               </div>
             </div>
@@ -231,7 +207,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className="p-2 rounded bg-w-bg-3"
                 onClick={() => {
-                  app.tip({ text: ["敬请期待"] });
+                  history.push("root.update_mine_profile");
                 }}
               >
                 <Settings2 className="w-5 h-5" />
@@ -244,11 +220,12 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               }}
             >
               <div className="mr-4 w-16 h-16 rounded-full overflow-hidden">
-                <LazyImage className="w-full h-full" store={avatar} />
+                <LazyImage className="w-full h-full" store={$page.ui.$avatar} />
               </div>
-              <div className="mt-2 flex items-center">
-                <div className="text-xl text-w-fg-0">{profile.email || profile.id}</div>
-                <Edit className="ml-4 w-4 h-4" />
+              <div className="mt-2 flex-1 w-0">
+                <div className="w-full text-xl break-all truncate text-ellipsis text-w-fg-0">
+                  {profile.email || profile.id}
+                </div>
               </div>
             </div>
             <div className="rounded-lg bg-w-bg-3 text-w-fg-0">
@@ -271,7 +248,6 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className="flex items-center justify-between"
                 onClick={() => {
-                  // app.showView(messagesPage);
                   history.push("root.messages");
                 }}
               >
@@ -307,7 +283,7 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className=""
                 onClick={() => {
-                  reportConfirmDialog.show();
+                  $page.ui.$reportDialog.show();
                 }}
               >
                 <div className="flex items-center">
@@ -323,7 +299,10 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
               <div
                 className=""
                 onClick={() => {
-                  wantDialog.show();
+                  $page.ui.$requireDialog.show();
+                  // setTimeout(() => {
+                  //   $page.ui.$requireInput.focus();
+                  // }, 0);
                 }}
               >
                 <div className="flex items-center">
@@ -347,55 +326,47 @@ export const HomeMinePage: ViewComponent = React.memo((props) => {
                   }
                   if (!infoRequest.response.permissions.includes("001")) {
                     app.tip({
-                      text: ["该功能暂未开放"],
+                      text: ["暂无权限"],
                     });
                     return;
                   }
-                  // app.showView(inviteeListPage);
                   history.push("root.invitee");
                 }}
               >
                 <div className="flex items-center">
                   <div className="p-4">
-                    <HelpingHand className="w-5 h-5" />
+                    {loading ? <Loader className="w-5 h-5" /> : <HelpingHand className="w-5 h-5" />}
                   </div>
                   <div className="flex-1 py-4">
-                    <div>{loading ? "Loading" : "邀请好友"}</div>
+                    <div>邀请好友</div>
                   </div>
                 </div>
               </div>
             </div>
-            <Button variant="subtle" store={$logout}>
+            <Button size="lg" variant="subtle" store={$page.ui.$logout}>
               退出登录
             </Button>
-            <div
-              className="py-2 text-center text-sm"
-              onClick={() => {
-                multipleClick.handleClick();
-              }}
-            >
-              v{__VERSION__}
-            </div>
+            <div className="py-2 text-center text-sm">v{__VERSION__}</div>
           </div>
           <div className="h-[1px]"></div>
         </div>
       </ScrollView>
-      <Dialog store={workInProgressTipDialog}>
+      <Dialog store={$page.ui.$tip}>
         <div className="text-w-fg-1">敬请期待</div>
       </Dialog>
-      <Dialog store={reportConfirmDialog}>
+      <Dialog store={$page.ui.$reportDialog}>
         <div className="text-w-fg-1">
           <p>提交你认为存在问题或需要改进的地方</p>
           <div className="mt-4">
-            <Input prefix={<Pen className="w-4 h-4" />} store={reportInput} focus />
+            <Input prefix={<Pen className="w-4 h-4" />} store={$page.ui.$reportInput} />
           </div>
         </div>
       </Dialog>
-      <Dialog store={wantDialog}>
+      <Dialog store={$page.ui.$requireDialog}>
         <div className="text-w-fg-1">
           <p>你可以提交想看的电视剧或电影</p>
           <div className="mt-4">
-            <Input prefix={<Pen className="w-4 h-4" />} store={wantInput} focus />
+            <Input prefix={<Pen className="w-4 h-4" />} store={$page.ui.$requireInput} />
           </div>
         </div>
       </Dialog>

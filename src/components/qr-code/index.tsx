@@ -1,28 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import generateQrcode from "@/utils/qrcode";
+import { createQRCode } from "@/domains/qrcode/index";
 
 export function Qrcode(
   props: {
     text: string;
-    //     width: number;
-    //     height: number;
+    width: number;
+    height: number;
     logo?: string;
   } & React.AllHTMLAttributes<HTMLImageElement>
 ) {
-  const { text, logo, ...restProps } = props;
+  const { text, width, height, logo } = props;
 
-  const [url, setUrl] = useState("");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     (async () => {
-      const nextUrl = await generateQrcode(text, { logo });
-      if (!nextUrl) {
+      const $canvas = canvasRef.current;
+      if (!$canvas) {
         return;
       }
-      setUrl(nextUrl);
+      const ctx = $canvas.getContext("2d");
+      if (!ctx) {
+        return;
+      }
+      createQRCode(text, {
+        width,
+        height,
+        ctx,
+      });
     })();
   }, []);
 
-  return <img className={props.className} style={props.style} src={url} />;
+  return <canvas ref={canvasRef} className={props.className} style={props.style} />;
 }

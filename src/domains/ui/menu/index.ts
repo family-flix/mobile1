@@ -41,11 +41,11 @@ type MenuProps = {
 };
 
 export class MenuCore extends BaseDomain<TheTypesOfEvents> {
-  _name = "MenuCore";
+  unique_id = "MenuCore";
   debug = true;
 
   popper: PopperCore;
-  presence: PresenceCore;
+  $presence: PresenceCore;
   layer: DismissableLayerCore;
 
   openTimer: NodeJS.Timeout | null = null;
@@ -73,7 +73,7 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
       strategy,
       _name: name ? `${name}-popper` : "MenuCore",
     });
-    this.presence = new PresenceCore();
+    this.$presence = new PresenceCore();
     this.layer = new DismissableLayerCore();
 
     this.popper.onEnter(() => {
@@ -86,7 +86,7 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
       // console.log("[]MenuCore - this.layer.onDismiss", this.items);
       this.hide();
     });
-    this.presence.onHidden(() => {
+    this.$presence.onHidden(() => {
       // console.log("this.presence.onHidden", this.items.length);
       this.reset();
       if (this.curSub) {
@@ -116,14 +116,14 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
     this.show();
   }
   show() {
-    this.presence.show();
+    this.$presence.show();
     this.popper.place();
     this.emit(Events.Show);
     // this.emit(Events.StateChange, { ...this.state });
   }
   hide() {
     console.log(...this.log("hide"));
-    this.presence.hide();
+    this.$presence.hide();
     this.emit(Events.Hidden);
     this.emit(Events.StateChange, { ...this.state });
   }
@@ -214,7 +214,7 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
     this.curSub = null;
     this.maybeHideSub = false;
     this.hideSubTimer = null;
-    this.presence.reset();
+    this.$presence.reset();
     this.popper.reset();
     for (let i = 0; i < this.items.length; i += 1) {
       this.items[i].reset();
@@ -225,7 +225,7 @@ export class MenuCore extends BaseDomain<TheTypesOfEvents> {
     super.destroy();
     this.layer.destroy();
     this.popper.destroy();
-    this.presence.destroy();
+    this.$presence.destroy();
     for (let i = 0; i < this.subs.length; i += 1) {
       this.subs[i].destroy();
     }
