@@ -20,9 +20,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(filepath) {
-          // if (filepath.includes("hls.js")) {
-          //   return "hls";
-          // }
+          if (filepath.includes("hls.js")) {
+            return "hls";
+          }
           if (filepath.includes("node_modules") && !filepath.includes("hls")) {
             return "vendor";
           }

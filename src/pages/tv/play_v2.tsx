@@ -6,6 +6,8 @@ import {
   Airplay,
   AlertTriangle,
   ArrowLeft,
+  ChevronsLeft,
+  ChevronsRight,
   FastForward,
   Layers,
   Loader,
@@ -349,7 +351,7 @@ class SeasonPlayingPageView {
     this.timer = setTimeout(() => {
       this.hide();
       this.timer = null;
-    }, 5000);
+    }, 3000);
   }
   prepareToggle() {
     if (this.timer === null) {
@@ -504,13 +506,16 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                       event.stopPropagation();
                     }}
                   >
-                    <Rewind
-                      className="w-8 h-8"
-                      onClick={() => {
-                        $logic.$player.rewind();
-                        $page.prepareHide();
-                      }}
-                    />
+                    <div className="relative">
+                      <ChevronsLeft
+                        className="w-12 h-12"
+                        onClick={() => {
+                          $logic.$player.rewind();
+                          $page.prepareHide();
+                        }}
+                      />
+                      <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
+                    </div>
                     <div className="p-2">
                       <Show
                         when={playerState.playing}
@@ -521,7 +526,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                               $page.prepareHide();
                             }}
                           >
-                            <Play className="relative left-[6px] w-16 h-16" />
+                            <Play className="relative left-[6px] w-20 h-20" />
                           </div>
                         }
                       >
@@ -530,17 +535,20 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                             $logic.$player.pause();
                           }}
                         >
-                          <Pause className="w-16 h-16" />
+                          <Pause className="w-20 h-20" />
                         </div>
                       </Show>
                     </div>
-                    <FastForward
-                      className="w-8 h-8"
-                      onClick={() => {
-                        $logic.$player.speedUp();
-                        $page.prepareHide();
-                      }}
-                    />
+                    <div className="relative">
+                      <ChevronsRight
+                        className="w-12 h-12"
+                        onClick={() => {
+                          $logic.$player.speedUp();
+                          $page.prepareHide();
+                        }}
+                      />
+                      <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
+                    </div>
                   </div>
                 </Show>
               </Show>
@@ -753,6 +761,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                           await $logic.$tv.switchEpisode(episode);
                           $page.$episode.set(1);
                           $page.$episode.clear();
+                          $page.$episodes.hide();
                         }}
                       >
                         {!id ? (
