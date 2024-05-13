@@ -66,6 +66,9 @@ function Page(props: ViewComponentProps) {
     placeholder: "请输入关键字搜索",
     autoFocus: true,
     onEnter(v) {
+      if (v === $list.params.name) {
+        return;
+      }
       $list.search({
         name: v,
       });

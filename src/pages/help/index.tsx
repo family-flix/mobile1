@@ -8,6 +8,7 @@ import { ViewComponent } from "@/store/types";
 import { ScrollView } from "@/components/ui";
 import { useInstance } from "@/hooks";
 import { ScrollViewCore } from "@/domains/ui";
+import { sleep } from "@/utils";
 
 export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
   const { app, history } = props;
@@ -16,6 +17,10 @@ export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
     () =>
       new ScrollViewCore({
         os: app.env,
+        async onPullToRefresh() {
+          await sleep(1200);
+          $scroll.finishPullToRefresh();
+        },
       })
   );
   const WEBSITE_PC_URL = "https://media.funzm.com/pc/home/index";
@@ -64,7 +69,7 @@ export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
           </div>
         </div>
         <div className="p-4 rounded bg-w-bg-1">
-          <div className="">视频提示「格式错误」？</div>
+          <div className="">视频提示「不支持的视频格式」？</div>
           <div className="mt-1 break-all text-sm">
             <span>先尝试切换视频源、分辨率，均无效时，尝试使用三方播放器或到 PC 端观看。</span>
           </div>
@@ -72,7 +77,18 @@ export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
         <div className="p-4 rounded bg-w-bg-1">
           <div className="">如何使用三方播放器？</div>
           <div className="mt-1 break-all text-sm">
-            <span>待完善...</span>
+            <div>
+              <div className="flex items-center">
+                <div className="text-md">1、VLC 播放器</div>
+                <img
+                  className="ml-2 w-8 h-8"
+                  src="https://cdn.weipaitang.com/static/20230928ab23e98c-d8fc-e98cd8fc-453a-47af288db8d1-W512H512"
+                />
+              </div>
+              <div>
+                下载、打开 VLC 播放器。进入「网络」Tab，选择「打开网络串流」，将视频「播放地址」输入即可开始播放。
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -74,9 +74,9 @@ export function fetchMediaListProcess(r: Result<UnpackedRequestPayload<Requested
         air_date: dayjs(air_date).format(type === MediaTypes.Movie ? "YYYY-MM-DD" : "YYYY"),
         vote: (() => {
           if (vote_average === 0) {
-            return "N/A";
+            return null;
           }
-          return vote_average.toFixed(1);
+          return Number(vote_average.toFixed(1));
         })(),
         genres: [
           ...origin_country
@@ -97,6 +97,7 @@ export function fetchMediaListProcess(r: Result<UnpackedRequestPayload<Requested
             .filter(Boolean),
         ] as string[],
         episode_count_text: extra_text,
+        full: extra_text?.match(/全[0-9]{1,}/),
         // runtime: (() => {
         //   if (!runtime) {
         //     return null;

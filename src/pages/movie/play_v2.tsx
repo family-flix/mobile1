@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   FastForward,
+  HelpCircle,
   Loader2,
   Maximize,
   Pause,
@@ -504,7 +505,36 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                 fallback={
                   <div className="flex flex-col justify-center items-center">
                     <AlertTriangle className="w-16 h-16" />
-                    <div className="mt-4 text-center">{playerState.error}</div>
+                    <div className="flex items-center mt-4">
+                      <div className="text-center">{playerState.error}</div>
+                      <div
+                        className="ml-2"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          history.push("root.help", { highlight: "" });
+                        }}
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div
+                      className="mt-4 text-center text-sm"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if ($logic.$tv.$source.profile) {
+                          app.copy($logic.$tv.$source.profile?.url);
+                          app.tip({
+                            text: ["复制成功"],
+                          });
+                          return;
+                        }
+                        app.tip({
+                          text: ["暂无播放地址"],
+                        });
+                      }}
+                    >
+                      复制播放地址
+                    </div>
                   </div>
                 }
               >
