@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { UnpackedRequestPayload, request } from "@/domains/request/utils";
+import { TmpRequestResp, UnpackedRequestPayload, request } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import {
   MediaOriginCountry,
@@ -126,5 +126,73 @@ export function fetchMemberToken(values: { media_id: string; target_member_id: s
       media_id,
       target_member_id,
     }
+  );
+}
+
+export function fetchMediaProfile(values: { media_id: string }) {
+  return request.post<{
+    id: string;
+    type: MediaTypes;
+    name: string;
+    original_name: string;
+    overview: string;
+    poster_path: string;
+    air_date: string;
+    extra_text: string | null;
+    genres: {
+      value: string;
+      label: string;
+    }[];
+    origin_country: MediaOriginCountry[];
+    vote_average: number;
+    actors: {
+      id: string;
+      name: string;
+    }[];
+  }>("/api/v2/wechat/media/profile", values);
+}
+
+export function fetchMediaRanks() {
+  return request.post<
+    {
+      id: string;
+      type: number;
+      title: string;
+      desc: string;
+      medias: {
+        id: string | null;
+        name: string;
+        order: number;
+        poster_path: string | null;
+        vote_average: number | null;
+      }[];
+    }[]
+  >("/api/v2/wechat/rank", {});
+}
+export function fetchMediaRanksProcess(r: TmpRequestResp<typeof fetchMediaRanks>) {
+  if (r.error) {
+    return Result.Err(r.error.message);
+  }
+  return Result.Ok(
+    r.data.map((rank) => {
+      const { id, type, title, desc, medias } = rank;
+      return {
+        id,
+        type,
+        title,
+        desc,
+        medias: medias.slice(0, 10).map((media, i) => {
+          const { id, name, order, poster_path, vote_average } = media;
+          return {
+            key: i,
+            id,
+            name,
+            order,
+            poster_path,
+            vote_average,
+          };
+        }),
+      };
+    })
   );
 }

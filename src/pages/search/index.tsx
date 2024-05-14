@@ -6,7 +6,7 @@ import dayjs from "dayjs";
 import { Loader, Pen, Search, Star, Trash } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
+import { fetchMediaList, fetchMediaListProcess, fetchMediaRanks, fetchMediaRanksProcess } from "@/services/media";
 import {
   Skeleton,
   ListView,
@@ -32,7 +32,8 @@ import {
 } from "@/domains/ui";
 import { ListCoreV2 } from "@/domains/list/v2";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { TVSourceOptions, TVGenresOptions, MediaTypes } from "@/constants/index";
+import { TVSourceOptions, TVGenresOptions, MediaTypes, CollectionTypes } from "@/constants/index";
+import { cn } from "@/utils/index";
 
 function Page(props: ViewComponentProps) {
   const { app, history, client, storage, view } = props;
@@ -62,6 +63,7 @@ function Page(props: ViewComponentProps) {
       $search.setLoading(false);
     },
   });
+  const $rank = new RequestCoreV2({ fetch: fetchMediaRanks, process: fetchMediaRanksProcess, client });
   const $search = new InputCore({
     placeholder: "请输入关键字搜索",
     autoFocus: true,
@@ -117,6 +119,7 @@ function Page(props: ViewComponentProps) {
     },
   });
   const $mediaRequest = new MediaRequestCore({ client });
+  const $mediaRequest2 = new MediaRequestCore({ client });
   const $mediaRequestBtn = new ButtonCore({
     onClick() {
       $mediaRequest.input.change($search.value);
@@ -130,14 +133,18 @@ function Page(props: ViewComponentProps) {
       }
     },
   });
-
   $mediaRequest.onTip((msg) => {
+    app.tip(msg);
+  });
+  $mediaRequest2.onTip((msg) => {
     app.tip(msg);
   });
 
   return {
     $list,
+    $rank,
     $mediaRequest,
+    $mediaRequest2,
     ui: {
       $scroll,
       $search,
@@ -148,6 +155,9 @@ function Page(props: ViewComponentProps) {
       $mediaRequestBtn,
       $node,
     },
+    ready() {
+      $rank.run();
+    },
   };
 }
 
@@ -157,6 +167,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
   const $page = useInstance(() => Page(props));
 
   const [response, setResponse] = useState($page.$list.response);
+  const [rankResponse, setRankResponse] = useState($page.$rank.state);
   // const [keyword, setKeyword] = useState($page.ui.$search.value);
   const [height, setHeight] = useState(56);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
@@ -188,6 +199,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
       }
       setShowPlaceholder(false);
     });
+    $page.$rank.onStateChange((v) => setRankResponse(v));
     $page.ui.$search.onChange((v) => {
       if (!v) {
         setShowPlaceholder(true);
@@ -200,6 +212,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     $page.ui.$search.onClear(() => {
       setShowPlaceholder(true);
     });
+    $page.ready();
   });
 
   return (
@@ -234,16 +247,13 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                     <Trash className="w-4 h-4" />
                   </div>
                 </div>
-                <Node
-                  store={$page.ui.$node}
-                  className="relative flex flex-wrap gap-2 mt-2 max-h-48 overflow-y-auto scroll--hidden"
-                >
+                <div className="flex flex-wrap gap-2 mt-2 max-h-48 overflow-y-auto scroll--hidden">
                   {histories.map((keyword, i) => {
                     const { text } = keyword;
                     return (
                       <div
                         key={i}
-                        className="px-4 py-2 rounded-md text-sm bg-w-bg-2"
+                        className="inline-block px-4 py-2 rounded-md text-sm bg-w-bg-2"
                         onClick={() => {
                           $page.ui.$search.change(text);
                           $page.ui.$search.enter();
@@ -253,7 +263,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                       </div>
                     );
                   })}
-                </Node>
+                </div>
                 {/* <div
                   className="flex items-center justify-center absolute right-6 bottom-6 w-6 h-6 rounded-full bg-w-bg-3 shadow-xl"
                   onClick={() => {
@@ -263,6 +273,62 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                   <MoreHorizontal className="w-4 h-4 text-w-fg-2" />
                 </div> */}
               </div>
+              {(() => {
+                if (rankResponse.response === null) {
+                  return null;
+                }
+                return (
+                  <div className="flex w-screen p-4 space-x-4 overflow-x-auto scroll scroll--hidden">
+                    {rankResponse.response.map((rank, i) => {
+                      const { id, type, title, desc, medias } = rank;
+                      return (
+                        <div key={id} className="py-2 rounded-md bg-w-bg-2">
+                          <div className="w-[248px]">
+                            <div className="flex items-center justify-between px-4">
+                              <div className="text-lg">{title}</div>
+                            </div>
+                            <div className="px-4 text-sm text-gray-400">{desc}</div>
+                            <div className="mt-4 px-2 space-y-1">
+                              {medias.map((media, i) => {
+                                const { key, id, name, order } = media;
+                                return (
+                                  <div
+                                    key={key}
+                                    className="flex items-center max-w-full overflow-hidden break-keep whitespace-nowrap truncate text-ellipsis text-sm"
+                                    onClick={() => {
+                                      if (id === null) {
+                                        $page.$mediaRequest2.input.change(name);
+                                        $page.$mediaRequest2.dialog.show();
+                                        return;
+                                      }
+                                      if (type === CollectionTypes.DoubanMovieRank) {
+                                        history.push("root.movie_playing", { id });
+                                        return;
+                                      }
+                                      if (type === CollectionTypes.DoubanSeasonRank) {
+                                        history.push("root.season_playing", { id });
+                                        return;
+                                      }
+                                      app.tip({
+                                        text: ["未知错误"],
+                                      });
+                                    }}
+                                  >
+                                    <div className="w-[28px] text-gray-400 text-center italic tracking-tight font-mono">
+                                      {order}
+                                    </div>
+                                    <div className={cn("flex-1 w-0", id === null ? "text-gray-300" : "")}>{name}</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           );
         }
@@ -420,6 +486,15 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           </div>
         </div>
       </Dialog>
+      <Dialog store={$page.$mediaRequest2.dialog}>
+        <div className="text-w-fg-1">
+          <p>暂未收录，点击确定请求收录</p>
+          <div className="mt-4">
+            <Input prefix={<Pen className="w-4 h-4" />} store={$page.$mediaRequest2.input} />
+          </div>
+        </div>
+      </Dialog>
+      {/* <Dialog store={$page.$mediaProfile}></Dialog> */}
     </>
   );
 });
