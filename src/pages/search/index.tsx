@@ -282,12 +282,14 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                     {rankResponse.response.map((rank, i) => {
                       const { id, type, title, desc, medias } = rank;
                       return (
-                        <div key={id} className="py-2 rounded-md bg-w-bg-2">
+                        <div key={id} className="py-4 rounded-md bg-w-bg-2 shadow-lg">
                           <div className="w-[248px]">
                             <div className="flex items-center justify-between px-4">
-                              <div className="text-lg">{title}</div>
+                              <div className="text-lg text-w-brand">{title}</div>
                             </div>
-                            <div className="px-4 text-sm text-gray-400">{desc}</div>
+                            <div className="px-4 italic opacity-500" style={{ fontSize: 12 }}>
+                              {desc}
+                            </div>
                             <div className="mt-4 px-2 space-y-1">
                               {medias.map((media, i) => {
                                 const { key, id, name, order } = media;
@@ -314,10 +316,23 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                                       });
                                     }}
                                   >
-                                    <div className="w-[28px] text-gray-400 text-center italic tracking-tight font-mono">
+                                    <div
+                                      className={cn(
+                                        "w-[28px] text-gray-400 text-center italic tracking-tight font-mono",
+                                        [1, 2, 3].includes(order) ? "text-orange-500" : ""
+                                      )}
+                                    >
                                       {order}
                                     </div>
-                                    <div className={cn("flex-1 w-0", id === null ? "text-gray-300" : "")}>{name}</div>
+                                    <div
+                                      className={cn(
+                                        "flex-1 w-0",
+                                        [1, 2, 3].includes(order) ? "text-orange-500" : "",
+                                        id === null ? "opacity-50" : ""
+                                      )}
+                                    >
+                                      {name}
+                                    </div>
                                   </div>
                                 );
                               })}
