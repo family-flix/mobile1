@@ -31,7 +31,13 @@ export function get_token() {
  * @returns
  */
 export function fetchUserProfile() {
-  return request.post("/api/v2/wechat/user/profile");
+  return request.post<{
+    id: string;
+    nickname: string;
+    email: string | null;
+    avatar: string | null;
+    permissions: string[];
+  }>("/api/v2/wechat/user/profile");
 }
 
 /**

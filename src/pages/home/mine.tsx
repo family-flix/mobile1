@@ -17,12 +17,12 @@ import {
 } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { infoRequest, messageList } from "@/store/index";
+import { messageList } from "@/store/index";
+import { reportSomething } from "@/services/index";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { getSystemTheme, useTheme } from "@/components/theme-switch";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { reportSomething } from "@/services/index";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCoreV2 } from "@/domains/request/v2";
 import { ReportTypes, __VERSION__ } from "@/constants/index";
@@ -30,6 +30,34 @@ import { ReportTypes, __VERSION__ } from "@/constants/index";
 function Page(props: ViewComponentProps) {
   const { app, client } = props;
 
+  const $requireRequest = new RequestCoreV2({
+    client,
+    fetch: reportSomething,
+    onLoading(loading) {
+      if ($reportDialog.open) {
+        $reportDialog.okBtn.setLoading(loading);
+      }
+      if ($reportDialog.open) {
+        $reportDialog.okBtn.setLoading(loading);
+      }
+    },
+    onSuccess() {
+      app.tip({
+        text: ["提交成功"],
+      });
+      if ($reportDialog.open) {
+        $reportDialog.hide();
+      }
+      if ($requireDialog.open) {
+        $requireDialog.hide();
+      }
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["提交失败", error.message],
+      });
+    },
+  });
   const $scroll = new ScrollViewCore({
     os: app.env,
     needHideIndicator: true,
@@ -80,34 +108,6 @@ function Page(props: ViewComponentProps) {
       });
     },
   });
-  const $requireRequest = new RequestCoreV2({
-    client: client,
-    fetch: reportSomething,
-    onLoading(loading) {
-      if ($reportDialog.open) {
-        $reportDialog.okBtn.setLoading(loading);
-      }
-      if ($reportDialog.open) {
-        $reportDialog.okBtn.setLoading(loading);
-      }
-    },
-    onSuccess() {
-      app.tip({
-        text: ["提交成功"],
-      });
-      if ($reportDialog.open) {
-        $reportDialog.hide();
-      }
-      if ($requireDialog.open) {
-        $requireDialog.hide();
-      }
-    },
-    onFailed(error) {
-      app.tip({
-        text: ["提交失败", error.message],
-      });
-    },
-  });
   const $logout = new ButtonCore({
     onClick() {
       app.$user.logout();
@@ -115,6 +115,7 @@ function Page(props: ViewComponentProps) {
   });
 
   return {
+    // $info,
     ui: {
       $scroll,
       $avatar,
@@ -124,6 +125,9 @@ function Page(props: ViewComponentProps) {
       $requireDialog,
       $requireInput,
       $logout,
+    },
+    ready() {
+      app.$user.fetchProfile();
     },
   };
 }
@@ -137,24 +141,12 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
   const { theme, setTheme } = useTheme();
   const [t, setT] = useState(theme);
   const [profile, setProfile] = useState(app.$user.state);
-  const [loading, setLoading] = useState(infoRequest.loading);
+  const [loading, setLoading] = useState(app.$user.$profile.loading);
   const [messageResponse, setMessageResponse] = useState(messageList.response);
-  // const [history_response] = useState(history_helper.response);
 
   useInitialize(() => {
-    // view.onHidden(() => {
-    //   alert(2);
-    // });
-    infoRequest.onLoadingChange((v) => {
-      setLoading(v);
-    });
-    // infoRequest.onResponseChange((v) => {
-    //   setProfile(v);
-    // });
-    messageList.onStateChange((nextState) => {
-      setMessageResponse(nextState);
-    });
-    infoRequest.run();
+    app.$user.$profile.onLoadingChange((v) => setLoading(v));
+    messageList.onStateChange((v) => setMessageResponse(v));
     (() => {
       if (theme !== "system") {
         return;
@@ -162,9 +154,8 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
       const system = getSystemTheme();
       setT(system);
     })();
+    $page.ready();
   });
-
-  // console.log("[PAGE]home/mine - render", theme, t);
 
   return (
     <>
@@ -229,22 +220,6 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
               </div>
             </div>
             <div className="rounded-lg bg-w-bg-3 text-w-fg-0">
-              {/* <div
-                className="flex items-center justify-between"
-                onClick={() => {
-                  app.showView(tvChannelListPage);
-                }}
-              >
-                <div className="flex items-center">
-                  <div className="relative p-4">
-                    <Tv2 className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 py-4">
-                    <div>电视频道</div>
-                  </div>
-                </div>
-              </div> */}
-              {/* <div className="h-[1px] mx-4 bg-w-fg-3 transform scale-y-50"></div> */}
               <div
                 className="flex items-center justify-between"
                 onClick={() => {
@@ -300,9 +275,6 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
                 className=""
                 onClick={() => {
                   $page.ui.$requireDialog.show();
-                  // setTimeout(() => {
-                  //   $page.ui.$requireInput.focus();
-                  // }, 0);
                 }}
               >
                 <div className="flex items-center">
@@ -318,13 +290,7 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
               <div
                 className="relative"
                 onClick={() => {
-                  if (!infoRequest.response) {
-                    app.tip({
-                      text: ["网络不佳，请刷新后重试"],
-                    });
-                    return;
-                  }
-                  if (!infoRequest.response.permissions.includes("001")) {
+                  if (!app.$user.hasPermission("001")) {
                     app.tip({
                       text: ["暂无权限"],
                     });

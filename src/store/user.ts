@@ -4,7 +4,13 @@ import { storage } from "./storage";
 import { client } from "./request";
 
 const { id, username, email, avatar, token } = storage.get("user");
-export const user = new UserCore({
+
+class ExtendsUser extends UserCore {
+  say() {
+    console.log(`My name is ${this.username}`);
+  }
+}
+export const user = new ExtendsUser({
   id,
   username,
   email,
@@ -12,3 +18,7 @@ export const user = new UserCore({
   token,
   client,
 });
+
+// user.walk = () => {
+
+// };

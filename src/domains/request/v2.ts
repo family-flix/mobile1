@@ -38,13 +38,14 @@ type RequestState<T> = {
   error: BizError | null;
   response: T | null;
 };
-type RequestProps = {
+type RequestProps<T extends (...args: any[]) => any, P extends (v: ReturnType<T>) => Result<any>> = {
   client: HttpClientCore;
   delay?: null | number;
   defaultResponse?: RequestResponse<any>;
-  fetch: (...args: any) => RequestPayload<any>;
-  process?: (v: any) => Result<any>;
-  onSuccess?: (v: RequestResponse<any>) => void;
+  fetch: T;
+  // process?: (v: ReturnType<T>) => Result<any>;
+  process?: P;
+  onSuccess?: (v: ReturnType<T>) => void;
   onFailed?: (error: BizError) => void;
   onCompleted?: () => void;
   onCanceled?: () => void;
@@ -52,7 +53,6 @@ type RequestProps = {
   onLoading?: (loading: boolean) => void;
 };
 
-// type Arg = { fetch: (...args: any[]) => any; process?: (v: ReturnType<Arg["fetch"]>) => any };
 type RequestResponse<
   A extends { fetch: (...args: any[]) => RequestPayload<any>; process?: (v: ReturnType<A["fetch"]>) => Result<any> }
 > = A extends {
@@ -66,14 +66,29 @@ type RequestResponse<
 /**
  * 用于接口请求的核心类
  */
-export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOfEvents<any>> {
+export class RequestCoreV2<
+  P extends {
+    client: HttpClientCore;
+    delay?: null | number;
+    defaultResponse?: RequestResponse<any>;
+    fetch: (...args: any[]) => any;
+    process: (v: ReturnType<P["fetch"]>) => Result<any>;
+    onSuccess?: (v: ReturnType<P["fetch"]>) => void;
+    onFailed?: (error: BizError) => void;
+    onCompleted?: () => void;
+    onCanceled?: () => void;
+    beforeRequest?: () => void;
+    onLoading?: (loading: boolean) => void;
+  },
+  T extends RequestProps<P["fetch"], P["process"]>
+> extends BaseDomain<TheTypesOfEvents<any>> {
   debug = false;
 
   defaultResponse: RequestResponse<T> | null = null;
 
   /** 原始 service 函数 */
-  service: T["fetch"];
-  process: T["process"];
+  service: P["fetch"];
+  process: P["process"];
   client: HttpClientCore;
   delay: null | number = 800;
   loading = false;
@@ -96,7 +111,7 @@ export class RequestCoreV2<T extends RequestProps> extends BaseDomain<TheTypesOf
     };
   }
 
-  constructor(props: T) {
+  constructor(props: P) {
     super();
 
     const {

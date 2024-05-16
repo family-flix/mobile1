@@ -10,6 +10,7 @@ const DEFAULT_CACHE_VALUES = {
     token: "",
     avatar: "",
   },
+  theme: "system",
   player_settings: {
     rate: 1,
     volume: 0.5,

@@ -15,6 +15,7 @@ import {
   updateUserPwd,
   validateMemberToken,
 } from "./services";
+import { fetchInfo } from "@/services";
 
 export enum Events {
   Tip,
@@ -56,14 +57,16 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   unique_id = "UserCore";
   debug = false;
 
-  $client: HttpClientCore;
-
   id: string = "";
   username: string = "Anonymous";
   email: string = "";
   avatar: string = "";
   token: string = "";
   isLogin: boolean = false;
+  permissions: string[] = [];
+
+  $client: HttpClientCore;
+  $profile: RequestCoreV2<{ fetch: typeof fetchInfo; client: HttpClientCore }>;
 
   get state(): UserState {
     return {
@@ -91,6 +94,11 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
         Authorization: token,
       });
     }
+    this.$profile = new RequestCoreV2({
+      // fetch: fetchUserProfile,
+      fetch: fetchInfo,
+      client: this.$client,
+    });
   }
   logout() {
     this.username = "Anonymous";
@@ -201,14 +209,15 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!this.isLogin) {
       return Result.Err("请先登录");
     }
-    const request = new RequestCoreV2({
-      fetch: fetchUserProfile,
-      client: this.$client,
-    });
-    const r = await request.run();
+    const r = await this.$profile.run();
     if (r.error) {
       return r;
     }
+    const { nickname, email, avatar, permissions } = r.data;
+    this.username = nickname;
+    this.email = email ?? "";
+    this.avatar = avatar ?? "";
+    this.permissions = permissions;
     return Result.Ok(r.data);
   }
   async updateEmail(values: { email: string }) {
@@ -243,6 +252,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.emit(Events.Logout);
     return Result.Ok({});
+  }
+  hasPermission(key: string) {
+    return this.permissions.includes(key);
   }
 
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {

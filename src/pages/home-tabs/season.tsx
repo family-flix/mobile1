@@ -13,7 +13,7 @@ import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
 function Page(props: ViewComponentProps) {
-  const { app, client } = props;
+  const { app, client, view } = props;
 
   const $list = new ListCoreV2(
     new RequestCoreV2({
@@ -54,6 +54,9 @@ function Page(props: ViewComponentProps) {
       $image,
       $mediaRequestBtn,
     },
+    ready() {
+      $list.init({ language: view.query.language });
+    },
   };
 }
 
@@ -63,19 +66,10 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
   const $page = useInstance(() => Page(props));
 
   const [response, setResponse] = useState($page.$list.response);
-  const { dataSource } = response;
 
   useInitialize(() => {
-    $page.$list.onStateChange((v) => {
-      setResponse(v);
-    });
-    // view.onHidden(() => {
-    //   console.log("[PAGE]home-tabs - view.onHidden");
-    // });
-    // view.onUnmounted(() => {
-    //   console.log("[PAGE]home-tabs - view.onUnmounted");
-    // });
-    $page.$list.init({ language: view.query.language });
+    $page.$list.onStateChange((v) => setResponse(v));
+    $page.ready();
   });
 
   return (
@@ -117,7 +111,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
           }
         >
           {(() => {
-            return dataSource.map((season) => {
+            return response.dataSource.map((season) => {
               const {
                 id,
                 type,

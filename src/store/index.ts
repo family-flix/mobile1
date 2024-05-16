@@ -13,7 +13,7 @@ import { user } from "./user";
 import { storage } from "./storage";
 import { PageKeys, RouteConfig, routes } from "./routes";
 
-NavigatorCore.prefix = "/mobile";
+NavigatorCore.prefix = import.meta.env.BASE_URL;
 ImageCore.setPrefix(window.location.origin);
 const router = new NavigatorCore();
 const view = new RouteViewCore({
@@ -33,14 +33,14 @@ export const history = new HistoryCore<PageKeys, RouteConfig>({
     root: view,
   } as Record<PageKeys, RouteViewCore>,
 });
-export const app = new Application({
+export const app = new Application<{ storage: typeof storage.values }>({
   user,
+  storage,
   async beforeReady() {
     await user.validate(router.query);
     return Result.Ok(null);
   },
 });
-
 user.onLogin((profile) => {
   client.appendHeaders({
     Authorization: user.token,
@@ -56,7 +56,7 @@ user.onExpired(() => {
   app.tip({
     text: ["token 已过期，请重新登录"],
   });
-  // router.replace("/login");
+  history.push("root.login");
 });
 user.onTip((msg) => {
   app.tip(msg);
@@ -77,10 +77,6 @@ export const messageList = new ListCoreV2(
     },
   }
 );
-export const infoRequest = new RequestCoreV2({
-  fetch: fetchInfo,
-  client: client,
-});
 
 ListCoreV2.commonProcessor = <T>(
   originalResponse: any

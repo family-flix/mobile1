@@ -3,11 +3,11 @@
  */
 import { Handler, BaseDomain } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
-import { MediaSourceFileCore } from "@/domains/source";
-import { HttpClientCore } from "@/domains/http_client";
+import { MediaSourceFileCore } from "@/domains/source/index";
+import { HttpClientCore } from "@/domains/http_client/index";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { MediaTypes } from "@/constants";
-import { Result } from "@/types";
+import { MediaTypes } from "@/constants/index";
+import { Result } from "@/types/index";
 
 import {
   CurMediaSource,
@@ -62,6 +62,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   played = false;
   canAutoPlay = false;
 
+  /** 实际播放的视频 */
   $source: MediaSourceFileCore;
   $client: HttpClientCore;
 
@@ -99,7 +100,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);
     }
-    const { id, name, overview, sourceCount, posterPath, curSource } = res.data;
+    const { id, name, overview, posterPath, curSource } = res.data;
     this.profile = {
       id,
       name,

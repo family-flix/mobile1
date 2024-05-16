@@ -37,26 +37,20 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
   ): Promise<Result<T>> {
     try {
       const h = this.hostname;
-      const url = `${h}${endpoint}${query ? "?" + query_stringify(query) : ""}`;
-      const resp = await this.fetch<{ code: number | string; msg: string; data: unknown | null }>({
+      const url = [h, endpoint, query ? "?" + query_stringify(query) : ""].join("");
+      const resp = await this.fetch<T>({
         url,
         method: "GET",
         id: extra.id,
         headers: {
           ...this.headers,
           ...(extra.headers || {}),
-          // Authorization: user.token,
         },
       });
-      // console.log("before GET resp.data", resp.data);
-      return Result.Ok(resp.data as T);
+      return Result.Ok(resp.data);
     } catch (err) {
       const error = err as Error;
-      //       if (axios.isCancel(error)) {
-      //         return Result.Err("cancel", "CANCEL");
-      //       }
       const { message } = error;
-      // console.log("error", message);
       return Result.Err(message);
     }
   }
@@ -66,28 +60,21 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     extra: Partial<{ headers: Record<string, string>; id: string }> = {}
   ): Promise<Result<T>> {
     const h = this.hostname;
-    const url = `${h}${endpoint}`;
-    // console.log(url, h, endpoint, this.headers);
+    const url = [h, endpoint].join("");
     try {
-      const resp = await this.fetch<{ code: number | string; msg: string; data: unknown | null }>({
+      const resp = await this.fetch<T>({
         url,
         method: "POST",
         data: body,
         id: extra.id,
-        // cancelToken: extra.token,
         headers: {
           ...this.headers,
           ...(extra.headers || {}),
-          // Authorization: user.token,
         },
       });
-      // console.log('before resp.data', resp.data);
-      return Result.Ok(resp.data as T);
+      return Result.Ok(resp.data);
     } catch (err) {
       const error = err as Error;
-      //       if (axios.isCancel(error)) {
-      //         return Result.Err("cancel", "CANCEL");
-      //       }
       const { message } = error;
       return Result.Err(message);
     }
@@ -100,10 +87,12 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     headers?: Record<string, string>;
   }) {
     console.log("请在 connect 中实现 fetch 方法");
-    return {} as { data: T };
+    return { data: {} } as { data: T };
   }
   cancel(id: string) {
-    console.log("请在 connect 中实现 cancel 方法");
+    const tip = "请在 connect 中实现 cancel 方法";
+    console.log(tip);
+    return Result.Err(tip);
   }
   setHeaders(headers: Record<string, string>) {
     this.headers = headers;

@@ -16,13 +16,11 @@ import {
   Settings,
 } from "lucide-react";
 
-// import { client } from "@/store/request";
-import { GlobalStorageValues, ViewComponent, ViewComponentProps } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
 import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
 import { MovieMediaSettings } from "@/components/movie-media-settings";
-import { PlayingIcon } from "@/components/playing";
 import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
@@ -34,223 +32,207 @@ import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { RequestCoreV2 } from "@/domains/request/v2";
-import { Application, OrientationTypes } from "@/domains/app";
-import { HttpClientCore } from "@/domains/http_client";
-import { StorageCore } from "@/domains/storage";
+import { OrientationTypes } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks";
 import { cn, seconds_to_hour } from "@/utils";
 
-class MoviePlayingPageLogic<
-  P extends { app: Application; client: HttpClientCore; storage: StorageCore<GlobalStorageValues> }
-> {
-  $app: P["app"];
-  $client: P["client"];
-  $storage: P["storage"];
-  $tv: MovieMediaCore;
-  $player: PlayerCore;
-  $settings: RefCore<{
+function MoviePlayingPageLogic(props: ViewComponentProps) {
+  const { app, client, storage } = props;
+
+  const $createReport = new RequestCoreV2({
+    fetch: reportSomething,
+    client,
+  });
+  const settings = storage.get("player_settings");
+  const $settings = new RefCore<{
     volume: number;
     rate: number;
     type: MediaResolutionTypes;
-  }>;
-  $report: RefCore<string>;
-  $createReport: RequestCoreV2<{ fetch: typeof reportSomething; client: HttpClientCore }>;
+  }>({
+    value: settings,
+  });
+  const { type: resolution, volume, rate } = settings;
+  const tv = new MovieMediaCore({
+    resolution,
+    client,
+  });
+  const $tv = tv;
+  const player = new PlayerCore({ app, volume, rate });
+  const $report = new RefCore<string>();
+  //     const reportSheet = new DialogCore();
+  const $player = player;
 
-  constructor(props: P) {
-    const { app, client, storage } = props;
-    this.$app = app;
-    this.$client = client;
-    this.$storage = storage;
-
-    this.$createReport = new RequestCoreV2({
-      fetch: reportSomething,
-      client,
-    });
-    const settings = storage.get("player_settings");
-    this.$settings = new RefCore<{
-      volume: number;
-      rate: number;
-      type: MediaResolutionTypes;
-    }>({
-      value: settings,
-    });
-    const { type: resolution, volume, rate } = settings;
-    const tv = new MovieMediaCore({
-      resolution,
-      client,
-    });
-    this.$tv = tv;
-    const player = new PlayerCore({ app, volume, rate });
-    this.$report = new RefCore<string>();
-    //     const reportSheet = new DialogCore();
-    this.$player = player;
-
-    app.onHidden(() => {
-      player.pause();
-    });
-    app.onShow(() => {
-      console.log("[PAGE]play - app.onShow", player.currentTime);
-      // 锁屏后 currentTime 不是锁屏前的
-      player.setCurrentTime(player.currentTime);
-    });
-    app.onOrientationChange((orientation) => {
-      console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
-      if (orientation === "horizontal") {
-        if (!player.hasPlayed && app.env.ios) {
-          //   $$fullscreenDialog.show();
-          return;
-        }
-        if (player.isFullscreen) {
-          return;
-        }
-        player.requestFullScreen();
-        player.isFullscreen = true;
+  app.onHidden(() => {
+    player.pause();
+  });
+  app.onShow(() => {
+    console.log("[PAGE]play - app.onShow", player.currentTime);
+    // 锁屏后 currentTime 不是锁屏前的
+    player.setCurrentTime(player.currentTime);
+  });
+  app.onOrientationChange((orientation) => {
+    console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
+    if (orientation === "horizontal") {
+      if (!player.hasPlayed && app.env.ios) {
+        //   $$fullscreenDialog.show();
+        return;
       }
-      if (orientation === "vertical") {
-        player.disableFullscreen();
-        // $$fullscreenDialog.hide();
+      if (player.isFullscreen) {
+        return;
       }
-    });
-    player.onExitFullscreen(() => {
-      player.pause();
-      if (app.orientation === OrientationTypes.Vertical) {
-        player.disableFullscreen();
-      }
-    });
-    tv.onProfileLoaded((profile) => {
-      app.setTitle(tv.getTitle().join(" - "));
-      const { curSource } = profile;
-      // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
-      tv.playSource(curSource, { currentTime: curSource.currentTime ?? 0 });
-      player.setCurrentTime(curSource.currentTime);
-      //       bottomOperation.show();
-    });
-    tv.$source.onSubtitleLoaded((subtitle) => {
-      player.showSubtitle(createVVTSubtitle(subtitle));
-    });
-    tv.onTip((msg) => {
-      app.tip(msg);
-    });
-    tv.onSourceFileChange((mediaSource) => {
-      // console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
-      player.pause();
-      player.setSize({ width: mediaSource.width, height: mediaSource.height });
-      storage.merge("player_settings", {
-        type: mediaSource.type,
-      });
-      // loadSource 后开始 video loadstart 事件
-      player.loadSource(mediaSource);
-    });
-    player.onReady(() => {
+      player.requestFullScreen();
+      player.isFullscreen = true;
+    }
+    if (orientation === "vertical") {
       player.disableFullscreen();
+      // $$fullscreenDialog.hide();
+    }
+  });
+  player.onExitFullscreen(() => {
+    player.pause();
+    if (app.orientation === OrientationTypes.Vertical) {
+      player.disableFullscreen();
+    }
+  });
+  tv.onProfileLoaded((profile) => {
+    app.setTitle(tv.getTitle().join(" - "));
+    const { curSource } = profile;
+    // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+    tv.playSource(curSource, { currentTime: curSource.currentTime ?? 0 });
+    player.setCurrentTime(curSource.currentTime);
+    //       bottomOperation.show();
+  });
+  tv.$source.onSubtitleLoaded((subtitle) => {
+    player.showSubtitle(createVVTSubtitle(subtitle));
+  });
+  tv.onTip((msg) => {
+    app.tip(msg);
+  });
+  tv.onSourceFileChange((mediaSource) => {
+    // console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
+    player.pause();
+    player.setSize({ width: mediaSource.width, height: mediaSource.height });
+    storage.merge("player_settings", {
+      type: mediaSource.type,
     });
-    player.onCanPlay(() => {
-      const { currentTime } = tv;
-      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, currentTime);
-      const _self = this;
-      function applySettings() {
-        player.setCurrentTime(currentTime);
-        const { rate } = _self.$settings.value!;
-        if (rate) {
-          player.changeRate(Number(rate));
-        }
+    // loadSource 后开始 video loadstart 事件
+    player.loadSource(mediaSource);
+  });
+  player.onReady(() => {
+    player.disableFullscreen();
+  });
+  player.onCanPlay(() => {
+    const { currentTime } = tv;
+    console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, currentTime);
+    function applySettings() {
+      player.setCurrentTime(currentTime);
+      const { rate } = $settings.value!;
+      if (rate) {
+        player.changeRate(Number(rate));
       }
-      (() => {
-        if (app.env.android) {
-          setTimeout(() => {
-            applySettings();
-          }, 1000);
-          return;
-        }
-        applySettings();
-      })();
-      if (!player.hasPlayed) {
+    }
+    (() => {
+      if (app.env.android) {
+        setTimeout(() => {
+          applySettings();
+        }, 1000);
         return;
       }
-      player.play();
+      applySettings();
+    })();
+    if (!player.hasPlayed) {
+      return;
+    }
+    player.play();
+  });
+  player.onVolumeChange(({ volume }) => {
+    storage.merge("player_settings", {
+      volume,
     });
-    player.onVolumeChange(({ volume }) => {
-      storage.merge("player_settings", {
-        volume,
-      });
+  });
+  player.onProgress(({ currentTime, duration }) => {
+    // console.log("[PAGE]TVPlaying - onProgress", currentTime);
+    if (!player._canPlay) {
+      return;
+    }
+    tv.handleCurTimeChange({
+      currentTime,
+      duration,
     });
-    player.onProgress(({ currentTime, duration }) => {
-      // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-      if (!player._canPlay) {
+  });
+  player.onPause(({ currentTime, duration }) => {
+    console.log("[PAGE]play - player.onPause", currentTime, duration);
+    tv.updatePlayProgressForce({
+      currentTime,
+      duration,
+    });
+  });
+  // player.onEnd(() => {
+  //   console.log("[PAGE]play - player.onEnd");
+  //   tv.playNextEpisode();
+  // });
+  player.onResolutionChange(({ type }) => {
+    console.log("[PAGE]play - player.onResolutionChange", type, tv.currentTime);
+    // player.setCurrentTime(tv.currentTime);
+  });
+  player.onSourceLoaded(() => {
+    console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+    player.setCurrentTime(tv.currentTime);
+    if (!player.hasPlayed) {
+      return;
+    }
+    //       episodesSheet.hide();
+    //       sourcesSheet.hide();
+    //       resolutionSheet.hide();
+  });
+  // console.log("[PAGE]play - before player.onError");
+  player.onError(async (error) => {
+    console.log("[PAGE]play - player.onError", tv.curSource?.name, tv.curSource?.curFileId);
+    // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
+    await (async () => {
+      if (!tv.curSource) {
         return;
       }
-      tv.handleCurTimeChange({
-        currentTime,
-        duration,
-      });
-    });
-    player.onPause(({ currentTime, duration }) => {
-      console.log("[PAGE]play - player.onPause", currentTime, duration);
-      tv.updatePlayProgressForce({
-        currentTime,
-        duration,
-      });
-    });
-    // player.onEnd(() => {
-    //   console.log("[PAGE]play - player.onEnd");
-    //   tv.playNextEpisode();
-    // });
-    player.onResolutionChange(({ type }) => {
-      console.log("[PAGE]play - player.onResolutionChange", type, tv.currentTime);
-      // player.setCurrentTime(tv.currentTime);
-    });
-    player.onSourceLoaded(() => {
-      console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
-      player.setCurrentTime(tv.currentTime);
-      if (!player.hasPlayed) {
+      const files = tv.curSource.files;
+      const curFileId = tv.curSource.curFileId;
+      const curFileIndex = files.findIndex((f) => f.id === curFileId);
+      const nextIndex = curFileIndex + 1;
+      const nextFile = files[nextIndex];
+      if (!nextFile) {
+        app.tip({ text: ["视频加载错误", error.message] });
+        player.setInvalid(error.message);
         return;
       }
-      //       episodesSheet.hide();
-      //       sourcesSheet.hide();
-      //       resolutionSheet.hide();
-    });
-    // console.log("[PAGE]play - before player.onError");
-    player.onError(async (error) => {
-      console.log("[PAGE]play - player.onError", tv.curSource?.name, tv.curSource?.curFileId);
-      // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      await (async () => {
-        if (!tv.curSource) {
-          return;
-        }
-        const files = tv.curSource.files;
-        const curFileId = tv.curSource.curFileId;
-        const curFileIndex = files.findIndex((f) => f.id === curFileId);
-        const nextIndex = curFileIndex + 1;
-        const nextFile = files[nextIndex];
-        if (!nextFile) {
-          app.tip({ text: ["视频加载错误", error.message] });
-          player.setInvalid(error.message);
-          return;
-        }
-        await tv.changeSourceFile(nextFile);
-      })();
-      player.pause();
-    });
-    player.onUrlChange(async ({ url }) => {
-      const $video = player.node()!;
-      console.log("[]player.onUrlChange", url, player.canPlayType("application/vnd.apple.mpegurl"), $video);
-      if (player.canPlayType("application/vnd.apple.mpegurl")) {
-        player.load(url);
-        return;
-      }
-      const mod = await import("hls.js");
-      const Hls2 = mod.default;
-      if (Hls2.isSupported() && url.includes("m3u8")) {
-        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-        Hls.attachMedia($video);
-        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-          Hls.loadSource(url);
-        });
-        return;
-      }
+      await tv.changeSourceFile(nextFile);
+    })();
+    player.pause();
+  });
+  player.onUrlChange(async ({ url }) => {
+    const $video = player.node()!;
+    console.log("[]player.onUrlChange", url, player.canPlayType("application/vnd.apple.mpegurl"), $video);
+    if (player.canPlayType("application/vnd.apple.mpegurl")) {
       player.load(url);
-    });
-  }
+      return;
+    }
+    const mod = await import("hls.js");
+    const Hls2 = mod.default;
+    if (Hls2.isSupported() && url.includes("m3u8")) {
+      const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+      Hls.attachMedia($video);
+      Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+        Hls.loadSource(url);
+      });
+      return;
+    }
+    player.load(url);
+  });
+
+  return {
+    $tv,
+    $player,
+    $report,
+    $createReport,
+  };
 }
 
 class MoviePlayingPageView {
@@ -337,77 +319,20 @@ class MoviePlayingPageView {
 export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
   const { app, history, client, storage, view } = props;
 
-  //   const shareMediaRequest = useInstance(
-  //     () =>
-  //       new RequestCore(shareMediaToInvitee, {
-  //         onLoading(loading) {
-  //           inviteeSelect.submitBtn.setLoading(loading);
-  //         },
-  //         onSuccess(v) {
-  //           const { url, name } = v;
-  //           const message = `➤➤➤ ${name}
-  // ${url}`;
-  //           setShareLink(message);
-  //           shareLinkDialog.show();
-  //           inviteeSelect.dialog.hide();
-  //         },
-  //         onFailed(error) {
-  //           const { data } = error;
-  //           if (error.code === 50000) {
-  //             // @ts-ignore
-  //             const { name, url } = data;
-  //             const message = `➤➤➤ ${name}
-  // ${url}`;
-  //             setShareLink(message);
-  //             shareLinkDialog.show();
-  //             inviteeSelect.dialog.hide();
-  //             return;
-  //           }
-  //           app.tip({
-  //             text: ["分享失败", error.message],
-  //           });
-  //         },
-  //       })
-  //   );
-
-  //   const shareLinkDialog = useInstance(
-  //     () =>
-  //       new DialogCore({
-  //         footer: false,
-  //       })
-  //   );
-  //   const inviteeSelect = useInstance(
-  //     () =>
-  //       new InviteeSelectCore({
-  //         onOk(invitee) {
-  //           if (!invitee) {
-  //             app.tip({
-  //               text: ["请选择分享好友"],
-  //             });
-  //             return;
-  //           }
-  //           shareMediaRequest.run({
-  //             season_id: view.query.season_id,
-  //             target_member_id: invitee.id,
-  //           });
-  //         },
-  //       })
-  //   );
-  const $logic = useInstance(() => new MoviePlayingPageLogic({ app, client, storage }));
+  const $logic = useInstance(() => MoviePlayingPageLogic(props));
   const $page = useInstance(() => new MoviePlayingPageView({ app, view }));
 
   const [state, setProfile] = useState($logic.$tv.state);
-  const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
-  const [subtileState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
+  // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
+  // const [subtileState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
   const [targetTime, setTargetTime] = useState<null | string>(null);
   const [playerState, setPlayerState] = useState($logic.$player.state);
-  const [shareLink, setShareLink] = useState("");
-  const [curReportValue, setCurReportValue] = useState($logic.$report.value);
+  // const [shareLink, setShareLink] = useState("");
+  // const [curReportValue, setCurReportValue] = useState($logic.$report.value);
 
   useInitialize(() => {
     if (view.query.rate) {
       $logic.$player.changeRate(Number(view.query.rate));
-      return;
     }
     view.onHidden(() => {
       $logic.$player.pause();
@@ -417,21 +342,15 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     //     app.back();
     //   });
     // }
-    if (view.query.hide_menu) {
-      setTimeout(() => {
-        // topOperation.hide();
-        // bottomOperation.hide();
-      }, 1000);
-    }
+    // if (view.query.hide_menu) {
+    //   setTimeout(() => {
+    //     topOperation.hide();
+    //     bottomOperation.hide();
+    //   }, 1000);
+    // }
     $logic.$tv.onStateChange((nextProfile) => {
       setProfile(nextProfile);
     });
-    // $logic.$tv.$source.onSubtitleLoaded(() => {
-    //   $page.$subtitle.show();
-    // });
-    // $logic.$tv.$source.onSubtitleChange((v) => {
-    //   setCurSubtitleState(v);
-    // });
     $logic.$player.onStateChange((v) => {
       setPlayerState(v);
     });
@@ -446,21 +365,6 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
       $page.prepareHide();
       $page.$time.hide();
     });
-    // $logic._createReport.onSuccess(() => {
-    //   app.tip({
-    //     text: ["提交成功"],
-    //   });
-    // });
-    // $logic._createReport.onLoadingChange((loading) => {
-    //       reportConfirmDialog.okBtn.setLoading(loading);
-    // });
-    // $logic._createReport.onFailed((error) => {
-    //   app.tip({
-    //     text: ["提交失败", error.message],
-    //   });
-    // });
-
-    //     setCurReportValue(v);
     $logic.$tv.fetchProfile(view.query.id);
   });
 
@@ -656,10 +560,6 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               })()}
             </Presence> */}
             <Presence
-              // className={cn(
-              //   "animate-in fade-in slide-in-from-bottom",
-              //   "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
-              // )}
               enterClassName="animate-in slide-in-from-bottom fade-in"
               exitClassName="animate-out slide-out-to-bottom fade-out"
               store={$page.$bottom}
@@ -777,119 +677,9 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
           );
         })()}
       </Sheet> */}
-      {/* <Sheet store={reportSheet}>
-        <div className="max-h-full text-w-fg-1 overflow-y-auto">
-          <div className="pt-4 pb-24">
-            {TVReportList.map((question, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    curReport.select(question);
-                    reportConfirmDialog.show();
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer")}>{question}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet>
-      <Sheet store={subtitleSheet}>
-        <div className="max-h-full text-w-fg-1 pb-24 overflow-y-auto">
-          {(() => {
-            return (
-              <div
-                className="px-4"
-                onClick={() => {
-                  player.toggleSubtitleVisible();
-                  tv.$source.toggleSubtitleVisible();
-                }}
-              >
-                {subtileState?.visible ? "隐藏字幕" : "显示字幕"}
-              </div>
-            );
-          })()}
-          <div className="pt-4 text-w-fg-1">
-            {tv.$source.subtitles.map((subtitle, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    tv.$source.loadSubtitleFile(subtitle, tv.currentTime);
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.cur ? "bg-w-bg-active" : "")}>
-                    {subtitle.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet> */}
       {/* <Sheet store={inviteeSelect.dialog} size="xl">
         <InviteeSelect store={inviteeSelect} />
       </Sheet> */}
-      {/* <Dialog store={reportConfirmDialog}>
-        <div className="text-w-fg-1">
-          <p>提交该电视剧的问题</p>
-          <p className="mt-2">「{curReportValue}」</p>
-        </div>
-      </Dialog> */}
-      {/* <Dialog store={errorTipDialog}>
-        <div className=" text-w-fg-1">
-          <div>该问题是因为手机无法解析视频</div>
-          <div>可以尝试如下解决方案</div>
-          <div className="mt-4 text-left space-y-4">
-            <div>1、「切换源」或者「分辨率」</div>
-            <div>
-              <div>2、使用电脑观看</div>
-              <div
-                className="mt-2 break-all"
-                onClick={() => {
-                  app.copy(window.location.href.replace(/mobile/, "pc"));
-                  app.tip({
-                    text: ["已复制到剪贴板"],
-                  });
-                }}
-              >
-                {window.location.href.replace(/mobile/, "pc")}
-              </div>
-            </div>
-            <div>
-              <div>3、使用手机外部播放器</div>
-              <div className="flex items-center mt-2 space-x-2">
-                {players.map((player) => {
-                  const { icon, name, scheme } = player;
-                  const url = (() => {
-                    if (!curSource) {
-                      return null;
-                    }
-                    return scheme
-                      .replace(/\$durl/, curSource.url)
-                      .replace(/\$name/, state.profile ? state.profile.name : encodeURIComponent(curSource.url));
-                  })();
-                  if (!url) {
-                    return null;
-                  }
-                  return (
-                    <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
-                      <LazyImage className="w-8 h-8 rounded-full" src={icon} />
-                      <div className="absolute bottom-0 w-full text-center">{name}</div>
-                    </a>
-                  );
-                })}
-              </div>
-              <div className="mt-2 font-sm text-w-fg-2">
-                <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
-                <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Dialog> */}
       {/* <Dialog store={fullscreenDialog}>
         <div className="text-w-fg-1">点击进入全屏播放</div>
       </Dialog> */}

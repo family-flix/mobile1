@@ -12,7 +12,7 @@ export function reportSomething(body: {
   media_id?: string;
   media_source_id?: string;
 }) {
-  return request.post("/api/v2/wechat/report/create", body);
+  return request.post<{ id: string }>("/api/v2/wechat/report/create", body);
 }
 
 type AnswerPayload = Partial<{
@@ -61,6 +61,7 @@ export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifica
   });
 }
 
+/** 标记消息已读 */
 export function readNotification(params: { id: string }) {
   const { id } = params;
   return request.post("/api/v2/wechat/notification/read", {
@@ -68,6 +69,7 @@ export function readNotification(params: { id: string }) {
   });
 }
 
+/** 标记所有消息已读 */
 export function readAllNotification() {
   return request.post("/api/v2/wechat/notification/read_all", {});
 }
@@ -75,6 +77,9 @@ export function readAllNotification() {
 export function fetchInfo() {
   return request.get<{
     id: string;
+    nickname: string;
+    email: string | null;
+    avatar: string | null;
     permissions: string[];
   }>("/api/info");
 }
