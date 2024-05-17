@@ -77,6 +77,7 @@ function Page(props: ViewComponentProps) {
 
 export const LoginPage: ViewComponent = React.memo((props) => {
   const { app, client, view, history } = props;
+
   const $page = useInstance(() => Page(props));
 
   return (

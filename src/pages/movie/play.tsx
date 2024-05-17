@@ -1,331 +1,374 @@
 /**
- * @file 视频播放页面
+ * @file 电影播放页面
  */
 import React, { useState } from "react";
 import {
+  Airplay,
+  AlertTriangle,
   ArrowLeft,
-  Gauge,
-  Glasses,
-  List,
-  Loader,
-  MoreHorizontal,
+  ChevronsLeft,
+  ChevronsRight,
+  HelpCircle,
+  Loader2,
+  Maximize,
   Pause,
   Play,
-  RotateCw,
-  Send,
-  Subtitles,
+  Settings,
 } from "lucide-react";
 
-import { ViewComponent } from "@/store/types";
-import { reportSomething } from "@/services/index";
-import { useInitialize, useInstance } from "@/hooks/index";
-import { Video, Sheet, ScrollView, Dialog } from "@/components/ui";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
+import { reportSomething, shareMediaToInvitee } from "@/services";
+import { Show } from "@/packages/ui/show";
+import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
+import { MovieMediaSettings } from "@/components/movie-media-settings";
+import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
-import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
-import { PlayerCore } from "@/domains/player/index";
-import { MovieCore } from "@/domains/movie/index";
-import { RefCore } from "@/domains/cur/index";
-import { createVVTSubtitle } from "@/domains/subtitle/utils";
-import { OrientationTypes } from "@/domains/app/index";
+import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
+import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
+import { RouteViewCore } from "@/domains/route_view";
+import { MovieMediaCore } from "@/domains/media/movie";
 import { MediaResolutionTypes } from "@/domains/source/constants";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { MovieReportList, ReportTypes, players } from "@/constants/index";
-import { cn } from "@/utils/index";
+import { RefCore } from "@/domains/cur";
+import { PlayerCore } from "@/domains/player";
+import { createVVTSubtitle } from "@/domains/subtitle/utils";
+import { RequestCore } from "@/domains/request";
+import { OrientationTypes } from "@/domains/app";
+import { useInitialize, useInstance } from "@/hooks";
+import { cn, seconds_to_hour } from "@/utils";
 
-export const MoviePlayingPage: ViewComponent = React.memo((props) => {
+function MoviePlayingPageLogic(props: ViewComponentProps) {
+  const { app, client, storage } = props;
+
+  const $createReport = new RequestCore(reportSomething, {
+    client,
+  });
+  const settings = storage.get("player_settings");
+  const $settings = new RefCore<{
+    volume: number;
+    rate: number;
+    type: MediaResolutionTypes;
+  }>({
+    value: settings,
+  });
+  const { type: resolution, volume, rate } = settings;
+  const tv = new MovieMediaCore({
+    resolution,
+    client,
+  });
+  const $tv = tv;
+  const player = new PlayerCore({ app, volume, rate });
+  const $report = new RefCore<string>();
+  //     const reportSheet = new DialogCore();
+  const $player = player;
+
+  app.onHidden(() => {
+    player.pause();
+  });
+  app.onShow(() => {
+    console.log("[PAGE]play - app.onShow", player.currentTime);
+    // 锁屏后 currentTime 不是锁屏前的
+    player.setCurrentTime(player.currentTime);
+  });
+  app.onOrientationChange((orientation) => {
+    console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
+    if (orientation === "horizontal") {
+      if (!player.hasPlayed && app.env.ios) {
+        //   $$fullscreenDialog.show();
+        return;
+      }
+      if (player.isFullscreen) {
+        return;
+      }
+      player.requestFullScreen();
+      player.isFullscreen = true;
+    }
+    if (orientation === "vertical") {
+      player.disableFullscreen();
+      // $$fullscreenDialog.hide();
+    }
+  });
+  player.onExitFullscreen(() => {
+    player.pause();
+    if (app.orientation === OrientationTypes.Vertical) {
+      player.disableFullscreen();
+    }
+  });
+  tv.onProfileLoaded((profile) => {
+    app.setTitle(tv.getTitle().join(" - "));
+    const { curSource } = profile;
+    // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+    tv.playSource(curSource, { currentTime: curSource.currentTime ?? 0 });
+    player.setCurrentTime(curSource.currentTime);
+    //       bottomOperation.show();
+  });
+  tv.$source.onSubtitleLoaded((subtitle) => {
+    player.showSubtitle(createVVTSubtitle(subtitle));
+  });
+  tv.onTip((msg) => {
+    app.tip(msg);
+  });
+  tv.onSourceFileChange((mediaSource) => {
+    // console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
+    player.pause();
+    player.setSize({ width: mediaSource.width, height: mediaSource.height });
+    storage.merge("player_settings", {
+      type: mediaSource.type,
+    });
+    // loadSource 后开始 video loadstart 事件
+    player.loadSource(mediaSource);
+  });
+  player.onReady(() => {
+    player.disableFullscreen();
+  });
+  player.onCanPlay(() => {
+    const { currentTime } = tv;
+    console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, currentTime);
+    function applySettings() {
+      player.setCurrentTime(currentTime);
+      const { rate } = $settings.value!;
+      if (rate) {
+        player.changeRate(Number(rate));
+      }
+    }
+    (() => {
+      if (app.env.android) {
+        setTimeout(() => {
+          applySettings();
+        }, 1000);
+        return;
+      }
+      applySettings();
+    })();
+    if (!player.hasPlayed) {
+      return;
+    }
+    player.play();
+  });
+  player.onVolumeChange(({ volume }) => {
+    storage.merge("player_settings", {
+      volume,
+    });
+  });
+  player.onProgress(({ currentTime, duration }) => {
+    // console.log("[PAGE]TVPlaying - onProgress", currentTime);
+    if (!player._canPlay) {
+      return;
+    }
+    tv.handleCurTimeChange({
+      currentTime,
+      duration,
+    });
+  });
+  player.onPause(({ currentTime, duration }) => {
+    console.log("[PAGE]play - player.onPause", currentTime, duration);
+    tv.updatePlayProgressForce({
+      currentTime,
+      duration,
+    });
+  });
+  // player.onEnd(() => {
+  //   console.log("[PAGE]play - player.onEnd");
+  //   tv.playNextEpisode();
+  // });
+  player.onResolutionChange(({ type }) => {
+    console.log("[PAGE]play - player.onResolutionChange", type, tv.currentTime);
+    // player.setCurrentTime(tv.currentTime);
+  });
+  player.onSourceLoaded(() => {
+    console.log("[PAGE]play - player.onSourceLoaded", tv.currentTime);
+    player.setCurrentTime(tv.currentTime);
+    if (!player.hasPlayed) {
+      return;
+    }
+    //       episodesSheet.hide();
+    //       sourcesSheet.hide();
+    //       resolutionSheet.hide();
+  });
+  // console.log("[PAGE]play - before player.onError");
+  player.onError(async (error) => {
+    console.log("[PAGE]play - player.onError", tv.curSource?.name, tv.curSource?.curFileId);
+    // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
+    await (async () => {
+      if (!tv.curSource) {
+        return;
+      }
+      const files = tv.curSource.files;
+      const curFileId = tv.curSource.curFileId;
+      const curFileIndex = files.findIndex((f) => f.id === curFileId);
+      const nextIndex = curFileIndex + 1;
+      const nextFile = files[nextIndex];
+      if (!nextFile) {
+        app.tip({ text: ["视频加载错误", error.message] });
+        player.setInvalid(error.message);
+        return;
+      }
+      await tv.changeSourceFile(nextFile);
+    })();
+    player.pause();
+  });
+  player.onUrlChange(async ({ url }) => {
+    const $video = player.node()!;
+    console.log("[]player.onUrlChange", url, player.canPlayType("application/vnd.apple.mpegurl"), $video);
+    if (player.canPlayType("application/vnd.apple.mpegurl")) {
+      player.load(url);
+      return;
+    }
+    const mod = await import("hls.js");
+    const Hls2 = mod.default;
+    if (Hls2.isSupported() && url.includes("m3u8")) {
+      const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+      Hls.attachMedia($video);
+      Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+        Hls.loadSource(url);
+      });
+      return;
+    }
+    player.load(url);
+  });
+
+  return {
+    $tv,
+    $player,
+    $report,
+    $createReport,
+  };
+}
+
+class MoviePlayingPageView {
+  $view: RouteViewCore;
+  $scroll: ScrollViewCore;
+
+  $mask = new PresenceCore({ mounted: true, visible: true });
+  $top = new PresenceCore({ mounted: true, visible: true });
+  $bottom = new PresenceCore({ mounted: true, visible: true });
+  $control = new PresenceCore({ mounted: true, visible: true });
+  $time = new PresenceCore({});
+  $subtitle = new PresenceCore({});
+  $settings = new DialogCore();
+  $episodes = new DialogCore();
+
+  visible = true;
+  timer: null | NodeJS.Timeout = null;
+
+  constructor(props: Pick<ViewComponentProps, "app" | "view">) {
+    const { app, view } = props;
+    this.$view = view;
+    this.$scroll = new ScrollViewCore({
+      os: app.env,
+    });
+  }
+
+  show() {
+    this.$top.show();
+    this.$bottom.show();
+    this.$control.show();
+    this.$mask.show();
+    this.visible = true;
+  }
+  hide() {
+    this.$top.hide();
+    this.$bottom.hide();
+    this.$control.hide();
+    this.$mask.hide();
+    this.visible = false;
+  }
+  toggle() {
+    this.$top.toggle();
+    this.$bottom.toggle();
+    this.$control.toggle();
+    this.$mask.toggle();
+    this.visible = !this.visible;
+  }
+  attemptToShow() {
+    if (this.timer !== null) {
+      this.hide();
+      clearTimeout(this.timer);
+      this.timer = null;
+      return false;
+    }
+    this.show();
+    return true;
+  }
+  prepareHide() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    this.timer = setTimeout(() => {
+      this.hide();
+      this.timer = null;
+    }, 5000);
+  }
+  prepareToggle() {
+    if (this.timer === null) {
+      this.toggle();
+      return;
+    }
+    clearTimeout(this.timer);
+    this.toggle();
+  }
+  stopHide() {
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  }
+}
+
+export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
   const { app, history, client, storage, view } = props;
 
-  const settingsRef = useInstance(() => {
-    const r = new RefCore<{
-      volume: number;
-      rate: number;
-      type: MediaResolutionTypes;
-    }>({
-      value: storage.get("player_settings"),
-    });
-    return r;
-  });
-  const movie = useInstance(() => {
-    const { type: resolution } = settingsRef.value!;
-    const movie = new MovieCore({ resolution, client });
-    return movie;
-  });
-  const player = useInstance(() => {
-    const { volume, rate } = settingsRef.value!;
-    const player = new PlayerCore({ app, volume, rate });
-    return player;
-  });
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-        // onPullToBack() {
-        //   history.back();
-        // },
-      })
-  );
-  const sourceSheet = useInstance(() => new DialogCore());
-  const rateSheet = useInstance(() => new DialogCore());
-  const resolutionSheet = useInstance(() => new DialogCore());
-  const infoSheet = useInstance(() => new DialogCore());
-  const curReport = useInstance(
-    () =>
-      new RefCore<string>({
-        onChange(v) {
-          setCurReportValue(v);
-        },
-      })
-  );
-  const reportRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client,
-        fetch: reportSomething,
-        onLoading(loading) {
-          reportConfirmDialog.okBtn.setLoading(loading);
-        },
-        onSuccess() {
-          app.tip({
-            text: ["提交成功"],
-          });
-          reportConfirmDialog.hide();
-          reportSheet.hide();
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["提交失败", error.message],
-          });
-        },
-      })
-  );
-  const reportSheet = useInstance(() => new DialogCore());
-  const errorTipDialog = useInstance(() => {
-    const dialog = new DialogCore({
-      title: "视频加载错误",
-      cancel: false,
-      onOk() {
-        dialog.hide();
-      },
-    });
-    dialog.okBtn.setText("我知道了");
-    return dialog;
-  });
-  const reportConfirmDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "发现问题",
-        onOk() {
-          if (!curReport.value) {
-            app.tip({
-              text: ["请先选择问题"],
-            });
-            return;
-          }
-          reportRequest.run({
-            type: ReportTypes.Movie,
-            data: JSON.stringify({
-              content: curReport.value,
-              movie_id: movie.profile?.id,
-            }),
-          });
-        },
-      })
-  );
-  const subtitleSheet = useInstance(() => new DialogCore({}));
-  const fullscreenDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "进入全屏播放",
-        cancel: false,
-        onOk() {
-          fullscreenDialog.hide();
-          player.requestFullScreen();
-        },
-      })
-  );
-  const topOperation = useInstance(() => new PresenceCore({ visible: true, mounted: true }));
-  const bottomOperation = useInstance(() => new PresenceCore({}));
-  const scrollView2 = useInstance(() => new ScrollViewCore({
-    os: app.env,
-  }));
+  const $logic = useInstance(() => MoviePlayingPageLogic(props));
+  const $page = useInstance(() => new MoviePlayingPageView({ app, view }));
 
-  const [profile, setProfile] = useState(movie.profile);
-  const [curSource, setCurSource] = useState(movie.curSource);
-  const [subtileState, setCurSubtitleState] = useState(movie.subtitle);
-  const [curReportValue, setCurReportValue] = useState(curReport.value);
-  const [rate, setRate] = useState(player.state.rate);
+  const [state, setProfile] = useState($logic.$tv.state);
+  // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
+  // const [subtileState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
+  const [targetTime, setTargetTime] = useState<null | string>(null);
+  const [playerState, setPlayerState] = useState($logic.$player.state);
+  // const [shareLink, setShareLink] = useState("");
+  // const [curReportValue, setCurReportValue] = useState($logic.$report.value);
 
   useInitialize(() => {
-    app.onHidden(() => {
-      player.pause();
-    });
-    app.onShow(() => {
-      console.log("[PAGE]play - app.onShow", player.currentTime);
-      // 锁屏后 currentTime 不是锁屏前的
-      player.setCurrentTime(player.currentTime);
-    });
+    if (view.query.rate) {
+      $logic.$player.changeRate(Number(view.query.rate));
+    }
     view.onHidden(() => {
-      player.pause();
+      $logic.$player.pause();
     });
-    player.onExitFullscreen(() => {
-      player.pause();
-      if (movie.curSource) {
-        player.setSize({ width: movie.curSource.width, height: movie.curSource.height });
-      }
-      if (app.orientation === OrientationTypes.Vertical) {
-        player.disableFullscreen();
-      }
-    });
-    app.onOrientationChange((orientation) => {
-      if (orientation === "horizontal") {
-        if (!player.hasPlayed && app.env.ios) {
-          fullscreenDialog.show();
-          return;
-        }
-        if (player.isFullscreen) {
-          return;
-        }
-        player.requestFullScreen();
-        player.isFullscreen = true;
-      }
-      if (orientation === "vertical") {
-        player.disableFullscreen();
-        fullscreenDialog.hide();
-        if (curSource) {
-          player.setSize({ width: curSource.width, height: curSource.height });
-        }
-      }
-    });
-    movie.onProfileLoaded((profile) => {
-      app.setTitle(movie.getTitle().join(" - "));
-      movie.play();
-      player.setCurrentTime(profile.currentTime);
-      bottomOperation.show();
-    });
-    movie.onSubtitleLoaded((subtitle) => {
-      player.showSubtitle(createVVTSubtitle(subtitle));
-    });
-    movie.onStateChange((nextProfile) => {
+    // if (!view.query.hide_menu) {
+    //   $page.$scrollView.onPullToBack(() => {
+    //     app.back();
+    //   });
+    // }
+    // if (view.query.hide_menu) {
+    //   setTimeout(() => {
+    //     topOperation.hide();
+    //     bottomOperation.hide();
+    //   }, 1000);
+    // }
+    $logic.$tv.onStateChange((nextProfile) => {
       setProfile(nextProfile);
     });
-    movie.onTip((msg) => {
-      app.tip(msg);
+    $logic.$player.onStateChange((v) => {
+      setPlayerState(v);
     });
-    movie.onSubtitleChange((l) => {
-      setCurSubtitleState(l);
+    $logic.$player.onTargetTimeChange((v) => {
+      setTargetTime(seconds_to_hour(v));
     });
-    movie.onSourceChange((mediaSource) => {
-      const { width, height } = mediaSource;
-      player.pause();
-      player.loadSource(mediaSource);
-      player.setSize({
-        width,
-        height,
-      });
-      player.setCurrentTime(mediaSource.currentTime);
-      setCurSource(mediaSource);
+    $logic.$player.beforeAdjustCurrentTime(() => {
+      $page.$time.show();
+      $page.stopHide();
     });
-    player.onCanPlay(() => {
-      if (!view.state.visible) {
-        return;
-      }
-      function applySettings() {
-        player.setCurrentTime(movie.currentTime);
-        if (view.query.rate) {
-          player.changeRate(Number(view.query.rate));
-          return;
-        }
-        const { rate } = settingsRef.value!;
-        if (rate) {
-          player.changeRate(Number(rate));
-        }
-      }
-      (() => {
-        if (app.env.android) {
-          setTimeout(() => {
-            applySettings();
-          }, 1000);
-          return;
-        }
-        applySettings();
-      })();
-      if (!player.hasPlayed) {
-        return;
-      }
-      player.play();
+    $logic.$player.afterAdjustCurrentTime(() => {
+      $page.prepareHide();
+      $page.$time.hide();
     });
-    player.onProgress(({ currentTime, duration }) => {
-      // console.log("[PAGE]TVPlaying - onProgress", currentTime);
-      if (!player._canPlay) {
-        return;
-      }
-      movie.handleCurTimeChange({
-        currentTime,
-        duration,
-      });
-    });
-    player.onPause(({ currentTime, duration }) => {
-      // console.log("[PAGE]play - player.onPause", currentTime, duration);
-      movie.updatePlayProgressForce({
-        currentTime,
-        duration,
-      });
-    });
-    player.onVolumeChange(({ volume }) => {
-      storage.merge("player_settings", {
-        volume,
-      });
-    });
-    player.onRateChange(({ rate }) => {
-      setRate(rate);
-    });
-    player.onResolutionChange(({ type }) => {
-      console.log("[PAGE]play - player.onResolutionChange", type);
-    });
-    player.onSourceLoaded(() => {
-      console.log("[PAGE]play - player.onSourceLoaded", player.currentTime);
-      if (!player.hasPlayed) {
-        return;
-      }
-    });
-    // console.log("[PAGE]play - before player.onError");
-    player.onError((error) => {
-      // console.log("[PAGE]play - player.onError");
-      (() => {
-        if (error.message.includes("格式")) {
-          errorTipDialog.show();
-          return;
-        }
-        app.tip({ text: ["视频加载错误", error.message] });
-      })();
-      player.pause();
-    });
-    player.onUrlChange(async ({ url, thumbnail }) => {
-      const $video = player.node()!;
-      console.log("[PAGE]play - player.onUrlChange", player.currentTime);
-      //   player.setCurrentTime(player.currentTime);
-      if (player.canPlayType("application/vnd.apple.mpegurl")) {
-        player.load(url);
-        return;
-      }
-      const mod = await import("hls.js");
-      const Hls2 = mod.default;
-      if (Hls2.isSupported() && url.includes("m3u8")) {
-        // console.log("[PAGE]TVPlaying - need using hls.js");
-        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-        Hls.attachMedia($video);
-        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-          Hls.loadSource(url);
-        });
-        return;
-      }
-      player.load(url);
-    });
-    // console.log("[PAGE]tv/play - before fetch tv profile", view.params.id);
-    movie.fetchProfile(view.params.id);
+    $logic.$tv.fetchProfile(view.query.id);
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
+
   // if (error) {
   //   return (
   //     <div className="w-full h-[100vh]">
@@ -336,259 +379,302 @@ export const MoviePlayingPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={scrollView} className="fixed text-w-fg-1">
-        <div className="h-screen">
-          <div className="operations">
-            <div
-              className={cn("z-10 absolute inset-0")}
-              onClick={() => {
-                topOperation.toggle();
-                bottomOperation.toggle();
-              }}
+      <ScrollView
+        store={$page.$scroll}
+        className="fixed h-screen bg-w-bg-0 scroll--hidden"
+        onClick={(event) => {
+          $page.prepareToggle();
+        }}
+      >
+        <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
+          <Video store={$logic.$player} />
+          <Presence
+            // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+            enterClassName="animate-in fade-in"
+            exitClassName="animate-out fade-out"
+            store={$page.$mask}
+          >
+            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
+          </Presence>
+          <div className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
+            <Presence
+              // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
+              enterClassName="animate-in fade-in"
+              exitClassName="animate-out fade-out"
+              store={$page.$control}
             >
-              <div className="flex items-center justify-between">
-                <Presence
-                  store={topOperation}
-                  className={cn(
-                    "animate-in fade-in slide-in-from-top",
-                    "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
-                  )}
-                >
-                  <div
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
+              <Show
+                when={!playerState.error}
+                fallback={
+                  <div className="flex flex-col justify-center items-center">
+                    <AlertTriangle className="w-16 h-16" />
+                    <div className="flex items-center mt-4">
+                      <div className="text-center">{playerState.error}</div>
+                      <div
+                        className="ml-2"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          history.push("root.help", { highlight: "" });
+                        }}
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </div>
+                    </div>
                     <div
-                      className="inline-block p-4"
-                      onClick={() => {
-                        history.back();
+                      className="mt-4 text-center text-sm"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if ($logic.$tv.$source.profile) {
+                          app.copy($logic.$tv.$source.profile?.url);
+                          app.tip({
+                            text: ["复制成功"],
+                          });
+                          return;
+                        }
+                        app.tip({
+                          text: ["暂无播放地址"],
+                        });
                       }}
                     >
-                      <ArrowLeft className="w-6 h-6" />
+                      复制播放地址
                     </div>
                   </div>
-                </Presence>
-              </div>
-              <div className="absolute bottom-12 w-full safe-bottom">
-                <Presence
-                  store={bottomOperation}
-                  className={cn(
-                    "animate-in fade-in slide-in-from-bottom",
-                    "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
-                  )}
-                >
+                }
+              >
+                <Show when={!!playerState.ready} fallback={<Loader2 className="w-16 h-16 animate animate-spin" />}>
                   <div
+                    className="flex items-center space-x-8"
                     onClick={(event) => {
                       event.stopPropagation();
                     }}
                   >
-                    <div className="grid grid-cols-3 gap-4 mt-18"></div>
-                    <div className="grid grid-cols-4 gap-2 mt-12 w-full px-2">
-                      <div
-                        className="flex flex-col items-center"
+                    <div className="relative">
+                      <ChevronsLeft
+                        className="w-12 h-12"
                         onClick={() => {
-                          sourceSheet.show();
+                          $logic.$player.rewind();
+                          $page.prepareHide();
                         }}
+                      />
+                      <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
+                    </div>
+                    <div className="p-2">
+                      <Show
+                        when={playerState.playing}
+                        fallback={
+                          <div
+                            onClick={() => {
+                              $logic.$player.play();
+                              $page.prepareHide();
+                            }}
+                          >
+                            <Play className="relative left-[6px] w-16 h-16" />
+                          </div>
+                        }
                       >
-                        <div className="p-4 rounded-md bg-w-bg-2">
-                          <List className="w-6 h-6 " />
+                        <div
+                          onClick={() => {
+                            $logic.$player.pause();
+                            $page.prepareHide();
+                          }}
+                        >
+                          <Pause className="w-16 h-16" />
                         </div>
-                        <p className="mt-2 text-sm ">切换源</p>
-                      </div>
-                      <div
-                        className="flex flex-col items-center"
+                      </Show>
+                    </div>
+                    <div className="relative">
+                      <ChevronsRight
+                        className="w-12 h-12"
                         onClick={() => {
-                          rateSheet.show();
+                          $logic.$player.speedUp();
+                          $page.prepareHide();
                         }}
-                      >
-                        <div className="p-4 rounded-md bg-w-bg-2">
-                          <Gauge className="w-6 h-6 " />
-                        </div>
-                        <p className="mt-2 text-sm ">{rate}x</p>
-                      </div>
-                      <div
-                        className="flex flex-col items-center"
-                        onClick={() => {
-                          resolutionSheet.show();
-                        }}
-                      >
-                        <div className="p-4 rounded-md bg-w-bg-2">
-                          <Glasses className="w-6 h-6 " />
-                        </div>
-                        <p className="mt-2 text-sm ">{curSource?.typeText || "分辨率"}</p>
-                      </div>
-                      <div
-                        className="flex flex-col items-center focus:outline-none focus:ring-0"
-                        onClick={() => {
-                          infoSheet.show();
-                        }}
-                      >
-                        <div className="p-4 rounded-md bg-w-bg-2">
-                          <MoreHorizontal className="w-6 h-6 " />
-                        </div>
-                        <p className="mt-2 text-sm ">更多</p>
-                      </div>
+                      />
+                      <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
                     </div>
                   </div>
-                </Presence>
-              </div>
-            </div>
+                </Show>
+              </Show>
+            </Presence>
           </div>
-          <div className="video z-20 absolute top-[20%]">
-            {(() => {
-              if (profile === null) {
-                return null;
-              }
-              return (
-                <div className="">
-                  <Video store={player} />
-                  {/* {subtileState.visible ? (
-                    <div key={subtileState.index} className="mt-2 space-y-1">
-                      {subtileState.texts.map((text) => {
-                        return (
-                          <div key={text} className="text-center text-sm">
-                            {text}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : null} */}
+        </div>
+        <div className="absolute z-0 inset-0 text-w-fg-0">
+          <div
+            className=""
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <Presence
+              store={$page.$top}
+              className={cn(
+                "flex items-center justify-between",
+                "animate-in fade-in slide-in-from-top",
+                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
+              )}
+              enterClassName="animate-in fade-in slide-in-from-top"
+              exitClassName="animate-out fade-out slide-out-to-top"
+            >
+              <div
+                className="inline-block p-4"
+                onClick={() => {
+                  history.back();
+                }}
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </div>
+              <div className="flex items-center">
+                {/* <div className="inline-block p-4">
+                  <PictureInPicture className="w-6 h-6" />
+                </div> */}
+                <div
+                  className="inline-block p-4"
+                  onClick={() => {
+                    $logic.$player.showAirplay();
+                  }}
+                >
+                  <Airplay className="w-6 h-6" />
                 </div>
-              );
-            })()}
+              </div>
+            </Presence>
+          </div>
+          <div
+            className="absolute bottom-12 w-full safe-bottom"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <Presence store={$page.$time}>
+              <div className="text-center text-xl">{targetTime}</div>
+            </Presence>
+            {/* <Presence store={$page.$subtitle}>
+              {(() => {
+                if (subtileState === null) {
+                  return;
+                }
+                return (
+                  <div key={subtileState.index} className="mb-16 space-y-1">
+                    {subtileState.texts.map((text) => {
+                      return (
+                        <div key={text} className="text-center text-lg">
+                          {text}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </Presence> */}
+            <Presence
+              enterClassName="animate-in slide-in-from-bottom fade-in"
+              exitClassName="animate-out slide-out-to-bottom fade-out"
+              store={$page.$bottom}
+            >
+              <div className="px-4">
+                <PlayerProgressBar store={$logic.$player} />
+              </div>
+              <div
+                className="flex items-center flex-reverse space-x-4 mt-6 w-full px-2"
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
+              >
+                <div
+                  className="relative p-2 rounded-md"
+                  onClick={() => {
+                    $page.$settings.show();
+                  }}
+                >
+                  <Settings className="w-6 h-6" />
+                </div>
+                <div
+                  className="relative p-2 rounded-md"
+                  onClick={() => {
+                    $logic.$player.requestFullScreen();
+                  }}
+                >
+                  <Maximize className="w-6 h-6" />
+                </div>
+              </div>
+            </Presence>
           </div>
         </div>
       </ScrollView>
-      <Sheet store={sourceSheet}>
-        {(() => {
-          if (profile === null) {
-            return <div className="text-w-fg-1">Loading</div>;
-          }
-          const { sources } = profile;
-          return (
-            <div className="max-h-full overflow-y-auto text-w-fg-1">
-              <div className="pt-4 pb-24">
-                {sources.map((source) => {
-                  const { file_id, file_name, parent_paths } = source;
-                  return (
-                    <div
-                      key={file_id}
-                      onClick={() => {
-                        movie.changeSource(source);
-                      }}
-                    >
-                      <div className={cn("p-4 cursor-pointer", curSource?.file_id === file_id ? "bg-w-bg-active" : "")}>
-                        <div className="break-all">
-                          {parent_paths}/{file_name}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
+      <Sheet store={$page.$settings} hideTitle>
+        <MovieMediaSettings
+          $media={$logic.$tv}
+          $player={$logic.$player}
+          app={app}
+          client={client}
+          history={history}
+          storage={storage}
+        />
       </Sheet>
-      <Sheet store={rateSheet}>
-        <div className="max-h-full overflow-y-auto text-w-fg-1">
-          <div className="pt-4 pb-24">
-            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
-              return (
-                <div
-                  key={index}
-                  onClick={() => {
-                    player.changeRate(rateOpt);
-                    storage.merge("player_settings", {
-                      rate: rateOpt,
-                    });
-                  }}
-                >
-                  <div className={cn("p-4 cursor-pointer", rate === rateOpt ? "bg-w-bg-active" : "")}>
-                    <div className="break-all">{rateOpt}x</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet>
-      <Sheet store={resolutionSheet}>
+      {/* <Sheet store={dSheet} size="xl">
         {(() => {
-          if (profile === null || curSource === null) {
-            return <div className="text-w-fg-1">Loading</div>;
-          }
-          const { typeText: curTypeText, resolutions } = curSource;
-          return (
-            <div className="max-h-full overflow-y-auto text-w-fg-1">
-              <div className="pt-4 pb-24">
-                {resolutions.map((r, i) => {
-                  const { type, typeText } = r;
-                  return (
-                    <div key={i}>
-                      <div
-                        className={cn("p-4 cursor-pointer", curTypeText === typeText ? "bg-w-bg-active" : "")}
-                        onClick={() => {
-                          movie.changeResolution(type);
-                        }}
-                      >
-                        {typeText}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })()}
-      </Sheet>
-      <Sheet store={infoSheet} size="xl">
-        {(() => {
-          if (profile === null) {
+          if (state === null) {
             return (
-              <div className="text-w-fg-1">
+              <div>
                 <Loader className="animate animate-spin w-6 h-6" />
               </div>
             );
           }
-          const { name, overview } = profile;
+          const { name, overview } = state;
           return (
-            <ScrollView store={scrollView2} className="top-14 fixed">
+            <ScrollView store={scrollView2} className="top-14 fixed" contentClassName="pb-24">
               <div className="text-w-fg-1">
-                <div className="px-4">
-                  <div className="text-xl">{name}</div>
-                  <div className="text-sm">{overview}</div>
-                  <div className="mt-4 text-lg underline-offset-1">其他</div>
-                  <div className="flex mt-2 space-x-2">
-                    {(() => {
-                      if (!subtileState.enabled) {
-                        return null;
-                      }
-                      return (
+                <div className="">
+                  <div className="px-4">
+                    <div className="text-xl">{name}</div>
+                    <div className="text-sm">{overview}</div>
+                    <div className="mt-4 text-lg underline-offset-1">其他</div>
+                    <div className="flex mt-2 space-x-2">
+                      <div className="">
+                        {(() => {
+                          if (!subtileState.enabled) {
+                            return null;
+                          }
+                          return (
+                            <div
+                              className=""
+                              onClick={() => {
+                                subtitleSheet.show();
+                              }}
+                            >
+                              <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                                <Subtitles className="w-4 h-4" />
+                              </div>
+                              <div className="mt-1 text-sm">字幕</div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <div>
                         <div
                           className=""
                           onClick={() => {
-                            subtitleSheet.show();
+                            reportSheet.show();
                           }}
                         >
                           <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                            <Subtitles className="w-4 h-4" />
+                            <Send className="w-4 h-4" />
                           </div>
-                          <div className="mt-1 text-sm">字幕</div>
+                          <div className="mt-1 text-sm">提交问题</div>
                         </div>
-                      );
-                    })()}
-                    <div
-                      className=""
-                      onClick={() => {
-                        reportSheet.show();
-                      }}
-                    >
-                      <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
-                        <Send className="w-4 h-4" />
                       </div>
-                      <div className="mt-1 text-sm">提交问题</div>
+                      <div>
+                        <div
+                          className=""
+                          onClick={() => {
+                            inviteeSelect.dialog.show();
+                          }}
+                        >
+                          <div className="flex items-center justify-center p-2 rounded-md bg-w-bg-0">
+                            <Share2 className="w-4 h-4" />
+                          </div>
+                          <div className="mt-1 text-sm">分享</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -596,120 +682,32 @@ export const MoviePlayingPage: ViewComponent = React.memo((props) => {
             </ScrollView>
           );
         })()}
-      </Sheet>
-      <Sheet store={reportSheet}>
-        <div className="max-h-full text-w-fg-1 overflow-y-auto">
-          <div className="pt-4 pb-24">
-            {MovieReportList.map((question, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    curReport.select(question);
-                    reportConfirmDialog.show();
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer")}>{question}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet>
-      <Sheet store={subtitleSheet}>
-        <div className="max-h-full pb-24 text-w-fg-1 overflow-y-auto">
-          {(() => {
-            return (
-              <div
-                className="px-4"
-                onClick={() => {
-                  player.toggleSubtitleVisible();
-                  movie.toggleSubtitleVisible();
-                }}
-              >
-                {subtileState.visible ? "隐藏字幕" : "显示字幕"}
-              </div>
-            );
-          })()}
-          <div className="pt-4">
-            {subtileState.others.map((subtitle, i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() => {
-                    movie.loadSubtitleFile(subtitle, movie.currentTime);
-                  }}
-                >
-                  <div className={cn("py-2 px-4 cursor-pointer", subtitle.selected ? "bg-w-bg-active" : "")}>
-                    {subtitle.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Sheet>
-      <Dialog store={reportConfirmDialog}>
-        <div className="text-w-fg-1">
-          <p>提交你发现的该电视剧的问题</p>
-          <p className="mt-2">「{curReportValue}」</p>
-        </div>
-      </Dialog>
-      {/* <Dialog store={errorTipDialog}>
-        <div className="text-w-fg-1">
-          <div>该问题是因为手机无法解析视频</div>
-          <div>可以尝试如下解决方案</div>
-          <div className="mt-4 text-left space-y-4">
-            <div>1、「切换源」或者「分辨率」</div>
-            <div>
-              <div>2、使用电脑观看</div>
-              <div
-                className="mt-2 break-all"
-                onClick={() => {
-                  app.copy(window.location.href.replace(/mobile/, "pc"));
-                  app.tip({
-                    text: ["已复制到剪贴板"],
-                  });
-                }}
-              >
-                {window.location.href.replace(/mobile/, "pc")}
-              </div>
-            </div>
-            <div>
-              <div>3、使用手机外部播放器</div>
-              <div className="flex items-center mt-2 space-x-2">
-                {players.map((player) => {
-                  const { icon, name, scheme } = player;
-                  const url = (() => {
-                    if (!curSource) {
-                      return null;
-                    }
-                    return scheme
-                      .replace(/\$durl/, curSource.url)
-                      .replace(/\$name/, profile ? profile.name : encodeURIComponent(curSource.url));
-                  })();
-                  if (!url) {
-                    return null;
-                  }
-                  return (
-                    <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
-                      <LazyImage className="w-8 h-8 rounded-full" src={icon} />
-                      <div className="absolute bottom-0 w-full text-center">{name}</div>
-                    </a>
-                  );
-                })}
-              </div>
-              <div className="mt-2 font-sm text-w-fg-2">
-                <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
-                <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
-              </div>
-            </div>
+      </Sheet> */}
+      {/* <Sheet store={inviteeSelect.dialog} size="xl">
+        <InviteeSelect store={inviteeSelect} />
+      </Sheet> */}
+      {/* <Dialog store={fullscreenDialog}>
+        <div className="text-w-fg-1">点击进入全屏播放</div>
+      </Dialog> */}
+      {/* <Dialog store={shareLinkDialog}>
+        <div
+          onClick={() => {
+            if (!shareLink) {
+              return;
+            }
+            app.copy(shareLink);
+            app.tip({
+              text: ["已复制至粘贴板"],
+            });
+            shareLinkDialog.hide();
+          }}
+        >
+          <div>点击复制该信息至粘贴板</div>
+          <div className="mt-4 rounded-md p-4 bg-w-bg-2">
+            <pre className="text-left text-w-fg-1">{shareLink}</pre>
           </div>
         </div>
       </Dialog> */}
-      <Dialog store={fullscreenDialog}>
-        <div className="text-w-fg-1">点击进入全屏播放</div>
-      </Dialog>
     </>
   );
 });

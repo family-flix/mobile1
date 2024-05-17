@@ -1,59 +1,69 @@
+/**
+ * @file 影视剧集合列表
+ */
 import React, { useState } from "react";
 import { Bird } from "lucide-react";
 
-import { ViewComponent } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchCollectionList, fetchCollectionListProcess } from "@/services/index";
 import { LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
+function Page(props: ViewComponentProps) {
+  const { app, client, history, storage } = props;
+
+  const $list = new ListCore(
+    new RequestCore(fetchCollectionList, {
+      process: fetchCollectionListProcess,
+      client,
+    }),
+    {
+      pageSize: 10,
+    }
+  );
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $list.refresh();
+      $scroll.finishPullToRefresh();
+    },
+  });
+  const $poster = new ImageInListCore();
+
+  return {
+    $list,
+    ui: {
+      $scroll,
+      $poster,
+    },
+    ready() {
+      $list.init();
+    },
+  };
+}
+
 export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
   const { app, client, history, storage } = props;
 
-  const list = useInstance(
-    () =>
-      new ListCoreV2(
-        new RequestCoreV2({
-          fetch: fetchCollectionList,
-          process: fetchCollectionListProcess,
-          client: client,
-        }),
-        {
-          pageSize: 10,
-        }
-      )
-  );
-  const $scroll = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-        async onPullToRefresh() {
-          await list.refresh();
-          $scroll.finishPullToRefresh();
-        },
-      })
-  );
-  const poster = useInstance(() => new ImageInListCore());
+  const $page = useInstance(() => Page(props));
 
-  const [response, setResponse] = useState(list.response);
-  const { dataSource } = response;
+  const [response, setResponse] = useState($page.$list.response);
 
   useInitialize(() => {
-    list.onStateChange((v) => {
-      setResponse(v);
-    });
-    list.init();
+    $page.$list.onStateChange((v) => setResponse(v));
+    $page.ready();
   });
 
   return (
     <>
-      <ScrollView store={$scroll}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
-          store={list}
+          store={$page.$list}
           className="relative space-y-3 bg-w-bg-3"
           skeleton={
             <>
@@ -82,7 +92,7 @@ export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
           }
         >
           {(() => {
-            return dataSource.map((collection) => {
+            return response.dataSource.map((collection) => {
               const { id, title, desc, medias } = collection;
               return (
                 <div key={id} className="flex pt-4 text-w-fg-0">
@@ -140,7 +150,7 @@ export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
                                 <div className="relative w-[128px] h-[192px] rounded-lg overflow-hidden">
                                   <LazyImage
                                     className="w-full h-full object-cover"
-                                    store={poster.bind(poster_path)}
+                                    store={$page.ui.$poster.bind(poster_path)}
                                     alt={name}
                                   />
                                   {episode_count_text && (

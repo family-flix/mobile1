@@ -6,9 +6,9 @@ import { debounce } from "lodash/fp";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { BaseDomain, Handler } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { ListCore } from "@/domains/list";
 import { MediaOriginCountry } from "@/constants";
 import { Result, UnpackedResult } from "@/types";
 
@@ -102,8 +102,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("缺少电视剧 id");
     }
     // this.id = id;
-    const fetch = new RequestCoreV2({
-      fetch: fetchTVAndCurEpisode,
+    const fetch = new RequestCore(fetchTVAndCurEpisode, {
       process: fetchTVAndCurEpisodeProcess,
       client,
     });
@@ -138,13 +137,8 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
   /** 当前影片播放进度 */
   currentTime = 0;
   curResolutionType: EpisodeResolutionTypes = "SD";
-  $episodeList: ListCoreV2<
-    RequestCoreV2<{
-      fetch: typeof fetchEpisodesOfSeason;
-      process: typeof fetchEpisodeOfSeasonProcess;
-      client: HttpClientCore;
-    }>,
-    UnpackedResult<ReturnType<typeof fetchEpisodeOfSeasonProcess>>["list"][number]
+  $episodeList: ListCore<
+    RequestCore<typeof fetchEpisodesOfSeason, UnpackedResult<ReturnType<typeof fetchEpisodeOfSeasonProcess>>>
   >;
   /** 正在请求中（获取详情、视频源信息等） */
   _pending = false;
@@ -180,12 +174,13 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     const { client, resolution = "SD" } = options;
     this.curResolutionType = resolution;
     this.$client = client;
-    this.$episodeList = new ListCoreV2(
-      new RequestCoreV2({ fetch: fetchEpisodesOfSeason, process: fetchEpisodeOfSeasonProcess, client }),
+    this.$episodeList = new ListCore(
+      new RequestCore(fetchEpisodesOfSeason, { process: fetchEpisodeOfSeasonProcess, client }),
       {
         pageSize: 20,
       }
     );
+    // console.log(this.$episodeList.response.dataSource);
     this.$episodeList.onDataSourceChange((nextDataSource) => {
       // console.log("nextDataSource", nextDataSource.length);
       if (!this.profile) {
@@ -213,8 +208,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       // return Result.Err("缺少电视剧 id");
     }
     this.id = id;
-    const fetch = new RequestCoreV2({
-      fetch: fetchTVAndCurEpisode,
+    const fetch = new RequestCore(fetchTVAndCurEpisode, {
       process: fetchTVAndCurEpisodeProcess,
       client: this.$client,
     });
@@ -273,8 +267,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Ok(this.curEpisode);
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchEpisodeProfile,
+    const fetch = new RequestCore(fetchEpisodeProfile, {
       process: fetchEpisodeProfileProcess,
       client: this.$client,
     });
@@ -620,8 +613,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     if (this.curSource && file_id === this.curSource.file_id) {
       return;
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchSourcePlayingInfo,
+    const fetch = new RequestCore(fetchSourcePlayingInfo, {
       process: fetchSourcePlayingInfoProcess,
       client: this.$client,
     });

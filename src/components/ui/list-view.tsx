@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { AlertCircle, ArrowDown, Bird, Loader } from "lucide-react";
 
 import { useInitialize, useInstance } from "@/hooks/index";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { ListCore } from "@/domains/list";
 import { ButtonCore } from "@/domains/ui";
 import { cn } from "@/utils/index";
 
@@ -16,28 +16,20 @@ export const ListView = React.memo(
   (
     props: {
       wrapClassName?: string;
-      store: ListCoreV2<any, any>;
+      store: ListCore<any, any>;
       skeleton?: React.ReactElement;
       extraEmpty?: React.ReactElement;
+      extraNoMore?: React.ReactElement;
       onRefresh?: () => void;
     } & React.HTMLAttributes<HTMLDivElement>
   ) => {
-    const { store, skeleton = null, extraEmpty = null, onRefresh } = props;
+    const { store, skeleton = null, extraEmpty = null, extraNoMore, onRefresh } = props;
     const [response, setResponse] = useState(store.response);
 
     const loginBtn = useInstance(
       () =>
         new ButtonCore({
           async onClick() {
-            // app.cache.clear("user");
-            // const r = await app.user.validate({
-            //   token: app.router.query.token,
-            //   force: "1",
-            // });
-            // if (r.error) {
-            //   return;
-            // }
-            // app.router.reload();
             if (onRefresh) {
               onRefresh();
             }
@@ -53,7 +45,7 @@ export const ListView = React.memo(
     });
 
     return (
-      <div className={cn("relative z-40 h-full text-w-fg-1", props.wrapClassName)}>
+      <div className={cn("relative text-w-fg-1", props.wrapClassName)}>
         <Show when={!!(response.initial && skeleton)}>
           <div className={props.className}>{skeleton}</div>
         </Show>
@@ -111,13 +103,16 @@ export const ListView = React.memo(
           </div>
         </Show>
         <Show when={response.noMore && !response.empty}>
-          <div className="flex justify-center py-8">
-            <div className="flex items-center space-x-2">
-              <Show when={response.loading}>
-                <Loader className="w-6 h-6 animate-spin" />
-              </Show>
-              <div className="text-center">没有数据了</div>
+          <div className="py-8">
+            <div className="flex justify-center">
+              <div className="flex items-center space-x-2">
+                <Show when={response.loading}>
+                  <Loader className="w-6 h-6 animate-spin" />
+                </Show>
+                <div className="text-center">没有数据了</div>
+              </div>
             </div>
+            {extraNoMore}
           </div>
         </Show>
       </div>

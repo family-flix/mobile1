@@ -14,7 +14,7 @@ import { storage } from "./storage";
 
 export type GlobalStorageValues = (typeof storage)["values"];
 export type ViewComponentProps = {
-  app: Application;
+  app: Application<{ storage: GlobalStorageValues }>;
   history: HistoryCore<PageKeys, RouteConfig>;
   client: HttpClientCore;
   view: RouteViewCore;

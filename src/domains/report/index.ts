@@ -4,9 +4,9 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { DialogCore } from "@/domains/ui";
 import { Application } from "@/domains/app";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
-import { ReportTypes } from "@/constants";
+import { ReportTypes } from "@/constants/index";
 
 enum Events {
   StateChange,
@@ -16,7 +16,7 @@ type TheTypesOfEvents = {
 };
 
 type MediaReportCoreProps = {
-  app: Application;
+  app: Application<any>;
   client: HttpClientCore;
   // season: SeasonMediaCore;
 };
@@ -25,15 +25,14 @@ type MediaReportCoreState = {};
 export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
   $ref = new RefCore<string>({});
   $media = new RefCore<{ media_id: string; media_source_id?: string }>({});
-  $create: RequestCoreV2<{ fetch: typeof reportSomething; client: HttpClientCore }>;
+  $create: RequestCore<typeof reportSomething>;
 
   constructor(props: Partial<{ _name: string }> & MediaReportCoreProps) {
     super(props);
 
     const { app, client } = props;
 
-    this.$create = new RequestCoreV2({
-      fetch: reportSomething,
+    this.$create = new RequestCore(reportSomething, {
       client,
     });
     const dialog = new DialogCore({

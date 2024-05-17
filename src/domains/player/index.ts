@@ -97,7 +97,7 @@ type TheTypesOfEvents = {
 };
 
 type PlayerProps = {
-  app: Application;
+  app: Application<any>;
 };
 type PlayerState = {
   playing: boolean;
@@ -122,7 +122,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   metadata: { url: string; thumbnail?: string } | null = null;
   static Events = Events;
 
-  $app: Application;
+  $app: Application<any>;
 
   private _timer: null | number = null;
   _canPlay = false;
@@ -181,7 +181,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(options: { app: Application; volume?: number; rate?: number }) {
+  constructor(options: { app: Application<any>; volume?: number; rate?: number }) {
     super();
 
     const { app, volume, rate } = options;

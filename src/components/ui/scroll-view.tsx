@@ -30,7 +30,7 @@ export const ScrollView = React.memo(
 
     return (
       <ScrollViewPrimitive.Root
-        className={cn("scroll-view w-full h-full overflow-y-auto", props.className)}
+        className={cn("scroll-view w-full overflow-y-auto", props.className)}
         style={props.style}
         store={store}
         onClick={rest.onClick}

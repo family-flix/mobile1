@@ -1,74 +1,83 @@
+/**
+ * @file 电影列表
+ */
 import React, { useState } from "react";
 import { Bird, Star } from "lucide-react";
 
-import { ViewComponent } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request/index";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
+function Page(props: ViewComponentProps) {
+  const { app, client } = props;
+
+  const $list = new ListCore(new RequestCore(fetchMediaList, { process: fetchMediaListProcess, client }), {
+    pageSize: 20,
+    search: {
+      type: MediaTypes.Movie,
+    },
+  });
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $list.refresh();
+      $scroll.finishPullToRefresh();
+    },
+    async onReachBottom() {
+      await $list.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $mediaRequest = new MediaRequestCore({ client });
+  const $mediaRequestBtn = new ButtonCore({
+    onClick() {
+      $mediaRequest.dialog.show();
+    },
+  });
+  const $poster = new ImageInListCore();
+  return {
+    $list,
+    ui: {
+      $scroll,
+      $poster,
+      $mediaRequest,
+      $mediaRequestBtn,
+    },
+    ready() {
+      $list.init();
+    },
+  };
+}
+
 export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
-  const { app, history, client, storage, view } = props;
+  const { app, history } = props;
 
-  const list = useInstance(
-    () =>
-      new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
-        pageSize: 20,
-        search: {
-          type: MediaTypes.Movie,
-        },
-      })
-  );
-  const scroll = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-        async onPullToRefresh() {
-          await list.refresh();
-          scroll.finishPullToRefresh();
-        },
-        async onReachBottom() {
-          await list.loadMore();
-          scroll.finishLoadingMore();
-        },
-      })
-  );
-  const mediaRequest = useInstance(() => new MediaRequestCore({ client }));
-  const mediaRequestBtn = useInstance(
-    () =>
-      new ButtonCore({
-        onClick() {
-          mediaRequest.dialog.show();
-        },
-      })
-  );
-  const poster = useInstance(() => new ImageInListCore());
+  const $page = useInstance(() => Page(props));
 
-  const [response, setResponse] = useState(list.response);
-  const { dataSource } = response;
+  const [response, setResponse] = useState($page.$list.response);
 
   useInitialize(() => {
-    list.onStateChange((v) => {
-      setResponse(v);
-    });
-    list.init();
+    $page.$list.onStateChange((v) => setResponse(v));
+    $page.ready();
   });
 
   return (
     <>
-      <ScrollView className="h-full bg-w-bg-3" store={scroll}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
-          store={list}
+          store={$page.$list}
           className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
           skeleton={
             <>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -78,7 +87,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                 </div>
               </div>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -91,14 +100,14 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
           }
           extraEmpty={
             <div className="mt-2">
-              <Button store={mediaRequestBtn} variant="subtle">
+              <Button store={$page.ui.$mediaRequestBtn} variant="subtle">
                 提交想看的电视剧
               </Button>
             </div>
           }
         >
           {(() => {
-            return dataSource.map((season) => {
+            return response.dataSource.map((season) => {
               const { id, type, name, episode_count_text, vote, genres, air_date, poster_path = "", actors } = season;
               return (
                 <div
@@ -126,8 +135,12 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                     });
                   }}
                 >
-                  <div className="relative w-[128px] h-[198px] mr-2 rounded-lg overflow-hidden">
-                    <LazyImage className="w-full h-full object-cover" store={poster.bind(poster_path)} alt={name} />
+                  <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
+                    <LazyImage
+                      className="w-full h-full object-cover"
+                      store={$page.ui.$poster.bind(poster_path)}
+                      alt={name}
+                    />
                     {episode_count_text && (
                       <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
                         <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div>
@@ -147,7 +160,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                     {actors ? (
                       <div
                         className={cn(
-                          "mt-1 inline-block text-sm rounded-md bg-blue-100 text-blue-600 overflow-hidden text-ellipsis break-keep whitespace-nowrap",
+                          "mt-1 text-sm rounded-md bg-blue-100 text-blue-600 overflow-hidden text-ellipsis break-keep whitespace-nowrap",
                           "dark:text-blue-400 dark:bg-gray-900"
                         )}
                         style={{ padding: "2px 4px", fontSize: 12 }}

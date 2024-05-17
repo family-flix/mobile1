@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp, request } from "@/domains/request/utils";
-import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types/index";
+import { ListResponse, ListResponseWithCursor, Result, UnpackedResult } from "@/types/index";
 import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
 import { relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 
@@ -12,7 +12,7 @@ export function reportSomething(body: {
   media_id?: string;
   media_source_id?: string;
 }) {
-  return request.post("/api/v2/wechat/report/create", body);
+  return request.post<{ id: string }>("/api/v2/wechat/report/create", body);
 }
 
 type AnswerPayload = Partial<{
@@ -39,6 +39,7 @@ export function fetchNotifications(params: FetchParams) {
   >("/api/v2/wechat/notification/list", params);
 }
 export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifications>) {
+  console.log('fetchNotificationsProcess', r);
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -61,6 +62,7 @@ export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifica
   });
 }
 
+/** 标记消息已读 */
 export function readNotification(params: { id: string }) {
   const { id } = params;
   return request.post("/api/v2/wechat/notification/read", {
@@ -68,6 +70,7 @@ export function readNotification(params: { id: string }) {
   });
 }
 
+/** 标记所有消息已读 */
 export function readAllNotification() {
   return request.post("/api/v2/wechat/notification/read_all", {});
 }
@@ -75,6 +78,9 @@ export function readAllNotification() {
 export function fetchInfo() {
   return request.get<{
     id: string;
+    nickname: string;
+    email: string | null;
+    avatar: string | null;
     permissions: string[];
   }>("/api/info");
 }

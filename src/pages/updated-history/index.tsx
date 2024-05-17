@@ -5,112 +5,108 @@ import React, { useState } from "react";
 import { ArrowLeft, ArrowUp, MoreHorizontal, MoreVertical } from "lucide-react";
 
 import { fetchUpdatedMediaHasHistory, fetchUpdatedMediaHasHistoryProcess } from "@/services/index";
-import { ViewComponentWithMenu } from "@/store/types";
+import { ViewComponentProps, ViewComponentWithMenu } from "@/store/types";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
-import { Show } from "@/components/ui/show";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { ScrollViewCore, DialogCore, ImageInListCore } from "@/domains/ui";
-import { PlayHistoryItem, deleteHistory } from "@/domains/media/services";
-import { RefCore } from "@/domains/cur";
-import { useInitialize, useInstance } from "@/hooks";
 import { Affix } from "@/components/ui/affix";
 import { AffixCore } from "@/domains/ui/affix";
+import { Show } from "@/components/ui/show";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { RequestCore } from "@/domains/request/index";
+import { ListCore } from "@/domains/list/index";
+import { ScrollViewCore, DialogCore, ImageInListCore } from "@/domains/ui";
+import { PlayHistoryItem, deleteHistory } from "@/domains/media/services";
+import { RefCore } from "@/domains/cur/index";
+
+function Page(props: ViewComponentProps) {
+  const { app, client } = props;
+
+  const $historyList = new ListCore(
+    new RequestCore(fetchUpdatedMediaHasHistory, {
+      process: fetchUpdatedMediaHasHistoryProcess,
+      client,
+    }),
+    {
+      pageSize: 40,
+    }
+  );
+  const $delete = new RequestCore(deleteHistory, {
+    client,
+    onLoading(loading) {
+      $deletingDialog.okBtn.setLoading(loading);
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["删除失败", error.message],
+      });
+    },
+    onSuccess(v) {
+      app.tip({
+        text: ["删除成功"],
+      });
+      $deletingDialog.hide();
+      $historyList.deleteItem((history) => {
+        if (history.id === $cur.value?.id) {
+          return true;
+        }
+        return false;
+      });
+      $cur.clear();
+    },
+  });
+  const $deletingDialog = new DialogCore({
+    onOk() {
+      if (!$cur.value) {
+        return;
+      }
+      $delete.run({ history_id: $cur.value.id });
+    },
+  });
+  const $cur = new RefCore<PlayHistoryItem>();
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await $historyList.refresh();
+      $scroll.finishPullToRefresh();
+    },
+    async onReachBottom() {
+      await $historyList.loadMore();
+      $scroll.finishLoadingMore();
+    },
+  });
+  const $thumbnail = new ImageInListCore({
+    scale: 1.38,
+  });
+  const $affix = new AffixCore({ top: 0 });
+
+  return {
+    $historyList,
+    ui: {
+      $scroll,
+      $affix,
+      $deletingDialog,
+      $thumbnail,
+    },
+  };
+}
 
 export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) => {
   const { app, client, history, view } = props;
 
-  const historyList = useInstance(
-    () =>
-      new ListCoreV2(
-        new RequestCoreV2({
-          fetch: fetchUpdatedMediaHasHistory,
-          process: fetchUpdatedMediaHasHistoryProcess,
-          client,
-        }),
-        {
-          pageSize: 40,
-        }
-      )
-  );
-  const deletingRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client,
-        fetch: deleteHistory,
-        onLoading(loading) {
-          deletingConfirmDialog.okBtn.setLoading(loading);
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["删除失败", error.message],
-          });
-        },
-        onSuccess(v) {
-          app.tip({
-            text: ["删除成功"],
-          });
-          deletingConfirmDialog.hide();
-          historyList.deleteItem((history) => {
-            if (history.id === cur.value?.id) {
-              return true;
-            }
-            return false;
-          });
-          cur.clear();
-        },
-      })
-  );
-  const deletingConfirmDialog = useInstance(
-    () =>
-      new DialogCore({
-        onOk() {
-          if (!cur.value) {
-            return;
-          }
-          deletingRequest.run({ history_id: cur.value.id });
-        },
-      })
-  );
-  const cur = useInstance(() => new RefCore<PlayHistoryItem>());
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-        async onPullToRefresh() {
-          await historyList.refresh();
-          scrollView.finishPullToRefresh();
-        },
-        async onReachBottom() {
-          await historyList.loadMore();
-          scrollView.finishLoadingMore();
-        },
-      })
-  );
-  const thumbnail = useInstance(
-    () =>
-      new ImageInListCore({
-        scale: 1.38,
-      })
-  );
-  const affix = useInstance(() => new AffixCore({ top: 0 }));
+  const $page = useInstance(() => Page(props));
 
-  const [response, setResponse] = useState(historyList.response);
+  const [response, setResponse] = useState($page.$historyList.response);
 
   useInitialize(() => {
     // console.log("[PAGE]history - useInitialize");
-    historyList.onStateChange((nextResponse) => {
-      console.log(nextResponse);
-      setResponse(nextResponse);
-    });
-    historyList.init();
+    $page.$historyList.onStateChange((v) => setResponse(v));
+    $page.$historyList.init();
   });
 
   const { dataSource } = response;
 
   return (
     <>
-      <Affix store={affix} className="z-50 w-full bg-w-bg-0">
+      <Affix store={$page.ui.$affix} className="z-50 w-full bg-w-bg-0">
         <div className="z-100 flex items-center justify-between w-full p-4">
           <div className="flex items-center cursor-pointer">
             <div
@@ -124,9 +120,9 @@ export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) 
           </div>
         </div>
       </Affix>
-      <ScrollView className="h-full bg-w-bg-3" store={scrollView}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
-          store={historyList}
+          store={$page.$historyList}
           className="grid grid-cols-2 gap-2 px-3 md:grid-cols-4 xl:grid-cols-6 pt-4"
           skeleton={
             <>
@@ -166,7 +162,7 @@ export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) 
                   <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
                     <LazyImage
                       className="w-full h-full object-cover"
-                      store={thumbnail.bind(thumbnail_path)}
+                      store={$page.ui.$thumbnail.bind(thumbnail_path)}
                       alt={name}
                     />
                   </div>
@@ -192,7 +188,7 @@ export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) 
           })}
         </ListView>
       </ScrollView>
-      <Dialog store={deletingConfirmDialog}>
+      <Dialog store={$page.ui.$deletingDialog}>
         <div>确认删除吗？</div>
       </Dialog>
     </>

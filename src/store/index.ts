@@ -1,10 +1,11 @@
 import { fetchInfo, fetchNotifications, fetchNotificationsProcess } from "@/services/index";
 import { Application } from "@/domains/app/index";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { ListCore } from "@/domains/list";
 import { NavigatorCore } from "@/domains/navigator/index";
 import { RouteViewCore } from "@/domains/route_view/index";
 import { HistoryCore } from "@/domains/history/index";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore, onCreate } from "@/domains/request";
+import { onCreateGetPayload, onCreatePostPayload } from "@/domains/request/utils";
 import { ImageCore } from "@/domains/ui/image";
 import { Result } from "@/types/index";
 
@@ -13,8 +14,33 @@ import { user } from "./user";
 import { storage } from "./storage";
 import { PageKeys, RouteConfig, routes } from "./routes";
 
-NavigatorCore.prefix = "/mobile";
+NavigatorCore.prefix = import.meta.env.BASE_URL;
 ImageCore.setPrefix(window.location.origin);
+
+function media_response_format<T>(r: Result<{ code: number | string; msg: string; data: T }>) {
+  if (r.error) {
+    return Result.Err(r.error.message);
+  }
+  const { code, msg, data } = r.data;
+  if (code !== 0) {
+    return Result.Err(msg, code, data);
+  }
+  return Result.Ok(data);
+}
+onCreatePostPayload((payload) => {
+  payload.process = media_response_format;
+});
+onCreateGetPayload((payload) => {
+  payload.process = media_response_format;
+});
+onCreate((ins) => {
+  ins.onFailed((e) => {
+    app.tip({
+      text: [e.message],
+    });
+  });
+});
+
 const router = new NavigatorCore();
 const view = new RouteViewCore({
   name: "root" as PageKeys,
@@ -33,14 +59,14 @@ export const history = new HistoryCore<PageKeys, RouteConfig>({
     root: view,
   } as Record<PageKeys, RouteViewCore>,
 });
-export const app = new Application({
+export const app = new Application<{ storage: typeof storage.values }>({
   user,
+  storage,
   async beforeReady() {
     await user.validate(router.query);
     return Result.Ok(null);
   },
 });
-
 user.onLogin((profile) => {
   client.appendHeaders({
     Authorization: user.token,
@@ -56,7 +82,7 @@ user.onExpired(() => {
   app.tip({
     text: ["token 已过期，请重新登录"],
   });
-  // router.replace("/login");
+  history.push("root.login");
 });
 user.onTip((msg) => {
   app.tip(msg);
@@ -65,9 +91,8 @@ user.onNeedUpdate(() => {
   app.tipUpdate();
 });
 
-export const messageList = new ListCoreV2(
-  new RequestCoreV2({
-    fetch: fetchNotifications,
+export const messageList = new ListCore(
+  new RequestCore(fetchNotifications, {
     process: fetchNotificationsProcess,
     client: client,
   }),
@@ -77,12 +102,8 @@ export const messageList = new ListCoreV2(
     },
   }
 );
-export const infoRequest = new RequestCoreV2({
-  fetch: fetchInfo,
-  client: client,
-});
 
-ListCoreV2.commonProcessor = <T>(
+ListCore.commonProcessor = <T>(
   originalResponse: any
 ): {
   dataSource: T[];

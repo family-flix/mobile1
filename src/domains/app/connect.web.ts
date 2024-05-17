@@ -1,6 +1,9 @@
 import { Application, MEDIA } from "@/domains/app";
+import { Result } from "@/types/index";
 
-export function connect(app: Application) {
+import { ThemeTypes } from "./types";
+
+export function connect<T extends { storage: Record<string, unknown> }>(app: Application<T>) {
   const ownerDocument = globalThis.document;
   app.getComputedStyle = (el: HTMLElement) => {
     return window.getComputedStyle(el);
@@ -82,7 +85,7 @@ export function connect(app: Application) {
     const systemTheme = isDark ? "dark" : "light";
     curTheme = systemTheme;
     app.theme = systemTheme;
-    return systemTheme;
+    return Result.Ok(systemTheme);
   };
   media.addListener(getSystemTheme);
   let attribute = "data-theme";
@@ -90,7 +93,7 @@ export function connect(app: Application) {
   const defaultThemes = ["light", "dark"];
   const colorSchemes = ["light", "dark"];
   const attrs = defaultThemes;
-  app.applyTheme = () => {
+  app.applyTheme = (theme: ThemeTypes) => {
     const d = document.documentElement;
     const name = curTheme;
     if (attribute === "class") {
@@ -107,8 +110,14 @@ export function connect(app: Application) {
     const colorScheme = colorSchemes.includes(curTheme) ? curTheme : fallback;
     // @ts-ignore
     d.style.colorScheme = colorScheme;
+    return Result.Ok(null);
   };
   app.getSystemTheme = getSystemTheme;
+  app.setTheme = (theme: ThemeTypes) => {
+    app.theme = theme;
+    app.emit(app.Events.StateChange, { ...app.state });
+    app.$storage.set("theme", theme);
+  };
   const { availHeight, availWidth } = window.screen;
   if (window.navigator.userAgent.match(/iphone/i)) {
     const matched = [

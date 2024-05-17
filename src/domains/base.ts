@@ -28,7 +28,7 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
   debug: boolean = false;
 
   _emitter = mitt<BaseDomainEvents<Events>>();
-  listeners: (() => void)[] = [];
+  listeners: Record<string | number, (() => void)[]> = {};
 
   constructor(
     props: Partial<{
@@ -75,12 +75,21 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
   off<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
     this._emitter.off(event, handler);
   }
+  offEvent<Key extends keyof BaseDomainEvents<Events>>(k: Key) {
+    const listeners = this.listeners[k as string] || [];
+    for (let i = 0; i < listeners.length; i += 1) {
+      const off = listeners[i];
+      off();
+    }
+  }
   on<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
     const unlisten = () => {
-      this.listeners = this.listeners.filter((l) => l !== unlisten);
+      const listeners = this.listeners[event as string] || [];
+      this.listeners[event as string] = listeners.filter((l) => l !== unlisten);
       this.off(event, handler);
     };
-    this.listeners.push(unlisten);
+    const listeners = (this.listeners[event as string] || []) as (() => void)[];
+    listeners.push(unlisten);
     this._emitter.on(event, handler);
     return unlisten;
   }
@@ -96,10 +105,13 @@ export class BaseDomain<Events extends Record<EventType, unknown>> {
   /** 主动销毁所有的监听事件 */
   destroy() {
     // this.log(this.name, "destroy");
-    for (let i = 0; i < this.listeners.length; i += 1) {
-      const off = this.listeners[i];
-      off();
-    }
+    Object.keys(this.listeners).map((k) => {
+      const listeners = this.listeners[k as string] || [];
+      for (let i = 0; i < listeners.length; i += 1) {
+        const off = listeners[i];
+        off();
+      }
+    });
     this.emit(BaseEvents.Destroy);
   }
   onTip(handler: Handler<TheTypesOfBaseEvents[BaseEvents.Tip]>) {

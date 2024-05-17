@@ -8,22 +8,20 @@ import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { ListView, ScrollView } from "@/components/ui";
 import { fetchInvitationCodeList, createInvitationCode, InvitationCodeItem } from "@/services";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
 import { ScrollViewCore } from "@/domains/ui";
 import { cn } from "@/utils/index";
 
 function Page(props: ViewComponentProps) {
   const { app, history, client } = props;
 
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchInvitationCodeList,
+  const $list = new ListCore(
+    new RequestCore(fetchInvitationCodeList, {
       client,
     })
   );
-  const $create = new RequestCoreV2({
-    fetch: createInvitationCode,
+  const $create = new RequestCore(createInvitationCode, {
     client,
   });
   const $scroll = new ScrollViewCore({

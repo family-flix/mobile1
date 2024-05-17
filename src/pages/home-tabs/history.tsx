@@ -4,12 +4,13 @@
 import React, { useRef, useState } from "react";
 import { ArrowRightCircle, ArrowUp, Flashlight, MoreHorizontal, MoreVertical, Star } from "lucide-react";
 
-import { ViewComponent, ViewComponentProps, ViewComponentPropsWithMenu, ViewComponentWithMenu } from "@/store/types";
+import { ViewComponentPropsWithMenu, ViewComponentWithMenu } from "@/store/types";
 // import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { ListCore } from "@/domains/list";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
 import {
   PlayHistoryItem,
@@ -18,7 +19,6 @@ import {
   fetchPlayingHistoriesProcess,
 } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur";
-import { useInitialize, useInstance } from "@/hooks";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
@@ -36,9 +36,8 @@ function Page(props: ViewComponentPropsWithMenu) {
       $scroll.finishLoadingMore();
     },
   });
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchPlayingHistories,
+  const $list = new ListCore(
+    new RequestCore(fetchPlayingHistories, {
       process: fetchPlayingHistoriesProcess,
       client,
     }),
@@ -55,9 +54,8 @@ function Page(props: ViewComponentPropsWithMenu) {
       $deletingRequest.run({ history_id: $cur.value.id });
     },
   });
-  const $deletingRequest = new RequestCoreV2({
+  const $deletingRequest = new RequestCore(deleteHistory, {
     client,
-    fetch: deleteHistory,
     onLoading(loading) {
       $deletingConfirmDialog.okBtn.setLoading(loading);
     },
@@ -88,18 +86,10 @@ function Page(props: ViewComponentPropsWithMenu) {
       }
       const { type, media_id } = record;
       if (type === MediaTypes.Season) {
-        // seasonPlayingPageV2.query = {
-        //   id: media_id,
-        // };
-        // app.showView(seasonPlayingPageV2);
         history.push("root.season_playing", { id: media_id });
         return;
       }
       if (type === MediaTypes.Movie) {
-        // moviePlayingPageV2.query = {
-        //   id: media_id,
-        // };
-        // app.showView(moviePlayingPageV2);
         history.push("root.movie_playing", { id: media_id });
         return;
       }
@@ -120,6 +110,9 @@ function Page(props: ViewComponentPropsWithMenu) {
       $poster,
       $thumbnail,
       $card,
+    },
+    ready() {
+      $list.init();
     },
   };
 }
@@ -155,14 +148,9 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
       showTipRef.current = nextShowTip;
       setShowTip(nextShowTip);
     });
-    // console.log("[PAGE]history - useInitialize");
-    $page.$list.onStateChange((nextResponse) => {
-      setResponse(nextResponse);
-    });
-    $page.$list.init();
+    $page.$list.onStateChange((v) => setResponse(v));
+    $page.ready();
   });
-
-  const { dataSource } = response;
 
   return (
     <>
@@ -193,27 +181,10 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
             </>
           }
         >
-          {dataSource.map((record) => {
-            const {
-              id,
-              type,
-              name,
-              percent,
-              media_id,
-              episodeText,
-              episodeCountText,
-              posterPath,
-              updated,
-              hasUpdate,
-              airDate,
-              thumbnail_path,
-            } = record;
+          {response.dataSource.map((record) => {
+            const { id, name, percent, episodeText, episodeCountText, updated, hasUpdate, thumbnail_path } = record;
             return (
-              <div
-                key={id}
-                // store={historyCard.bind(record)}
-                className="relative flex w-full cursor-pointer select-none"
-              >
+              <div key={id} className="relative flex w-full cursor-pointer select-none">
                 <div
                   key={id}
                   className="relative w-full bg-w-bg-2 rounded-lg"

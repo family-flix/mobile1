@@ -30,8 +30,8 @@ import {
   ImageInListCore,
   NodeCore,
 } from "@/domains/ui";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
 import { TVSourceOptions, TVGenresOptions, MediaTypes, CollectionTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
@@ -54,7 +54,8 @@ function Page(props: ViewComponentProps) {
       $scroll.finishLoadingMore();
     },
   });
-  const $list = new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
+  const $scroll2 = new ScrollViewCore({ os: app.env });
+  const $list = new ListCore(new RequestCore(fetchMediaList, { process: fetchMediaListProcess, client }), {
     pageSize: 20,
     beforeSearch() {
       $search.setLoading(true);
@@ -63,7 +64,7 @@ function Page(props: ViewComponentProps) {
       $search.setLoading(false);
     },
   });
-  const $rank = new RequestCoreV2({ fetch: fetchMediaRanks, process: fetchMediaRanksProcess, client });
+  const $rank = new RequestCore(fetchMediaRanks, { process: fetchMediaRanksProcess, client });
   const $search = new InputCore({
     placeholder: "请输入关键字搜索",
     autoFocus: true,
@@ -147,6 +148,7 @@ function Page(props: ViewComponentProps) {
     $mediaRequest2,
     ui: {
       $scroll,
+      $scroll2,
       $search,
       $poster,
       $settings,
@@ -235,7 +237,11 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
       {(() => {
         if (showPlaceholder) {
           return (
-            <div className="absolute inset-0 box-border text-w-fg-1" style={{ top: height }}>
+            <ScrollView
+              store={$page.ui.$scroll2}
+              className="absolute bottom-0 left-0 w-full text-w-fg-1"
+              style={{ top: height }}
+            >
               <div className="relative p-4">
                 <div className="flex items-center justify-between">
                   <div className="">搜索历史</div>
@@ -264,14 +270,6 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                     );
                   })}
                 </div>
-                {/* <div
-                  className="flex items-center justify-center absolute right-6 bottom-6 w-6 h-6 rounded-full bg-w-bg-3 shadow-xl"
-                  onClick={() => {
-                    node.scrollTo({ top: node.rect.scrollHeight });
-                  }}
-                >
-                  <MoreHorizontal className="w-4 h-4 text-w-fg-2" />
-                </div> */}
               </div>
               {(() => {
                 if (rankResponse.response === null) {
@@ -344,13 +342,13 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                   </div>
                 );
               })()}
-            </div>
+            </ScrollView>
           );
         }
         return (
           <ScrollView
             store={$page.ui.$scroll}
-            className="absolute inset-0 box-border text-w-fg-1"
+            className="absolute bottom-0 left-0 w-full text-w-fg-1"
             style={{ top: height }}
           >
             <ListView
@@ -361,6 +359,17 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                   <Button store={$page.ui.$mediaRequestBtn} variant="subtle">
                     提交想看的影视剧
                   </Button>
+                </div>
+              }
+              extraNoMore={
+                <div
+                  className="mt-2 text-center"
+                  onClick={() => {
+                    $page.$mediaRequest.input.change($page.ui.$search.value);
+                    $page.$mediaRequest.dialog.show();
+                  }}
+                >
+                  没有找到想看的？点击反馈
                 </div>
               }
             >
@@ -375,26 +384,19 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                     genres,
                     air_date,
                     poster_path = "",
+                    full,
                     actors,
                   } = season;
                   return (
                     <div
                       key={id}
-                      className="flex px-3 mb-2 cursor-pointer"
+                      className="flex px-3 mb-4 cursor-pointer"
                       onClick={() => {
                         if (type === MediaTypes.Season) {
-                          // seasonPlayingPageV2.query = {
-                          //   id,
-                          // };
-                          // app.showView(seasonPlayingPageV2);
                           history.push("root.season_playing", { id });
                           return;
                         }
                         if (type === MediaTypes.Movie) {
-                          // moviePlayingPageV2.query = {
-                          //   id,
-                          // };
-                          // app.showView(moviePlayingPageV2);
                           history.push("root.movie_playing", { id });
                           return;
                         }
@@ -410,17 +412,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                           alt={name}
                         />
                         <div className="absolute top-2 left-2">
-                          <div className="relative z-20 py-[1px] px-[2px] border text-[12px] rounded-md text-w-bg-1 dark:border-w-fg-1 dark:text-w-fg-1">
-                            {(() => {
-                              if (type === MediaTypes.Season) {
-                                return "电视剧";
-                              }
-                              if (type === MediaTypes.Movie) {
-                                return "电影";
-                              }
-                              return null;
-                            })()}
-                          </div>
+                          <div className="relative z-20 py-[1px] px-[2px] border text-[12px] rounded-md text-w-bg-1 dark:border-w-fg-1 dark:text-w-fg-1"></div>
                         </div>
                         {episode_count_text && (
                           <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
@@ -431,20 +423,76 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                           </div>
                         )}
                       </div>
-                      <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                      <div className="flex-1 max-w-full overflow-hidden">
                         <div className="flex items-center">
                           <h2 className="text-xl text-w-fg-0">{name}</h2>
+                        </div>
+                        <div className="mt-2">
+                          {(() => {
+                            if (vote === null) {
+                              return null;
+                            }
+                            return (
+                              <div
+                                className={cn(
+                                  "relative",
+                                  vote <= 6 ? "text-gray-500" : vote >= 8 ? "text-orange-500" : "text-w-brand"
+                                )}
+                                style={{}}
+                              >
+                                <span className="italic tracking-tight font-mono text-lg">{vote}</span>
+                                <span className="relative ml-1 italic" style={{ top: -1, left: -2, fontSize: 10 }}>
+                                  分
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="flex items-center mt-1">
                           <div>{air_date}</div>
                           <p className="mx-2 ">·</p>
-                          <div className="relative flex items-center">
-                            <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
-                            <div className="pl-4">{vote}</div>
+                          <div className="flex items-center space-x-2">
+                            {episode_count_text ? (
+                              <div
+                                className={cn(
+                                  "relative flex items-center bg-gray-100 rounded-md dark:bg-gray-800",
+                                  full ? "bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-500" : ""
+                                )}
+                                style={{
+                                  padding: "2px 4px",
+                                  fontSize: 12,
+                                }}
+                              >
+                                {episode_count_text}
+                              </div>
+                            ) : null}
+                            <div
+                              className="relative flex items-center bg-orange-100 text-orange-600 rounded-md dark:bg-orange-800"
+                              style={{
+                                padding: "2px 4px",
+                                fontSize: 12,
+                              }}
+                            >
+                              {(() => {
+                                if (type === MediaTypes.Season) {
+                                  return "电视剧";
+                                }
+                                if (type === MediaTypes.Movie) {
+                                  return "电影";
+                                }
+                                return null;
+                              })()}
+                            </div>
                           </div>
                         </div>
                         {actors ? (
-                          <div className="mt-1 text-sm overflow-hidden text-ellipsis break-keep whitespace-nowrap">
+                          <div
+                            className={cn(
+                              "mt-1 text-sm rounded-md bg-blue-100 text-blue-600 overflow-hidden text-ellipsis break-keep whitespace-nowrap",
+                              "dark:text-blue-400 dark:bg-gray-900"
+                            )}
+                            style={{ padding: "2px 4px", fontSize: 12 }}
+                          >
                             {actors}
                           </div>
                         ) : null}

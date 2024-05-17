@@ -5,10 +5,6 @@ import { JSONObject } from "@/types";
 
 export type OriginalResponse = {
   list: unknown[];
-} & {
-  data: {
-    list: unknown[];
-  };
 };
 /**
  * 查询参数
@@ -136,3 +132,5 @@ export interface ListProps<T> {
   beforeSearch?: () => void;
   afterSearch?: () => void;
 }
+
+export type ItemTypeListCore<T extends { response: { dataSource: {}[] } }> = T["response"]["dataSource"][number];

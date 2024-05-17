@@ -6,18 +6,17 @@ import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
 function Page(props: ViewComponentProps) {
-  const { app, client } = props;
+  const { app, client, view } = props;
 
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchMediaList,
+  const $list = new ListCore(
+    new RequestCore(fetchMediaList, {
       process: fetchMediaListProcess,
       client,
     }),
@@ -54,6 +53,9 @@ function Page(props: ViewComponentProps) {
       $image,
       $mediaRequestBtn,
     },
+    ready() {
+      $list.init({ language: view.query.language });
+    },
   };
 }
 
@@ -63,31 +65,22 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
   const $page = useInstance(() => Page(props));
 
   const [response, setResponse] = useState($page.$list.response);
-  const { dataSource } = response;
 
   useInitialize(() => {
-    $page.$list.onStateChange((v) => {
-      setResponse(v);
-    });
-    // view.onHidden(() => {
-    //   console.log("[PAGE]home-tabs - view.onHidden");
-    // });
-    // view.onUnmounted(() => {
-    //   console.log("[PAGE]home-tabs - view.onUnmounted");
-    // });
-    $page.$list.init({ language: view.query.language });
+    $page.$list.onStateChange((v) => setResponse(v));
+    $page.ready();
   });
 
   return (
     <>
-      <ScrollView className="bg-w-bg-3" store={$page.ui.$scroll}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
           store={$page.$list}
           className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
           skeleton={
             <>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -97,7 +90,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                 </div>
               </div>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -117,7 +110,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
           }
         >
           {(() => {
-            return dataSource.map((season) => {
+            return response.dataSource.map((season) => {
               const {
                 id,
                 type,
@@ -148,7 +141,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                     });
                   }}
                 >
-                  <div className="relative w-[128px] h-[198px] mr-2 rounded-lg overflow-hidden">
+                  <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
                     <LazyImage
                       className="w-full h-full object-cover"
                       store={$page.ui.$image.bind(poster_path)}
@@ -209,7 +202,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                             style={{}}
                           >
                             <span className="italic tracking-tight font-mono text-lg">{vote}</span>
-                            <span className="ml-1 italic" style={{ fontSize: 12 }}>
+                            <span className="relative ml-1 italic" style={{ top: -1, left: -2, fontSize: 10 }}>
                               分
                             </span>
                           </div>

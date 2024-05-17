@@ -15,7 +15,7 @@ type TheTypesOfEvents = {
   [Events.ScrollToTop]: void;
 };
 type BottomMenuProps = {
-  app: Application;
+  app: Application<any>;
   icon: unknown;
   text: string;
   pathname: string;
@@ -28,7 +28,7 @@ type BottomMenuState = {
 };
 
 export class BottomMenuCore extends BaseDomain<TheTypesOfEvents> {
-  app: Application;
+  app: Application<any>;
   defaultIcon: unknown;
   defaultText: string;
   icon: unknown;

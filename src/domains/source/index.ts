@@ -5,7 +5,7 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { MediaOriginCountry } from "@/constants";
 import { Result } from "@/types";
@@ -81,8 +81,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
 
   /** 播放该电视剧下指定影片 */
   async load(file: { id: string }) {
-    const fetch = new RequestCoreV2({
-      fetch: fetchSourcePlayingInfo,
+    const fetch = new RequestCore(fetchSourcePlayingInfo, {
       process: fetchSourcePlayingInfoProcess,
       client: this.$client,
     });

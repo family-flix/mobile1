@@ -4,7 +4,10 @@
 
 import { BaseDomain, Handler } from "@/domains/base";
 import { UserCore } from "@/domains/user";
-import { JSONObject, Result } from "@/types";
+import { StorageCore } from "@/domains/storage/index";
+import { JSONObject, Result } from "@/types/index";
+
+import { ThemeTypes } from "./types";
 
 export enum OrientationTypes {
   Horizontal = "horizontal",
@@ -38,7 +41,6 @@ function getCurrentDeviceSize(width: number) {
 }
 export const MEDIA = "(prefers-color-scheme: dark)";
 type DeviceSizeTypes = keyof typeof mediaSizes;
-type ThemeTypes = "dark" | "light" | "system";
 
 enum Events {
   Tip,
@@ -87,8 +89,9 @@ type ApplicationState = {
   theme: ThemeTypes;
   deviceSize: DeviceSizeTypes;
 };
-type ApplicationProps = {
+type ApplicationProps<T extends { storage: Record<string, unknown> }> = {
   user: UserCore;
+  storage: StorageCore<T["storage"]>;
   // history: HistoryCore;
   /**
    * 应用加载前的声明周期，只有返回 Result.Ok() 页面才会展示内容
@@ -97,12 +100,13 @@ type ApplicationProps = {
   onReady?: () => void;
 };
 
-export class Application extends BaseDomain<TheTypesOfEvents> {
+export class Application<T extends { storage: Record<string, unknown> }> extends BaseDomain<TheTypesOfEvents> {
   /** 用户 */
   $user: UserCore;
+  $storage: StorageCore<T["storage"]>;
   // $history: HistoryCore;
 
-  lifetimes: Pick<ApplicationProps, "beforeReady" | "onReady">;
+  lifetimes: Pick<ApplicationProps<T>, "beforeReady" | "onReady">;
 
   ready = false;
   screen: {
@@ -141,12 +145,13 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(props: ApplicationProps) {
+  constructor(props: ApplicationProps<T>) {
     super();
 
-    const { user: user, beforeReady, onReady } = props;
+    const { user, storage, beforeReady, onReady } = props;
 
     this.$user = user;
+    this.$storage = storage;
 
     this.lifetimes = {
       beforeReady,
@@ -180,11 +185,28 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
     }
     // If theme is system, resolve it before setting theme
     if (theme === "system") {
-      resolved = this.getSystemTheme();
+      const r = this.getSystemTheme();
+      if (r.error) {
+        return;
+      }
+      resolved = r.data;
     }
   }
-  applyTheme() {
-    throw new Error("请在 connect.web 中实现 applyTheme 方法");
+  /** 应用指定主题 */
+  applyTheme(theme: ThemeTypes) {
+    const tip = "请在 connect.web 中实现 applyTheme 方法";
+    console.warn(tip);
+    return Result.Err(tip);
+  }
+  getTheme() {
+    const tip = "请在 connect.web 中实现 getTheme 方法";
+    console.warn(tip);
+    return Result.Err(tip);
+  }
+  getSystemTheme(e?: any): Result<string> {
+    const tip = "请在 connect.web 中实现 getSystemTheme 方法";
+    console.warn(tip);
+    return Result.Err(tip);
   }
   // push(...args: Parameters<HistoryCore["push"]>) {
   //   return this.$history.push(...args);
@@ -220,9 +242,6 @@ export class Application extends BaseDomain<TheTypesOfEvents> {
   }
   getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
     throw new Error("请实现 getComputedStyle 方法");
-  }
-  getSystemTheme(e?: any): string {
-    return "";
   }
   /** 发送推送 */
   notify(msg: { title: string; body: string }) {

@@ -1,7 +1,7 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
@@ -15,6 +15,7 @@ import {
   updateUserPwd,
   validateMemberToken,
 } from "./services";
+import { fetchInfo } from "@/services";
 
 export enum Events {
   Tip,
@@ -56,14 +57,16 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   unique_id = "UserCore";
   debug = false;
 
-  $client: HttpClientCore;
-
   id: string = "";
   username: string = "Anonymous";
   email: string = "";
   avatar: string = "";
   token: string = "";
   isLogin: boolean = false;
+  permissions: string[] = [];
+
+  $client: HttpClientCore;
+  $profile: RequestCore<typeof fetchInfo>;
 
   get state(): UserState {
     return {
@@ -91,6 +94,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
         Authorization: token,
       });
     }
+    this.$profile = new RequestCore(fetchInfo, {
+      client: this.$client,
+    });
   }
   logout() {
     this.username = "Anonymous";
@@ -105,8 +111,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
    */
   async validate(values: Record<string, string>) {
     const { token, force, tmp } = values;
-    const request = new RequestCoreV2({
-      fetch: validateMemberToken,
+    const request = new RequestCore(validateMemberToken, {
       client: this.$client,
     });
     const r = await request.run({ token });
@@ -143,8 +148,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    const request = new RequestCoreV2({
-      fetch: loginWithEmailAndPwd,
+    const request = new RequestCore(loginWithEmailAndPwd, {
       client: this.$client,
     });
     const r = await request.run({ email, pwd });
@@ -176,8 +180,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     // if (!code) {
     //   return Result.Err("请输入邀请码");
     // }
-    const request = new RequestCoreV2({
-      fetch: registerWithEmailAndPwd,
+    const request = new RequestCore(registerWithEmailAndPwd, {
       client: this.$client,
     });
     const r = await request.run({ email, pwd, code });
@@ -201,14 +204,15 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!this.isLogin) {
       return Result.Err("请先登录");
     }
-    const request = new RequestCoreV2({
-      fetch: fetchUserProfile,
-      client: this.$client,
-    });
-    const r = await request.run();
+    const r = await this.$profile.run();
     if (r.error) {
       return r;
     }
+    const { nickname, email, avatar, permissions } = r.data;
+    this.username = nickname;
+    this.email = email ?? "";
+    this.avatar = avatar ?? "";
+    this.permissions = permissions;
     return Result.Ok(r.data);
   }
   async updateEmail(values: { email: string }) {
@@ -216,8 +220,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!email) {
       return Result.Err("请输入邮箱");
     }
-    const $updateEmailRequest = new RequestCoreV2({
-      fetch: updateUserEmail,
+    const $updateEmailRequest = new RequestCore(updateUserEmail, {
       client: this.$client,
     });
     const r = await $updateEmailRequest.run({ email });
@@ -233,8 +236,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    const $updatePwdRequest = new RequestCoreV2({
-      fetch: updateUserPwd,
+    const $updatePwdRequest = new RequestCore(updateUserPwd, {
       client: this.$client,
     });
     const r = await $updatePwdRequest.run({ pwd });
@@ -243,6 +245,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     }
     this.emit(Events.Logout);
     return Result.Ok({});
+  }
+  hasPermission(key: string) {
+    return this.permissions.includes(key);
   }
 
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {

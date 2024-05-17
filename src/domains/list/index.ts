@@ -3,11 +3,13 @@
  */
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
-import { RequestedResource, Result } from "@/types";
+import { RequestPayload, UnpackedRequestPayload } from "@/domains/request/utils";
+import { debounce } from "@/utils/lodash/debounce";
+import { ListResponseWithCursor, Result, UnpackedResult } from "@/types/index";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
-import { omit } from "./utils";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";
+import { omit } from "./utils";
 
 /**
  * 只处理
@@ -37,12 +39,7 @@ const RESPONSE_PROCESSOR = <T>(
     };
   }
   try {
-    const data = (() => {
-      if (originalResponse.data) {
-        return originalResponse.data;
-      }
-      return originalResponse;
-    })();
+    const data = originalResponse;
     const {
       list,
       page = 1,
@@ -106,7 +103,7 @@ enum Events {
 type TheTypesOfEvents<T> = {
   [Events.LoadingChange]: boolean;
   [Events.BeforeSearch]: void;
-  [Events.AfterSearch]: void;
+  [Events.AfterSearch]: { params: Search };
   [Events.ParamsChange]: FetchParams;
   [Events.DataSourceAdded]: unknown[];
   [Events.DataSourceChange]: T[];
@@ -120,8 +117,8 @@ interface ListState<T> extends Response<T> {}
  * 分页类
  */
 export class ListCore<
-  S extends (...args: any[]) => Promise<Result<any>>,
-  T extends RequestedResource<S>["list"][number]
+  S extends RequestCore<(...args: any[]) => RequestPayload<any>>,
+  T = NonNullable<S["response"]>["list"][number]
 > extends BaseDomain<TheTypesOfEvents<T>> {
   debug: boolean = false;
 
@@ -131,7 +128,7 @@ export class ListCore<
   static commonProcessor = RESPONSE_PROCESSOR;
 
   /** 原始请求方法 */
-  private originalFetch: RequestCore<S>;
+  private request: S;
   // private originalFetch: (...args: unknown[]) => Promise<OriginalResponse>;
   /** 支持请求前对参数进行处理（formToBody） */
   private beforeRequest: ParamsProcessor = (currentParams, prevParams) => {
@@ -148,7 +145,7 @@ export class ListCore<
   response: Response<T> = { ...DEFAULT_RESPONSE };
   rowKey: string;
 
-  constructor(fetch: RequestCore<S>, options: ListProps<T> = {}) {
+  constructor(fetch: S, options: ListProps<T> = {}) {
     super();
 
     if (!(fetch instanceof RequestCore)) {
@@ -168,7 +165,7 @@ export class ListCore<
     } = options;
     this.debug = !!debug;
     this.rowKey = rowKey;
-    this.originalFetch = fetch;
+    this.request = fetch;
     this.processor = (originalResponse): Response<T> => {
       const nextResponse = {
         ...this.response,
@@ -288,8 +285,8 @@ export class ListCore<
     if (processedParams === undefined) {
       processedParams = mergedParams;
     }
-    const processedArgs = [processedParams, ...restArgs] as Parameters<S>;
-    const res = await this.originalFetch.run(...processedArgs);
+    const processedArgs = [processedParams, ...restArgs] as Parameters<S["service"]>;
+    const res = await this.request.run(...processedArgs);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);
     if (this.response.initial) {
@@ -507,7 +504,7 @@ export class ListCore<
       ...this.initialParams,
       ...params,
     });
-    this.emit(Events.AfterSearch);
+    this.emit(Events.AfterSearch, { params });
     if (res.error) {
       this.tip({ icon: "error", text: [res.error.message] });
       this.response.error = res.error;
@@ -523,6 +520,9 @@ export class ListCore<
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
+  searchDebounce = debounce(800, (args: Search) => {
+    return this.search(args);
+  });
   /**
    * 使用初始参数请求一次，「重置」操作时调用该方法
    */
@@ -623,7 +623,7 @@ export class ListCore<
       nextDataSource.push(r);
     }
     this.response.dataSource = nextDataSource;
-    console.log("[DOMAIN]list/index - modifyItem", nextDataSource[0]);
+    // console.log("[DOMAIN]list/index - modifyItem", nextDataSource[0]);
     this.emit(Events.StateChange, { ...this.response });
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
   }
