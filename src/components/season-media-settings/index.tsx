@@ -12,15 +12,16 @@ import { Show } from "@/packages/ui/show";
 import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
 import { DynamicContent } from "@/components/dynamic-content";
 import { InviteeSelectCore } from "@/components/member-select/store";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { PlayerCore } from "@/domains/player";
 import { RefCore } from "@/domains/cur";
 import { MovieMediaCore } from "@/domains/media/movie";
 import { SeasonMediaCore } from "@/domains/media/season";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn, sleep } from "@/utils";
+import { RequestCore } from "@/domains/request";
+import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants/index";
+import { cn, sleep } from "@/utils/index";
+import { proxy, snapshot, subscribe } from "@/utils/valtio";
 
 enum MediaSettingsMenuKey {
   Resolution = 1,
@@ -57,194 +58,183 @@ const menus = [
   },
 ];
 
-export const SeasonMediaSettings = (props: {
-  store: SeasonMediaCore;
-  store2: PlayerCore;
-  app: ViewComponentProps["app"];
-  client: ViewComponentProps["client"];
-  storage: ViewComponentProps["storage"];
-  history: ViewComponentProps["history"];
-}) => {
-  const { store, app, client, history, storage, store2 } = props;
+function SeasonMediaSettingsComponent(
+  props: {
+    $media: SeasonMediaCore;
+    $player: PlayerCore;
+  } & Pick<ViewComponentProps, "app" | "client" | "storage" | "history">
+) {
+  const { $media, $player, app, client, history, storage } = props;
 
-  const memberTokenRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client,
-        fetch: fetchMemberToken,
-        onLoading(loading) {
-          inviteeSelect.submitBtn.setLoading(loading);
-        },
-        onSuccess(v) {
-          const { name, token } = v;
-          if (!store.profile) {
-            app.tip({
-              text: ["详情未加载"],
-            });
-            return;
-          }
-          const url = history.buildURLWithPrefix("root.season_playing", { id: store.profile.id, token, tmp: "1" });
-          shareDialog.show();
-          const message = `➤➤➤ ${name}
+  const state = proxy({
+    shareLink: "",
+  });
+
+  const memberTokenRequest = new RequestCore(fetchMemberToken, {
+    client,
+    onLoading(loading) {
+      inviteeSelect.submitBtn.setLoading(loading);
+    },
+    onSuccess(v) {
+      const { name, token } = v;
+      if (!$media.profile) {
+        app.tip({
+          text: ["详情未加载"],
+        });
+        return;
+      }
+      const url = history.buildURLWithPrefix("root.season_playing", { id: $media.profile.id, token, tmp: "1" });
+      shareDialog.show();
+      const message = `➤➤➤ ${name}
 ${history.$router.origin}${url}`;
-          setShareLink(message);
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["分享失败", error.message],
-          });
-        },
-      })
-  );
-  const reportRequest = useInstance(
-    () =>
-      new RequestCoreV2({
-        client: client,
-        fetch: reportSomething,
-        onLoading(loading) {
-          reportConfirmDialog.okBtn.setLoading(loading);
-        },
-        onSuccess() {
-          app.tip({
-            text: ["提交成功"],
-          });
-          reportConfirmDialog.hide();
-        },
-        onFailed(error) {
-          app.tip({
-            text: ["提交失败", error.message],
-          });
-        },
-      })
-  );
-  const wrap = useInstance(() => new NodeCore());
-  const sourceIcon = useInstance(
-    () =>
-      new DynamicContentInListCore({
-        value: 2,
-      })
-  );
-  const fileIcon = useInstance(
-    () =>
-      new DynamicContentInListCore({
-        value: 2,
-      })
-  );
-  const rateIcon = useInstance(
-    () =>
-      new DynamicContentInListCore({
-        value: 2,
-      })
-  );
-  const subtitleIcon = useInstance(() => new DynamicContentInListCore({ value: 2 }));
-  const $scroll = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-      })
-  );
-  const inviteeSelect = useInstance(
-    () =>
-      new InviteeSelectCore({
-        client,
-        onSelect(v) {
-          if (!store.profile) {
-            app.tip({
-              text: ["请选择要分享的影视剧"],
-            });
-            return;
-          }
-          shareDialog.show();
-          memberTokenRequest.run({
-            media_id: store.profile.id,
-            target_member_id: v.id,
-          });
-        },
-      })
-  );
-  const shareDialog = useInstance(
-    () =>
-      new DialogCore({
-        footer: false,
-      })
-  );
-  const curReport = useInstance(
-    () =>
-      new RefCore<string>({
-        onChange(v) {
-          setCurReportValue(v);
-        },
-      })
-  );
-  const reportConfirmDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "发现问题",
-        onOk() {
-          if (!store.profile) {
-            app.tip({
-              text: ["影视剧信息还未加载"],
-            });
-            return;
-          }
-          if (!curReport.value) {
-            app.tip({
-              text: ["请先选择问题"],
-            });
-            return;
-          }
-          reportRequest.run({
-            type: ReportTypes.Season,
-            data: curReport.value,
-            media_id: store.profile.id,
-            media_source_id: store.curSource?.id,
-          });
-        },
-      })
-  );
+      state.shareLink = message;
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["分享失败", error.message],
+      });
+    },
+  });
+  const reportRequest = new RequestCore(reportSomething, {
+    client,
+    onLoading(loading) {
+      reportConfirmDialog.okBtn.setLoading(loading);
+    },
+    onSuccess() {
+      app.tip({
+        text: ["提交成功"],
+      });
+      reportConfirmDialog.hide();
+    },
+    onFailed(error) {
+      app.tip({
+        text: ["提交失败", error.message],
+      });
+    },
+  });
+  const wrap = new NodeCore();
+  const sourceIcon = new DynamicContentInListCore({
+    value: 2,
+  });
+  const fileIcon = new DynamicContentInListCore({
+    value: 2,
+  });
+  const rateIcon = new DynamicContentInListCore({
+    value: 2,
+  });
+  const subtitleIcon = new DynamicContentInListCore({ value: 2 });
+  const $scroll = new ScrollViewCore({
+    os: app.env,
+    async onPullToRefresh() {
+      await inviteeSelect.$list.refresh();
+      $scroll.finishPullToRefresh();
+    },
+  });
+  const inviteeSelect = new InviteeSelectCore({
+    client,
+    onSelect(v) {
+      if (!$media.profile) {
+        app.tip({
+          text: ["请选择要分享的影视剧"],
+        });
+        return;
+      }
+      shareDialog.show();
+      memberTokenRequest.run({
+        media_id: $media.profile.id,
+        target_member_id: v.id,
+      });
+    },
+  });
+  const shareDialog = new DialogCore({
+    footer: false,
+  });
+  const curReport = new RefCore<string>({});
+  const reportConfirmDialog = new DialogCore({
+    title: "发现问题",
+    onOk() {
+      if (!$media.profile) {
+        app.tip({
+          text: ["影视剧信息还未加载"],
+        });
+        return;
+      }
+      if (!curReport.value) {
+        app.tip({
+          text: ["请先选择问题"],
+        });
+        return;
+      }
+      reportRequest.run({
+        type: ReportTypes.Season,
+        data: curReport.value,
+        media_id: $media.profile.id,
+        media_source_id: $media.curSource?.id,
+      });
+    },
+  });
+
+  return {
+    state,
+    inviteeSelect,
+    curReport,
+    reportRequest,
+    ui: {
+      $scroll,
+      wrap,
+      sourceIcon,
+      fileIcon,
+      rateIcon,
+      subtitleIcon,
+      reportConfirmDialog,
+      shareDialog,
+    },
+    subscribe,
+  };
+}
+
+export const SeasonMediaSettings = (
+  props: {
+    $media: SeasonMediaCore;
+    $player: PlayerCore;
+  } & Pick<ViewComponentProps, "app" | "client" | "storage" | "history">
+) => {
+  const { $media, $player, app, client, history, storage } = props;
+
+  const $com = useInstance(() => SeasonMediaSettingsComponent(props));
 
   const [menuIndex, setMenuIndex] = useState<MediaSettingsMenuKey>(MediaSettingsMenuKey.Resolution);
-  const [state, setState] = useState(store.state);
-  const [curSource, setCurSource] = useState(store.$source.profile);
-  const [playerState, setPlayerState] = useState(store2.state);
-  const [subtitle, setSubtitle] = useState(store.$source.subtitle);
-  const [rate, setRate] = useState(store2._curRate);
-  const [member, setMember] = useState(inviteeSelect.$list.response);
-  const [shareLink, setShareLink] = useState<string | null>(null);
-  const [curReportValue, setCurReportValue] = useState(curReport.value);
+  const [state, setState] = useState($media.state);
+  const [curSource, setCurSource] = useState($media.$source.profile);
+  const [playerState, setPlayerState] = useState($player.state);
+  const [subtitle, setSubtitle] = useState($media.$source.subtitle);
+  const [rate, setRate] = useState($player._curRate);
+  const [member, setMember] = useState($com.inviteeSelect.$list.response);
+  const [shareLink, setShareLink] = useState<string | null>($com.state.shareLink);
+  const [curReportValue, setCurReportValue] = useState($com.curReport.value);
 
   const showMenuContent = (index: MediaSettingsMenuKey) => {
     setMenuIndex(index);
-    wrap.setStyles(`transform: translate(-100%);`);
+    $com.ui.wrap.setStyles(`transform: translate(-100%);`);
   };
   const returnMainContent = () => {
-    wrap.setStyles(`transform: translate(0);`);
+    $com.ui.wrap.setStyles(`transform: translate(0);`);
   };
 
   useInitialize(() => {
-    store.onStateChange((v) => {
-      setState(v);
-    });
-    store.onSourceFileChange((v) => {
-      setCurSource(v);
-    });
-    store.$source.onSubtitleChange((v) => {
-      setSubtitle(v);
-    });
-    store2.onRateChange((v) => {
-      setRate(v.rate);
-    });
-    store2.onStateChange((v) => {
-      setPlayerState(v);
-    });
-    inviteeSelect.onResponseChange((v) => {
-      setMember(v);
-    });
+    $media.onStateChange((v) => setState(v));
+    $media.onSourceFileChange((v) => setCurSource(v));
+    $media.$source.onSubtitleChange((v) => setSubtitle(v));
+    $player.onRateChange((v) => setRate(v.rate));
+    $player.onStateChange((v) => setPlayerState(v));
+    $com.subscribe($com.state, (v) => setShareLink(snapshot($com.state).shareLink));
+    $com.curReport.onChange((v) => setCurReportValue(v));
+    $com.inviteeSelect.onResponseChange((v) => setMember(v));
   });
 
   return (
     <div className="overflow-hidden h-full">
-      <Node className="flex h-full transition-transform duration-500 ease-in-out" store={wrap}>
+      <Node className="flex h-full transition-transform duration-500 ease-in-out" store={$com.ui.wrap}>
         <div className="panel__home w-full flex-shrink-0">
           <div className="space-x-2 px-4">
             <div className="flex items-center mt-2 h-12">
@@ -293,8 +283,8 @@ ${history.$router.origin}${url}`;
                   className="px-4"
                   onClick={(event) => {
                     event.stopPropagation();
-                    store2.toggleSubtitleVisible();
-                    store.$source.toggleSubtitleVisible();
+                    $player.toggleSubtitleVisible();
+                    $media.$source.toggleSubtitleVisible();
                   }}
                 >
                   {(() => {
@@ -336,7 +326,7 @@ ${history.$router.origin}${url}`;
               className="flex items-center justify-between py-2 px-4"
               onClick={() => {
                 showMenuContent(MediaSettingsMenuKey.Share);
-                inviteeSelect.$list.init();
+                $com.inviteeSelect.$list.init();
               }}
             >
               <div>分享</div>
@@ -408,7 +398,7 @@ ${history.$router.origin}${url}`;
             ) : null} */}
           </div>
           <div className="h-[1px] bg-w-bg-1" />
-          <ScrollView className="absolute inset-0 h-auto top-16 bottom-0" store={$scroll}>
+          <ScrollView className="absolute top-16 bottom-0 left-0 w-full h-auto" store={$com.ui.$scroll}>
             {(() => {
               if (menuIndex === MediaSettingsMenuKey.Resolution) {
                 return (
@@ -438,15 +428,15 @@ ${history.$router.origin}${url}`;
                                     curTypeText === typeText ? "bg-w-bg-active" : ""
                                   )}
                                   onClick={async () => {
-                                    sourceIcon.select(type);
-                                    sourceIcon.set(3);
-                                    const result = await store.changeResolution(type);
+                                    $com.ui.sourceIcon.select(type);
+                                    $com.ui.sourceIcon.set(3);
+                                    const result = await $media.changeResolution(type);
                                     if (result.error) {
-                                      sourceIcon.set(5);
+                                      $com.ui.sourceIcon.set(5);
                                       return;
                                     }
-                                    sourceIcon.set(2);
-                                    sourceIcon.clear();
+                                    $com.ui.sourceIcon.set(2);
+                                    $com.ui.sourceIcon.clear();
                                     storage.merge("player_settings", {
                                       type,
                                     });
@@ -455,7 +445,7 @@ ${history.$router.origin}${url}`;
                                   <div>{typeText}</div>
                                   <DynamicContent
                                     className="ml-4"
-                                    store={sourceIcon.bind(type)}
+                                    store={$com.ui.sourceIcon.bind(type)}
                                     options={[
                                       {
                                         value: 1,
@@ -535,22 +525,22 @@ ${history.$router.origin}${url}`;
                                     if (curSource?.id === id) {
                                       return;
                                     }
-                                    fileIcon.select(id);
-                                    fileIcon.set(3);
-                                    const result = await store.changeSourceFile(s);
+                                    $com.ui.fileIcon.select(id);
+                                    $com.ui.fileIcon.set(3);
+                                    const result = await $media.changeSourceFile(s);
                                     if (result.error) {
-                                      sourceIcon.set(5);
-                                      fileIcon.clear();
+                                      $com.ui.fileIcon.set(5);
+                                      $com.ui.fileIcon.clear();
                                       return;
                                     }
-                                    fileIcon.set(2);
-                                    fileIcon.clear();
+                                    $com.ui.fileIcon.set(2);
+                                    $com.ui.fileIcon.clear();
                                   }}
                                 >
                                   <div className="break-all">{name}</div>
                                   <DynamicContent
                                     className="ml-4"
-                                    store={fileIcon.bind(id)}
+                                    store={$com.ui.fileIcon.bind(id)}
                                     options={[
                                       {
                                         value: 1,
@@ -613,10 +603,10 @@ ${history.$router.origin}${url}`;
                                     rate === rateOpt ? "bg-w-bg-active" : ""
                                   )}
                                   onClick={() => {
-                                    rateIcon.select(rateOpt);
-                                    rateIcon.set(2);
-                                    store2.changeRate(rateOpt);
-                                    rateIcon.clear();
+                                    $com.ui.rateIcon.select(rateOpt);
+                                    $com.ui.rateIcon.set(2);
+                                    $player.changeRate(rateOpt);
+                                    $com.ui.rateIcon.clear();
                                     storage.merge("player_settings", {
                                       rate: rateOpt,
                                     });
@@ -625,7 +615,7 @@ ${history.$router.origin}${url}`;
                                   <div className="break-all">{rateOpt}x</div>
                                   <DynamicContent
                                     className="ml-4"
-                                    store={rateIcon.bind(rateOpt)}
+                                    store={$com.ui.rateIcon.bind(rateOpt)}
                                     options={[
                                       {
                                         value: 1,
@@ -665,7 +655,7 @@ ${history.$router.origin}${url}`;
                       return (
                         <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                           <div className="pb-24">
-                            {store.$source.subtitles.map((sub, i) => {
+                            {$media.$source.subtitles.map((sub, i) => {
                               return (
                                 <div
                                   key={i}
@@ -674,22 +664,22 @@ ${history.$router.origin}${url}`;
                                     sub.url === subtitle?.url ? "bg-w-bg-active" : ""
                                   )}
                                   onClick={async () => {
-                                    subtitleIcon.select(sub.id);
-                                    subtitleIcon.set(3);
-                                    const r = await store.$source.loadSubtitleFile(sub, store.currentTime);
+                                    $com.ui.subtitleIcon.select(sub.id);
+                                    $com.ui.subtitleIcon.set(3);
+                                    const r = await $media.$source.loadSubtitleFile(sub, $media.currentTime);
                                     if (r.error) {
-                                      subtitleIcon.set(5);
-                                      subtitleIcon.clear();
+                                      $com.ui.subtitleIcon.set(5);
+                                      $com.ui.subtitleIcon.clear();
                                       return;
                                     }
-                                    subtitleIcon.set(4);
-                                    subtitleIcon.clear();
+                                    $com.ui.subtitleIcon.set(4);
+                                    $com.ui.subtitleIcon.clear();
                                   }}
                                 >
                                   <div className="w-full break-all truncate">{sub.language.join("&")}</div>
                                   <DynamicContent
                                     className="ml-4"
-                                    store={subtitleIcon.bind(sub.id)}
+                                    store={$com.ui.subtitleIcon.bind(sub.id)}
                                     options={[
                                       {
                                         value: 1,
@@ -734,12 +724,12 @@ ${history.$router.origin}${url}`;
                   <div>
                     {(() => {
                       return (
-                        <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
+                        <div className="max-h-full overflow-y-auto text-w-fg-1">
                           <div className="pb-24">
                             <ListView
                               wrapClassName="flex-1 overflow-y-auto"
                               className="max-h-full flex flex-col h-full"
-                              store={inviteeSelect.$list}
+                              store={$com.inviteeSelect.$list}
                               skeleton={
                                 <div className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer">
                                   <div className="w-8 h-8 bg-slate-300 rounded-full">
@@ -759,7 +749,7 @@ ${history.$router.origin}${url}`;
                                       key={id}
                                       className="flex items-center justify-between space-x-2 p-4 rounded-md cursor-pointer"
                                       onClick={() => {
-                                        inviteeSelect.select(member);
+                                        $com.inviteeSelect.select(member);
                                       }}
                                     >
                                       <div className="flex items-center justify-between bg-slate-300 rounded-full">
@@ -795,8 +785,8 @@ ${history.$router.origin}${url}`;
                                   key={i}
                                   className="flex items-center justify-between p-4 rounded-md cursor-pointer"
                                   onClick={() => {
-                                    curReport.select(question);
-                                    reportConfirmDialog.show();
+                                    $com.curReport.select(question);
+                                    $com.ui.reportConfirmDialog.show();
                                   }}
                                 >
                                   <div>{question}</div>
@@ -814,7 +804,7 @@ ${history.$router.origin}${url}`;
           </ScrollView>
         </div>
       </Node>
-      <Dialog store={shareDialog}>
+      <Dialog store={$com.ui.shareDialog}>
         <div
           className="relative w-full h-[160px]"
           onClick={() => {
@@ -825,7 +815,7 @@ ${history.$router.origin}${url}`;
             app.tip({
               text: ["已复制至粘贴板"],
             });
-            shareDialog.hide();
+            $com.ui.shareDialog.hide();
           }}
         >
           {(() => {
@@ -847,7 +837,7 @@ ${history.$router.origin}${url}`;
           })()}
         </div>
       </Dialog>
-      <Dialog store={reportConfirmDialog}>
+      <Dialog store={$com.ui.reportConfirmDialog}>
         <div className="text-w-fg-1">
           <p>提交你发现的该电视剧的问题</p>
           <p className="mt-2 text-xl">「{curReportValue}」</p>

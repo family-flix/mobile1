@@ -9,6 +9,7 @@ enum Events {
   Change,
 }
 type TheTypesOfEvents<T> = {
+  [Events.Change]: T;
   [Events.StateChange]: T;
 };
 type RefProps<T> = {
@@ -31,13 +32,14 @@ export class RefCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
       this.value = value;
     }
     if (onChange) {
-      this.onStateChange(onChange);
+      this.onChange(onChange);
     }
   }
 
   /** 暂存一个值 */
   select(value: T) {
     this.value = value;
+    this.emit(Events.Change);
     this.emit(Events.StateChange, this.value);
   }
   patch(value: Partial<T>) {
@@ -45,6 +47,7 @@ export class RefCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
       ...this.value,
       ...value,
     } as T;
+    this.emit(Events.Change);
     this.emit(Events.StateChange, this.value);
   }
   /** 暂存的值是否为空 */
@@ -55,10 +58,14 @@ export class RefCore<T> extends BaseDomain<TheTypesOfEvents<T>> {
   clear() {
     // const v = this.value;
     this.value = null;
+    this.emit(Events.Change);
     this.emit(Events.StateChange);
     // return v;
   }
 
+  onChange(handler: Handler<TheTypesOfEvents<T>[Events.Change]>) {
+    return this.on(Events.Change, handler);
+  }
   onStateChange(handler: Handler<TheTypesOfEvents<T>[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
   }

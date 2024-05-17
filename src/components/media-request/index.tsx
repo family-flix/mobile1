@@ -1,7 +1,7 @@
 import { ReportTypes } from "@/constants";
 import { BaseDomain } from "@/domains/base";
 import { HttpClientCore } from "@/domains/http_client";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { DialogCore, InputCore } from "@/domains/ui";
 import { reportSomething } from "@/services";
 
@@ -22,9 +22,8 @@ export class MediaRequestCore extends BaseDomain<TheTypesOfEvents> {
 
     const { client } = props;
 
-    const fetch = new RequestCoreV2({
+    const fetch = new RequestCore(reportSomething, {
       client,
-      fetch: reportSomething,
       onLoading(loading) {
         dialog.okBtn.setLoading(loading);
       },

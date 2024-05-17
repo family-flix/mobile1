@@ -24,15 +24,14 @@ import { getSystemTheme, useTheme } from "@/components/theme-switch";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { ReportTypes, __VERSION__ } from "@/constants/index";
 
 function Page(props: ViewComponentProps) {
   const { app, client } = props;
 
-  const $requireRequest = new RequestCoreV2({
+  const $requireRequest = new RequestCore(reportSomething, {
     client,
-    fetch: reportSomething,
     onLoading(loading) {
       if ($reportDialog.open) {
         $reportDialog.okBtn.setLoading(loading);
@@ -41,7 +40,7 @@ function Page(props: ViewComponentProps) {
         $reportDialog.okBtn.setLoading(loading);
       }
     },
-    onSuccess() {
+    onSuccess(r) {
       app.tip({
         text: ["提交成功"],
       });
@@ -52,15 +51,9 @@ function Page(props: ViewComponentProps) {
         $requireDialog.hide();
       }
     },
-    onFailed(error) {
-      app.tip({
-        text: ["提交失败", error.message],
-      });
-    },
   });
   const $scroll = new ScrollViewCore({
     os: app.env,
-    needHideIndicator: true,
   });
   const $avatar = new ImageCore(app.$user.avatar);
   const $tip = new DialogCore({
@@ -301,7 +294,7 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
               >
                 <div className="flex items-center">
                   <div className="p-4">
-                    {loading ? <Loader className="w-5 h-5" /> : <HelpingHand className="w-5 h-5" />}
+                    {loading ? <Loader className="w-5 h-5 animate-spin" /> : <HelpingHand className="w-5 h-5" />}
                   </div>
                   <div className="flex-1 py-4">
                     <div>邀请好友</div>

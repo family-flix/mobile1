@@ -5,10 +5,6 @@ import { JSONObject } from "@/types";
 
 export type OriginalResponse = {
   list: unknown[];
-} & {
-  data: {
-    list: unknown[];
-  };
 };
 /**
  * 查询参数

@@ -3,7 +3,7 @@
  */
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaSourceFileCore } from "@/domains/source";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { debounce } from "@/utils/lodash/debounce";
@@ -118,8 +118,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少季 id 参数"] });
       return Result.Err(msg);
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchMediaPlayingEpisode,
+    const fetch = new RequestCore(fetchMediaPlayingEpisode, {
       process: fetchMediaPlayingEpisodeProcess,
       client: this.$client,
     });
@@ -241,8 +240,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (!nextGroup) {
       return Result.Err("已经是最后一集了2");
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchSourceInGroup,
+    const fetch = new RequestCore(fetchSourceInGroup, {
       process: fetchSourceInGroupProcess,
       client: this.$client,
     });
@@ -298,8 +296,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(msg);
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchSourceInGroup,
+    const fetch = new RequestCore(fetchSourceInGroup, {
       process: fetchSourceInGroupProcess,
       client: this.$client,
     });
@@ -398,8 +395,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    const request = new RequestCoreV2({
-      fetch: updatePlayHistory,
+    const request = new RequestCore(updatePlayHistory, {
       client: this.$client,
     });
     request.run({

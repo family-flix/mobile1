@@ -10,7 +10,7 @@ import { readAllNotification, readNotification } from "@/services/index";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { ScrollView, LazyImage, ListView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { DynamicContent } from "@/components/dynamic-content";
 import { ItemTypeListCore } from "@/domains/list/typing";
 import { DynamicContentCore } from "@/domains/ui/dynamic-content";
@@ -25,12 +25,10 @@ enum MessageStatus {
 function Page(props: ViewComponentProps) {
   const { app, client, history } = props;
 
-  const $read = new RequestCoreV2({
-    fetch: readNotification,
+  const $read = new RequestCore(readNotification, {
     client,
   });
-  const $readAll = new RequestCoreV2({
-    fetch: readAllNotification,
+  const $readAll = new RequestCore(readAllNotification, {
     client,
   });
   const $step = new DynamicContentCore({
@@ -158,7 +156,7 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
           </div>
         </div>
       </div>
-      <ScrollView store={$page.ui.$scroll} className="absolute" style={{ top: height }}>
+      <ScrollView store={$page.ui.$scroll} className="absolute bottom-0 left-0 w-full" style={{ top: height }}>
         <div className="min-h-screen w-full px-4">
           <div className="overflow-hidden rounded-xl">
             <ListView store={messageList} className="divide-y divide-w-bg-0 dark:divide-gray-800">
@@ -172,23 +170,23 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
                       $page.readMsg(message);
                     }}
                   >
-                    <div className="break-all text-lg">{msg}</div>
+                    <div className="break-all">{msg}</div>
                     <div className="">
                       {(() => {
                         if (media) {
                           const { name, poster_path } = media;
                           return (
                             <div className="flex mt-2">
-                              <div className="relative w-[98px] h-[147px] mr-4">
+                              <div className="relative w-[49px] h-[74px] mr-2">
                                 <LazyImage
                                   className="w-full h-full rounded-lg object-cover"
                                   store={$page.ui.$poster.bind(poster_path)}
                                   alt={name}
                                 />
                               </div>
-                              <div className="mt-2 flex-1 max-w-full overflow-hidden">
+                              <div className="flex-1 max-w-full overflow-hidden">
                                 <div className="flex items-center">
-                                  <h2 className="text-xl">{name}</h2>
+                                  <h2 className="text-lg">{name}</h2>
                                 </div>
                               </div>
                             </div>

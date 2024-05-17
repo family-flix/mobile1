@@ -8,9 +8,9 @@ import { ViewComponentPropsWithMenu, ViewComponentWithMenu } from "@/store/types
 // import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks/index";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { ListCore } from "@/domains/list";
 import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
 import {
   PlayHistoryItem,
@@ -36,9 +36,8 @@ function Page(props: ViewComponentPropsWithMenu) {
       $scroll.finishLoadingMore();
     },
   });
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchPlayingHistories,
+  const $list = new ListCore(
+    new RequestCore(fetchPlayingHistories, {
       process: fetchPlayingHistoriesProcess,
       client,
     }),
@@ -55,9 +54,8 @@ function Page(props: ViewComponentPropsWithMenu) {
       $deletingRequest.run({ history_id: $cur.value.id });
     },
   });
-  const $deletingRequest = new RequestCoreV2({
+  const $deletingRequest = new RequestCore(deleteHistory, {
     client,
-    fetch: deleteHistory,
     onLoading(loading) {
       $deletingConfirmDialog.okBtn.setLoading(loading);
     },

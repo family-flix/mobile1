@@ -1,11 +1,4 @@
-// import { Response } from "@list-helper/core/typing";
-
-import { Application } from "@/domains/app";
-import { BottomMenuCore } from "@/domains/bottom_menu";
 import { BizError } from "@/domains/error";
-import { HttpClientCore } from "@/domains/http_client";
-import { NavigatorCore } from "@/domains/navigator";
-import { RouteViewCore } from "@/domains/route_view";
 
 export type Resp<T> = {
   data: T extends null ? null : T;
@@ -80,21 +73,6 @@ export type ListResponseWithCursor<T> = {
 
 export type RequestedResource<T extends (...args: any[]) => any> = UnpackedResult<Unpacked<ReturnType<T>>>;
 export type Shift<T extends any[]> = ((...args: T) => void) extends (arg1: any, ...rest: infer R) => void ? R : never;
-
-export type ViewComponent = (props: {
-  app: Application;
-  router: NavigatorCore;
-  client: HttpClientCore;
-  view: RouteViewCore;
-}) => React.ReactElement | null;
-
-export type ViewComponentWithMenu = (props: {
-  app: Application;
-  router: NavigatorCore;
-  client: HttpClientCore;
-  view: RouteViewCore;
-  menu?: BottomMenuCore;
-}) => React.ReactElement | null;
 
 export type Rect = {
   width: number;

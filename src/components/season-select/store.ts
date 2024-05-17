@@ -2,9 +2,10 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { SeasonItem, fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { HttpClientCore } from "@/domains/http_client";
+import { UnpackedResult } from "@/types";
 
 enum Events {
   StateChange,
@@ -33,8 +34,8 @@ export class TVSeasonSelectCore extends BaseDomain<TheTypesOfEvents> {
       this.searchBtn.click();
     },
   });
-  list: ListCoreV2<
-    RequestCoreV2<{ fetch: typeof fetchSeasonList; process: typeof fetchSeasonListProcess; client: HttpClientCore }>,
+  list: ListCore<
+    RequestCore<typeof fetchSeasonList, UnpackedResult<ReturnType<typeof fetchSeasonListProcess>>>,
     SeasonItem
   >;
   /** 搜索按钮 */
@@ -65,10 +66,9 @@ export class TVSeasonSelectCore extends BaseDomain<TheTypesOfEvents> {
     });
     this.okBtn = this.dialog.okBtn;
     this.cancelBtn = this.dialog.cancelBtn;
-    this.list = new ListCoreV2(
-      new RequestCoreV2({
+    this.list = new ListCore(
+      new RequestCore(fetchSeasonList, {
         client: this.client,
-        fetch: fetchSeasonList,
         process: fetchSeasonListProcess,
       }),
       {

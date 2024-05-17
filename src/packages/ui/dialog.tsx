@@ -12,11 +12,11 @@ import { cn } from "@/utils";
 import { Portal as PortalPrimitive } from "./portal";
 import { Show } from "./show";
 
-const Root = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
+const Root = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   return <>{props.children}</>;
-};
+});
 
-const Portal = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
+const Portal = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   const { store } = props;
 
   return (
@@ -26,9 +26,9 @@ const Portal = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLEleme
       </PortalPrimitive>
     </Presence>
   );
-};
+});
 
-const Overlay = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
+const Overlay = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLDivElement>) => {
   const { store } = props;
 
   const [state, setState] = useState(store.state);
@@ -48,34 +48,36 @@ const Overlay = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLDivE
       }}
     />
   );
-};
+});
 
-const Content = (
-  props: {
-    store: DialogCore;
-  } & React.AllHTMLAttributes<HTMLElement>
-) => {
-  const { store } = props;
-  const [state, setState] = useState(store.state);
+const Content = React.memo(
+  (
+    props: {
+      store: DialogCore;
+    } & React.AllHTMLAttributes<HTMLElement>
+  ) => {
+    const { store } = props;
+    const [state, setState] = useState(store.state);
 
-  useInitialize(() => {
-    store.onStateChange((nextState) => {
-      setState(nextState);
+    useInitialize(() => {
+      store.onStateChange((nextState) => {
+        setState(nextState);
+      });
     });
-  });
 
-  return (
-    <div className={cn(props.className)} data-state={getState(state.open)}>
-      {props.children}
-    </div>
-  );
-};
+    return (
+      <div className={cn(props.className)} data-state={getState(state.open)}>
+        {props.children}
+      </div>
+    );
+  }
+);
 
-const Description = (props: {} & React.AllHTMLAttributes<HTMLElement>) => {
+const Description = React.memo((props: {} & React.AllHTMLAttributes<HTMLElement>) => {
   return <div className={props.className} {...props} />;
-};
+});
 
-const Close = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
+const Close = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElement>) => {
   const { store } = props;
   const [state, setState] = useState(store.state);
 
@@ -97,21 +99,21 @@ const Close = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLElemen
       <span className="sr-only">Close</span>
     </div>
   );
-};
+});
 
-const Header = (props: {} & React.AllHTMLAttributes<HTMLElement>) => {
+const Header = React.memo((props: {} & React.AllHTMLAttributes<HTMLElement>) => {
   return <div className={cn(props.className)}>{props.children}</div>;
-};
+});
 
-const Footer = (props: {} & React.AllHTMLAttributes<HTMLDivElement>) => {
+const Footer = React.memo((props: {} & React.AllHTMLAttributes<HTMLDivElement>) => {
   return <div className={cn(props.className)}>{props.children}</div>;
-};
+});
 
-const Title = (props: {} & React.AllHTMLAttributes<HTMLElement>) => {
+const Title = React.memo((props: {} & React.AllHTMLAttributes<HTMLElement>) => {
   return <div className={cn(props.className)}>{props.children}</div>;
-};
+});
 
-const Submit = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
+const Submit = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
   const { store } = props;
 
   return (
@@ -119,9 +121,9 @@ const Submit = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButto
       {props.children}
     </Button>
   );
-};
+});
 
-const Cancel = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
+const Cancel = React.memo((props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButtonElement>) => {
   const { store } = props;
 
   return (
@@ -129,7 +131,7 @@ const Cancel = (props: { store: DialogCore } & React.AllHTMLAttributes<HTMLButto
       {props.children}
     </Button>
   );
-};
+});
 
 function getState(open: boolean) {
   return open ? "open" : "closed";

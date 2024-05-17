@@ -4,8 +4,8 @@
 import { InviteeItem, fetchInviteeList } from "@/services";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
 import { HttpClientCore } from "@/domains/http_client";
 
@@ -49,7 +49,7 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
   // /** 弹窗取消按钮 */
   // cancelBtn: ButtonCore;
   /** 季列表 */
-  $list: ListCoreV2<RequestCoreV2<{ fetch: typeof fetchInviteeList; client: HttpClientCore }>, InviteeItem>;
+  $list: ListCore<RequestCore<typeof fetchInviteeList>, InviteeItem>;
   get response() {
     return this.$list.response;
   }
@@ -62,10 +62,9 @@ export class InviteeSelectCore extends BaseDomain<TheTypesOfEvents> {
 
     const { client, onSelect, onOk, onCancel } = props;
 
-    this.$list = new ListCoreV2(
-      new RequestCoreV2({
+    this.$list = new ListCore(
+      new RequestCore(fetchInviteeList, {
         client,
-        fetch: fetchInviteeList,
       }),
       {
         onLoadingChange: (loading) => {

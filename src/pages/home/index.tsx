@@ -16,8 +16,8 @@ import { TabHeader } from "@/components/ui/tab-header";
 import { TabHeaderCore } from "@/domains/ui/tab-header";
 import { ScrollViewCore, InputCore, DialogCore, ImageInListCore } from "@/domains/ui";
 import { AffixCore } from "@/domains/ui/affix";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaOriginCountry } from "@/constants/index";
 
@@ -123,9 +123,8 @@ function Page(props: ViewComponentProps) {
   });
   const $image = new ImageInListCore({});
   const $updatedMediaDialog = new DialogCore({ footer: false });
-  const $updatedMediaList = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchUpdatedMediaHasHistory,
+  const $updatedMediaList = new ListCore(
+    new RequestCore(fetchUpdatedMediaHasHistory, {
       process: fetchUpdatedMediaHasHistoryProcess,
       client,
     }),

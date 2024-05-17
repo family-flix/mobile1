@@ -63,7 +63,6 @@ export type ScrollViewProps = {
   // down: Partial<PullToDownOptions>;
   /** 下拉多少距离后刷新 */
   offset?: number;
-  needHideIndicator?: boolean;
   onScroll?: (pos: { scrollTop: number }) => void;
   onReachBottom?: () => void;
   onPullToRefresh?: () => void;
@@ -87,8 +86,6 @@ type ScrollViewCoreState = {
   step: PullToRefreshStep;
 };
 export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
-  /** 合并参数 */
-  version = "0.0.1";
   os: EnvNeeded = {
     android: true,
     ios: false,
@@ -188,13 +185,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  constructor(props: Partial<{ _name: string }> & ScrollViewProps) {
+  constructor(props: ScrollViewProps) {
     super(props);
 
     const {
       os,
       offset = 80,
-      needHideIndicator = false,
       onScroll,
       onReachBottom,
       onPullToRefresh,
@@ -212,12 +208,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       bottomOffset: 20,
       minAngle: 45,
     };
-    this.needHideIndicator = needHideIndicator;
     this.canPullToRefresh = !!onPullToRefresh;
     if (!this.canPullToRefresh) {
       this.needHideIndicator = true;
     }
-    if (needHideIndicator) {
+    // console.log("[DOMAIN]ui/scroll-view", this.unique_id, onPullToRefresh, this.needHideIndicator, this.canPullToRefresh);
+    if (this.needHideIndicator) {
       this.pullToRefreshOptions.offset = 9999;
     }
     if (onScroll) {
@@ -382,6 +378,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     if (!this.isMoveDown) {
       return;
     }
+    // console.log('handle touch end', this.unique_id, this.downHight, this.pullToRefreshOptions.offset)
     if (this.downHight >= this.pullToRefreshOptions.offset) {
       this.startPullToRefresh();
     } else {

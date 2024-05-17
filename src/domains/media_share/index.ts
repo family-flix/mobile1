@@ -3,7 +3,7 @@ import { shareMediaToInvitee } from "@/services";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { BaseDomain, Handler } from "@/domains/base";
 import { Application } from "@/domains/app";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { UnpackedRequestPayload } from "@/domains/request/utils";
 import { HttpClientCore } from "@/domains/http_client";
 import { BizError } from "@/domains/error";
@@ -18,21 +18,15 @@ type TheTypesOfEvents = {
 };
 
 type MediaShareCoreProps = {
-  app: Application;
+  app: Application<any>;
   client: HttpClientCore;
 };
 type MediaShareCoreState = {};
 
 export class MediaShareCore extends BaseDomain<TheTypesOfEvents> {
-  $app: Application;
+  $app: Application<any>;
   $inviteeSelect: InviteeSelectCore;
-  $request: RequestCoreV2<{
-    fetch: typeof shareMediaToInvitee;
-    client: HttpClientCore;
-    onLoading: (v: boolean) => void;
-    onSuccess: (v: UnpackedRequestPayload<ReturnType<typeof shareMediaToInvitee>>) => void;
-    onFailed: (e: BizError) => void;
-  }>;
+  $request: RequestCore<typeof shareMediaToInvitee>;
 
   constructor(props: Partial<{ _name: string }> & MediaShareCoreProps) {
     super(props);
@@ -40,9 +34,8 @@ export class MediaShareCore extends BaseDomain<TheTypesOfEvents> {
     const { client, app } = props;
 
     this.$app = app;
-    this.$request = new RequestCoreV2({
+    this.$request = new RequestCore(shareMediaToInvitee, {
       client: client,
-      fetch: shareMediaToInvitee,
       onLoading: (loading) => {
         this.$inviteeSelect.submitBtn.setLoading(loading);
       },

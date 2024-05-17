@@ -9,12 +9,11 @@ import { fetchInviteeList, inviteMember, createInvitationCode } from "@/services
 import { useInitialize, useInstance } from "@/hooks/index";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
 import { Show } from "@/components/ui/show";
-import { Qrcode } from "@/components/qr-code/index";
 import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { cn } from "@/utils/index";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
+import { UnpackedRequestPayload } from "@/domains/request/utils";
 
 enum Events {
   StateChange,
@@ -65,7 +64,7 @@ const QrcodeWithStore = (props: { store: QrcodeCore } & React.HTMLAttributes<HTM
   );
 };
 
-function Page(props: Pick<ViewComponentProps, "app" | "client">) {
+function Page(props: ViewComponentProps) {
   const { app, client } = props;
   const $scroll = new ScrollViewCore({
     os: app.env,
@@ -94,10 +93,12 @@ function Page(props: Pick<ViewComponentProps, "app" | "client">) {
   const $remarkInput = new InputCore({
     defaultValue: "",
     placeholder: "请输入好友备注",
+    onEnter() {
+      $inviteDialog.okBtn.click();
+    },
   });
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchInviteeList,
+  const $list = new ListCore(
+    new RequestCore(fetchInviteeList, {
       client,
     }),
     {
@@ -128,18 +129,17 @@ function Page(props: Pick<ViewComponentProps, "app" | "client">) {
     title: "移动端二维码",
     footer: false,
   });
-  const $invitationCodeList = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: createInvitationCode,
-      client,
-    })
-  );
-  const $invitationCodeCreateRequest = new RequestCoreV2({
-    fetch: createInvitationCode,
+  // const $invitationCodeList = new ListCoreV2(
+  //   new RequestCoreV2({
+  //     fetch: createInvitationCode,
+  //     client,
+  //   })
+  // );
+  const $invitationCodeCreateRequest = new RequestCore(createInvitationCode, {
     client,
     defaultResponse: {
       list: [],
-    },
+    } as UnpackedRequestPayload<ReturnType<typeof createInvitationCode>>,
   });
   const $invitationCodeDialog = new DialogCore({
     title: "生成邀请码",
@@ -175,8 +175,7 @@ function Page(props: Pick<ViewComponentProps, "app" | "client">) {
     title: "邀请码",
     footer: false,
   });
-  const $inviteMemberRequest = new RequestCoreV2({
-    fetch: inviteMember,
+  const $inviteMemberRequest = new RequestCore(inviteMember, {
     client,
     onLoading(loading) {
       $inviteDialog.okBtn.setLoading(loading);

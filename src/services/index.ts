@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp, request } from "@/domains/request/utils";
-import { ListResponse, ListResponseWithCursor, RequestedResource, Result, UnpackedResult } from "@/types/index";
+import { ListResponse, ListResponseWithCursor, Result, UnpackedResult } from "@/types/index";
 import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
 import { relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 
@@ -39,6 +39,7 @@ export function fetchNotifications(params: FetchParams) {
   >("/api/v2/wechat/notification/list", params);
 }
 export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifications>) {
+  console.log('fetchNotificationsProcess', r);
   if (r.error) {
     return Result.Err(r.error);
   }

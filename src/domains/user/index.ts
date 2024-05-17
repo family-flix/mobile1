@@ -1,7 +1,7 @@
 import { Handler } from "mitt";
 
 import { BaseDomain } from "@/domains/base";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { Result } from "@/types";
 import { sleep } from "@/utils";
@@ -66,7 +66,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   permissions: string[] = [];
 
   $client: HttpClientCore;
-  $profile: RequestCoreV2<{ fetch: typeof fetchInfo; client: HttpClientCore }>;
+  $profile: RequestCore<typeof fetchInfo>;
 
   get state(): UserState {
     return {
@@ -94,9 +94,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
         Authorization: token,
       });
     }
-    this.$profile = new RequestCoreV2({
-      // fetch: fetchUserProfile,
-      fetch: fetchInfo,
+    this.$profile = new RequestCore(fetchInfo, {
       client: this.$client,
     });
   }
@@ -113,8 +111,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
    */
   async validate(values: Record<string, string>) {
     const { token, force, tmp } = values;
-    const request = new RequestCoreV2({
-      fetch: validateMemberToken,
+    const request = new RequestCore(validateMemberToken, {
       client: this.$client,
     });
     const r = await request.run({ token });
@@ -151,8 +148,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    const request = new RequestCoreV2({
-      fetch: loginWithEmailAndPwd,
+    const request = new RequestCore(loginWithEmailAndPwd, {
       client: this.$client,
     });
     const r = await request.run({ email, pwd });
@@ -184,8 +180,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     // if (!code) {
     //   return Result.Err("请输入邀请码");
     // }
-    const request = new RequestCoreV2({
-      fetch: registerWithEmailAndPwd,
+    const request = new RequestCore(registerWithEmailAndPwd, {
       client: this.$client,
     });
     const r = await request.run({ email, pwd, code });
@@ -225,8 +220,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!email) {
       return Result.Err("请输入邮箱");
     }
-    const $updateEmailRequest = new RequestCoreV2({
-      fetch: updateUserEmail,
+    const $updateEmailRequest = new RequestCore(updateUserEmail, {
       client: this.$client,
     });
     const r = await $updateEmailRequest.run({ email });
@@ -242,8 +236,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    const $updatePwdRequest = new RequestCoreV2({
-      fetch: updateUserPwd,
+    const $updatePwdRequest = new RequestCore(updateUserPwd, {
       client: this.$client,
     });
     const r = await $updatePwdRequest.run({ pwd });

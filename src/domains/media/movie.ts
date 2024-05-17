@@ -5,7 +5,7 @@ import { Handler, BaseDomain } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MediaSourceFileCore } from "@/domains/source/index";
 import { HttpClientCore } from "@/domains/http_client/index";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { MediaTypes } from "@/constants/index";
 import { Result } from "@/types/index";
 
@@ -90,8 +90,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["缺少电影 id 参数"] });
       return Result.Err(msg);
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchMediaPlayingEpisode,
+    const fetch = new RequestCore(fetchMediaPlayingEpisode, {
       process: fetchMediaPlayingEpisodeProcess,
       client: this.$client,
     });
@@ -225,8 +224,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    const request = new RequestCoreV2({
-      fetch: updatePlayHistory,
+    const request = new RequestCore(updatePlayHistory, {
       client: this.$client,
     });
     request.run({

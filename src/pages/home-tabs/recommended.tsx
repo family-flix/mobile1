@@ -8,8 +8,8 @@ import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchCollectionList, fetchCollectionListProcess } from "@/services/index";
 import { LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { RequestCoreV2 } from "@/domains/request/v2";
-import { ListCoreV2 } from "@/domains/list/v2";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
@@ -17,11 +17,10 @@ import { cn } from "@/utils/index";
 function Page(props: ViewComponentProps) {
   const { app, client, history, storage } = props;
 
-  const $list = new ListCoreV2(
-    new RequestCoreV2({
-      fetch: fetchCollectionList,
+  const $list = new ListCore(
+    new RequestCore(fetchCollectionList, {
       process: fetchCollectionListProcess,
-      client: client,
+      client,
     }),
     {
       pageSize: 10,
@@ -62,7 +61,7 @@ export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={$page.ui.$scroll}>
+      <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
           store={$page.$list}
           className="relative space-y-3 bg-w-bg-3"

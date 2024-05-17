@@ -6,7 +6,7 @@ import { Handler } from "mitt";
 import { BaseDomain } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { MediaOriginCountry } from "@/constants";
 import { Result } from "@/types";
@@ -62,8 +62,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err("缺少电影 id");
     }
     // this.id = id;
-    const fetch = new RequestCoreV2({
-      fetch: fetchMoviePlayingSource,
+    const fetch = new RequestCore(fetchMoviePlayingSource, {
       process: fetchMoviePlayingSourceProcess,
       client,
     });
@@ -131,8 +130,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     this.id = id;
-    const fetch = new RequestCoreV2({
-      fetch: fetchMoviePlayingSource,
+    const fetch = new RequestCore(fetchMoviePlayingSource, {
       process: fetchMoviePlayingSourceProcess,
       client: this.$client,
     });
@@ -169,8 +167,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["没有可播放的视频源"] });
       return Result.Err(msg);
     }
-    const fetch = new RequestCoreV2({
-      fetch: fetchMediaProfile,
+    const fetch = new RequestCore(fetchMediaProfile, {
       process: fetchMediaProfileProcess,
       client: this.$client,
     });
@@ -228,8 +225,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
       return Result.Err(msg);
     }
     console.log("[PAGE](play/index) - change source");
-    const fetch = new RequestCoreV2({
-      fetch: fetchMediaProfile,
+    const fetch = new RequestCore(fetchMediaProfile, {
       process: fetchMediaProfileProcess,
       client: this.$client,
     });

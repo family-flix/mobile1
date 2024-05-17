@@ -9,8 +9,8 @@ import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
 import { MediaRequestCore } from "@/components/media-request/index";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
-import { ListCoreV2 } from "@/domains/list/v2";
-import { RequestCoreV2 } from "@/domains/request/v2";
+import { ListCore } from "@/domains/list";
+import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
@@ -18,7 +18,7 @@ import { cn } from "@/utils/index";
 function Page(props: ViewComponentProps) {
   const { app, client } = props;
 
-  const $list = new ListCoreV2(new RequestCoreV2({ fetch: fetchMediaList, process: fetchMediaListProcess, client }), {
+  const $list = new ListCore(new RequestCore(fetchMediaList, { process: fetchMediaListProcess, client }), {
     pageSize: 20,
     search: {
       type: MediaTypes.Movie,
@@ -77,7 +77,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
           skeleton={
             <>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -87,7 +87,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                 </div>
               </div>
               <div className="flex px-3 pb-3 cursor-pointer">
-                <div className="relative w-[128px] h-[198px] mr-2">
+                <div className="relative w-[128px] h-[198px] mr-4">
                   <Skeleton className="w-full h-full" />
                 </div>
                 <div className="flex-1 max-w-full overflow-hidden text-ellipsis">
@@ -135,7 +135,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                     });
                   }}
                 >
-                  <div className="relative w-[128px] h-[198px] mr-2 rounded-lg overflow-hidden">
+                  <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
                     <LazyImage
                       className="w-full h-full object-cover"
                       store={$page.ui.$poster.bind(poster_path)}
@@ -160,7 +160,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                     {actors ? (
                       <div
                         className={cn(
-                          "mt-1 inline-block text-sm rounded-md bg-blue-100 text-blue-600 overflow-hidden text-ellipsis break-keep whitespace-nowrap",
+                          "mt-1 text-sm rounded-md bg-blue-100 text-blue-600 overflow-hidden text-ellipsis break-keep whitespace-nowrap",
                           "dark:text-blue-400 dark:bg-gray-900"
                         )}
                         style={{ padding: "2px 4px", fontSize: 12 }}

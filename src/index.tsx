@@ -9,16 +9,16 @@ import { PageKeys, routesWithPathname } from "./store/routes";
 import { pages } from "./store/views";
 import { client } from "./store/request";
 import { storage } from "./store/storage";
+import { useInitialize, useInstance } from "./hooks/index";
 import { ThemeProvider } from "./components/theme-switch";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast, Dialog } from "./components/ui";
 import { ToastCore } from "./domains/ui/toast";
 import { connect as connectApplication } from "./domains/app/connect.web";
 import { connect as connectHistory } from "./domains/history/connect.web";
-import { NavigatorCore } from "./domains/navigator";
-import { DialogCore } from "./domains/ui";
-import { MediaOriginCountry } from "./constants";
-import { useInitialize, useInstance } from "./hooks";
+import { NavigatorCore } from "./domains/navigator/index";
+import { DialogCore } from "./domains/ui/index";
+import { MediaOriginCountry } from "./constants/index";
 import { cn } from "./utils/index";
 
 import "./index.css";
@@ -135,7 +135,7 @@ function ApplicationView() {
       // setReady(true);
       const { pathname, query } = history.$router;
       const route = routesWithPathname[pathname];
-      // console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
+      console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
       if (!route) {
         history.push("root.notfound");
         return;
