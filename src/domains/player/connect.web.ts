@@ -180,6 +180,9 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
         ($video as any).msRequestFullscreen();
       }
     },
+    exitFullscreen() {
+      console.log("no");
+    },
     showSubtitle() {
       if ($video.textTracks[0]) {
         $video.textTracks[0].mode = "showing";

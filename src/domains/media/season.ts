@@ -2,8 +2,8 @@
  * @file 电视剧
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { MediaSourceFileCore } from "@/domains/source";
-import { RequestCore } from "@/domains/request";
+import { MediaSourceFileCore } from "@/domains/source/index";
+import { RequestCore } from "@/domains/request/index";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { debounce } from "@/utils/lodash/debounce";

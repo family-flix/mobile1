@@ -142,7 +142,7 @@ function ApplicationView() {
       }
       if (!app.$user.isLogin) {
         if (route.options?.require?.includes("login")) {
-          history.push("root.login", { redirect: route.title });
+          history.push("root.login", { redirect: route.pathname });
           return;
         }
       }

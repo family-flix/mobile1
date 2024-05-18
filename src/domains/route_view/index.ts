@@ -2,9 +2,9 @@
  * @file 根据路由判断是否可见的视图块
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { PresenceCore } from "@/domains/ui/presence";
-import { NavigatorCore } from "@/domains/navigator";
-import { query_stringify } from "@/utils";
+import { PresenceCore } from "@/domains/ui/presence/index";
+import { NavigatorCore } from "@/domains/navigator/index";
+import { query_stringify } from "@/utils/index";
 
 import { buildUrl } from "./utils";
 
@@ -70,7 +70,7 @@ type RouteViewCoreProps = {
   pathname: string;
   title: string;
   // component: unknown;
-  parent: RouteViewCore | null;
+  parent?: RouteViewCore | null;
   query?: Record<string, string>;
   visible?: boolean;
   /** 该视图是布局视图 */

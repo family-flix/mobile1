@@ -1,10 +1,10 @@
 import parse from "url-parse";
 
-import { MediaOriginCountry } from "@/constants";
-import { padding_zero } from "@/utils";
+import { MediaOriginCountry } from "@/constants/index";
+import { padding_zero } from "@/utils/index";
 
 import { SubtitleFile, SubtitleFileSuffix, SubtitleParagraph } from "./types";
-import { SubtitleCore } from ".";
+import { SubtitleCore } from "./index";
 
 export function timeStrToSeconds(durationStr: string) {
   if (durationStr.match(/[0-9]{1,2}:[0-9]{2}:[0-9]{2}[\.,]/)) {

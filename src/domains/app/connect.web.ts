@@ -1,9 +1,10 @@
-import { Application, MEDIA } from "@/domains/app";
+import { StorageCore } from "@/domains/storage/index";
 import { Result } from "@/types/index";
 
+import { Application, MEDIA } from "./index";
 import { ThemeTypes } from "./types";
 
-export function connect<T extends { storage: Record<string, unknown> }>(app: Application<T>) {
+export function connect<T extends { storage: StorageCore<any> }>(app: Application<T>) {
   const ownerDocument = globalThis.document;
   app.getComputedStyle = (el: HTMLElement) => {
     return window.getComputedStyle(el);

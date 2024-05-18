@@ -1,4 +1,4 @@
-import { MediaOriginCountry } from "@/constants";
+import { MediaOriginCountry } from "@/constants/index";
 
 export enum SubtitleFileTypes {
   /** 上传到服务器本地的 */

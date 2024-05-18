@@ -1,12 +1,12 @@
 import { fetchInfo, fetchNotifications, fetchNotificationsProcess } from "@/services/index";
 import { Application } from "@/domains/app/index";
-import { ListCore } from "@/domains/list";
+import { ListCore } from "@/domains/list/index";
 import { NavigatorCore } from "@/domains/navigator/index";
 import { RouteViewCore } from "@/domains/route_view/index";
 import { HistoryCore } from "@/domains/history/index";
-import { RequestCore, onCreate } from "@/domains/request";
+import { RequestCore, onCreate } from "@/domains/request/index";
 import { onCreateGetPayload, onCreatePostPayload } from "@/domains/request/utils";
-import { ImageCore } from "@/domains/ui/image";
+import { ImageCore } from "@/domains/ui/image/index";
 import { Result } from "@/types/index";
 
 import { client } from "./request";
@@ -59,11 +59,11 @@ export const history = new HistoryCore<PageKeys, RouteConfig>({
     root: view,
   } as Record<PageKeys, RouteViewCore>,
 });
-export const app = new Application<{ storage: typeof storage.values }>({
+export const app = new Application({
   user,
   storage,
   async beforeReady() {
-    await user.validate(router.query);
+    await user.loginWithTokenId({ token: router.query.token, tmp: Number(router.query.tmp) });
     return Result.Ok(null);
   },
 });

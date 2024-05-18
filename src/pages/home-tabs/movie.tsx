@@ -168,12 +168,12 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                         {actors}
                       </div>
                     ) : null}
-                    <div className="">
-                      {(() => {
-                        if (vote === null) {
-                          return null;
-                        }
-                        return (
+                    {(() => {
+                      if (vote === null) {
+                        return null;
+                      }
+                      return (
+                        <div className="">
                           <div
                             className={cn(
                               "relative",
@@ -186,9 +186,9 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                               分
                             </span>
                           </div>
-                        );
-                      })()}
-                    </div>
+                        </div>
+                      );
+                    })()}
                     <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
                       {genres.map((tag) => {
                         return (

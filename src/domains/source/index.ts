@@ -196,6 +196,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
+      client: this.$client,
     });
     if (r.error) {
       return Result.Err("实例化字幕失败");

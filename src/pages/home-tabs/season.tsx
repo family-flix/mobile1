@@ -11,9 +11,10 @@ import { ListCore } from "@/domains/list";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
+import { ItemTypeFromListCore } from "@/domains/list/typing";
 
 function Page(props: ViewComponentProps) {
-  const { app, client, view } = props;
+  const { app, client, history, view } = props;
 
   const $list = new ListCore(
     new RequestCore(fetchMediaList, {
@@ -55,6 +56,20 @@ function Page(props: ViewComponentProps) {
     },
     ready() {
       $list.init({ language: view.query.language });
+    },
+    handleClickSeason(season: ItemTypeFromListCore<typeof $list>) {
+      const { id, type } = season;
+      if (type === MediaTypes.Season) {
+        history.push("root.season_playing", { id });
+        return;
+      }
+      if (type === MediaTypes.Movie) {
+        history.push("root.movie_playing", { id });
+        return;
+      }
+      app.tip({
+        text: ["未知的媒体类型"],
+      });
     },
   };
 }
@@ -128,17 +143,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                   key={id}
                   className="flex px-3 pb-3 cursor-pointer"
                   onClick={() => {
-                    if (type === MediaTypes.Season) {
-                      history.push("root.season_playing", { id });
-                      return;
-                    }
-                    if (type === MediaTypes.Movie) {
-                      history.push("root.movie_playing", { id });
-                      return;
-                    }
-                    app.tip({
-                      text: ["未知的媒体类型"],
-                    });
+                    $page.handleClickSeason(season);
                   }}
                 >
                   <div className="relative w-[128px] h-[198px] mr-4 rounded-lg overflow-hidden">
@@ -147,13 +152,6 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                       store={$page.ui.$image.bind(poster_path)}
                       alt={name}
                     />
-                    {/* {episode_count_text && (
-                      <div className="absolute w-full bottom-0 flex flex-row-reverse items-center">
-                        <div className="relative z-20 p-2 pt-6 text-[12px] text-w-bg-0 dark:text-w-fg-0">
-                          {episode_count_text}
-                        </div>
-                      </div>
-                    )} */}
                   </div>
                   <div className="flex-1 max-w-full overflow-hidden">
                     <div className="flex items-center">
@@ -172,8 +170,6 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                           fontSize: 12,
                         }}
                       >
-                        {/* <Star className="absolute top-[50%] w-4 h-4 transform translate-y-[-50%]" />
-                        <div className="pl-4">{vote}</div> */}
                         {episode_count_text}
                       </div>
                     </div>
@@ -188,12 +184,12 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                         {actors}
                       </div>
                     ) : null}
-                    <div className="mt-2">
-                      {(() => {
-                        if (vote === null) {
-                          return null;
-                        }
-                        return (
+                    {(() => {
+                      if (vote === null) {
+                        return null;
+                      }
+                      return (
+                        <div className="mt-2">
                           <div
                             className={cn(
                               "relative",
@@ -206,9 +202,9 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
                               分
                             </span>
                           </div>
-                        );
-                      })()}
-                    </div>
+                        </div>
+                      );
+                    })()}
                     <div className="mt-2 flex items-center flex-wrap gap-2 max-w-full">
                       {genres.map((tag) => {
                         return (

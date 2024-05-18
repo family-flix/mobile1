@@ -1,7 +1,7 @@
 /**
  * @file 电视剧
  */
-import { debounce } from "lodash/fp";
+import debounce from "lodash/fp/debounce";
 
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
@@ -373,6 +373,7 @@ export class TVCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
+      client: this.$client,
     });
     if (r.error) {
       return;

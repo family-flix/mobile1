@@ -157,7 +157,7 @@ export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {
       console.log("support", Hls2.isSupported());
       if (Hls2.isSupported()) {
         const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-        Hls.attachMedia($video);
+        Hls.attachMedia($video as HTMLVideoElement);
         Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
           Hls.loadSource(url);
         });

@@ -148,7 +148,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   private _passPoint = false;
   private _size: { width: number; height: number } = { width: 0, height: 0 };
   private _abstractNode: {
-    $node: HTMLVideoElement;
+    $node: unknown;
     play: () => void;
     pause: () => void;
     load: (url: string) => void;
@@ -159,6 +159,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     enableFullscreen: () => void;
     disableFullscreen: () => void;
     requestFullscreen: () => void;
+    exitFullscreen: () => void;
     showSubtitle: () => void;
     hideSubtitle: () => void;
     showAirplay: () => void;
@@ -361,6 +362,13 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     $video.enableFullscreen();
     this.play();
   }
+  exitFullscreen = () => {
+    const $video = this._abstractNode;
+    if (!$video) {
+      return;
+    }
+    $video.exitFullscreen();
+  };
   loadSource(video: { url: string }) {
     this.metadata = video;
     this._canPlay = false;
@@ -380,7 +388,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   load(url: string) {
     console.log("[DOMAIN]player - load", url, this._abstractNode);
     if (!this._abstractNode) {
-      return false;
+      return;
     }
     this._abstractNode.load(url);
   }

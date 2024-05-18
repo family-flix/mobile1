@@ -1,9 +1,7 @@
 /**
  * @file 支持动画的 Popup
  */
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler  } from "@/domains/base";
 
 enum Events {
   StateChange,
@@ -173,7 +171,3 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
     return "Presence";
   }
 }
-
-// function getAnimationName(styles?: CSSStyleDeclaration) {
-//   return styles?.animationName || "none";
-// }

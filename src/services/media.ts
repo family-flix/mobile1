@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 
+import { ListResponseWithCursor } from "@/store/types";
 import { TmpRequestResp, UnpackedRequestPayload, request } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import {
@@ -8,7 +9,7 @@ import {
   MovieMediaOriginCountryTexts,
   SeasonMediaOriginCountryTexts,
 } from "@/constants/index";
-import { ListResponseWithCursor, RequestedResource, Result } from "@/types/index";
+import { RequestedResource, Result } from "@/types/index";
 
 /**
  * 获取电影列表
@@ -97,7 +98,7 @@ export function fetchMediaListProcess(r: Result<UnpackedRequestPayload<Requested
             .filter(Boolean),
         ] as string[],
         episode_count_text: extra_text,
-        full: extra_text?.match(/全[0-9]{1,}/),
+        full: !!extra_text?.match(/全[0-9]{1,}/),
         // runtime: (() => {
         //   if (!runtime) {
         //     return null;

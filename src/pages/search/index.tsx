@@ -18,8 +18,8 @@ import {
   Button,
   Dialog,
   Node,
-} from "@/components/ui";
-import { MediaRequestCore } from "@/components/media-request";
+} from "@/components/ui/index";
+import { MediaRequestCore } from "@/components/media-request/index";
 import { useInitialize, useInstance } from "@/hooks/index";
 import {
   ScrollViewCore,
@@ -29,9 +29,9 @@ import {
   ButtonCore,
   ImageInListCore,
   NodeCore,
-} from "@/domains/ui";
-import { ListCore } from "@/domains/list";
-import { RequestCore } from "@/domains/request";
+} from "@/domains/ui/index";
+import { ListCore } from "@/domains/list/index";
+import { RequestCore } from "@/domains/request/index";
 import { TVSourceOptions, TVGenresOptions, MediaTypes, CollectionTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
 
@@ -427,12 +427,12 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                         <div className="flex items-center">
                           <h2 className="text-xl text-w-fg-0">{name}</h2>
                         </div>
-                        <div className="mt-2">
-                          {(() => {
-                            if (vote === null) {
-                              return null;
-                            }
-                            return (
+                        {(() => {
+                          if (vote === null) {
+                            return null;
+                          }
+                          return (
+                            <div className="mt-2">
                               <div
                                 className={cn(
                                   "relative",
@@ -445,9 +445,9 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                                   分
                                 </span>
                               </div>
-                            );
-                          })()}
-                        </div>
+                            </div>
+                          );
+                        })()}
                         <div className="flex items-center mt-1">
                           <div>{air_date}</div>
                           <p className="mx-2 ">·</p>

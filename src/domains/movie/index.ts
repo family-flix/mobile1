@@ -1,9 +1,8 @@
 /**
  * @file 电影
+ * @deprecated
  */
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 import { SubtitleCore } from "@/domains/subtitle";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { RequestCore } from "@/domains/request";
@@ -318,6 +317,7 @@ export class MovieCore extends BaseDomain<TheTypesOfEvents> {
     this.$subtitle = null;
     const r = await SubtitleCore.New(subtitleFile, {
       currentTime,
+      client: this.$client,
     });
     if (r.error) {
       return;

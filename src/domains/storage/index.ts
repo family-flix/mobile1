@@ -1,4 +1,4 @@
-import debounce from "lodash/fp/debounce";
+import { debounce } from "@/utils/lodash/debounce";
 
 import { BaseDomain, Handler } from "@/domains/base";
 

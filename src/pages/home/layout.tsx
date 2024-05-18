@@ -127,7 +127,7 @@ export const HomeLayout: ViewComponent = React.memo((props) => {
     // view.onCurViewChange((nextCurView) => {
     //   updateMenuActive(nextCurView);
     // });
-    messageList.initAny();
+    // messageList.initAny();
   });
 
   return (

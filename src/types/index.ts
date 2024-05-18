@@ -1,4 +1,4 @@
-import { BizError } from "@/domains/error";
+import { BizError } from "@/domains/error/index";
 
 export type Resp<T> = {
   data: T extends null ? null : T;

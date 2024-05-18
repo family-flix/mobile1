@@ -12,7 +12,7 @@ import { ScrollView, LazyImage, ListView } from "@/components/ui";
 import { Show } from "@/components/ui/show";
 import { RequestCore } from "@/domains/request";
 import { DynamicContent } from "@/components/dynamic-content";
-import { ItemTypeListCore } from "@/domains/list/typing";
+import { ItemTypeFromListCore } from "@/domains/list/typing";
 import { DynamicContentCore } from "@/domains/ui/dynamic-content";
 import { ScrollViewCore, ImageInListCore } from "@/domains/ui";
 import { MediaTypes } from "@/constants/index";
@@ -54,7 +54,7 @@ function Page(props: ViewComponentProps) {
       $step,
       $poster,
     },
-    readMsg(msg: ItemTypeListCore<typeof messageList>) {
+    readMsg(msg: ItemTypeFromListCore<typeof messageList>) {
       const { id, media } = msg;
       $read.run({
         id,

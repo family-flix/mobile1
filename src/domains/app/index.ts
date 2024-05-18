@@ -3,7 +3,7 @@
  */
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { UserCore } from "@/domains/user";
+import { UserCore } from "@/domains/user/index";
 import { StorageCore } from "@/domains/storage/index";
 import { JSONObject, Result } from "@/types/index";
 
@@ -89,9 +89,9 @@ type ApplicationState = {
   theme: ThemeTypes;
   deviceSize: DeviceSizeTypes;
 };
-type ApplicationProps<T extends { storage: Record<string, unknown> }> = {
+type ApplicationProps<T extends { storage: StorageCore<any> }> = {
   user: UserCore;
-  storage: StorageCore<T["storage"]>;
+  storage: T["storage"];
   // history: HistoryCore;
   /**
    * 应用加载前的声明周期，只有返回 Result.Ok() 页面才会展示内容
@@ -100,16 +100,21 @@ type ApplicationProps<T extends { storage: Record<string, unknown> }> = {
   onReady?: () => void;
 };
 
-export class Application<T extends { storage: Record<string, unknown> }> extends BaseDomain<TheTypesOfEvents> {
+export class Application<T extends { storage: StorageCore<any> }> extends BaseDomain<TheTypesOfEvents> {
   /** 用户 */
   $user: UserCore;
-  $storage: StorageCore<T["storage"]>;
-  // $history: HistoryCore;
+  $storage: T["storage"];
 
   lifetimes: Pick<ApplicationProps<T>, "beforeReady" | "onReady">;
 
   ready = false;
   screen: {
+    statusBarHeight?: number;
+    menuButton?: {
+      width: number;
+      left: number;
+      right: number;
+    };
     width: number;
     height: number;
   } = {
@@ -121,11 +126,15 @@ export class Application<T extends { storage: Record<string, unknown> }> extends
     ios: boolean;
     android: boolean;
     pc: boolean;
+    weapp: boolean;
+    prod: "develop" | "trial" | "release";
   } = {
     wechat: false,
     ios: false,
     android: false,
     pc: false,
+    weapp: false,
+    prod: "develop",
   };
   orientation = OrientationTypes.Vertical;
   curDeviceSize: DeviceSizeTypes = "md";
@@ -161,6 +170,9 @@ export class Application<T extends { storage: Record<string, unknown> }> extends
   /** 启动应用 */
   async start(size: { width: number; height: number }) {
     const { width, height } = size;
+    if (this.screen.width === 0) {
+      this.screen = { ...this.screen, width, height };
+    }
     this.screen = { width, height };
     this.curDeviceSize = getCurrentDeviceSize(width);
     // console.log('[Application]start');
@@ -240,7 +252,7 @@ export class Application<T extends { storage: Record<string, unknown> }> extends
   copy(text: string) {
     throw new Error("请实现 copy 方法");
   }
-  getComputedStyle(el: HTMLElement): CSSStyleDeclaration {
+  getComputedStyle(el: unknown): {} {
     throw new Error("请实现 getComputedStyle 方法");
   }
   /** 发送推送 */

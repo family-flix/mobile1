@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 
+import { ListResponse, ListResponseWithCursor } from "@/store/types";
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp, request } from "@/domains/request/utils";
-import { ListResponse, ListResponseWithCursor, Result, UnpackedResult } from "@/types/index";
+import { Result, UnpackedResult } from "@/types/index";
 import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
 import { relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 
@@ -39,7 +40,6 @@ export function fetchNotifications(params: FetchParams) {
   >("/api/v2/wechat/notification/list", params);
 }
 export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifications>) {
-  console.log('fetchNotificationsProcess', r);
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -280,6 +280,33 @@ export function fetchTVChannelList(params: FetchParams) {
       url: string;
     }>
   >("/api/tv_live/list", params);
+}
+
+export function fetchDiaryList(params: FetchParams) {
+  return request.post<
+    ListResponseWithCursor<{
+      id: string;
+      content: string;
+      profile: {
+        type: MediaTypes;
+        name: string;
+        original_name: string;
+        poster_path: string;
+        season_text: string;
+        season_number: number;
+        air_date: string;
+        movie_id: string;
+        tv_id: string;
+        season_id: string;
+      };
+      created: string;
+    }>
+  >("/api/v2/wechat/diary/list", params);
+}
+
+/** 语音识别 */
+export function recognize(body: { data: string }) {
+  return request.post<string>("/api/2/wechat/recognize", body);
 }
 
 /** 获取有更新的观看历史 */

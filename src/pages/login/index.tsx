@@ -28,7 +28,7 @@ function Page(props: ViewComponentProps) {
         pwd: $password.value,
       };
       $login.setLoading(true);
-      const r = await app.$user.login(values);
+      const r = await app.$user.loginWithEmailAndPwd(values);
       $login.setLoading(false);
       if (r.error) {
         app.tip({

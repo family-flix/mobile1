@@ -1,10 +1,9 @@
-import { Handler } from "mitt";
-
-import { BaseDomain } from "@/domains/base";
-import { RequestCore } from "@/domains/request";
-import { HttpClientCore } from "@/domains/http_client";
-import { Result } from "@/types";
-import { sleep } from "@/utils";
+import { fetchInfo } from "@/services/index";
+import { BaseDomain, Handler } from "@/domains/base";
+import { RequestCore } from "@/domains/request/index";
+import { HttpClientCore } from "@/domains/http_client/index";
+import { Result } from "@/types/index";
+import { sleep } from "@/utils/index";
 
 import {
   fetchUserProfile,
@@ -13,9 +12,9 @@ import {
   registerWithEmailAndPwd,
   updateUserEmail,
   updateUserPwd,
-  validateMemberToken,
+  loginWithTokenId,
+  loginWithWeappCode,
 } from "./services";
-import { fetchInfo } from "@/services";
 
 export enum Events {
   Tip,
@@ -98,20 +97,12 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       client: this.$client,
     });
   }
-  logout() {
-    this.username = "Anonymous";
-    this.email = "";
-    this.avatar = "";
-    this.isLogin = false;
-    this.token = "";
-    this.emit(Events.Logout);
-  }
   /**
-   * 使用 token 登录
+   * 使用 token id 登录
    */
-  async validate(values: Record<string, string>) {
-    const { token, force, tmp } = values;
-    const request = new RequestCore(validateMemberToken, {
+  async loginWithTokenId(values: { token: string; tmp: number }) {
+    const { token, tmp } = values;
+    const request = new RequestCore(loginWithTokenId, {
       client: this.$client,
     });
     const r = await request.run({ token });
@@ -137,11 +128,8 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   /**
    * 使用用户名和密码登录
    */
-  async login(values: { email: string; pwd: string }) {
+  async loginWithEmailAndPwd(values: { email: string; pwd: string }) {
     const { email, pwd } = values;
-    // if (this.isLogin && !force) {
-    //   return Result.Ok(this.state);
-    // }
     if (!email) {
       return Result.Err("请输入邮箱");
     }
@@ -166,6 +154,25 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       token: this.token,
     });
   }
+  async loginWithWeappCode(values: { code: string }) {
+    const { code } = values;
+    if (!code) {
+      return Result.Err("请传入 code");
+    }
+    const request = new RequestCore(loginWithWeappCode, {
+      client: this.$client,
+    });
+    const r = await request.run({ code });
+    if (r.error) {
+      return Result.Err(r.error.message, 900);
+    }
+    this.id = r.data.id;
+    this.email = r.data.email;
+    this.token = r.data.token;
+    this.isLogin = true;
+    this.emit(Events.Login, { ...this.state });
+    return Result.Ok({ ...this.state });
+  }
   /**
    * 使用用户名和密码注册
    */
@@ -177,9 +184,6 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     if (!pwd) {
       return Result.Err("请输入密码");
     }
-    // if (!code) {
-    //   return Result.Err("请输入邀请码");
-    // }
     const request = new RequestCore(registerWithEmailAndPwd, {
       client: this.$client,
     });
@@ -191,9 +195,7 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
     this.email = r.data.email;
     this.token = r.data.token;
     this.isLogin = true;
-    this.emit(Events.Login, {
-      ...this.state,
-    });
+    this.emit(Events.Login, { ...this.state });
     return Result.Ok({
       id: this.id,
       email: this.email,
@@ -248,6 +250,14 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
   }
   hasPermission(key: string) {
     return this.permissions.includes(key);
+  }
+  logout() {
+    this.username = "Anonymous";
+    this.email = "";
+    this.avatar = "";
+    this.isLogin = false;
+    this.token = "";
+    this.emit(Events.Logout);
   }
 
   onLogin(handler: Handler<TheTypesOfEvents[Events.Login]>) {

@@ -31,17 +31,13 @@ import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
-import { RequestCore } from "@/domains/request";
 import { OrientationTypes } from "@/domains/app";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn, seconds_to_hour } from "@/utils";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { cn, seconds_to_hour } from "@/utils/index";
 
 function MoviePlayingPageLogic(props: ViewComponentProps) {
   const { app, client, storage } = props;
 
-  const $createReport = new RequestCore(reportSomething, {
-    client,
-  });
   const settings = storage.get("player_settings");
   const $settings = new RefCore<{
     volume: number;
@@ -217,7 +213,7 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     const Hls2 = mod.default;
     if (Hls2.isSupported() && url.includes("m3u8")) {
       const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-      Hls.attachMedia($video);
+      Hls.attachMedia($video as HTMLVideoElement);
       Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
         Hls.loadSource(url);
       });
@@ -230,7 +226,6 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     $tv,
     $player,
     $report,
-    $createReport,
   };
 }
 

@@ -1,4 +1,4 @@
-import { debounce } from "lodash/fp";
+import { debounce } from "@/utils/lodash/debounce";
 
 import { RouteViewCore } from "@/domains/route_view";
 import { BaseDomain, Handler } from "@/domains/base";

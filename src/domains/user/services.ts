@@ -59,9 +59,19 @@ export function updateUserPwd(values: { pwd: string }) {
 /**
  * 成员通过授权链接访问首页时，验证该链接是否有效
  */
-export function validateMemberToken(v: { token: string }) {
+export function loginWithTokenId(v: { token: string }) {
   return request.post<{ id: string; email: string; token: string }>("/api/validate", {
     token: v.token,
+  });
+}
+
+/**
+ * 使用小程序 code 登录
+ */
+export function loginWithWeappCode(values: { code: string }) {
+  const { code } = values;
+  return request.post<{ id: string; email: string; token: string }>("/api/v2/wechat/auth/weapp", {
+    code,
   });
 }
 
@@ -70,7 +80,7 @@ export function validateMemberToken(v: { token: string }) {
  */
 export function loginWithEmailAndPwd(values: { email: string; pwd: string }) {
   const { email, pwd } = values;
-  return request.post<{ token: string; id: string }>("/api/v2/wechat/auth/login", {
+  return request.post<{ id: string; email: string; token: string }>("/api/v2/wechat/auth/login", {
     email,
     pwd,
   });

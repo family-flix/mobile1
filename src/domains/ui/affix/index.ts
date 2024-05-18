@@ -2,7 +2,7 @@
  * @file 固钉
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { debounce } from "lodash/fp";
+import debounce from "lodash/fp/debounce";
 
 enum Events {
   /** 变成固定 */
