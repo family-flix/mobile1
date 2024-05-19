@@ -450,12 +450,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
-          <Presence
-            // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-            enterClassName="animate-in fade-in"
-            exitClassName="animate-out fade-out"
-            store={$page.$mask}
-          >
+          <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
           <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
@@ -510,14 +505,14 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                       event.stopPropagation();
                     }}
                   >
-                    <div className="relative">
-                      <ChevronsLeft
-                        className="w-12 h-12"
-                        onClick={() => {
-                          $logic.$player.rewind();
-                          $page.prepareHide();
-                        }}
-                      />
+                    <div
+                      className="relative"
+                      onClick={() => {
+                        $logic.$player.rewind();
+                        $page.prepareHide();
+                      }}
+                    >
+                      <ChevronsLeft className="w-12 h-12" />
                       <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
                     </div>
                     <div className="p-2">
@@ -543,14 +538,14 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                         </div>
                       </Show>
                     </div>
-                    <div className="relative">
-                      <ChevronsRight
-                        className="w-12 h-12"
-                        onClick={() => {
-                          $logic.$player.speedUp();
-                          $page.prepareHide();
-                        }}
-                      />
+                    <div
+                      className="relative"
+                      onClick={() => {
+                        $logic.$player.speedUp();
+                        $page.prepareHide();
+                      }}
+                    >
+                      <ChevronsRight className="w-12 h-12" />
                       <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
                     </div>
                   </div>

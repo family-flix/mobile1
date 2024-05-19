@@ -222,22 +222,39 @@ export function fetchMediaPlayingEpisodeProcess(r: TmpRequestResp<typeof fetchMe
   // })();
   const curSource = (() => {
     if (curMediaSource) {
+      const file = (() => {
+        const matched = curMediaSource.files.find((f) => f.id === cur_source.cur_source_file_id);
+        if (matched) {
+          return matched;
+        }
+        return curMediaSource.files[0];
+      })();
       return {
         ...curMediaSource,
-        ...normalizeCurEpisode(cur_source),
+        ...normalizeCurEpisode({
+          ...cur_source,
+          cur_source_file_id: file.id,
+        }),
       };
     }
     const first = episodes[0];
     if (!first) {
       return null;
     }
+    const file = (() => {
+      const matched = first.files.find((f) => f.id === cur_source.cur_source_file_id);
+      if (matched) {
+        return matched;
+      }
+      return first.files[0];
+    })();
     return {
       ...first,
       ...normalizeCurEpisode({
         ...first,
         current_time: 0,
         thumbnail_path: "",
-        cur_source_file_id: first.files[0]?.id,
+        cur_source_file_id: file.id,
       }),
     };
   })();

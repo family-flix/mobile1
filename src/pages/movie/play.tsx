@@ -443,14 +443,14 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                       event.stopPropagation();
                     }}
                   >
-                    <div className="relative">
-                      <ChevronsLeft
-                        className="w-12 h-12"
-                        onClick={() => {
-                          $logic.$player.rewind();
-                          $page.prepareHide();
-                        }}
-                      />
+                    <div
+                      className="relative"
+                      onClick={() => {
+                        $logic.$player.rewind();
+                        $page.prepareHide();
+                      }}
+                    >
+                      <ChevronsLeft className="w-12 h-12" />
                       <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
                     </div>
                     <div className="p-2">
@@ -477,14 +477,14 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                         </div>
                       </Show>
                     </div>
-                    <div className="relative">
-                      <ChevronsRight
-                        className="w-12 h-12"
-                        onClick={() => {
-                          $logic.$player.speedUp();
-                          $page.prepareHide();
-                        }}
-                      />
+                    <div
+                      className="relative"
+                      onClick={() => {
+                        $logic.$player.speedUp();
+                        $page.prepareHide();
+                      }}
+                    >
+                      <ChevronsRight className="w-12 h-12" />
                       <div className="absolute left-1/2 transform -translate-x-1/2 text-center text-sm">10s</div>
                     </div>
                   </div>

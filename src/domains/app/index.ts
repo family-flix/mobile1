@@ -170,10 +170,7 @@ export class Application<T extends { storage: StorageCore<any> }> extends BaseDo
   /** 启动应用 */
   async start(size: { width: number; height: number }) {
     const { width, height } = size;
-    if (this.screen.width === 0) {
-      this.screen = { ...this.screen, width, height };
-    }
-    this.screen = { width, height };
+    this.screen = { ...this.screen, width, height };
     this.curDeviceSize = getCurrentDeviceSize(width);
     // console.log('[Application]start');
     const { beforeReady } = this.lifetimes;

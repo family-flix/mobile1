@@ -5,23 +5,23 @@ import { useState } from "react";
 import { AlertTriangle, Bird, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader, Loader2 } from "lucide-react";
 
 import { ViewComponentProps } from "@/store/types";
-import { reportSomething, shareMediaToInvitee } from "@/services";
+import { reportSomething, shareMediaToInvitee } from "@/services/index";
 import { fetchMemberToken } from "@/services/media";
-import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui";
+import { DialogCore, NodeCore, ScrollViewCore } from "@/domains/ui/index";
 import { Show } from "@/packages/ui/show";
-import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui";
-import { DynamicContent } from "@/components/dynamic-content";
+import { Dialog, ListView, Node, ScrollView, Skeleton } from "@/components/ui/index";
+import { DynamicContent } from "@/components/dynamic-content/index";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { useInitialize, useInstance } from "@/hooks/index";
-import { DynamicContentInListCore } from "@/domains/ui/dynamic-content";
-import { PlayerCore } from "@/domains/player";
-import { RefCore } from "@/domains/cur";
+import { DynamicContentInListCore } from "@/domains/ui/dynamic-content/index";
+import { PlayerCore } from "@/domains/player/index";
+import { RefCore } from "@/domains/cur/index";
 import { MovieMediaCore } from "@/domains/media/movie";
 import { SeasonMediaCore } from "@/domains/media/season";
-import { RequestCore } from "@/domains/request";
+import { RequestCore } from "@/domains/request/index";
 import { ReportTypes, SeasonReportList, MovieReportList } from "@/constants/index";
 import { cn, sleep } from "@/utils/index";
-import { proxy, snapshot, subscribe } from "@/utils/valtio";
+import { proxy, snapshot, subscribe } from "@/utils/valtio/index";
 
 enum MediaSettingsMenuKey {
   Resolution = 1,
