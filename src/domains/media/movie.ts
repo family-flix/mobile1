@@ -118,7 +118,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
 
   /** 播放该电视剧下指定影片 */
-  async playSource(source: MediaSource, extra: { currentTime: number }) {
+  async playSource(source: MediaSource & { curFileId?: string }, extra: { currentTime: number }) {
     const { currentTime = 0 } = extra;
     // console.log("[DOMAIN]tv/index - playEpisode", this.curSource, this._subtitleStore);
     if (!this.profile) {
@@ -138,7 +138,15 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       });
       return Result.Err(tip);
     }
-    const file = files[0];
+    const file = (() => {
+      if (source.curFileId) {
+        const matched = files.find((f) => f.id === source.curFileId);
+        if (matched) {
+          return matched;
+        }
+      }
+      return files[0];
+    })();
     // console.log("[DOMAIN]media/season - playSource before this.$source.load", source);
     this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     const res = await this.$source.load(file);
