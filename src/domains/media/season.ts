@@ -90,6 +90,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
 
   $source: MediaSourceFileCore;
   $client: HttpClientCore;
+  $update: RequestCore<typeof updatePlayHistory>;
 
   get state(): SeasonCoreState {
     return {
@@ -111,6 +112,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       resolution,
       client,
     });
+    this.$update = new RequestCore(updatePlayHistory, { client });
   }
 
   async fetchProfile(season_id?: string) {
@@ -401,10 +403,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    const request = new RequestCore(updatePlayHistory, {
-      client: this.$client,
-    });
-    request.run({
+    this.$update.run({
       media_id: this.profile.id,
       media_source_id: this.curSource.id,
       current_time: parseFloat(currentTime.toFixed(2)),

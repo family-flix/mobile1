@@ -65,6 +65,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   /** 实际播放的视频 */
   $source: MediaSourceFileCore;
   $client: HttpClientCore;
+  $update: RequestCore<typeof updatePlayHistory>;
 
   get state(): MovieCoreState {
     return {
@@ -83,6 +84,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       resolution,
       client,
     });
+    this.$update = new RequestCore(updatePlayHistory, { client });
   }
 
   async fetchProfile(media_id: string) {
@@ -232,10 +234,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
-    const request = new RequestCore(updatePlayHistory, {
-      client: this.$client,
-    });
-    request.run({
+    this.$update.run({
       media_id: this.profile.id,
       media_source_id: this.curSource.id,
       current_time: parseFloat(currentTime.toFixed(2)),

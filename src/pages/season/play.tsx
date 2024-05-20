@@ -812,58 +812,6 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           $player={$logic.$player}
         />
       </Sheet>
-      {/* <Dialog store={errorTipDialog}>
-        <div className=" text-w-fg-1">
-          <div>该问题是因为手机无法解析视频</div>
-          <div>可以尝试如下解决方案</div>
-          <div className="mt-4 text-left space-y-4">
-            <div>1、「切换源」或者「分辨率」</div>
-            <div>
-              <div>2、使用电脑观看</div>
-              <div
-                className="mt-2 break-all"
-                onClick={() => {
-                  app.copy(window.location.href.replace(/mobile/, "pc"));
-                  app.tip({
-                    text: ["已复制到剪贴板"],
-                  });
-                }}
-              >
-                {window.location.href.replace(/mobile/, "pc")}
-              </div>
-            </div>
-            <div>
-              <div>3、使用手机外部播放器</div>
-              <div className="flex items-center mt-2 space-x-2">
-                {players.map((player) => {
-                  const { icon, name, scheme } = player;
-                  const url = (() => {
-                    if (!curSource) {
-                      return null;
-                    }
-                    return scheme
-                      .replace(/\$durl/, curSource.url)
-                      .replace(/\$name/, state.profile ? state.profile.name : encodeURIComponent(curSource.url));
-                  })();
-                  if (!url) {
-                    return null;
-                  }
-                  return (
-                    <a key={name} className="flex justify-center relative px-4 h-14" href={url}>
-                      <LazyImage className="w-8 h-8 rounded-full" src={icon} />
-                      <div className="absolute bottom-0 w-full text-center">{name}</div>
-                    </a>
-                  );
-                })}
-              </div>
-              <div className="mt-2 font-sm text-w-fg-2">
-                <div>需要至少安装了一款上述软件，推荐安装 VLC</div>
-                <div>点击仍没有反应请点击右上角，并选择「在浏览器中打开」</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Dialog> */}
     </>
   );
 });
