@@ -148,6 +148,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     const cleanPathname = pathname.replace(NavigatorCore.prefix!, "");
     this.setPathname(cleanPathname);
     this.origin = origin;
+    this.location = location;
     // this.pathname = pathname;
     const query = buildQuery(href);
     this.query = query;

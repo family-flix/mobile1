@@ -334,7 +334,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                                 },
                               ].map((config) => {
                                 const { prefix, qrcode, platform, text } = config;
-                                const url = `${history.$router.location.origin}${prefix}${id}`;
+                                const url = `${history.$router.origin}${prefix}${id}`;
                                 return (
                                   <div key={prefix} className="flex space-x-2">
                                     <div className="">
@@ -355,20 +355,18 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                                         )}
                                       </div>
                                     </div>
-                                    <Show when={qrcode}>
+                                    {/* <Show when={qrcode}>
                                       <div className="">
                                         <div
                                           className="p-2 rounded bg-w-bg-1"
                                           onClick={(event) => {
                                             event.stopPropagation();
-                                            // qrcodeDialog.show();
-                                            // qrcodeCore.setText(url);
                                           }}
                                         >
                                           <QrCode className="w-5 h-5" />
                                         </div>
                                       </div>
-                                    </Show>
+                                    </Show> */}
                                   </div>
                                 );
                               })}

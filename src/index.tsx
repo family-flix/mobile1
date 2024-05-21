@@ -171,6 +171,7 @@ function ApplicationView() {
     app.onError((err) => {
       setError(err);
     });
+    console.log(location);
     history.$router.prepare(location);
     app.start({
       width: innerWidth,

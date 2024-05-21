@@ -114,6 +114,17 @@ function Page(props: ViewComponentPropsWithMenu) {
     ready() {
       $list.init();
     },
+    handleClickHistory(record: PlayHistoryItem) {
+      const { type, media_id } = record;
+      if (type === MediaTypes.Season) {
+        history.push("root.season_playing", { id: media_id });
+        return;
+      }
+      if (type === MediaTypes.Movie) {
+        history.push("root.movie_playing", { id: media_id });
+        return;
+      }
+    },
   };
 }
 
@@ -182,55 +193,48 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
           }
         >
           {response.dataSource.map((record) => {
-            const { id, name, percent, episodeText, episodeCountText, updated, hasUpdate, thumbnail_path } = record;
             return (
-              <div key={id} className="relative flex w-full cursor-pointer select-none">
+              <div key={record.id} className="relative flex w-full cursor-pointer select-none">
                 <div
-                  key={id}
                   className="relative w-full bg-w-bg-2 rounded-lg"
                   onClick={() => {
-                    const { type, media_id } = record;
-                    if (type === MediaTypes.Season) {
-                      history.push("root.season_playing", { id: media_id });
-                      return;
-                    }
-                    if (type === MediaTypes.Movie) {
-                      history.push("root.movie_playing", { id: media_id });
-                      return;
-                    }
+                    $page.handleClickHistory(record);
                   }}
                 >
                   <div className="relative w-full h-[124px] overflow-hidden rounded-t-md">
                     <LazyImage
                       className="w-full h-full object-cover"
-                      store={$page.ui.$thumbnail.bind(thumbnail_path)}
-                      alt={name}
+                      store={$page.ui.$thumbnail.bind(record.thumbnail_path)}
+                      alt={record.name}
                     />
                     <div className="absolute w-full top-0 flex flex-row-reverse items-center">
                       {/* <div className="absolute z-10 inset-0 opacity-80 bg-gradient-to-t to-transparent from-w-fg-0 dark:from-w-bg-0"></div> */}
                       <div className="relative z-20 p-2 text-[12px] text-w-bg-0 dark:text-w-fg-0">
-                        {episodeCountText}
+                        {record.episodeCountText}
                       </div>
                     </div>
                     <div className="absolute bottom-0 w-full">
-                      <div className="w-full h-[2px] rounded-md bg-w-brand" style={{ width: `${percent}%` }}></div>
+                      <div
+                        className="w-full h-[2px] rounded-md bg-w-brand"
+                        style={{ width: `${record.percent}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <Show when={!!hasUpdate}>
+                  <Show when={!!record.hasUpdate}>
                     <div className="absolute top-2 left-2">
                       <div className="huizhang">更新</div>
                     </div>
                   </Show>
                   <div className="p-2 pb-4">
-                    <div className="text-w-fg-0">{name}</div>
+                    <div className="text-w-fg-0">{record.name}</div>
                     <div className="flex items-center mt-2 text-sm text-w-fg-1">
-                      {updated}
+                      {record.updated}
                       <p className="mx-1">·</p>
-                      <Show when={!!episodeText}>
-                        <p className="">{episodeText}</p>
+                      <Show when={!!record.episodeText}>
+                        <p className="">{record.episodeText}</p>
                         <p className="mx-1">·</p>
                       </Show>
-                      {percent}%
+                      {record.percent}%
                     </div>
                   </div>
                 </div>

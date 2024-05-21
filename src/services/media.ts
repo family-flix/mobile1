@@ -136,6 +136,7 @@ export function fetchMediaProfile(values: { media_id: string }) {
     type: MediaTypes;
     name: string;
     original_name: string;
+    alias: string | null;
     overview: string;
     poster_path: string;
     air_date: string;

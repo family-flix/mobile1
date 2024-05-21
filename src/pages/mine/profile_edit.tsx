@@ -1,14 +1,13 @@
 /**
  * @file 个人信息编辑
  */
-import React, { useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
+import React from "react";
+import { ArrowLeft, ChevronRight, Copy } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { Button, Dialog, ScrollView, Input } from "@/components/ui";
-import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
-import { ReportTypes, __VERSION__ } from "@/constants";
+import { Dialog, ScrollView, Input } from "@/components/ui";
 import { useInstance } from "@/hooks/index";
+import { DialogCore, ScrollViewCore, InputCore } from "@/domains/ui";
 
 function Page(props: ViewComponentProps) {
   const { app, client, history } = props;
@@ -114,6 +113,30 @@ export const PersonProfileEditPage: ViewComponent = React.memo((props) => {
             </div>
           </div>
           <div className="mt-4">
+            <div className="w-full h-[1px] transform scale-y-50 bg-w-fg-3" />
+            <div
+              className="flex items-center justify-between p-4 bg-w-bg-1"
+              onClick={() => {
+                if (!app.$user.id) {
+                  app.tip({
+                    text: ["异常"],
+                  });
+                  return;
+                }
+                app.copy(app.$user.id);
+                app.tip({
+                  text: ["复制成功"],
+                });
+              }}
+            >
+              <div>ID</div>
+              <div className="flex items-center text-w-fg-1">
+                <div className="">{app.$user.id}</div>
+                <div className="ml-2 mr-2">
+                  <Copy className="w-4 h-4" />
+                </div>
+              </div>
+            </div>
             <div
               className="flex items-center justify-between p-4 bg-w-bg-1"
               onClick={() => {
