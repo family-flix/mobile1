@@ -5,7 +5,8 @@ import { request, TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
-import { RequestedResource, Result, Unpacked, UnpackedResult } from "@/types/index";
+import { RequestedResource, Unpacked, UnpackedResult } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { MediaTypes, MediaOriginCountry, SeasonGenresTexts, SeasonMediaOriginCountryTexts } from "@/constants/index";
 import { episode_to_chinese_num, minute_to_hour2, relative_time_from_now } from "@/utils/index";
 
@@ -358,6 +359,29 @@ export function fetchSourceInGroupProcess(r: TmpRequestResp<typeof fetchSourceIn
       return normalizeEpisode(episode);
     })
   );
+}
+export function fetchEpisodesWithNextMarker(body: { media_id: string; next_marker: string; page_size: number }) {
+  const { media_id, next_marker, page_size } = body;
+  return request.post<{
+    list: SeasonEpisodeResp[];
+  }>("/api/v2/wechat/media/episode", {
+    media_id,
+    next_marker,
+    page_size,
+    with_subtitle: false,
+    with_file: true,
+  });
+}
+export function fetchEpisodesWithNextMarkerProcess(r: TmpRequestResp<typeof fetchSourceInGroup>) {
+  if (r.error) {
+    return Result.Err(r.error.message);
+  }
+  return Result.Ok({
+    ...r.data,
+    list: r.data.list.map((episode) => {
+      return normalizeEpisode(episode);
+    }),
+  });
 }
 
 /**

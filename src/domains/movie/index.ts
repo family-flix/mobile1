@@ -8,7 +8,7 @@ import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { MediaOriginCountry } from "@/constants";
-import { Result } from "@/types";
+import { Result } from "@/domains/result/index";
 
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "./constants";
 import {

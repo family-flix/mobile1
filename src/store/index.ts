@@ -7,7 +7,7 @@ import { HistoryCore } from "@/domains/history/index";
 import { RequestCore, onCreate } from "@/domains/request/index";
 import { onCreateGetPayload, onCreatePostPayload } from "@/domains/request/utils";
 import { ImageCore } from "@/domains/ui/image/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import { client } from "./request";
 import { user } from "./user";
@@ -39,6 +39,7 @@ onCreate((ins) => {
       text: [e.message],
     });
   });
+  ins.client = client;
 });
 
 const router = new NavigatorCore();

@@ -1,4 +1,5 @@
 import { BaseDomain, Handler } from "@/domains/base";
+import { debounce } from "@/utils/lodash/debounce";
 
 enum Events {
   Bingo,
@@ -22,9 +23,9 @@ export class MultipleClickCore extends BaseDomain<TheTypesOfEvents> {
     }
   }
 
-  resetCount = debounce(() => {
+  resetCount = debounce(200, () => {
     this.count = 0;
-  }, 200);
+  });
 
   handleClick() {
     this.count += 1;
@@ -39,17 +40,4 @@ export class MultipleClickCore extends BaseDomain<TheTypesOfEvents> {
   onBingo(handler: Handler<TheTypesOfEvents[Events.Bingo]>) {
     return this.on(Events.Bingo, handler);
   }
-}
-
-function debounce(fn: Function, delay = 1000) {
-  let timer: null | NodeJS.Timeout = null;
-  return () => {
-    if (timer !== null) {
-      clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-      fn();
-      timer = null;
-    }, delay);
-  };
 }

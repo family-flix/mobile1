@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import relative_time from "dayjs/plugin/relativeTime";
 import { twMerge } from "tailwind-merge";
-import { JSONObject } from "@/types";
+import { JSONObject } from "@/types/index";
 
 const nzhcn = Nzh.cn;
 dayjs.extend(relative_time);

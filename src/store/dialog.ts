@@ -1,7 +1,7 @@
 import { useRef } from "react";
 
 import { DialogCore } from "@/domains/ui/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import { storage } from "./storage";
 import dayjs from "dayjs";

@@ -306,12 +306,12 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     }
     // 当前滚动条的距离
     const scrollTop = this.getScrollTop();
-    // console.log("[DOMAIN]ScrollView - handlePointMove", scrollTop);
     if (scrollTop > 0) {
       this.inTopWhenPointDown = false;
     }
     const curPoint = getPoint(e);
     const instanceY = curPoint.y - this.startPoint.y;
+    console.log("[DOMAIN]ScrollView - handlePointMove", scrollTop, instanceY);
     if (instanceY > 0) {
       if (scrollTop <= 0) {
         preventDefault(e);

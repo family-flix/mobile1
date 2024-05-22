@@ -7,7 +7,7 @@ import { MediaSourceFileCore } from "@/domains/source/index";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { RequestCore } from "@/domains/request/index";
 import { MediaTypes } from "@/constants/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import {
   CurMediaSource,

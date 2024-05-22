@@ -10,7 +10,8 @@ import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { ListCore } from "@/domains/list";
 import { MediaOriginCountry } from "@/constants";
-import { Result, UnpackedResult } from "@/types";
+import { UnpackedResult } from "@/types";
+import { Result } from "@/domains/result/index";
 
 import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants";
 import {

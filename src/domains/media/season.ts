@@ -8,7 +8,7 @@ import { MediaResolutionTypes } from "@/domains/source/constants";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { debounce } from "@/utils/lodash/debounce";
 import { MediaTypes } from "@/constants/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import {
   MediaSource,

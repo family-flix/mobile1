@@ -2,7 +2,7 @@ import { fetchInfo } from "@/services/index";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request/index";
 import { HttpClientCore } from "@/domains/http_client/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { sleep } from "@/utils/index";
 
 import {

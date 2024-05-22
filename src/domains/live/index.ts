@@ -1,7 +1,7 @@
 import axios from "axios";
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { Result } from "@/types";
+import { Result } from "@/domains/result/index";
 
 enum Events {
   StateChange,

@@ -1,6 +1,6 @@
 import { Handler, BaseDomain } from "@/domains/base";
 import { HttpClientCore } from "@/domains/http_client/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { MediaOriginCountry } from "@/constants/index";
 
 import { parseSubtitleContent, parseSubtitleUrl, timeStrToSeconds } from "./utils";

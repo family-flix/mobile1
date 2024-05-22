@@ -1,6 +1,7 @@
 import { TmpRequestResp, request } from "@/domains/request/utils";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { Result, Unpacked, UnpackedResult } from "@/types";
+import { Unpacked, UnpackedResult } from "@/types";
+import { Result } from "@/domains/result/index";
 
 import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";
 

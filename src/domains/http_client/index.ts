@@ -1,7 +1,8 @@
 // import axios, { AxiosError, AxiosInstance, CancelToken } from "axios";
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { JSONObject, Result } from "@/types/index";
+import { JSONObject } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { query_stringify } from "@/utils/index";
 
 enum Events {

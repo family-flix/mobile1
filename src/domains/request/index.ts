@@ -1,12 +1,11 @@
 /**
  * @file API 请求
  */
-// import axios, { CancelTokenSource } from "axios";
-
 import { BaseDomain, Handler } from "@/domains/base";
 import { BizError } from "@/domains/error/index";
 import { HttpClientCore } from "@/domains/http_client/index";
-import { Result, UnpackedResult } from "@/types/index";
+import { UnpackedResult } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { sleep } from "@/utils/index";
 
 import { RequestPayload, UnpackedRequestPayload } from "./utils";
@@ -42,7 +41,7 @@ type RequestState<T> = {
 type FetchFunction = (...args: any[]) => RequestPayload<any>;
 type ProcessFunction<V, P> = (value: V) => Result<P>;
 type RequestProps<F extends FetchFunction, P> = {
-  client: HttpClientCore;
+  client?: HttpClientCore;
   delay?: null | number;
   // defaultResponse?: any;
   defaultResponse?: P;
@@ -84,7 +83,7 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
    */
   service: F;
   process?: ProcessFunction<Result<UnpackedRequestPayload<ReturnType<F>>>, P>;
-  client: HttpClientCore;
+  client?: HttpClientCore;
   delay: null | number = 800;
   loading = false;
   /** 处于请求中的 promise */
@@ -159,6 +158,15 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
   }
   /** 执行 service 函数 */
   async run(...args: Parameters<F>) {
+    if (!this.service) {
+      return Result.Err("缺少 service");
+    }
+    if (typeof this.service !== "function") {
+      return Result.Err("service 不是函数");
+    }
+    if (!this.client) {
+      return Result.Err("缺少 client");
+    }
     if (this.pending !== null) {
       const r = await this.pending;
       this.loading = false;
@@ -241,6 +249,9 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
     // this.run(...this.args);
   }
   cancel() {
+    if (!this.client) {
+      return Result.Err("缺少 client");
+    }
     this.client.cancel(this.id);
     // this.source.cancel("主动取消");
   }

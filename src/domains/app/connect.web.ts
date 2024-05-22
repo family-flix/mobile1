@@ -1,5 +1,5 @@
 import { StorageCore } from "@/domains/storage/index";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import { Application, MEDIA } from "./index";
 import { ThemeTypes } from "./types";

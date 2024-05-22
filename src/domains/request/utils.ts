@@ -1,16 +1,18 @@
 /**
  * @file 构建 http 请求载荷
  */
-import { RequestedResource, Result } from "@/types/index";
+import { RequestedResource } from "@/types/index";
+import { Result } from "@/domains/result/index";
 import { query_stringify } from "@/utils/index";
 
 export type RequestPayload<T> = {
+  hostname?: string;
   url: string;
   method: "POST" | "GET" | "DELETE" | "PUT";
   query?: any;
   params?: any;
   body?: any;
-  headers?: Record<string, string>;
+  headers?: Record<string, string | number>;
   // defaultResponse?: T;
   process?: (v: T) => T;
 };
@@ -84,3 +86,109 @@ export const request = {
     return resp;
   },
 };
+
+export function request_factory(opt: {
+  hostnames: {
+    dev?: string;
+    test?: string;
+    beta?: string;
+    prod: string;
+  };
+  process: (v: any) => any;
+}) {
+  let _hostname = opt.hostnames.prod;
+  let _headers = {} as Record<string, string | number>;
+  let _env = "prod";
+  let _debug = false;
+  return {
+    setHostname(hostname: string) {
+      if (_debug) {
+        console.log("[REQUEST]utils - setHostname", hostname);
+      }
+      hostname = hostname;
+    },
+    setHeaders(headers: Record<string, string | number>) {
+      if (_debug) {
+        console.log("[REQUEST]utils - setHeaders", headers);
+      }
+      headers = headers;
+    },
+    appendHeaders(extra: Record<string, string | number>) {
+      if (_debug) {
+        console.log("[REQUEST]utils - appendHeaders", extra);
+      }
+      _headers = {
+        ..._headers,
+        ...extra,
+      };
+    },
+    setEnv(env: keyof (typeof opt)["hostnames"]) {
+      if (_debug) {
+        console.log("[REQUEST]utils - setEnv", env);
+      }
+      const { prod, dev = prod, test = prod, beta = prod } = opt.hostnames;
+      _env = env;
+      if (env === "dev") {
+        _hostname = dev;
+      }
+      if (env === "test") {
+        _hostname = test;
+      }
+      if (env === "beta") {
+        _hostname = beta;
+      }
+      if (env === "prod") {
+        _hostname = prod;
+      }
+    },
+    get<T>(...args: Parameters<typeof request.get>) {
+      const payload = request.get<T>(...args);
+      const { url, method, query, params, body, headers } = payload;
+      if (_debug) {
+        console.log("create GET payload");
+        console.log(payload);
+        console.log("current hostname is", _hostname);
+        console.log("current headers is", headers);
+        console.log("current env is", _env);
+      }
+      const result: RequestPayload<T> = {
+        url,
+        method,
+        query,
+        params,
+        body,
+        headers: {
+          ...payload.headers,
+          ...headers,
+        },
+        hostname: _hostname,
+        process: opt.process,
+      };
+      return result;
+    },
+    post<T>(...args: Parameters<typeof request.post>) {
+      const payload = request.post<T>(...args);
+      const { url, method, query, params, body } = payload;
+      if (_debug) {
+        console.log("create POST payload");
+        console.log(payload);
+        console.log("current hostname is", _hostname);
+        console.log("current headers is", _headers);
+      }
+      const result: RequestPayload<T> = {
+        url,
+        method,
+        query,
+        params,
+        body,
+        headers: {
+          ...payload.headers,
+          ..._headers,
+        },
+        hostname: _hostname,
+        process: opt.process,
+      };
+      return result;
+    },
+  };
+}

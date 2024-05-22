@@ -4,7 +4,7 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { Application } from "@/domains/app";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 enum Events {
   Mounted,

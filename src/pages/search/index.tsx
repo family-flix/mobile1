@@ -276,7 +276,18 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                   return null;
                 }
                 return (
-                  <div className="flex w-screen p-4 space-x-4 overflow-x-auto scroll scroll--hidden">
+                  <div
+                    className="flex w-screen p-4 space-x-4 overflow-x-auto scroll scroll--hidden"
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onTouchStart={(event) => {
+                      event.stopPropagation();
+                    }}
+                    onTouchMove={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
                     {rankResponse.response.map((rank, i) => {
                       const { id, type, title, desc, medias } = rank;
                       return (

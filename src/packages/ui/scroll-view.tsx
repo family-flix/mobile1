@@ -33,6 +33,9 @@ export const Root = React.memo((props: { store: ScrollViewCore } & React.HTMLAtt
       className={props.className}
       style={props.style}
       onClick={props.onClick}
+      // onTouchStart={(e) => {
+      //   store.handlePointDown(e as any);
+      // }}
     >
       {props.children}
     </div>

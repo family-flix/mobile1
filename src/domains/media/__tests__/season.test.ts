@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { MediaOriginCountry } from "@/constants";
 
 import { SeasonMediaCore } from "@/domains/media/season";
-import { Result } from "@/types";
+import { Result } from "@/domains/result/index";
 import { originalEpisodes, processedEpisodes, processedEpisodes2 } from "./episodes";
 import { HttpClientCore } from "@/domains/http_client";
 import { UserCore } from "@/domains/user";

@@ -5,7 +5,7 @@ import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request/index";
 import { RequestPayload } from "@/domains/request/utils";
 import { debounce } from "@/utils/lodash/debounce";
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import { DEFAULT_RESPONSE, DEFAULT_PARAMS, DEFAULT_CURRENT_PAGE, DEFAULT_PAGE_SIZE, DEFAULT_TOTAL } from "./constants";
 import { OriginalResponse, FetchParams, Response, Search, ParamsProcessor, ListProps } from "./typing";

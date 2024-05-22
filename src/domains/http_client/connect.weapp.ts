@@ -1,4 +1,4 @@
-import { Result } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 import { HttpClientCore } from "./index";
 

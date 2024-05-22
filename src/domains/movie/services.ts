@@ -4,7 +4,8 @@ import { request, TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/domains/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
-import { ListResponse, RequestedResource, Result, Unpacked, UnpackedResult } from "@/types";
+import { ListResponse, RequestedResource, Unpacked, UnpackedResult } from "@/types";
+import { Result } from "@/domains/result/index";
 import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
 import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts } from "@/constants";
 

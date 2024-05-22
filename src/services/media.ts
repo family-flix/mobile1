@@ -9,7 +9,8 @@ import {
   MovieMediaOriginCountryTexts,
   SeasonMediaOriginCountryTexts,
 } from "@/constants/index";
-import { RequestedResource, Result } from "@/types/index";
+import { RequestedResource } from "@/types/index";
+import { Result } from "@/domains/result/index";
 
 /**
  * 获取电影列表
