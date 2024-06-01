@@ -15,7 +15,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   };
   $video.onloadedmetadata = function (event) {
     // 2
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata");
+    // console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata", $video.duration);
     // @ts-ignore
     const width = this.videoWidth;
     // @ts-ignore
@@ -25,6 +25,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     player.handleLoadedmetadata({
       width,
       height,
+      duration: $video.duration,
     });
   };
   $video.onload = () => {
@@ -33,7 +34,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   };
   // 这个居然会在调整时间进度后调用？？？
   $video.oncanplay = (event) => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.oncanplay");
+    // console.log("[COMPONENT]VideoPlayer/connect - $video.oncanplay");
     // const { duration } = event.currentTarget as HTMLVideoElement;
     // console.log("[COMPONENT]VideoPlayer/connect - listen $video can play");
     player.handleCanPlay();
@@ -130,7 +131,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       try {
         await $video.play();
       } catch (err) {
-        // ...
+        console.log(err);
       }
     },
     pause() {

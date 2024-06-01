@@ -395,13 +395,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
   updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
     const { currentTime = this.currentTime, duration = 0 } = values;
-    console.log(
-      "[DOMAIN]media/season - update_play_progress",
-      currentTime,
-      this.profile,
-      this.curSource,
-      this.$source.profile
-    );
+    console.log("[DOMAIN]media/season - update_play_progress", currentTime);
     if (this.profile === null) {
       return;
     }

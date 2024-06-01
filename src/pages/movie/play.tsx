@@ -219,7 +219,6 @@ class MoviePlayingPageView {
   $top = new PresenceCore({ mounted: true, visible: true });
   $bottom = new PresenceCore({ mounted: true, visible: true });
   $control = new PresenceCore({ mounted: true, visible: true });
-  $time = new PresenceCore({});
   $subtitle = new PresenceCore({});
   $settings = new DialogCore();
   $episodes = new DialogCore();
@@ -301,7 +300,6 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
   const [state, setProfile] = useState($logic.$tv.state);
   // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
   // const [subtileState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
-  const [targetTime, setTargetTime] = useState<null | string>(null);
   const [playerState, setPlayerState] = useState($logic.$player.state);
   // const [shareLink, setShareLink] = useState("");
   // const [curReportValue, setCurReportValue] = useState($logic.$report.value);
@@ -324,22 +322,13 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     //     bottomOperation.hide();
     //   }, 1000);
     // }
-    $logic.$tv.onStateChange((nextProfile) => {
-      setProfile(nextProfile);
-    });
-    $logic.$player.onStateChange((v) => {
-      setPlayerState(v);
-    });
-    $logic.$player.onTargetTimeChange((v) => {
-      setTargetTime(seconds_to_hour(v));
-    });
+    $logic.$tv.onStateChange((v) => setProfile(v));
+    $logic.$player.onStateChange((v) => setPlayerState(v));
     $logic.$player.beforeAdjustCurrentTime(() => {
-      $page.$time.show();
       $page.stopHide();
     });
     $logic.$player.afterAdjustCurrentTime(() => {
       $page.prepareHide();
-      $page.$time.hide();
     });
     $logic.$tv.fetchProfile(view.query.id);
   });
@@ -365,35 +354,25 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
-          <Presence
-            // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-            enterClassName="animate-in fade-in"
-            exitClassName="animate-out fade-out"
-            store={$page.$mask}
-          >
+          <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
           </Presence>
           <div className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
-            <Presence
-              // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-              enterClassName="animate-in fade-in"
-              exitClassName="animate-out fade-out"
-              store={$page.$control}
-            >
+            <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$control}>
               <Show
                 when={!playerState.error}
                 fallback={
                   <div className="flex flex-col justify-center items-center">
                     <AlertTriangle className="w-16 h-16" />
-                    <div className="flex items-center mt-4">
+                    <div
+                      className="flex items-center mt-4"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        history.push("root.help", { highlight: "" });
+                      }}
+                    >
                       <div className="text-center">{playerState.error}</div>
-                      <div
-                        className="ml-2"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          history.push("root.help", { highlight: "" });
-                        }}
-                      >
+                      <div className="ml-2">
                         <HelpCircle className="w-4 h-4" />
                       </div>
                     </div>
@@ -501,9 +480,6 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                 <ArrowLeft className="w-6 h-6" />
               </div>
               <div className="flex items-center">
-                {/* <div className="inline-block p-4">
-                  <PictureInPicture className="w-6 h-6" />
-                </div> */}
                 <div
                   className="inline-block p-4"
                   onClick={() => {
@@ -521,9 +497,6 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               e.stopPropagation();
             }}
           >
-            <Presence store={$page.$time}>
-              <div className="text-center text-xl">{targetTime}</div>
-            </Presence>
             {/* <Presence store={$page.$subtitle}>
               {(() => {
                 if (subtileState === null) {

@@ -38,7 +38,7 @@ import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynam
 import { cn, seconds_to_hour, sleep } from "@/utils/index";
 
 function SeasonPlayingPageLogic(props: ViewComponentProps) {
-  const { app, storage, client } = props;
+  const { app, storage, client, view } = props;
   const settings = storage.get("player_settings");
   const { type: resolution, volume, rate } = settings;
 
@@ -225,9 +225,36 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
     $player.load(url);
   });
 
+  if (view.query.rate) {
+    $player.changeRate(Number(view.query.rate));
+  }
+  view.onHidden(() => {
+    $player.pause();
+  });
+  // $logic.$tv.$source.onSubtitleLoaded(() => {
+  //   $page.$subtitle.show();
+  // });
+  // $logic.$tv.$source.onSubtitleChange((v) => {
+  //   setCurSubtitleState(v);
+  // });
+  // $logic.$player.onRateChange(({ rate }) => {
+  //   setRate(rate);
+  // });
+  // $logic.$player.onCanPlay((v) => {
+  //   $page.prepareHide();
+  // });
+  // if (!view.query.hide_menu) {
+  //   scrollView.onPullToBack(() => {
+  //     app.back();
+  //   });
+  // }
+
   return {
     $tv,
     $player,
+    ready() {
+      $tv.fetchProfile(view.query.id);
+    },
   };
 }
 
@@ -239,7 +266,6 @@ class SeasonPlayingPageView {
   $top = new PresenceCore({ mounted: true, visible: true });
   $bottom = new PresenceCore({ mounted: true, visible: true });
   $control = new PresenceCore({ mounted: true, visible: true });
-  $time = new PresenceCore({});
   $subtitle = new PresenceCore({});
   $settings = new DialogCore();
   $episodes = new DialogCore();
@@ -324,97 +350,25 @@ class SeasonPlayingPageView {
 export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
   const { app, client, history, storage, view } = props;
 
-  // const loadingPresence = useInstance(() => new PresenceCore());
-  // const fullscreenDialog = useInstance(
-  //   () =>
-  //     new DialogCore({
-  //       title: "进入全屏播放",
-  //       cancel: false,
-  //       onOk() {
-  //         fullscreenDialog.hide();
-  //         player.requestFullScreen();
-  //       },
-  //     })
-  // );
-  // const errorTipDialog = useInstance(() => {
-  //   const dialog = new DialogCore({
-  //     title: "视频加载错误",
-  //     cancel: false,
-  //     onOk() {
-  //       dialog.hide();
-  //     },
-  //   });
-  //   dialog.okBtn.setText("我知道了");
-  //   return dialog;
-  // });
   const $logic = useInstance(() => SeasonPlayingPageLogic(props));
   const $page = useInstance(() => new SeasonPlayingPageView({ app, view }));
-
   const [state, setProfile] = useState($logic.$tv.state);
-  // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
-  // const [subtitleState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
-  const [targetTime, setTargetTime] = useState<null | string>(null);
   const [playerState, setPlayerState] = useState($logic.$player.state);
-  // const [shareLink, setShareLink] = useState("");
-  // const [curReportValue, setCurReportValue] = useState(curReport.value);
 
   useInitialize(() => {
-    if (view.query.rate) {
-      $logic.$player.changeRate(Number(view.query.rate));
-      return;
-    }
-    view.onHidden(() => {
-      $logic.$player.pause();
-    });
-    $logic.$tv.onStateChange((v) => {
-      setProfile(v);
-    });
-    // $logic.$tv.$source.onSubtitleLoaded(() => {
-    //   $page.$subtitle.show();
-    // });
-    // $logic.$tv.$source.onSubtitleChange((v) => {
-    //   setCurSubtitleState(v);
-    // });
-    // $logic.$player.onRateChange(({ rate }) => {
-    //   setRate(rate);
-    // });
-    $logic.$player.onStateChange((v) => {
-      setPlayerState(v);
-    });
-    $logic.$player.onTargetTimeChange((v) => {
-      setTargetTime(seconds_to_hour(v));
-    });
+    $logic.$player.onStateChange((v) => setPlayerState(v));
+    $logic.$tv.onStateChange((v) => setProfile(v));
     $logic.$player.beforeAdjustCurrentTime(() => {
-      $page.$time.show();
       $page.stopHide();
     });
     $logic.$player.afterAdjustCurrentTime(() => {
       $page.prepareHide();
-      $page.$time.hide();
     });
     $logic.$player.onExitFullscreen(() => {
       $page.show();
     });
-    // $logic.$player.onCanPlay((v) => {
-    //   $page.prepareHide();
-    // });
-    // if (!view.query.hide_menu) {
-    //   scrollView.onPullToBack(() => {
-    //     app.back();
-    //   });
-    // }
-    $logic.$tv.fetchProfile(view.query.id);
+    $logic.ready();
   });
-
-  // console.log("[PAGE]TVPlayingPage - render", tvId);
-
-  // if (error) {
-  //   return (
-  //     <div className="w-full h-[100vh]">
-  //       <div className="center text-center">{error}</div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
@@ -431,26 +385,21 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
           <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
-            <Presence
-              // className={cn("animate-in fade-in", "data-[state=closed]:animate-out data-[state=closed]:fade-out")}
-              enterClassName="animate-in fade-in"
-              exitClassName="animate-out fade-out"
-              store={$page.$control}
-            >
+            <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$control}>
               <Show
                 when={!playerState.error}
                 fallback={
                   <div className="flex flex-col justify-center items-center">
                     <AlertTriangle className="w-16 h-16" />
-                    <div className="flex items-center mt-4">
+                    <div
+                      className="flex items-center mt-4"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        history.push("root.help", { highlight: "" });
+                      }}
+                    >
                       <div className="text-center">{playerState.error}</div>
-                      <div
-                        className="ml-2"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          history.push("root.help", { highlight: "" });
-                        }}
-                      >
+                      <div className="ml-2">
                         <HelpCircle className="w-4 h-4" />
                       </div>
                     </div>
@@ -540,11 +489,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           >
             <Presence
               store={$page.$top}
-              className={cn(
-                "flex items-center justify-between"
-                // "animate-in fade-in slide-in-from-top",
-                // "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
-              )}
+              className={cn("flex items-center justify-between")}
               enterClassName="animate-in fade-in slide-in-from-top"
               exitClassName="animate-out slide-out-to-top fade-out"
               onClick={(event) => {
@@ -566,7 +511,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                   </div>
                 </Show>
               </div>
-              {app.env.ios ? (
+              <Show when={app.env.ios}>
                 <div className="flex items-center">
                   <div
                     className="inline-block p-4"
@@ -577,7 +522,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                     <Airplay className="w-6 h-6" />
                   </div>
                 </div>
-              ) : null}
+              </Show>
             </Presence>
           </div>
           <div
@@ -586,9 +531,6 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               e.stopPropagation();
             }}
           >
-            <Presence store={$page.$time}>
-              <div className="text-center text-xl">{targetTime}</div>
-            </Presence>
             {/* <Presence store={$page.$subtitle}>
               {(() => {
                 if (subtitleState === null) {
@@ -611,10 +553,6 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               })()}
             </Presence> */}
             <Presence
-              // className={cn(
-              //   "animate-in fade-in slide-in-from-bottom",
-              //   "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=closed]:fade-out"
-              // )}
               enterClassName="animate-in slide-in-from-bottom fade-in"
               exitClassName="animate-out slide-out-to-bottom fade-out"
               store={$page.$bottom}
