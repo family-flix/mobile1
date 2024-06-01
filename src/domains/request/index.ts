@@ -4,8 +4,8 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { BizError } from "@/domains/error/index";
 import { HttpClientCore } from "@/domains/http_client/index";
-import { UnpackedResult } from "@/types/index";
 import { Result } from "@/domains/result/index";
+import { UnpackedResult } from "@/types/index";
 import { sleep } from "@/utils/index";
 
 import { RequestPayload, UnpackedRequestPayload } from "./utils";
@@ -185,13 +185,13 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
     this.emit(Events.BeforeRequest);
     let payloadProcess: null | ((v: any) => any) = null;
     const r2 = (() => {
-      const { url, method, query, body, process } = this.service(...(args as unknown as any[]));
+      const { hostname = "", url, method, query, body, process } = this.service(...(args as unknown as any[]));
       if (process) {
         payloadProcess = process;
       }
       if (method === "GET") {
         // const [query, extra = {}] = args;
-        const r = this.client.get<P>(url, query, {
+        const r = this.client.get<P>(hostname + url, query, {
           id: this.id,
         });
         return Result.Ok(r) as Result<Promise<Result<P>>>;
@@ -199,7 +199,7 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
       }
       if (method === "POST") {
         // const [body, extra = {}] = args;
-        const r = this.client.post<P>(url, body, {
+        const r = this.client.post<P>(hostname + url, body, {
           id: this.id,
         });
         // return Result.Ok(r);

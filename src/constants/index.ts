@@ -277,8 +277,10 @@ export enum CollectionTypes {
   MaoyaoMovieRank = 10,
 }
 
+export const RecentlyYearOptions = [{ label: "2024" }, { label: "2023" }, { label: "2022" }, { label: "2021" }];
+
 export enum AuthCodeStep {
-  Loading = 0,
+  Loading = 6,
   Pending = 1,
   Scanned = 2,
   Confirmed = 3,

@@ -139,8 +139,24 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     canPlayType(type: string) {
       return !!$video.canPlayType(type);
     },
-    load(url: string) {
+    async load(url: string) {
       // console.log("[DOMAIN]player/connect - load", url, $video);
+      console.log("[]player.onUrlChange", url, $video.canPlayType("application/vnd.apple.mpegurl"), $video);
+      if ($video.canPlayType("application/vnd.apple.mpegurl")) {
+        $video.src = url;
+        $video.load();
+        return;
+      }
+      const mod = await import("hls.js");
+      const Hls2 = mod.default;
+      if (Hls2.isSupported() && url.includes("m3u8")) {
+        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+        Hls.attachMedia($video as HTMLVideoElement);
+        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+          Hls.loadSource(url);
+        });
+        return;
+      }
       $video.src = url;
       $video.load();
     },

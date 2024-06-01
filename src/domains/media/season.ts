@@ -6,9 +6,9 @@ import { MediaSourceFileCore } from "@/domains/source/index";
 import { RequestCore } from "@/domains/request/index";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { HttpClientCore } from "@/domains/http_client/index";
+import { Result } from "@/domains/result/index";
 import { debounce } from "@/utils/lodash/debounce";
 import { MediaTypes } from "@/constants/index";
-import { Result } from "@/domains/result/index";
 
 import {
   MediaSource,
@@ -35,6 +35,7 @@ enum Events {
   BeforeNextEpisode,
   BeforePrevEpisode,
   BeforeChangeSource,
+  BeforeLoadSubtitle,
   StateChange,
 }
 type TheTypesOfEvents = {
@@ -50,6 +51,7 @@ type TheTypesOfEvents = {
   [Events.BeforeNextEpisode]: void;
   [Events.BeforePrevEpisode]: void;
   [Events.BeforeChangeSource]: void;
+  [Events.BeforeLoadSubtitle]: void;
   [Events.StateChange]: SeasonCoreState;
 };
 type SeasonCoreState = {
@@ -191,12 +193,12 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.currentTime = currentTime;
     this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     (async () => {
+      this.emit(Events.BeforeLoadSubtitle);
       const r = await this.$source.loadSubtitle({ extraSubtitleFiles: source.subtitles, currentTime });
       if (r.error) {
         console.log("[DOMAIN]media/season - loadSubtitle failed ", r.error.message);
         return;
       }
-      // this.emit(Events.EpisodeChange, { ...this.curEpisode, currentTime });
     })();
     this.emit(Events.SourceFileChange, { ...res.data, currentTime });
     this.emit(Events.StateChange, { ...this.state });
@@ -329,18 +331,24 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
-    if (this.curSource === null) {
+    const source = this.curSource;
+    if (source === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
     const res = await this.$source.load({ id: sourceFile.id });
-    this.curSource.curFileId = sourceFile.id;
+    source.curFileId = sourceFile.id;
     if (res.error) {
       this.tip({
         text: [res.error.message],
       });
       return Result.Err(res.error);
     }
+    this.emit(Events.BeforeLoadSubtitle);
+    this.$source.loadSubtitle({
+      extraSubtitleFiles: source.subtitles,
+      currentTime: this.currentTime,
+    });
     this.emit(Events.SourceFileChange, { ...res.data, currentTime: this.currentTime });
     return Result.Ok(null);
   }
@@ -457,13 +465,16 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);
   }
-  onBeforeNextEpisode(handler: Handler<TheTypesOfEvents[Events.BeforeNextEpisode]>) {
+  beforeNextEpisode(handler: Handler<TheTypesOfEvents[Events.BeforeNextEpisode]>) {
     return this.on(Events.BeforeNextEpisode, handler);
   }
-  onBeforePrevEpisode(handler: Handler<TheTypesOfEvents[Events.BeforePrevEpisode]>) {
+  beforeLoadSubtitle(handler: Handler<TheTypesOfEvents[Events.BeforeLoadSubtitle]>) {
+    return this.on(Events.BeforeLoadSubtitle, handler);
+  }
+  beforePrevEpisode(handler: Handler<TheTypesOfEvents[Events.BeforePrevEpisode]>) {
     return this.on(Events.BeforePrevEpisode, handler);
   }
-  onBeforeChangeSource(handler: Handler<TheTypesOfEvents[Events.BeforeChangeSource]>) {
+  beforeChangeSource(handler: Handler<TheTypesOfEvents[Events.BeforeChangeSource]>) {
     return this.on(Events.BeforeChangeSource, handler);
   }
 }

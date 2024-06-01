@@ -42,7 +42,6 @@ export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>
   "root.search": MediaSearchPage,
   "root.messages": HomeMessagePage,
   "root.invitee": InviteeListPage,
-  "root.live": TVChannelPlayingPage,
   "root.season_playing": SeasonPlayingPageV2,
   "root.movie_playing": MoviePlayingPageV2,
   "root.invitation_code": InvitationCodeListPage,

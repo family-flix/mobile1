@@ -41,7 +41,7 @@ function getCurrentDeviceSize(width: number) {
   return "sm";
 }
 export const MEDIA = "(prefers-color-scheme: dark)";
-type DeviceSizeTypes = keyof typeof mediaSizes;
+export type DeviceSizeTypes = keyof typeof mediaSizes;
 
 enum Events {
   Tip,

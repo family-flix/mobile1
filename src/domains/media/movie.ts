@@ -4,10 +4,10 @@
 import { Handler, BaseDomain } from "@/domains/base";
 import { MediaResolutionTypes } from "@/domains/source/constants";
 import { MediaSourceFileCore } from "@/domains/source/index";
+import { Result } from "@/domains/result/index";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { RequestCore } from "@/domains/request/index";
 import { MediaTypes } from "@/constants/index";
-import { Result } from "@/domains/result/index";
 
 import {
   CurMediaSource,
@@ -22,6 +22,7 @@ enum Events {
   /** 电影详情加载完成 */
   ProfileLoaded,
   SourceFileChange,
+  BeforeLoadSubtitle,
   StateChange,
 }
 type TheTypesOfEvents = {
@@ -30,6 +31,7 @@ type TheTypesOfEvents = {
     curSource: CurMediaSource;
   };
   [Events.SourceFileChange]: MediaSourceFile & { currentTime: number };
+  [Events.BeforeLoadSubtitle]: void;
   [Events.StateChange]: MovieCoreState;
 };
 type MediaProfile = {
@@ -162,6 +164,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.currentTime = currentTime;
     this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: res.data.id };
     (async () => {
+      this.emit(Events.BeforeLoadSubtitle);
       const r = await this.$source.loadSubtitle({ extraSubtitleFiles: source.subtitles, currentTime });
       if (r.error) {
         console.log("[DOMAIN]media/season - loadSubtitle failed ", r.error.message);
@@ -178,18 +181,21 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
-    if (this.curSource === null) {
+    const source = this.curSource;
+    if (source === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
       return Result.Err(msg);
     }
     const res = await this.$source.load({ id: sourceFile.id });
-    this.curSource.curFileId = sourceFile.id;
+    source.curFileId = sourceFile.id;
     if (res.error) {
       this.tip({
         text: [res.error.message],
       });
       return Result.Err(res.error);
     }
+    this.emit(Events.BeforeLoadSubtitle);
+    this.$source.loadSubtitle({ extraSubtitleFiles: source.subtitles, currentTime: this.currentTime });
     this.emit(Events.SourceFileChange, {
       ...res.data,
       currentTime: this.currentTime,
@@ -282,6 +288,9 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   }
   onProfileLoaded(handler: Handler<TheTypesOfEvents[Events.ProfileLoaded]>) {
     return this.on(Events.ProfileLoaded, handler);
+  }
+  beforeLoadSubtitle(handler: Handler<TheTypesOfEvents[Events.BeforeLoadSubtitle]>) {
+    return this.on(Events.BeforeLoadSubtitle, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);

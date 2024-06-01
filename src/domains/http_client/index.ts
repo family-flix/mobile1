@@ -1,8 +1,6 @@
-// import axios, { AxiosError, AxiosInstance, CancelToken } from "axios";
-
 import { BaseDomain, Handler } from "@/domains/base";
-import { JSONObject } from "@/types/index";
 import { Result } from "@/domains/result/index";
+import { JSONObject } from "@/types/index";
 import { query_stringify } from "@/utils/index";
 
 enum Events {
@@ -15,39 +13,46 @@ type TheTypesOfEvents = {
 type HttpClientCoreProps = {
   hostname?: string;
   headers?: Record<string, string>;
+  debug?: boolean;
 };
 type HttpClientCoreState = {};
 
 export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
   hostname: string = "";
   headers: Record<string, string> = {};
+  debug = false;
 
   constructor(props: Partial<{ _name: string }> & HttpClientCoreProps) {
     super(props);
 
-    const { hostname = "", headers = {} } = props;
+    const { hostname = "", headers = {}, debug = false } = props;
 
     this.hostname = hostname;
     this.headers = headers;
+    this.debug = debug;
   }
 
   async get<T>(
     endpoint: string,
-    query?: JSONObject,
+    query?: Record<string, string | number>,
     extra: Partial<{ headers: Record<string, string>; id: string }> = {}
   ): Promise<Result<T>> {
     try {
       const h = this.hostname;
       const url = [h, endpoint, query ? "?" + query_stringify(query) : ""].join("");
-      const resp = await this.fetch<T>({
+      const payload = {
         url,
-        method: "GET",
+        method: "GET" as const,
         id: extra.id,
         headers: {
           ...this.headers,
           ...(extra.headers || {}),
         },
-      });
+      };
+      if (this.debug) {
+        console.log("[DOMAIN]http_client - before fetch", payload);
+      }
+      const resp = await this.fetch<T>(payload);
       return Result.Ok(resp.data);
     } catch (err) {
       const error = err as Error;
@@ -63,16 +68,20 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     const h = this.hostname;
     const url = [h, endpoint].join("");
     try {
-      const resp = await this.fetch<T>({
+      const payload = {
         url,
-        method: "POST",
+        method: "POST" as const,
         data: body,
         id: extra.id,
         headers: {
           ...this.headers,
           ...(extra.headers || {}),
         },
-      });
+      };
+      if (this.debug) {
+        console.log("[DOMAIN]http_client - before fetch", payload);
+      }
+      const resp = await this.fetch<T>(payload);
       return Result.Ok(resp.data);
     } catch (err) {
       const error = err as Error;
@@ -103,6 +112,9 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
       ...this.headers,
       ...headers,
     };
+  }
+  setDebug(debug: boolean) {
+    this.debug = debug;
   }
 
   onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {

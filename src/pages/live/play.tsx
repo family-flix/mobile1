@@ -1,214 +1,193 @@
 /**
- * @file 直播
+ * @file 电视频道 播放
  */
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
-import { ViewComponent } from "@/store/types";
-import { Dialog, ScrollView, Video } from "@/components/ui";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
 import { MediaResolutionTypes } from "@/domains/source/constants";
-import { RefCore } from "@/domains/cur";
-import { PlayerCore } from "@/domains/player";
-import { OrientationTypes } from "@/domains/app";
+import { RefCore } from "@/domains/cur/index";
+import { PlayerCore } from "@/domains/player/index";
+import { OrientationTypes } from "@/domains/app/index";
 import { Presence } from "@/components/ui/presence";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn } from "@/utils";
+import { cn } from "@/utils/index";
+
+function TVChannelPlayingPageLogic(props: ViewComponentProps) {
+  const { app, storage, view } = props;
+
+  const values = storage.get("player_settings");
+  const { name, url, hide_menu } = view.query;
+
+  const settingsRef = new RefCore<{
+    volume: number;
+    rate: number;
+    type: MediaResolutionTypes;
+  }>({
+    value: values,
+  });
+  const scrollView = new ScrollViewCore({
+    os: app.env,
+  });
+  const { volume, rate } = values;
+  const player = new PlayerCore({ app, volume });
+  const fullscreenDialog = new DialogCore({
+    title: "进入全屏播放",
+    cancel: false,
+    onOk() {
+      fullscreenDialog.hide();
+      player.requestFullScreen();
+    },
+  });
+  const errorTipDialog = new DialogCore({
+    title: "视频加载错误",
+    cancel: false,
+    onOk() {
+      errorTipDialog.hide();
+    },
+  });
+  const cover = new ToggleCore({ boolean: true });
+  const topOperation = new PresenceCore({ mounted: true, visible: true });
+  const bottomOperation = new PresenceCore({});
+
+  app.onHidden(() => {
+    player.pause();
+  });
+  app.onShow(() => {
+    console.log("[PAGE]play - app.onShow", player.currentTime);
+    // 锁屏后 currentTime 不是锁屏前的
+    player.setCurrentTime(player.currentTime);
+  });
+  app.onOrientationChange((orientation) => {
+    console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
+    if (orientation === "horizontal") {
+      if (!player.hasPlayed && app.env.ios) {
+        fullscreenDialog.show();
+        return;
+      }
+      if (player.isFullscreen) {
+        return;
+      }
+      player.requestFullScreen();
+      player.isFullscreen = true;
+    }
+    if (orientation === "vertical") {
+      player.disableFullscreen();
+      fullscreenDialog.hide();
+      console.log("[PAGE]tv/play - app.onOrientationChange");
+    }
+  });
+  view.onHidden(() => {
+    player.pause();
+  });
+  // if (!hide_menu) {
+  //   scrollView.onPullToBack(() => {
+  //     history.back();
+  //   });
+  // }
+  player.onExitFullscreen(() => {
+    player.pause();
+    if (app.orientation === OrientationTypes.Vertical) {
+      player.disableFullscreen();
+    }
+  });
+  player.onReady(() => {
+    player.disableFullscreen();
+  });
+  player.onCanPlay(() => {
+    console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible);
+    if (!view.state.visible) {
+      return;
+    }
+    if (!player.hasPlayed) {
+      return;
+    }
+    player.play();
+  });
+  player.onVolumeChange(({ volume }) => {
+    storage.merge("player_settings", {
+      volume,
+    });
+  });
+  player.onPause(({ currentTime, duration }) => {
+    console.log("[PAGE]play - player.onPause", currentTime, duration);
+  });
+  player.onResolutionChange(({ type }) => {
+    console.log("[PAGE]play - player.onResolutionChange", type);
+    // player.setCurrentTime(tv.currentTime);
+  });
+  player.onSourceLoaded(() => {
+    console.log("[PAGE]play - player.onSourceLoaded");
+  });
+  // console.log("[PAGE]play - before player.onError");
+  player.onError((error) => {
+    console.log("[PAGE]play - player.onError", error);
+    // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
+    (() => {
+      if (error.message.includes("格式")) {
+        errorTipDialog.show();
+        return;
+      }
+      app.tip({ text: ["视频加载错误", error.message] });
+    })();
+    player.pause();
+  });
+  player.onUrlChange(async ({ url, thumbnail }) => {
+    const $video = player.node()!;
+    const mod = await import("hls.js");
+    const Hls2 = mod.default;
+    if (Hls2.isSupported()) {
+      const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
+      Hls.attachMedia($video as HTMLVideoElement);
+      Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
+        Hls.loadSource(url);
+      });
+      return;
+    }
+    player.load(url);
+  });
+
+  setTimeout(() => {
+    player.loadSource({ url });
+    player.setSize({ width: app.screen.width, height: 360 });
+  }, 1000);
+
+  return {
+    scrollView,
+    player,
+    topOperation,
+    bottomOperation,
+    errorTipDialog,
+    ready() {},
+  };
+}
 
 export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
   const { app, storage, history, client, view } = props;
 
-  const settingsRef = useInstance(() => {
-    const r = new RefCore<{
-      volume: number;
-      rate: number;
-      type: MediaResolutionTypes;
-    }>({
-      value: storage.get("player_settings"),
-    });
-    return r;
-  });
-  const scrollView = useInstance(
-    () =>
-      new ScrollViewCore({
-        os: app.env,
-        // onPullToBack() {
-        //   console.log("[PAGE]live/playing - onPullToBack");
-        //   history.back();
-        // },
-      })
-  );
-  const player = useInstance(() => {
-    const { volume, rate } = settingsRef.value!;
-    const player = new PlayerCore({ app, volume });
-    // @ts-ignore
-    window.__player__ = player;
-    return player;
-  });
-  const fullscreenDialog = useInstance(
-    () =>
-      new DialogCore({
-        title: "进入全屏播放",
-        cancel: false,
-        onOk() {
-          fullscreenDialog.hide();
-          player.requestFullScreen();
-        },
-      })
-  );
-  const errorTipDialog = useInstance(() => {
-    const dialog = new DialogCore({
-      title: "视频加载错误",
-      cancel: false,
-      onOk() {
-        dialog.hide();
-      },
-    });
-    dialog.okBtn.setText("我知道了");
-    return dialog;
-  });
-  const cover = useInstance(() => new ToggleCore({ boolean: true }));
-  const topOperation = useInstance(() => new PresenceCore({ mounted: true, visible: true }));
-  const bottomOperation = useInstance(() => new PresenceCore({}));
+  const $logic = useInstance(() => TVChannelPlayingPageLogic(props));
 
   useInitialize(() => {
-    const { name, url, hide_menu } = view.query;
-    console.log("[PAGE]play - useInitialize");
-    app.onHidden(() => {
-      player.pause();
-    });
-    app.onShow(() => {
-      console.log("[PAGE]play - app.onShow", player.currentTime);
-      // 锁屏后 currentTime 不是锁屏前的
-      player.setCurrentTime(player.currentTime);
-    });
-    app.onOrientationChange((orientation) => {
-      console.log("[PAGE]tv/play - app.onOrientationChange", orientation, app.screen.width);
-      if (orientation === "horizontal") {
-        if (!player.hasPlayed && app.env.ios) {
-          fullscreenDialog.show();
-          return;
-        }
-        if (player.isFullscreen) {
-          return;
-        }
-        player.requestFullScreen();
-        player.isFullscreen = true;
-      }
-      if (orientation === "vertical") {
-        player.disableFullscreen();
-        fullscreenDialog.hide();
-        console.log("[PAGE]tv/play - app.onOrientationChange");
-      }
-    });
-    view.onHidden(() => {
-      player.pause();
-    });
-    // if (!hide_menu) {
-    //   scrollView.onPullToBack(() => {
-    //     history.back();
-    //   });
-    // }
-    player.onExitFullscreen(() => {
-      player.pause();
-      if (app.orientation === OrientationTypes.Vertical) {
-        player.disableFullscreen();
-      }
-    });
-    player.onReady(() => {
-      player.disableFullscreen();
-    });
-    player.onCanPlay(() => {
-      console.log("[PAGE]play - player.onCanPlay", player.hasPlayed, view.state.visible);
-      if (!view.state.visible) {
-        return;
-      }
-      if (!player.hasPlayed) {
-        return;
-      }
-      player.play();
-    });
-    player.onVolumeChange(({ volume }) => {
-      storage.merge("player_settings", {
-        volume,
-      });
-    });
-    player.onPause(({ currentTime, duration }) => {
-      console.log("[PAGE]play - player.onPause", currentTime, duration);
-    });
-    player.onResolutionChange(({ type }) => {
-      console.log("[PAGE]play - player.onResolutionChange", type);
-      // player.setCurrentTime(tv.currentTime);
-    });
-    player.onSourceLoaded(() => {
-      console.log("[PAGE]play - player.onSourceLoaded");
-    });
-    // console.log("[PAGE]play - before player.onError");
-    player.onError((error) => {
-      console.log("[PAGE]play - player.onError", error);
-      // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
-      (() => {
-        if (error.message.includes("格式")) {
-          errorTipDialog.show();
-          return;
-        }
-        app.tip({ text: ["视频加载错误", error.message] });
-      })();
-      player.pause();
-    });
-    player.onUrlChange(async ({ url, thumbnail }) => {
-      const $video = player.node()!;
-      const mod = await import("hls.js");
-      const Hls2 = mod.default;
-      console.log("support", Hls2.isSupported());
-      if (Hls2.isSupported()) {
-        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-        Hls.attachMedia($video as HTMLVideoElement);
-        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-          Hls.loadSource(url);
-        });
-        return;
-      }
-      player.load(url);
-    });
-    if (hide_menu) {
-      setTimeout(() => {
-        topOperation.hide();
-        bottomOperation.hide();
-      }, 1000);
-    }
-    app.setTitle(name);
-    setTimeout(() => {
-      player.loadSource({ url });
-      player.setSize({ width: app.screen.width, height: 360 });
-    }, 1000);
+    $logic.ready();
   });
-
-  // console.log("[PAGE]TVPlayingPage - render", tvId);
-
-  // if (error) {
-  //   return (
-  //     <div className="w-full h-[100vh]">
-  //       <div className="center text-center">{error}</div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <>
-      <ScrollView store={scrollView} className="fixed">
+      <ScrollView store={$logic.scrollView} className="fixed">
         <div className="h-screen">
           <div className="operations text-w-fg-1">
             <div
               className={cn("z-10 absolute inset-0")}
               onClick={() => {
-                topOperation.toggle();
-                bottomOperation.toggle();
+                $logic.topOperation.toggle();
+                $logic.bottomOperation.toggle();
               }}
             >
               <div className="flex items-center justify-between">
                 <Presence
-                  store={topOperation}
+                  store={$logic.topOperation}
                   className={cn(
                     "animate-in fade-in slide-in-from-top",
                     "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
@@ -237,43 +216,11 @@ export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
           </div>
           <div className="video z-20 fixed w-full top-[12%]">
             {(() => {
-              return <Video store={player} />;
+              return <Video store={$logic.player} />;
             })()}
           </div>
         </div>
       </ScrollView>
-      <Dialog store={errorTipDialog}>
-        <div className=" text-w-fg-1">
-          <div>该问题是因为手机无法解析视频</div>
-          <div>可以尝试如下解决方案</div>
-          <div className="mt-4 text-left space-y-4">
-            <div>1、「切换源」或者「分辨率」</div>
-            <div>
-              <div>2、使用电脑观看</div>
-              <div
-                className="mt-2 break-all"
-                onClick={() => {
-                  app.copy(window.location.href.replace(/mobile/, "pc"));
-                  app.tip({
-                    text: ["已复制到剪贴板"],
-                  });
-                }}
-              >
-                {window.location.href.replace(/mobile/, "pc")}
-              </div>
-            </div>
-            <div>
-              <div>3、使用手机外部播放器</div>
-            </div>
-          </div>
-        </div>
-      </Dialog>
     </>
   );
 });
-
-function build(url: string) {
-  const prefix = "https://proxy.f1x.fun/api/proxy/?u=";
-  // return prefix + encodeURIComponent(url);
-  return url;
-}

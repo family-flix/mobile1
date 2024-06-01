@@ -17,14 +17,12 @@ import {
 } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { reportSomething, shareMediaToInvitee } from "@/services";
 import { Show } from "@/packages/ui/show";
-import { Dialog, Sheet, ScrollView, ListView, Video } from "@/components/ui";
+import { Sheet, ScrollView, Video } from "@/components/ui";
 import { MovieMediaSettings } from "@/components/movie-media-settings";
-import { ToggleOverlay, ToggleOverrideCore } from "@/components/loader";
 import { Presence } from "@/components/ui/presence";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
-import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
+import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { RouteViewCore } from "@/domains/route_view";
 import { MovieMediaCore } from "@/domains/media/movie";
 import { MediaResolutionTypes } from "@/domains/source/constants";
@@ -33,7 +31,7 @@ import { PlayerCore } from "@/domains/player";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { OrientationTypes } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks/index";
-import { cn, seconds_to_hour } from "@/utils/index";
+import { cn, seconds_to_hour, sleep } from "@/utils/index";
 
 function MoviePlayingPageLogic(props: ViewComponentProps) {
   const { app, client, storage } = props;
@@ -54,7 +52,6 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
   const $tv = tv;
   const player = new PlayerCore({ app, volume, rate });
   const $report = new RefCore<string>();
-  //     const reportSheet = new DialogCore();
   const $player = player;
 
   app.onHidden(() => {
@@ -97,6 +94,10 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     player.setCurrentTime(curSource.currentTime);
     //       bottomOperation.show();
   });
+  $tv.beforeLoadSubtitle(() => {
+    // console.log("[PAGE]season - $tv.beforeLoadSubtitle");
+    $player.clearSubtitle();
+  });
   tv.$source.onSubtitleLoaded((subtitle) => {
     player.showSubtitle(createVVTSubtitle(subtitle));
   });
@@ -126,12 +127,9 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
         player.changeRate(Number(rate));
       }
     }
-    (() => {
+    (async () => {
       if (app.env.android) {
-        setTimeout(() => {
-          applySettings();
-        }, 1000);
-        return;
+        await sleep(1000);
       }
       applySettings();
     })();
@@ -203,22 +201,6 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     player.pause();
   });
   player.onUrlChange(async ({ url }) => {
-    const $video = player.node()!;
-    console.log("[]player.onUrlChange", url, player.canPlayType("application/vnd.apple.mpegurl"), $video);
-    if (player.canPlayType("application/vnd.apple.mpegurl")) {
-      player.load(url);
-      return;
-    }
-    const mod = await import("hls.js");
-    const Hls2 = mod.default;
-    if (Hls2.isSupported() && url.includes("m3u8")) {
-      const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-      Hls.attachMedia($video as HTMLVideoElement);
-      Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-        Hls.loadSource(url);
-      });
-      return;
-    }
     player.load(url);
   });
 

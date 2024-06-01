@@ -322,6 +322,11 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   setResolution(values: { type: MediaResolutionTypes; text: string }) {
     this.emit(Events.ResolutionChange, values);
   }
+  clearSubtitle() {
+    // console.log("[DOMAIN]player - clearSubtitle");
+    this.subtitle = null;
+    this.emit(Events.StateChange, { ...this.state });
+  }
   showSubtitle(subtitle: { src: string; label: string; lang: string }) {
     this.subtitle = subtitle;
     this.emit(Events.StateChange, { ...this.state });

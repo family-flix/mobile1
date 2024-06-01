@@ -154,6 +154,21 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       token: this.token,
     });
   }
+  authWithToken(values: { id: string; email: string; token: string }) {
+    const { id, email, token } = values;
+    if (!token) {
+      return Result.Err("缺少 token");
+    }
+    this.id = id;
+    this.email = email;
+    this.token = token;
+    this.isLogin = true;
+    this.emit(Events.Login, { ...this.state });
+    return Result.Ok({
+      id,
+      token,
+    });
+  }
   async loginWithWeappCode(values: { code: string }) {
     const { code } = values;
     if (!code) {

@@ -28,7 +28,7 @@ type TheTypesOfEvents = {
   [Events.SourceChange]: MediaSourceFile & { currentTime: number };
   [Events.ResolutionChange]: MediaSourceFile & { currentTime: number };
 
-  [Events.SubtitleChange]: {
+  [Events.SubtitleChange]: null | {
     url: string;
     visible: boolean;
     index: string;
@@ -78,8 +78,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     this.$client = client;
     this.curResolution = resolution;
   }
-
-  /** 播放该电视剧下指定影片 */
+  /** 加载云盘视频文件 */
   async load(file: { id: string }) {
     const fetch = new RequestCore(fetchSourcePlayingInfo, {
       process: fetchSourcePlayingInfoProcess,
@@ -180,6 +179,9 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       return subtitles[0] ?? null;
     })();
     // console.log("[DOMAIN]tv/index - no matched subtitle?", subtitleFile);
+    // @todo 清掉字幕，尤其是字幕正渲染时，切换到没有字幕的剧集，字幕还存在且不改变了
+    this.subtitle = null;
+    this.emit(Events.SubtitleChange, null);
     if (!subtitleFile) {
       return Result.Err("没有可加载的字幕文件");
     }

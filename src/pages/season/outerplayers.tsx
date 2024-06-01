@@ -2,7 +2,6 @@
  * @file 使用外部播放器打开指定视频文件
  */
 import React, { useState } from "react";
-import { stringify } from "qs";
 
 import { ViewComponent } from "@/store/types";
 import { TVCore } from "@/domains/tv";

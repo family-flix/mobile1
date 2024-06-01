@@ -19,8 +19,9 @@ import {
   SkipForward,
 } from "lucide-react";
 
-import { GlobalStorageValues, ViewComponent, ViewComponentProps } from "@/store/types";
+import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { Show } from "@/packages/ui/show";
+import { useInitialize, useInstance } from "@/hooks";
 import { Sheet, ScrollView, Video } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { PlayingIcon } from "@/components/playing";
@@ -29,26 +30,18 @@ import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { DynamicContent } from "@/components/dynamic-content";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { SeasonMediaCore } from "@/domains/media/season";
-import { MediaResolutionTypes } from "@/domains/source/constants";
-import { RefCore } from "@/domains/cur";
-import { PlayerCore } from "@/domains/player";
+import { PlayerCore } from "@/domains/player/index";
 import { createVVTSubtitle } from "@/domains/subtitle/utils";
-import { Application, OrientationTypes } from "@/domains/app";
+import { OrientationTypes } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";
-import { StorageCore } from "@/domains/storage";
-import { HttpClientCore } from "@/domains/http_client";
-import { useInitialize, useInstance } from "@/hooks";
-import { cn, seconds_to_hour } from "@/utils";
+import { cn, seconds_to_hour, sleep } from "@/utils/index";
 
 function SeasonPlayingPageLogic(props: ViewComponentProps) {
   const { app, storage, client } = props;
   const settings = storage.get("player_settings");
-
-  const $settings = new RefCore({
-    value: settings,
-  });
   const { type: resolution, volume, rate } = settings;
+
   const $tv = new SeasonMediaCore({
     client,
     resolution,
@@ -127,8 +120,12 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   $tv.onTip((msg) => {
     app.tip(msg);
   });
-  $tv.onBeforeNextEpisode(() => {
+  $tv.beforeNextEpisode(() => {
     $player.pause();
+  });
+  $tv.beforeLoadSubtitle(() => {
+    // console.log("[PAGE]season - $tv.beforeLoadSubtitle");
+    $player.clearSubtitle();
   });
   $tv.onSourceFileChange((mediaSource) => {
     console.log("[PAGE]play - tv.onSourceChange", mediaSource.currentTime);
@@ -152,12 +149,9 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
         $player.changeRate(Number(rate));
       }
     }
-    (() => {
+    (async () => {
       if (app.env.android) {
-        setTimeout(() => {
-          applySettings();
-        }, 1000);
-        return;
+        await sleep(1000);
       }
       applySettings();
     })();
@@ -228,22 +222,6 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
     $player.pause();
   });
   $player.onUrlChange(async ({ url }) => {
-    const $video = $player.node()!;
-    console.log("[]player.onUrlChange", url, $player.canPlayType("application/vnd.apple.mpegurl"), $video);
-    if ($player.canPlayType("application/vnd.apple.mpegurl")) {
-      $player.load(url);
-      return;
-    }
-    const mod = await import("hls.js");
-    const Hls2 = mod.default;
-    if (Hls2.isSupported() && url.includes("m3u8")) {
-      const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-      Hls.attachMedia($video as HTMLVideoElement);
-      Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-        Hls.loadSource(url);
-      });
-      return;
-    }
     $player.load(url);
   });
 
@@ -271,7 +249,6 @@ class SeasonPlayingPageView {
   $icon = new DynamicContentCore({
     value: 1,
   });
-
   $episode = new DynamicContentInListCore({
     value: 1,
   });
@@ -375,7 +352,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
 
   const [state, setProfile] = useState($logic.$tv.state);
   // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
-  const [subtitleState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
+  // const [subtitleState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
   const [targetTime, setTargetTime] = useState<null | string>(null);
   const [playerState, setPlayerState] = useState($logic.$player.state);
   // const [shareLink, setShareLink] = useState("");

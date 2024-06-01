@@ -22,6 +22,36 @@ type TheTypesOfBaseEvents = {
 };
 type BaseDomainEvents<E> = TheTypesOfBaseEvents & E;
 
+export function base<Events extends Record<EventType, unknown>>() {
+  const emitter = mitt<BaseDomainEvents<Events>>();
+  let listeners: (() => void)[] = [];
+
+  return {
+    off<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
+      emitter.off(event, handler);
+    },
+    on<Key extends keyof BaseDomainEvents<Events>>(event: Key, handler: Handler<BaseDomainEvents<Events>[Key]>) {
+      const unlisten = () => {
+        listeners = listeners.filter((l) => l !== unlisten);
+        this.off(event, handler);
+      };
+      listeners.push(unlisten);
+      emitter.on(event, handler);
+      return unlisten;
+    },
+    emit<Key extends keyof BaseDomainEvents<Events>>(event: Key, value?: BaseDomainEvents<Events>[Key]) {
+      emitter.emit(event, value as any);
+    },
+    destroy() {
+      for (let i = 0; i < listeners.length; i += 1) {
+        const off = listeners[i];
+        off();
+      }
+      this.emit(BaseEvents.Destroy, null as any);
+    },
+  };
+}
+
 export class BaseDomain<Events extends Record<EventType, unknown>> {
   /** 用于自己区别同名 Domain 不同实例的标志 */
   unique_id: string = "BaseDomain";

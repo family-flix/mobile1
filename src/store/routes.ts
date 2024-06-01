@@ -78,10 +78,6 @@ const configure = {
           require: ["login"],
         },
       },
-      live: {
-        title: "电视频道",
-        pathname: "/live",
-      },
       search: {
         title: "搜索",
         pathname: "/search",
