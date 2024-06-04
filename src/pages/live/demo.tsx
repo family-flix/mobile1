@@ -7,12 +7,12 @@ import { ArrowLeft } from "lucide-react";
 import { ViewComponent } from "@/store/types";
 import { Dialog, ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
-import { MediaResolutionTypes } from "@/domains/source/constants";
+import { MediaResolutionTypes } from "@/biz/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
 import { OrientationTypes } from "@/domains/app";
 import { useInitialize, useInstance } from "@/hooks";
-import { LiveCore } from "@/domains/live";
+import { LiveCore } from "@/biz/live";
 import { cn } from "@/utils";
 
 export const TVChannelTestPlayingPage: ViewComponent = React.memo((props) => {

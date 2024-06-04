@@ -65,7 +65,7 @@ export const TabHeader = React.memo(
                   onClick={() => {
                     store.select(index);
                   }}
-                  onAnimationStart={(event) => {
+                  onAnimationEnd={(event) => {
                     event.stopPropagation();
                     if (store.mounted) {
                       return;

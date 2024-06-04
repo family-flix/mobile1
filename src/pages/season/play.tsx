@@ -21,17 +21,17 @@ import {
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { Show } from "@/packages/ui/show";
-import { useInitialize, useInstance } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { Sheet, ScrollView, Video } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { PlayingIcon } from "@/components/playing";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
 import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { DynamicContent } from "@/components/dynamic-content";
+import { SeasonMediaCore } from "@/biz/media/season";
+import { createVVTSubtitle } from "@/biz/subtitle/utils";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
-import { SeasonMediaCore } from "@/domains/media/season";
 import { PlayerCore } from "@/domains/player/index";
-import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { OrientationTypes } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";

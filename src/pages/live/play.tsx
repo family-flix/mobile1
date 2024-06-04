@@ -8,7 +8,7 @@ import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { ScrollView, Video } from "@/components/ui";
 import { ScrollViewCore, DialogCore, ToggleCore, PresenceCore } from "@/domains/ui";
-import { MediaResolutionTypes } from "@/domains/source/constants";
+import { MediaResolutionTypes } from "@/biz/source/constants";
 import { RefCore } from "@/domains/cur/index";
 import { PlayerCore } from "@/domains/player/index";
 import { OrientationTypes } from "@/domains/app/index";

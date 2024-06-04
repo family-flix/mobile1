@@ -1,11 +1,11 @@
 import { BaseDomain, Handler } from "@/domains/base";
-import { RefCore } from "@/domains/cur";
-import { SeasonItem, fetchSeasonList, fetchSeasonListProcess } from "@/domains/media/services";
+import { SeasonItem, fetchSeasonList, fetchSeasonListProcess } from "@/biz/media/services";
 import { ButtonCore, DialogCore, DialogProps, InputCore } from "@/domains/ui";
+import { RefCore } from "@/domains/cur";
 import { RequestCore } from "@/domains/request";
 import { ListCore } from "@/domains/list";
 import { HttpClientCore } from "@/domains/http_client";
-import { UnpackedResult } from "@/types";
+import { UnpackedResult } from "@/types/index";
 
 enum Events {
   StateChange,

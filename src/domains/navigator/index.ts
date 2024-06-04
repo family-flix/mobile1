@@ -6,7 +6,7 @@ import qs from "qs";
 import parse from "url-parse";
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { JSONObject } from "@/types";
+import { JSONObject } from "@/types/index";
 
 enum Events {
   PushState,

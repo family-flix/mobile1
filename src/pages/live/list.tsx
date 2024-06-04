@@ -65,7 +65,7 @@ export const TVLiveListPage: ViewComponent = React.memo((props) => {
                     //   url,
                     // };
                     // app.showView(tvChannelPlayingPage);
-                    history.push("root.live", { id, name, url });
+                    // history.push("root.live", { id, name, url });
                   }}
                 >
                   <div className="p-2 flex flex-col items-center rounded-md bg-w-bg-3">

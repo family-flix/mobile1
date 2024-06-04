@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 
 import { ListResponse, ListResponseWithCursor } from "@/store/types";
+import { media_request } from "@/biz/requests";
 import { FetchParams } from "@/domains/list/typing";
-import { TmpRequestResp, request } from "@/domains/request/utils";
+import { TmpRequestResp } from "@/domains/request/utils";
 import { Result } from "@/domains/result/index";
 import { UnpackedResult } from "@/types/index";
 import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
@@ -14,7 +15,7 @@ export function reportSomething(body: {
   media_id?: string;
   media_source_id?: string;
 }) {
-  return request.post<{ id: string }>("/api/v2/wechat/report/create", body);
+  return media_request.post<{ id: string }>("/api/v2/wechat/report/create", body);
 }
 
 type AnswerPayload = Partial<{
@@ -31,7 +32,7 @@ type AnswerPayload = Partial<{
  * 获取消息通知
  */
 export function fetchNotifications(params: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponseWithCursor<{
       id: string;
       content: string;
@@ -41,6 +42,7 @@ export function fetchNotifications(params: FetchParams) {
   >("/api/v2/wechat/notification/list", params);
 }
 export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifications>) {
+  console.log("[]fetchNotificationsProcess", r);
   if (r.error) {
     return Result.Err(r.error);
   }
@@ -66,18 +68,18 @@ export function fetchNotificationsProcess(r: TmpRequestResp<typeof fetchNotifica
 /** 标记消息已读 */
 export function readNotification(params: { id: string }) {
   const { id } = params;
-  return request.post("/api/v2/wechat/notification/read", {
+  return media_request.post("/api/v2/wechat/notification/read", {
     id,
   });
 }
 
 /** 标记所有消息已读 */
 export function readAllNotification() {
-  return request.post("/api/v2/wechat/notification/read_all", {});
+  return media_request.post("/api/v2/wechat/notification/read_all", {});
 }
 
 export function fetchInfo() {
-  return request.get<{
+  return media_request.get<{
     id: string;
     nickname: string;
     email: string | null;
@@ -91,7 +93,7 @@ export function fetchInfo() {
  */
 export function inviteMember(values: { remark: string }) {
   const { remark } = values;
-  return request.post<{
+  return media_request.post<{
     id: string;
     remark: string;
     tokens: {
@@ -114,7 +116,7 @@ export type MediaPayload = {
   air_date: string;
 };
 export function fetchInviteeList(params: FetchParams) {
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       remark: string;
@@ -129,7 +131,7 @@ export function fetchInviteeList(params: FetchParams) {
 export type InviteeItem = UnpackedResult<TmpRequestResp<typeof fetchInviteeList>>["list"][number];
 
 export function fetchCollectionList(body: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponseWithCursor<{
       id: string;
       title: string;
@@ -198,7 +200,7 @@ export function fetchCollectionListProcess(r: TmpRequestResp<typeof fetchCollect
 
 /** 获取今日新增影视剧 */
 export function fetchUpdatedMediaToday() {
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       title: string;
@@ -263,7 +265,7 @@ export function fetchUpdatedMediaTodayProcess(r: TmpRequestResp<typeof fetchUpda
 
 export function shareMediaToInvitee(values: { season_id?: string; movie_id?: string; target_member_id: string }) {
   const { season_id, movie_id, target_member_id } = values;
-  return request.post<{ id: string; name: string; poster_path: string; url: string }>("/api/share/create", {
+  return media_request.post<{ id: string; name: string; poster_path: string; url: string }>("/api/share/create", {
     season_id,
     movie_id,
     target_member_id,
@@ -272,7 +274,7 @@ export function shareMediaToInvitee(values: { season_id?: string; movie_id?: str
 
 /** 获取电视频道列表 */
 export function fetchTVChannelList(params: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponse<{
       id: string;
       name: string;
@@ -284,7 +286,7 @@ export function fetchTVChannelList(params: FetchParams) {
 }
 
 export function fetchDiaryList(params: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponseWithCursor<{
       id: string;
       content: string;
@@ -307,12 +309,12 @@ export function fetchDiaryList(params: FetchParams) {
 
 /** 语音识别 */
 export function recognize(body: { data: string }) {
-  return request.post<string>("/api/2/wechat/recognize", body);
+  return media_request.post<string>("/api/2/wechat/recognize", body);
 }
 
 /** 获取有更新的观看历史 */
 export function fetchUpdatedMediaHasHistory(params: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponse<{
       id: string;
       latest_episode_created: string;
@@ -375,11 +377,11 @@ export function fetchUpdatedMediaHasHistoryProcess(r: TmpRequestResp<typeof fetc
 }
 
 export function confirmQRCode(values: { code: string; status: AuthCodeStep }) {
-  return request.post("/api/v2/wechat/auth/code/confirm", values);
+  return media_request.post("/api/v2/wechat/auth/code/confirm", values);
 }
 
 export function fetchInvitationCodeList(params: FetchParams) {
-  return request.post<
+  return media_request.post<
     ListResponseWithCursor<{
       id: string;
       code: string;
@@ -397,7 +399,7 @@ export function fetchInvitationCodeList(params: FetchParams) {
 export type InvitationCodeItem = UnpackedResult<TmpRequestResp<typeof fetchInvitationCodeList>>["list"][number];
 
 export function createInvitationCode(values: { count: number }) {
-  return request.post<{
+  return media_request.post<{
     list: {
       code: string;
       created_at: string;

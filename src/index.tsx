@@ -1,14 +1,13 @@
 /**
- * @file 项目根入口
+ * @file 应用入口
  */
 import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
-import { messageList, history, app } from "./store/index";
+import { history, app } from "./store/index";
 import { PageKeys, routesWithPathname } from "./store/routes";
 import { pages } from "./store/views";
 import { client } from "./store/request";
-import { storage } from "./store/storage";
 import { useInitialize, useInstance } from "./hooks/index";
 import { ThemeProvider } from "./components/theme-switch";
 import { StackRouteView } from "./components/ui/stack-route-view";
@@ -18,7 +17,6 @@ import { connect as connectApplication } from "./domains/app/connect.web";
 import { connect as connectHistory } from "./domains/history/connect.web";
 import { NavigatorCore } from "./domains/navigator/index";
 import { DialogCore } from "./domains/ui/index";
-import { MediaOriginCountry } from "./constants/index";
 import { cn } from "./utils/index";
 
 import "./index.css";
@@ -41,47 +39,14 @@ history.onClickLink(({ href, target }) => {
   history.push(route.name, query);
   return;
 });
-history.$router.onPopState((r) => {
-  const { type, pathname, href } = r;
-  // console.log("[ROOT]index - app.onPopState", type, pathname, href);
-  if (type === "back") {
-    history.back();
-    return;
-  }
-  if (type === "forward") {
-    history.forward();
-    return;
-  }
-});
-history.$router.onPushState(({ from, to, path, pathname }) => {
-  console.log("[ROOT]index - before history.pushState", from, to, path, pathname);
-  window.history.pushState(
-    {
-      from,
-      to,
-    },
-    "",
-    path
-  );
-});
-history.$router.onReplaceState(({ from, path, pathname }) => {
-  console.log("[ROOT]index - before history.replaceState", from, path, pathname);
-  window.history.replaceState(
-    {
-      from,
-    },
-    "",
-    path
-  );
-});
 connectApplication(app);
 connectHistory(history);
 
-const toast = new ToastCore();
 const view = history.$view;
 
 function ApplicationView() {
-  const updateDialog = useInstance(
+  const $toast = useInstance(() => new ToastCore());
+  const $upgrade = useInstance(
     () =>
       new DialogCore({
         title: "升级提示",
@@ -98,14 +63,11 @@ function ApplicationView() {
 
   useInitialize(() => {
     const { innerWidth, innerHeight, location } = window;
-    // app.onStateChange((nextState) => {
-    //   setState(nextState);
-    // });
-    view.onSubViewsChange((nextSubViews) => {
+    view.onSubViewsChange((v) => {
       // console.log("[ROOT]rootView.onSubViewsChange", nextSubViews.length);
-      setSubViews(nextSubViews);
+      setSubViews(v);
     });
-    history.onRouteChange(({ ignore, reason, view, href }) => {
+    history.onRouteChange(({ reason, view, href, ignore }) => {
       // console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
       const { title } = view;
       app.setTitle(title);
@@ -124,57 +86,25 @@ function ApplicationView() {
     });
     app.onTip((msg) => {
       const { text } = msg;
-      toast.show({
+      $toast.show({
         texts: text,
       });
     });
     app.onUpdate(() => {
-      updateDialog.show();
-    });
-    app.onReady(() => {
-      // setReady(true);
-      const { pathname, query } = history.$router;
-      const route = routesWithPathname[pathname];
-      console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
-      if (!route) {
-        history.push("root.notfound");
-        return;
-      }
-      if (!app.$user.isLogin) {
-        if (route.options?.require?.includes("login")) {
-          history.push("root.login", { redirect: route.pathname });
-          return;
-        }
-      }
-      client.appendHeaders({
-        Authorization: app.$user.token,
-      });
-      messageList.init();
-      if (!history.isLayout(route.name)) {
-        history.push(route.name, query, { ignore: true });
-        return;
-      }
-      history.push(
-        "root.home_layout.home_index.home_index_season",
-        {
-          language: MediaOriginCountry.CN,
-        },
-        { ignore: true }
-      );
+      $upgrade.show();
     });
     app.onTip((msg) => {
       const { text } = msg;
-      toast.show({
+      $toast.show({
         texts: text,
       });
     });
     app.onError((err) => {
       setError(err);
     });
-    console.log(location);
     history.$router.prepare(location);
     app.start({
-      width: innerWidth,
+      width: app.env.pc ? 375 : innerWidth,
       height: innerHeight,
     });
   });
@@ -223,17 +153,37 @@ function ApplicationView() {
           return (
             <StackRouteView
               key={index}
-              className={cn("fixed inset-0 bg-w-bg-3 opacity-100")}
+              className={cn(
+                "z-10 fixed left-1/2 top-0 h-full mx-auto bg-w-bg-3 shadow-xl opacity-100 -translate-x-1/2",
+                app.env.pc ? "w-[375px]" : "w-full"
+              )}
               store={subView}
-              index={index}
+              index={10 + index}
             >
-              <PageContent app={app} history={history} client={client} storage={storage} pages={pages} view={subView} />
+              <PageContent
+                app={app}
+                history={history}
+                client={client}
+                storage={app.$storage}
+                pages={pages}
+                view={subView}
+              />
             </StackRouteView>
           );
         })}
+        {/* <Show when={app.env.pc}>
+          <div className={cn("z-0 fixed left-1/2 top-0 -translate-x-1/2", app.env.pc ? "w-[375px]" : "w-full")}>
+            <div className="right-0 p-4" style={{ transform: `translateX(100%)` }}>
+              <div className="rounded-md bg-w-bg-3">
+                <div className="w-[60px] h-[60px]"></div>
+              </div>
+            </div>
+          </div>
+        </Show> */}
       </div>
-      <Toast store={toast} />
-      <Dialog store={updateDialog}>
+      <Toast store={$toast} />
+
+      <Dialog store={$upgrade}>
         <div>当前版本过旧，点击确定升级</div>
       </Dialog>
       {/* <HistoryPanel store={history} /> */}

@@ -7,8 +7,8 @@ import { ArrowLeft, Copy, HelpingHand, List, Pen, Plus, QrCode, Search, Smartpho
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchInviteeList, inviteMember, createInvitationCode } from "@/services/index";
 import { useInitialize, useInstance } from "@/hooks/index";
+import { Show } from "@/packages/ui/show";
 import { ScrollView, ListView, Skeleton, Input, Dialog } from "@/components/ui";
-import { Show } from "@/components/ui/show";
 import { ScrollViewCore, InputCore, DialogCore } from "@/domains/ui";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
@@ -315,47 +315,48 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                     </div>
                     <div className="operations mt-2">
                       <Show when={tokens.length !== 0}>
-                        {tokens.map((link) => {
-                          const { id, used } = link;
-                          return (
-                            <div key={id} className="flex space-x-2">
-                              {[
-                                {
-                                  prefix: "/pc/home/index?force=1&token=",
-                                  qrcode: false,
-                                  platform: 1,
-                                  text: "PC 端",
-                                },
-                                {
-                                  prefix: "/mobile/home/index?force=1&token=",
-                                  qrcode: true,
-                                  platform: 2,
-                                  text: "移动端",
-                                },
-                              ].map((config) => {
-                                const { prefix, qrcode, platform, text } = config;
-                                const url = `${history.$router.origin}${prefix}${id}`;
-                                return (
-                                  <div key={prefix} className="flex space-x-2">
-                                    <div className="">
-                                      <div
-                                        className="p-2 rounded bg-w-bg-1"
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          app.copy(url);
-                                          app.tip({
-                                            text: [`${text}链接已复制至剪切板`],
-                                          });
-                                        }}
-                                      >
-                                        {platform === 1 ? (
-                                          <Tv2 className="w-5 h-5" />
-                                        ) : (
-                                          <Smartphone className="w-5 h-5" />
-                                        )}
+                        <>
+                          {tokens.map((link) => {
+                            const { id, used } = link;
+                            return (
+                              <div key={id} className="flex space-x-2">
+                                {[
+                                  {
+                                    prefix: "/pc/home/index?force=1&token=",
+                                    qrcode: false,
+                                    platform: 1,
+                                    text: "PC 端",
+                                  },
+                                  {
+                                    prefix: "/mobile/home/index?force=1&token=",
+                                    qrcode: true,
+                                    platform: 2,
+                                    text: "移动端",
+                                  },
+                                ].map((config) => {
+                                  const { prefix, qrcode, platform, text } = config;
+                                  const url = `${history.$router.origin}${prefix}${id}`;
+                                  return (
+                                    <div key={prefix} className="flex space-x-2">
+                                      <div className="">
+                                        <div
+                                          className="p-2 rounded bg-w-bg-1"
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            app.copy(url);
+                                            app.tip({
+                                              text: [`${text}链接已复制至剪切板`],
+                                            });
+                                          }}
+                                        >
+                                          {platform === 1 ? (
+                                            <Tv2 className="w-5 h-5" />
+                                          ) : (
+                                            <Smartphone className="w-5 h-5" />
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                    {/* <Show when={qrcode}>
+                                      {/* <Show when={qrcode}>
                                       <div className="">
                                         <div
                                           className="p-2 rounded bg-w-bg-1"
@@ -367,12 +368,13 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                                         </div>
                                       </div>
                                     </Show> */}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </>
                       </Show>
                     </div>
                   </div>
@@ -390,16 +392,18 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
       </Dialog>
       <Dialog store={$page.ui.$memberLinkDialog}>
         <Show when={!!url}>
-          <div className="">{url}</div>
-          <div
-            className="flex items-center mt-4 space-x-2"
-            onClick={() => {
-              app.copy(url!);
-            }}
-          >
-            <Copy className="w-4 h-4" />
-            <div>点击复制</div>
-          </div>
+          <>
+            <div className="">{url}</div>
+            <div
+              className="flex items-center mt-4 space-x-2"
+              onClick={() => {
+                app.copy(url!);
+              }}
+            >
+              <Copy className="w-4 h-4" />
+              <div>点击复制</div>
+            </div>
+          </>
         </Show>
       </Dialog>
       <Dialog store={$page.ui.$qrcodeDialog}>

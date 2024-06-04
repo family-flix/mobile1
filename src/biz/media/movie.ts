@@ -2,8 +2,8 @@
  * @file 电影
  */
 import { Handler, BaseDomain } from "@/domains/base";
-import { MediaResolutionTypes } from "@/domains/source/constants";
-import { MediaSourceFileCore } from "@/domains/source/index";
+import { MediaResolutionTypes } from "@/biz/source/constants";
+import { MediaSourceFileCore } from "@/biz/source/index";
 import { Result } from "@/domains/result/index";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { RequestCore } from "@/domains/request/index";

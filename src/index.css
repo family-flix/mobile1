@@ -56,17 +56,6 @@ body {
   background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.4), transparent) var(--weui-BRAND);
   background-blend-mode: soft-light;
 }
-/* .huizhang::before {
-  content: "";
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  left: 0;
-  bottom: -5px;
-  background-color: inherit;
-  filter: brightness(0.7);
-  clip-path: polygon(0 0, 100% 0, 100% 100%);
-} */
 
 .animate-bar1 {
   animation-name: playing-bar1;

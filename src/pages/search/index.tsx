@@ -277,7 +277,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
                 }
                 return (
                   <div
-                    className="__a scroll-area flex w-screen p-4 space-x-4 overflow-x-auto scroll scroll--hidden"
+                    className="__a scroll-area flex p-4 space-x-4 overflow-x-auto scroll scroll--hidden"
                     onPointerDown={(event) => {
                       event.stopPropagation();
                     }}

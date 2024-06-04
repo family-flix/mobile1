@@ -7,9 +7,9 @@ import { ArrowLeft, Check, CheckCheck, Diamond, MoreVertical, Smile, Trash } fro
 import { messageList } from "@/store/index";
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { readAllNotification, readNotification } from "@/services/index";
+import { Show } from "@/packages/ui/show";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { ScrollView, LazyImage, ListView } from "@/components/ui";
-import { Show } from "@/components/ui/show";
 import { RequestCore } from "@/domains/request";
 import { DynamicContent } from "@/components/dynamic-content";
 import { ItemTypeFromListCore } from "@/domains/list/typing";

@@ -4,8 +4,8 @@
 import React, { useState } from "react";
 
 import { ViewComponent } from "@/store/types";
-import { SeasonMediaCore } from "@/domains/media/season";
-import { useInitialize, useInstance } from "@/hooks";
+import { useInitialize, useInstance } from "@/hooks/index";
+import { SeasonMediaCore } from "@/biz/media/season";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },

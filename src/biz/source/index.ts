@@ -3,8 +3,8 @@
  * 提供获取播放地址、切换分辨率、字幕展示等功能
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { SubtitleCore } from "@/domains/subtitle";
-import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { SubtitleCore } from "@/biz/subtitle";
+import { SubtitleFileResp } from "@/biz/subtitle/types";
 import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";
 import { MediaOriginCountry } from "@/constants";

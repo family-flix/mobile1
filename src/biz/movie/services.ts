@@ -1,13 +1,14 @@
 import dayjs from "dayjs";
 
-import { request, TmpRequestResp } from "@/domains/request/utils";
+import { media_request } from "@/biz/requests";
+import { SubtitleFileResp } from "@/biz/subtitle/types";
+import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/biz/source/constants";
+import { TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
-import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/domains/source/constants";
-import { ListResponse, RequestedResource, Unpacked, UnpackedResult } from "@/types";
 import { Result } from "@/domains/result/index";
-import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
-import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts } from "@/constants";
+import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils/index";
+import { ListResponse, RequestedResource, Unpacked, UnpackedResult } from "@/types/index";
+import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts } from "@/constants/index";
 
 /**
  * 获取电影和当前播放进度
@@ -15,7 +16,7 @@ import { MediaOriginCountry, MovieMediaGenresTexts, MovieMediaOriginCountryTexts
  */
 export function fetchMoviePlayingSource(body: { movie_id: string }) {
   // console.log("[]fetch_tv_profile params", params);
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     overview: string;
@@ -63,7 +64,7 @@ export type MovieProfile = UnpackedResult<Unpacked<ReturnType<typeof fetchMovieP
  */
 export function fetchMovieProfile(params: { id: string; type?: MediaResolutionTypes }) {
   const { id } = params;
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -134,7 +135,7 @@ export function fetchMovieProfileProcess(r: TmpRequestResp<typeof fetchMovieProf
 export function fetchMediaProfile(params: { id: string; type?: MediaResolutionTypes }) {
   // console.log("[]fetch_episode_profile", params);
   const { id } = params;
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     /** 缩略图 */
@@ -207,7 +208,7 @@ export async function updateMoviePlayHistory(params: {
   file_id?: string;
 }) {
   const { movie_id, current_time = 0, duration = 0, file_id } = params;
-  return request.post<null>("/api/history/movie/update", {
+  return media_request.post<null>("/api/history/movie/update", {
     movie_id,
     current_time,
     duration,
@@ -220,7 +221,7 @@ export async function updateMoviePlayHistory(params: {
  */
 export function fetchMovieList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       name: string;

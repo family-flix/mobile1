@@ -7,10 +7,9 @@ import { Film, HardDrive, Home, Tv2, User } from "lucide-react";
 
 import { PageKeys } from "@/store/routes";
 import { ViewComponent, ViewComponentWithMenu } from "@/store/types";
-import { messageList } from "@/store/index";
+import { Show } from "@/packages/ui/show";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { StackRouteView } from "@/components/ui/stack-route-view";
-import { Show } from "@/components/ui/show";
 import { BottomMenuCore } from "@/domains/bottom_menu";
 import { cn } from "@/utils/index";
 
@@ -159,7 +158,7 @@ export const HomeLayout: ViewComponent = React.memo((props) => {
       </div>
       {/* <div className="relative z-100 h-[68px] box-content safe-bottom">
         <div className="w-full h-[68px] box-content safe-bottom"></div>
-        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 w-screen h-[68px] border-t border-t-w-fg-3 dark:border-t-w-bg-3 bg-w-bg-1 text-w-fg-0 backdrop-blur-md backdrop-filter bg-opacity-50 safe-bottom">
+        <div className="fixed z-100 left-0 bottom-0 box-content grid grid-cols-5 h-[68px] border-t border-t-w-fg-3 dark:border-t-w-bg-3 bg-w-bg-1 text-w-fg-0 backdrop-blur-md backdrop-filter bg-opacity-50 safe-bottom">
           <BottomMenu store={homeMenu} />
           <BottomMenu store={seasonMenu} />
           <BottomMenu store={movieMenu} />

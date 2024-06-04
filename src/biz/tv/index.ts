@@ -3,8 +3,8 @@
  */
 import debounce from "lodash/fp/debounce";
 
-import { SubtitleCore } from "@/domains/subtitle";
-import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { SubtitleCore } from "@/biz/subtitle";
+import { SubtitleFileResp } from "@/biz/subtitle/types";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RequestCore } from "@/domains/request";
 import { HttpClientCore } from "@/domains/http_client";

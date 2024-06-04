@@ -17,20 +17,20 @@ import {
 } from "lucide-react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { Show } from "@/packages/ui/show";
 import { Sheet, ScrollView, Video } from "@/components/ui";
 import { MovieMediaSettings } from "@/components/movie-media-settings";
 import { Presence } from "@/components/ui/presence";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
+import { MovieMediaCore } from "@/biz/media/movie";
+import { createVVTSubtitle } from "@/biz/subtitle/utils";
+import { MediaResolutionTypes } from "@/biz/source/constants";
 import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
 import { RouteViewCore } from "@/domains/route_view";
-import { MovieMediaCore } from "@/domains/media/movie";
-import { MediaResolutionTypes } from "@/domains/source/constants";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
-import { createVVTSubtitle } from "@/domains/subtitle/utils";
 import { OrientationTypes } from "@/domains/app";
-import { useInitialize, useInstance } from "@/hooks/index";
 import { cn, seconds_to_hour, sleep } from "@/utils/index";
 
 function MoviePlayingPageLogic(props: ViewComponentProps) {

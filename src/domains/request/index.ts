@@ -105,7 +105,7 @@ export class RequestCore<F extends FetchFunction, P = UnpackedRequestPayload<Ret
     };
   }
 
-  constructor(fn: F, props: RequestProps<F, P>) {
+  constructor(fn: F, props: RequestProps<F, P> = {}) {
     super();
 
     const {

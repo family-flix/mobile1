@@ -1,14 +1,14 @@
 import React from "react";
 
 import { ViewComponent } from "@/store/types";
+import { useInitialize, useInstance } from "@/hooks";
 import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { Node, Sheet } from "@/components/ui";
-import { SeasonMediaCore } from "@/domains/media/season";
+import { SeasonMediaCore } from "@/biz/media/season";
 import { PlayerCore } from "@/domains/player";
-import { MediaResolutionTypes } from "@/domains/source/constants";
+import { MediaResolutionTypes } from "@/biz/source/constants";
 import { DialogCore, NodeCore } from "@/domains/ui";
-import { useInitialize, useInstance } from "@/hooks";
-import { sleep } from "@/utils";
+import { sleep } from "@/utils/index";
 
 export const TestPage: ViewComponent = React.memo((props) => {
   const { app, client } = props;

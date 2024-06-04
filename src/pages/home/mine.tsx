@@ -20,9 +20,9 @@ import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { messageList } from "@/store/index";
 import { reportSomething } from "@/services/index";
 import { useInitialize, useInstance } from "@/hooks/index";
+import { Show } from "@/packages/ui/show";
 import { getSystemTheme, useTheme } from "@/components/theme-switch";
 import { Button, Dialog, ScrollView, LazyImage, Input } from "@/components/ui";
-import { Show } from "@/components/ui/show";
 import { ButtonCore, DialogCore, ScrollViewCore, InputCore, ImageCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { ReportTypes, __VERSION__ } from "@/constants/index";
@@ -152,7 +152,7 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
 
   return (
     <>
-      <ScrollView store={$page.ui.$scroll} className="w-screen h-screen bg-w-bg-0">
+      <ScrollView store={$page.ui.$scroll} className="bg-w-bg-0">
         <div className="w-full h-full">
           <div
             className=""

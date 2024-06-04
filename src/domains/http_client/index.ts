@@ -34,7 +34,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
 
   async get<T>(
     endpoint: string,
-    query?: Record<string, string | number>,
+    query?: Record<string, string | number | undefined>,
     extra: Partial<{ headers: Record<string, string>; id: string }> = {}
   ): Promise<Result<T>> {
     try {

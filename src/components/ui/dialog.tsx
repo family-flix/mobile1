@@ -4,12 +4,11 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 
-import { DialogCore } from "@/domains/ui/dialog";
 import { useInitialize } from "@/hooks/index";
+import { Show } from "@/packages/ui/show";
 import * as DialogPrimitive from "@/packages/ui/dialog";
+import { DialogCore } from "@/domains/ui/dialog";
 import { cn } from "@/utils/index";
-
-import { Show } from "./show";
 
 export const Dialog = React.memo(
   (

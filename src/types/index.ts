@@ -1,4 +1,3 @@
-import { BizError } from "@/domains/error/index";
 import { Resp, Result } from "../domains/result";
 
 export type UnpackedResult<T> = NonNullable<T extends Resp<infer U> ? (U extends null ? U : U) : T>;
@@ -11,12 +10,6 @@ export type Unpacked<T> = T extends (infer U)[]
   : T extends Result<infer U>
   ? U
   : T;
-
-export type BaseApiResp<T> = {
-  code: number;
-  msg: string;
-  data: T;
-};
 
 export type ListResponse<T> = {
   total: number;

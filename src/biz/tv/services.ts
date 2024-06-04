@@ -1,12 +1,13 @@
 import dayjs from "dayjs";
 
-import { request, TmpRequestResp, UnpackedRequestPayload } from "@/domains/request/utils";
+import { media_request } from "@/biz/requests";
+import { TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
-import { SubtitleFileResp } from "@/domains/subtitle/types";
-import { ListResponse, RequestedResource, Unpacked, UnpackedResult } from "@/types";
+import { SubtitleFileResp } from "@/biz/subtitle/types";
 import { Result } from "@/domains/result/index";
-import { MediaOriginCountry, SeasonMediaOriginCountryTexts, SeasonGenresTexts } from "@/constants";
-import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils";
+import { MediaOriginCountry, SeasonMediaOriginCountryTexts, SeasonGenresTexts } from "@/constants/index";
+import { ListResponse, RequestedResource, Unpacked, UnpackedResult } from "@/types/index";
+import { episode_to_chinese_num, minute_to_hour, relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 
 import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants";
 
@@ -15,7 +16,7 @@ import { EpisodeResolutionTypes, EpisodeResolutionTypeTexts } from "./constants"
  */
 export function fetchTVList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -39,7 +40,7 @@ export type TVItem = UnpackedResult<TmpRequestResp<typeof fetchTVList>>["list"][
  */
 export function fetchSeasonList(params: FetchParams & { name: string }) {
   const { page, pageSize, ...rest } = params;
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       tv_id: string;
@@ -152,7 +153,7 @@ type MediaSourceProfileRes = {
 export function fetchTVAndCurEpisode(params: { tv_id: string; season_id?: string }) {
   // console.log("[]fetch_tv_profile params", params);
   const { tv_id, season_id } = params;
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     overview: string;
@@ -341,7 +342,7 @@ export type TVEpisodeProfile = UnpackedResult<
 export function fetchEpisodeProfile(params: { id: string; type?: EpisodeResolutionTypes }) {
   // console.log("[]fetch_episode_profile", params);
   const { id } = params;
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -412,7 +413,7 @@ export type MediaSourceProfile = UnpackedResult<Unpacked<ReturnType<typeof fetch
  */
 export function fetchEpisodesOfSeason(params: { tv_id: string; season_id: string } & FetchParams) {
   const { tv_id, season_id, page, pageSize } = params;
-  return request.get<
+  return media_request.get<
     ListResponse<{
       id: string;
       name: string;
@@ -478,7 +479,7 @@ export function fetchEpisodeOfSeasonProcess(r: TmpRequestResp<typeof fetchEpisod
  * 获取视频源播放信息
  */
 export function fetchSourcePlayingInfo(body: { episode_id: string; file_id: string }) {
-  return request.get<{
+  return media_request.get<{
     id: string;
     name: string;
     // parent_file_id: string;
@@ -555,7 +556,7 @@ export function updatePlayHistory(body: {
   file_id: string;
 }) {
   const { tv_id, season_id, episode_id, current_time, duration, file_id } = body;
-  return request.post<null>("/api/history/update", {
+  return media_request.post<null>("/api/history/update", {
     tv_id,
     season_id,
     episode_id,

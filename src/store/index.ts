@@ -1,48 +1,42 @@
-import { fetchInfo, fetchNotifications, fetchNotificationsProcess } from "@/services/index";
+import { fetchNotifications, fetchNotificationsProcess } from "@/services/index";
 import { Application } from "@/domains/app/index";
 import { ListCore } from "@/domains/list/index";
 import { NavigatorCore } from "@/domains/navigator/index";
 import { RouteViewCore } from "@/domains/route_view/index";
+import { RouteConfig } from "@/domains/route_view/utils";
+import { UserCore } from "@/biz/user/index";
 import { HistoryCore } from "@/domains/history/index";
 import { RequestCore, onCreate } from "@/domains/request/index";
-import { onCreateGetPayload, onCreatePostPayload } from "@/domains/request/utils";
 import { ImageCore } from "@/domains/ui/image/index";
 import { Result } from "@/domains/result/index";
+import { MediaOriginCountry } from "@/constants/index";
 
 import { client } from "./request";
-import { user } from "./user";
 import { storage } from "./storage";
-import { PageKeys, RouteConfig, routes } from "./routes";
+import { PageKeys, routes, routesWithPathname } from "./routes";
 
 NavigatorCore.prefix = import.meta.env.BASE_URL;
 ImageCore.setPrefix(window.location.origin);
 
-function media_response_format<T>(r: Result<{ code: number | string; msg: string; data: T }>) {
-  if (r.error) {
-    return Result.Err(r.error.message);
-  }
-  const { code, msg, data } = r.data;
-  if (code !== 0) {
-    return Result.Err(msg, code, data);
-  }
-  return Result.Ok(data);
-}
-onCreatePostPayload((payload) => {
-  payload.process = media_response_format;
-});
-onCreateGetPayload((payload) => {
-  payload.process = media_response_format;
-});
 onCreate((ins) => {
   ins.onFailed((e) => {
     app.tip({
       text: [e.message],
     });
   });
-  ins.client = client;
+  if (!ins.client) {
+    ins.client = client;
+  }
 });
 
 const router = new NavigatorCore();
+
+class ExtendsUser extends UserCore {
+  say() {
+    console.log(`My name is ${this.username}`);
+  }
+}
+const user = new ExtendsUser(storage.get("user"), client);
 const view = new RouteViewCore({
   name: "root" as PageKeys,
   pathname: "/",
@@ -52,7 +46,7 @@ const view = new RouteViewCore({
   views: [],
 });
 view.isRoot = true;
-export const history = new HistoryCore<PageKeys, RouteConfig>({
+export const history = new HistoryCore<PageKeys, RouteConfig<PageKeys>>({
   view,
   router,
   routes,
@@ -65,6 +59,34 @@ export const app = new Application({
   storage,
   async beforeReady() {
     await user.loginWithTokenId({ token: router.query.token, tmp: Number(router.query.tmp) });
+    const { pathname, query } = history.$router;
+    const route = routesWithPathname[pathname];
+    console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
+    if (!route) {
+      history.push("root.notfound");
+      return Result.Err("not found");
+    }
+    if (!app.$user.isLogin) {
+      if (route.options?.require?.includes("login")) {
+        history.push("root.login", { redirect: route.pathname });
+        return Result.Err("need login");
+      }
+    }
+    client.appendHeaders({
+      Authorization: app.$user.token,
+    });
+    messageList.init();
+    if (!history.isLayout(route.name)) {
+      history.push(route.name, query, { ignore: true });
+      return Result.Err("can't goto layout");
+    }
+    history.push(
+      "root.home_layout.home_index.home_index_season",
+      {
+        language: MediaOriginCountry.CN,
+      },
+      { ignore: true }
+    );
     return Result.Ok(null);
   },
 });
@@ -76,14 +98,14 @@ user.onLogin((profile) => {
 });
 user.onLogout(() => {
   storage.clear("user");
-  history.push("root.login");
+  history.replace("root.login");
 });
 user.onExpired(() => {
   storage.clear("user");
   app.tip({
     text: ["token 已过期，请重新登录"],
   });
-  history.push("root.login");
+  history.replace("root.login");
 });
 user.onTip((msg) => {
   app.tip(msg);

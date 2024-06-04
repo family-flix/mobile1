@@ -91,7 +91,7 @@ export const HomeSeasonTabContent: ViewComponent = React.memo((props) => {
       <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
           store={$page.$list}
-          className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
+          className="relative grid grid-cols-1 pt-4"
           skeleton={
             <>
               <div className="flex px-3 pb-3 cursor-pointer">

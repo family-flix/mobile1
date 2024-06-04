@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 
 import { MediaOriginCountry } from "@/constants";
 
-import { SeasonMediaCore } from "@/domains/media/season";
+import { SeasonMediaCore } from "@/biz/media/season";
 import { Result } from "@/domains/result/index";
 import { originalEpisodes, processedEpisodes, processedEpisodes2 } from "./episodes";
 import { HttpClientCore } from "@/domains/http_client";
-import { UserCore } from "@/domains/user";
+import { UserCore } from "@/biz/user";
 
 // const spy = vi.spyOn(window, "open");
 // const window = vi.fn(() => ({
@@ -35,14 +35,16 @@ vi.mock("@/store/request", async () => {
 const client = new HttpClientCore({
   hostname: "",
 });
-const user = new UserCore({
-  id: "",
-  username: "",
-  email: "",
-  avatar: "",
-  token: "",
-  client,
-});
+const user = new UserCore(
+  {
+    id: "",
+    username: "",
+    email: "",
+    avatar: "",
+    token: "",
+  },
+  client
+);
 
 describe("播放下一集", () => {
   it("只有一个分组，第一集", async () => {

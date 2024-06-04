@@ -103,7 +103,7 @@ export const HomeRecommendedTabContent: ViewComponent = React.memo((props) => {
                     </div>
                     <div
                       className={cn(
-                        "flex pb-4 py-2 w-screen min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
+                        "flex pb-4 py-2 min-h-[248px] overflow-x-auto px-4 space-x-3 scroll scroll--hidden",
                         app.env.android ? "scroll--fix" : ""
                       )}
                     >

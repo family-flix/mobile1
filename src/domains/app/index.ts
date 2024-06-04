@@ -3,7 +3,7 @@
  */
 
 import { BaseDomain, Handler } from "@/domains/base";
-import { UserCore } from "@/domains/user/index";
+import { UserCore } from "@/biz/user/index";
 import { StorageCore } from "@/domains/storage/index";
 import { JSONObject } from "@/types/index";
 import { Result } from "@/domains/result/index";

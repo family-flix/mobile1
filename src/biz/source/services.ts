@@ -1,5 +1,6 @@
-import { TmpRequestResp, request } from "@/domains/request/utils";
-import { SubtitleFileResp } from "@/domains/subtitle/types";
+import { media_request } from "@/biz/requests";
+import { TmpRequestResp } from "@/domains/request/utils";
+import { SubtitleFileResp } from "@/biz/subtitle/types";
 import { Unpacked, UnpackedResult } from "@/types";
 import { Result } from "@/domains/result/index";
 
@@ -9,7 +10,7 @@ import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";
  * 获取视频源播放信息
  */
 export function fetchSourcePlayingInfo(body: { id: string; type: MediaResolutionTypes }) {
-  return request.post<{
+  return media_request.post<{
     id: string;
     /** 缩略图 */
     thumbnail_path: string;

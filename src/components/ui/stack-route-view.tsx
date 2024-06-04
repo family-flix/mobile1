@@ -3,6 +3,7 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 
+import { Show } from "@/packages/ui/show";
 import { RouteViewCore } from "@/domains/route_view/index";
 import { useInitialize } from "@/hooks/index";
 import { cn } from "@/utils/index";
@@ -48,7 +49,7 @@ export const StackRouteView = React.memo(
 
     return (
       <>
-        {state.mounted ? (
+        <Show when={state.mounted}>
           <div
             className={cn(
               props.className,
@@ -79,7 +80,7 @@ export const StackRouteView = React.memo(
           >
             {props.children}
           </div>
-        ) : null}
+        </Show>
       </>
     );
   }

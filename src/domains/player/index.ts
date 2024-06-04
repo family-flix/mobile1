@@ -2,13 +2,13 @@
  * @file 播放器
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { MediaResolutionTypes } from "@/domains/source/constants";
+import { MediaResolutionTypes } from "@/biz/source/constants";
 import { Application } from "@/domains/app";
 import { Result } from "@/domains/result/index";
 
 enum Events {
   Mounted,
-  /** 改变播放地址（切换剧集或分辨率） */
+  /** 改变播放地址（切换剧集、分辨率或视频文件） */
   UrlChange,
   /** 调整进度 */
   CurrentTimeChange,

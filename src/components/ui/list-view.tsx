@@ -5,12 +5,12 @@ import React, { useState } from "react";
 import { AlertCircle, ArrowDown, Bird, Loader } from "lucide-react";
 
 import { useInitialize, useInstance } from "@/hooks/index";
+import { Show } from "@/packages/ui/show";
 import { ListCore } from "@/domains/list";
 import { ButtonCore } from "@/domains/ui";
 import { cn } from "@/utils/index";
 
 import { Button } from "./button";
-import { Show } from "./show";
 
 export const ListView = React.memo(
   (

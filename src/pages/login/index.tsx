@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { PageKeys, routesWithPathname } from "@/store/routes";
 import { Button, Input } from "@/components/ui";
 import { ButtonCore, InputCore } from "@/domains/ui";
 import { useInstance } from "@/hooks/index";

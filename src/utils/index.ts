@@ -3,9 +3,11 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import relative_time from "dayjs/plugin/relativeTime";
 import { twMerge } from "tailwind-merge";
+
 import { JSONObject } from "@/types/index";
 
-const nzhcn = Nzh.cn;
+import { cn as nzhcn } from "./nzh";
+
 dayjs.extend(relative_time);
 dayjs.locale("zh-cn");
 
@@ -76,7 +78,10 @@ export function chinese_num_to_num(str: string) {
   return nzhcn.decodeS(str);
 }
 
-export function update<T>(arr: T[], index: number, nextItem: T) {
+/**
+ * 使用指定元素，替换数组中指定下标的元素
+ */
+export function replaceItemWithIndex<T>(arr: T[], index: number, nextItem: T) {
   if (index === -1) {
     return [...arr];
   }
@@ -96,7 +101,6 @@ export function query_stringify(query: JSONObject) {
 }
 
 const defaultRandomAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
 /**
  * 返回一个指定长度的随机字符串
  * @param length

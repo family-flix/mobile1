@@ -2,22 +2,21 @@
  * @file 播放历史记录页面
  */
 import React, { useRef, useState } from "react";
-import { ArrowRightCircle, ArrowUp, Flashlight, MoreHorizontal, MoreVertical, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 import { ViewComponentPropsWithMenu, ViewComponentWithMenu } from "@/store/types";
-// import { moviePlayingPage, moviePlayingPageV2, rootView, seasonPlayingPageV2, tvPlayingPage } from "@/store/views";
-import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
-import { Show } from "@/components/ui/show";
-import { RequestCore } from "@/domains/request";
 import { useInitialize, useInstance } from "@/hooks/index";
-import { ListCore } from "@/domains/list";
-import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
+import { Show } from "@/packages/ui/show";
+import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node, BackToTop } from "@/components/ui";
 import {
   PlayHistoryItem,
   deleteHistory,
   fetchPlayingHistories,
   fetchPlayingHistoriesProcess,
-} from "@/domains/media/services";
+} from "@/biz/media/services";
+import { ScrollViewCore, DialogCore, NodeInListCore, ImageInListCore } from "@/domains/ui";
+import { RequestCore } from "@/domains/request";
+import { ListCore } from "@/domains/list";
 import { RefCore } from "@/domains/cur";
 import { MediaTypes } from "@/constants/index";
 import { cn } from "@/utils/index";
@@ -168,7 +167,7 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
       <ScrollView className="h-full bg-w-bg-3" store={$page.ui.$scroll}>
         <ListView
           store={$page.$list}
-          className="grid grid-cols-2 gap-2 px-3 md:grid-cols-4 xl:grid-cols-6 pt-4"
+          className="grid grid-cols-2 gap-2 px-3 pt-4"
           skeleton={
             <>
               <div className="relative w-full rounded-lg">
@@ -231,8 +230,10 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
                       {record.updated}
                       <p className="mx-1">·</p>
                       <Show when={!!record.episodeText}>
-                        <p className="">{record.episodeText}</p>
-                        <p className="mx-1">·</p>
+                        <>
+                          <p className="">{record.episodeText}</p>
+                          <p className="mx-1">·</p>
+                        </>
                       </Show>
                       {record.percent}%
                     </div>

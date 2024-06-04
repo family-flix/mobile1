@@ -3,11 +3,10 @@
  */
 import React, { useState } from "react";
 
-import { PresenceCore } from "@/domains/ui/presence";
+import { Show } from "@/packages/ui/show";
 import { useInitialize } from "@/hooks/index";
+import { PresenceCore } from "@/domains/ui/presence";
 import { cn } from "@/utils/index";
-
-import { Show } from "./show";
 
 export const Presence = React.memo(
   (

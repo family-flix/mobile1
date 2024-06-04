@@ -1,8 +1,10 @@
 import dayjs from "dayjs";
 
 import { ListResponseWithCursor } from "@/store/types";
-import { TmpRequestResp, UnpackedRequestPayload, request } from "@/domains/request/utils";
+import { media_request } from "@/biz/requests/index";
+import { TmpRequestResp, UnpackedRequestPayload } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
+import { Result } from "@/domains/result/index";
 import {
   MediaOriginCountry,
   MediaTypes,
@@ -10,14 +12,13 @@ import {
   SeasonMediaOriginCountryTexts,
 } from "@/constants/index";
 import { RequestedResource } from "@/types/index";
-import { Result } from "@/domains/result/index";
 
 /**
  * 获取电影列表
  */
 export function fetchMediaList(params: FetchParams & { type: MediaTypes; name: string }) {
   const { page, pageSize, ...rest } = params;
-  return request.post<
+  return media_request.post<
     ListResponseWithCursor<{
       id: string;
       type: MediaTypes;
@@ -122,7 +123,7 @@ export type MediaItem = RequestedResource<typeof fetchMediaListProcess>["list"][
 
 export function fetchMemberToken(values: { media_id: string; target_member_id: string }) {
   const { media_id, target_member_id } = values;
-  return request.post<{ name: string; original_name: string; poster_path: string; token: string }>(
+  return media_request.post<{ name: string; original_name: string; poster_path: string; token: string }>(
     "/api/v2/wechat/member/token",
     {
       media_id,
@@ -132,7 +133,7 @@ export function fetchMemberToken(values: { media_id: string; target_member_id: s
 }
 
 export function fetchMediaProfile(values: { media_id: string }) {
-  return request.post<{
+  return media_request.post<{
     id: string;
     type: MediaTypes;
     name: string;
@@ -156,7 +157,7 @@ export function fetchMediaProfile(values: { media_id: string }) {
 }
 
 export function fetchMediaRanks() {
-  return request.post<
+  return media_request.post<
     {
       id: string;
       type: number;

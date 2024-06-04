@@ -71,6 +71,7 @@ export function connect<T extends { storage: StorageCore<any> }>(app: Applicatio
     wechat: ua.indexOf("micromessenger") !== -1,
     ios,
     android,
+    pc: !ios && !android,
   });
   /**
    * 主题 ——-------------

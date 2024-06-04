@@ -171,6 +171,7 @@ export class TabHeaderCore<
       return null;
     }
     const client = this.extra[matchedTab.id];
+    console.log("[DOMAIN]ui/tab-header - calcLineLeft", client.left, client.width, this.container.left);
     return client.left - this.container.left + client.width / 2;
   }
   updateTabClient(index: number, info: { width: number; height: number; left: number }) {
@@ -179,7 +180,7 @@ export class TabHeaderCore<
       return;
     }
     this.extra[matchedTab.id] = info;
-    // console.log("[DOMAIN]ui/tab-headers", index, Object.keys(this.extra).length, this.tabs.length);
+    console.log("[DOMAIN]ui/tab-headers", index, info);
     if (Object.keys(this.extra).length !== this.tabs.length) {
       return;
     }

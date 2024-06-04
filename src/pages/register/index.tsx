@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 
 import { ViewComponent, ViewComponentProps } from "@/store/types";
-import { PageKeys, routesWithPathname } from "@/store/routes";
+import { useInstance } from "@/hooks/index";
 import { Button, Input } from "@/components/ui";
-import { ButtonCore, InputCore, PresenceCore } from "@/domains/ui";
-import { RouteViewCore } from "@/domains/route_view";
-import { useInitialize, useInstance } from "@/hooks/index";
+import { ButtonCore, InputCore } from "@/domains/ui";
 import { MediaOriginCountry } from "@/constants/index";
-import { Presence } from "@/components/ui/presence";
-import { cn } from "@/utils";
 
 function Page(props: ViewComponentProps) {
   const { app, view, history, client } = props;

@@ -4,12 +4,12 @@
 import React, { useState } from "react";
 
 import { ViewComponent } from "@/store/types";
-import { TVCore } from "@/domains/tv";
+import { useInitialize, useInstance } from "@/hooks";
 import { ScrollView } from "@/components/ui";
+import { MediaResolutionTypes } from "@/biz/source/constants";
+import { TVCore } from "@/biz/tv/index";
 import { ScrollViewCore } from "@/domains/ui";
 import { NavigatorCore } from "@/domains/navigator";
-import { MediaResolutionTypes } from "@/domains/source/constants";
-import { useInitialize, useInstance } from "@/hooks";
 
 const players: { icon: string; name: string; scheme: string }[] = [
   // { icon: "iina", name: "IINA", scheme: "iina://weblink?url=$durl" },

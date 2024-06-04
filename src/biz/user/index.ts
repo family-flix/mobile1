@@ -41,7 +41,6 @@ type UserProps = {
   email: string;
   avatar: string;
   token: string;
-  client: HttpClientCore;
 };
 type UserState = {
   id: string;
@@ -76,10 +75,10 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
       token: this.token,
     };
   }
-  constructor(props: Partial<{ _name: string }> & UserProps) {
+  constructor(props: Partial<{ _name: string }> & UserProps, client: HttpClientCore) {
     super(props);
 
-    const { id, username, email, avatar, token, client } = props;
+    const { id, username, email, avatar, token } = props;
     // this.log("constructor", initialUser);
     this.id = id;
     this.username = username;

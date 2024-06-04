@@ -8,13 +8,12 @@ import { fetchUpdatedMediaHasHistory, fetchUpdatedMediaHasHistoryProcess } from 
 import { ViewComponentProps, ViewComponentWithMenu } from "@/store/types";
 import { ScrollView, Skeleton, LazyImage, ListView, Dialog, Node } from "@/components/ui";
 import { Affix } from "@/components/ui/affix";
+import { PlayHistoryItem, deleteHistory } from "@/biz/media/services";
 import { AffixCore } from "@/domains/ui/affix";
-import { Show } from "@/components/ui/show";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { RequestCore } from "@/domains/request/index";
 import { ListCore } from "@/domains/list/index";
 import { ScrollViewCore, DialogCore, ImageInListCore } from "@/domains/ui";
-import { PlayHistoryItem, deleteHistory } from "@/domains/media/services";
 import { RefCore } from "@/domains/cur/index";
 
 function Page(props: ViewComponentProps) {

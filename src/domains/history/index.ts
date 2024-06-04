@@ -100,7 +100,14 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     this.virtual = virtual;
   }
 
-  push(name: K, query: Record<string, string> = {}, options: Partial<{ ignore: boolean }> = {}) {
+  push(
+    name: K,
+    query: Record<string, string> = {},
+    options: Partial<{
+      /** 不变更 history stack */
+      ignore: boolean;
+    }> = {}
+  ) {
     // console.log("-----------");
     // console.log("[DOMAIN]history/index - push target url is", name, "and cur href is", this.$router.href);
     const { ignore } = options;
