@@ -11,23 +11,20 @@ type TheTypesOfEvents = {
 };
 
 type HttpClientCoreProps = {
-  hostname?: string;
   headers?: Record<string, string>;
   debug?: boolean;
 };
 type HttpClientCoreState = {};
 
 export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
-  hostname: string = "";
   headers: Record<string, string> = {};
   debug = false;
 
-  constructor(props: Partial<{ _name: string }> & HttpClientCoreProps) {
+  constructor(props: HttpClientCoreProps = {}) {
     super(props);
 
-    const { hostname = "", headers = {}, debug = false } = props;
+    const { headers = {}, debug = false } = props;
 
-    this.hostname = hostname;
     this.headers = headers;
     this.debug = debug;
   }
@@ -38,8 +35,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     extra: Partial<{ headers: Record<string, string>; id: string }> = {}
   ): Promise<Result<T>> {
     try {
-      const h = this.hostname;
-      const url = [h, endpoint, query ? "?" + query_stringify(query) : ""].join("");
+      const url = [endpoint, query ? "?" + query_stringify(query) : ""].join("");
       const payload = {
         url,
         method: "GET" as const,
@@ -65,8 +61,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     body?: JSONObject | FormData,
     extra: Partial<{ headers: Record<string, string>; id: string }> = {}
   ): Promise<Result<T>> {
-    const h = this.hostname;
-    const url = [h, endpoint].join("");
+    const url = [endpoint].join("");
     try {
       const payload = {
         url,

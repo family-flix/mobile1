@@ -32,7 +32,7 @@ export const Toast = React.memo((props: { store: ToastCore }) => {
         <ToastPrimitive.Content
           store={store}
           className={cn(
-            "grid gap-4 rounded-lg bg-w-bg-4 text-w-bg-0 dark:text-w-fg-0 p-6 sm:max-w-lg sm:rounded-lg",
+            "grid gap-4 rounded-lg bg-w-bg-4 text-w-bg-0 dark:text-w-fg-0 p-6 duration-200 sm:max-w-lg sm:rounded-lg",
             state2.enter ? "animate-in fade-in sm:zoom-in-90" : "",
             state2.exit ? "animate-out fade-out" : ""
           )}

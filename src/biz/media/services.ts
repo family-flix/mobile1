@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 
-import { ListResponse, ListResponseWithCursor } from "@/store/types";
+import { ListResponse, ListResponseWithCursor } from "@/biz/requests/types";
 import { media_request } from "@/biz/requests";
 import { TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";

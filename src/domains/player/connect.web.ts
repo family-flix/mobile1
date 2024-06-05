@@ -1,5 +1,3 @@
-import { Result } from "@/domains/result/index";
-
 import { PlayerCore } from "./index";
 
 /** 连接 $video 标签和 player 领域 */

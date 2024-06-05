@@ -32,9 +32,7 @@ vi.mock("@/store/request", async () => {
     },
   };
 });
-const client = new HttpClientCore({
-  hostname: "",
-});
+const client = new HttpClientCore({});
 const user = new UserCore(
   {
     id: "",

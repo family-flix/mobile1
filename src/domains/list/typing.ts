@@ -15,10 +15,10 @@ export type Search = {
 /**
  * 请求参数
  */
-export interface FetchParams extends Search {
+export type FetchParams = {
   page: number;
   pageSize: number;
-}
+};
 
 /**
  * 对外暴露的响应值

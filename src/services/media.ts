@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
-import { ListResponseWithCursor } from "@/store/types";
 import { media_request } from "@/biz/requests/index";
+import { ListResponseWithCursor } from "@/biz/requests/types";
 import { TmpRequestResp, UnpackedRequestPayload } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { Result } from "@/domains/result/index";
@@ -16,7 +16,9 @@ import { RequestedResource } from "@/types/index";
 /**
  * 获取电影列表
  */
-export function fetchMediaList(params: FetchParams & { type: MediaTypes; name: string }) {
+export function fetchMediaList(
+  params: FetchParams & Partial<{ type: MediaTypes; name: string; language: string; genres: string }>
+) {
   const { page, pageSize, ...rest } = params;
   return media_request.post<
     ListResponseWithCursor<{

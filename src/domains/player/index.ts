@@ -2,9 +2,20 @@
  * @file 播放器
  */
 import { BaseDomain, Handler } from "@/domains/base";
-import { MediaResolutionTypes } from "@/biz/source/constants";
 import { Application } from "@/domains/app";
 import { Result } from "@/domains/result/index";
+
+/** 影片分辨率 */
+enum MediaResolutionTypes {
+  /** 标清 */
+  LD = "LD",
+  /** 普清 */
+  SD = "SD",
+  /** 高清 */
+  HD = "HD",
+  /** 超高清 */
+  FHD = "FHD",
+}
 
 enum Events {
   Mounted,

@@ -38,7 +38,7 @@ export const Dialog = React.memo(
             store={store}
             className={cn(
               "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
-              "transition-all duration-300",
+              "transition-all duration-200",
               state2.enter ? "animate-in fade-in" : "",
               state2.exit ? "animate-out fade-out" : ""
             )}

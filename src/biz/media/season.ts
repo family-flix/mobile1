@@ -148,7 +148,10 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.curGroup = sourceGroups.find((group) => group.cur) ?? null;
     this.emit(Events.ProfileLoaded, { profile: this.profile, curSource });
     this.emit(Events.StateChange, { ...this.state });
-    return Result.Ok({ ...this.state });
+    return Result.Ok({
+      profile: this.profile,
+      curSource,
+    });
   }
   fetchSeries(media_id: string) {
     fetchMediaSeries({
@@ -156,7 +159,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     });
   }
   /** 播放该电视剧下指定影片 */
-  async playEpisode(source: MediaSource & { curFileId?: string }, extra: { currentTime: number }) {
+  async playEpisode(source: MediaSource & { curFileId?: string }, extra: Partial<{ currentTime: number }> = {}) {
     const { currentTime = 0 } = extra;
     console.log("[DOMAIN]media/season - playEpisode", source, this.curSource);
     const { id, files } = source;
@@ -164,7 +167,10 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       this.tip({
         text: ["已经是该剧集了"],
       });
-      return Result.Ok(this.curSource);
+      if (this.$source.profile === null) {
+        return Result.Err("加载视频文件失败");
+      }
+      return Result.Ok(this.$source.profile);
     }
     if (files.length === 0) {
       const tip = this.tip({
@@ -202,7 +208,10 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     })();
     this.emit(Events.SourceFileChange, { ...res.data, currentTime });
     this.emit(Events.StateChange, { ...this.state });
-    return Result.Ok(this.curSource);
+    if (this.$source.profile === null) {
+      return Result.Err("加载视频文件失败");
+    }
+    return Result.Ok(this.$source.profile);
   }
   /** 切换剧集 */
   switchEpisode(episode: MediaSource) {

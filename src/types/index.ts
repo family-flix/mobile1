@@ -1,4 +1,4 @@
-import { Resp, Result } from "../domains/result";
+import { Resp, Result } from "@/domains/result/index";
 
 export type UnpackedResult<T> = NonNullable<T extends Resp<infer U> ? (U extends null ? U : U) : T>;
 export type Unpacked<T> = T extends (infer U)[]
@@ -10,24 +10,8 @@ export type Unpacked<T> = T extends (infer U)[]
   : T extends Result<infer U>
   ? U
   : T;
-
-export type ListResponse<T> = {
-  total: number;
-  page: number;
-  page_size: number;
-  no_more: boolean;
-  list: T[];
-};
-export type ListResponseWithCursor<T> = {
-  page_size: number;
-  total: number;
-  next_marker?: string;
-  list: T[];
-};
-
 export type RequestedResource<T extends (...args: any[]) => any> = UnpackedResult<Unpacked<ReturnType<T>>>;
 export type Shift<T extends any[]> = ((...args: T) => void) extends (arg1: any, ...rest: infer R) => void ? R : never;
-
 export type Rect = {
   width: number;
   height: number;
@@ -39,7 +23,6 @@ export type Rect = {
   top: number;
   bottom: number;
 };
-
 export interface JSONArray extends Array<JSONValue> {}
 export type JSONValue = string | number | boolean | JSONObject | JSONArray | null;
 export type JSONObject = { [Key in string]?: JSONValue };

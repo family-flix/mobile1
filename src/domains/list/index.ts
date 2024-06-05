@@ -117,7 +117,7 @@ interface ListState<T> extends Response<T> {}
  * 分页类
  */
 export class ListCore<
-  S extends RequestCore<(...args: any[]) => RequestPayload<any>>,
+  S extends RequestCore<(first: FetchParams & any, ...args: any[]) => RequestPayload<any>>,
   T = NonNullable<S["response"]>["list"][number]
 > extends BaseDomain<TheTypesOfEvents<T>> {
   debug: boolean = false;
@@ -139,7 +139,7 @@ export class ListCore<
   /** 初始查询参数 */
   private initialParams: FetchParams;
   private extraResponse: Record<string, unknown>;
-  params: FetchParams = { ...DEFAULT_PARAMS };
+  params: Parameters<S["service"]>[0] = { ...DEFAULT_PARAMS };
 
   // 响应数据
   response: Response<T> = { ...DEFAULT_RESPONSE };
@@ -269,9 +269,8 @@ export class ListCore<
   /**
    * 调用接口进行请求
    * 外部不应该直接调用该方法
-   * @param {import('./typing').FetchParams} nextParams - 查询参数
    */
-  async fetch(params: Partial<FetchParams>, ...restArgs: any[]) {
+  async fetch(params: Parameters<S["service"]>[0], ...restArgs: any[]) {
     // const [params, ...restArgs] = args;
     this.response.error = null;
     this.response.loading = true;
@@ -285,8 +284,8 @@ export class ListCore<
     if (processedParams === undefined) {
       processedParams = mergedParams;
     }
-    const processedArgs = [processedParams, ...restArgs] as Parameters<S["service"]>;
-    const res = await this.request.run(...processedArgs);
+    // const processedArgs = [processedParams, ...restArgs] as Parameters<S["service"]>;
+    const res = await this.request.run(processedParams, ...restArgs);
     this.response.loading = false;
     this.response.search = omit({ ...mergedParams }, ["page", "pageSize"]);
     if (this.response.initial) {
@@ -320,10 +319,10 @@ export class ListCore<
   /**
    * 使用初始参数请求一次，初始化时请调用该方法
    */
-  async init(params = {}) {
+  async init(params?: Omit<Parameters<S["service"]>[0], "page" | "pageSize">) {
     const res = await this.fetch({
       ...this.initialParams,
-      ...params,
+      ...(params || {}),
     });
     if (res.error) {
       this.tip({ icon: "error", text: [res.error.message] });
@@ -498,7 +497,7 @@ export class ListCore<
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
-  async search(params: Search) {
+  async search(params: Omit<Parameters<S["service"]>[0], "page" | "pageSize">) {
     this.emit(Events.BeforeSearch);
     const res = await this.fetch({
       ...this.initialParams,
@@ -520,7 +519,7 @@ export class ListCore<
     this.emit(Events.DataSourceChange, [...this.response.dataSource]);
     return Result.Ok({ ...this.response });
   }
-  searchDebounce = debounce(800, (args: Search) => {
+  searchDebounce = debounce(800, (args: Omit<Parameters<S["service"]>[0], "page" | "pageSize">) => {
     return this.search(args);
   });
   /**

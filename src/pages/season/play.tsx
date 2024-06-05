@@ -657,7 +657,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                     const { id, order } = episode;
                     return (
                       <div
-                        key={id}
+                        key={order}
                         className={cn(
                           "relative flex justify-center items-center w-12 h-12 p-2 rounded-md bg-w-fg-3",
                           {}

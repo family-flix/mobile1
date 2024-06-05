@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 
-import { ListResponse, ListResponseWithCursor } from "@/store/types";
 import { media_request } from "@/biz/requests";
+import { ListResponse, ListResponseWithCursor } from "@/biz/requests/types";
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp } from "@/domains/request/utils";
 import { Result } from "@/domains/result/index";

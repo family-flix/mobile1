@@ -189,6 +189,7 @@ const Content = (
         store={store}
         className={cn(
           sheetVariants({ position, size }),
+          "duration-200",
           state.enter ? "animate-in slide-in-from-bottom" : "",
           state.exit ? "animate-out slide-out-to-bottom" : "",
           className
