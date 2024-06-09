@@ -168,7 +168,7 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       isDragRef.current = false;
       movingRef.current = false;
       if (timerRef.current) {
-        clearTimeout(timerRef.current);
+        clearTimeout(timerRef.current as any as number);
         timerRef.current = null;
       }
       const now = new Date().valueOf();
