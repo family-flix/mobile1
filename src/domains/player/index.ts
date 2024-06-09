@@ -4,6 +4,7 @@
 import { BaseDomain, Handler } from "@/domains/base";
 import { Application } from "@/domains/app";
 import { Result } from "@/domains/result/index";
+import { seconds_to_minute } from "@/utils/index";
 
 /** 影片分辨率 */
 enum MediaResolutionTypes {
@@ -117,6 +118,8 @@ type PlayerState = {
   height: number;
   ready: boolean;
   rate: number;
+  skip: number;
+  skipText: string;
   volume: number;
   currentTime: number;
   prepareFullscreen: boolean;
@@ -142,6 +145,8 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
   _currentTime = 0;
   _curVolume = 0.5;
   _curRate = 1;
+  /** 片头跳过的时间 */
+  theTimeSkip = 0;
   get currentTime() {
     return this._currentTime;
   }
@@ -190,15 +195,20 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       currentTime: this._currentTime,
       subtitle: this.subtitle,
       prepareFullscreen: this.prepareFullscreen,
+      skip: this.theTimeSkip,
+      skipText: this.theTimeSkip ? seconds_to_minute(this.theTimeSkip) : "",
     };
   }
 
-  constructor(options: { app: Application<any>; volume?: number; rate?: number }) {
+  constructor(options: { app: Application<any>; volume?: number; rate?: number; skipTime?: number }) {
     super();
 
-    const { app, volume, rate } = options;
+    const { app, volume, rate, skipTime } = options;
     if (volume) {
       this._curVolume = volume;
+    }
+    if (skipTime) {
+      this.theTimeSkip = skipTime;
     }
     if (rate) {
       this._curRate = rate;
@@ -263,6 +273,10 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._abstractNode.setRate(v);
     this.emit(Events.RateChange, { rate: v });
   }
+  changeSkipTime(v: number) {
+    this.theTimeSkip = v;
+    this.emit(Events.StateChange, { ...this.state });
+  }
   showAirplay() {
     if (this._abstractNode === null) {
       return;
@@ -294,15 +308,17 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this._currentTime = currentTime || 0;
     this._abstractNode.setCurrentTime(currentTime || 0);
   }
-  speedUp() {
-    let target = this._currentTime + 10;
+  /** 前进 */
+  speedUp(time = 10) {
+    let target = this._currentTime + time;
     if (this._duration && target >= this._duration) {
       target = this._duration;
     }
     this.setCurrentTime(target);
   }
-  rewind() {
-    let target = this._currentTime - 10;
+  /** 回退 */
+  rewind(time = 10) {
+    let target = this._currentTime - time;
     if (target <= 0) {
       target = 0;
     }

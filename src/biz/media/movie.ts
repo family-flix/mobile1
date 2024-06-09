@@ -44,6 +44,7 @@ type MovieCoreState = {
   profile: null | MediaProfile;
   curSource: null | CurMediaSource;
   fixTime: number;
+  // subtitle: MediaSourceFileCore["subtitle"];
 };
 type MovieCoreProps = {
   client: HttpClientCore;
@@ -74,6 +75,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       profile: this.profile,
       curSource: this.curSource,
       fixTime: this.currentFixTime,
+      // subtitle: this.$source.subtitle,
     };
   }
 

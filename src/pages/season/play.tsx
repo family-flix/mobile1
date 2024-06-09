@@ -1,7 +1,7 @@
 /**
  * @file 电视剧播放页面
  */
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Airplay,
   AlertTriangle,
@@ -35,18 +35,18 @@ import { PlayerCore } from "@/domains/player/index";
 import { OrientationTypes } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";
-import { cn, seconds_to_hour, sleep } from "@/utils/index";
+import { cn, seconds_to_hour, seconds_to_minute, sleep } from "@/utils/index";
 
 function SeasonPlayingPageLogic(props: ViewComponentProps) {
   const { app, storage, client, view } = props;
   const settings = storage.get("player_settings");
-  const { type: resolution, volume, rate } = settings;
+  const { type: resolution, volume, rate, skip } = settings;
 
   const $tv = new SeasonMediaCore({
     client,
     resolution,
   });
-  const $player = new PlayerCore({ app, volume, rate });
+  const $player = new PlayerCore({ app, volume, rate, skipTime: skip[view.query.id] });
   console.log("[PAGE]play - useInitialize");
 
   app.onHidden(() => {
@@ -144,7 +144,7 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
     const { currentTime } = $tv;
     console.log("[PAGE]play - player.onCanPlay", $player.hasPlayed, currentTime);
     function applySettings() {
-      $player.setCurrentTime(currentTime);
+      $player.setCurrentTime(currentTime === 0 ? $player.theTimeSkip : currentTime);
       if (settings.rate) {
         $player.changeRate(Number(rate));
       }
@@ -255,6 +255,56 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
     ready() {
       $tv.fetchProfile(view.query.id);
     },
+    changeSkipTime(v: number) {
+      $player.changeSkipTime(v);
+      const nextSkip = {
+        ...skip,
+        [view.query.id]: v,
+      };
+      storage.merge("player_settings", {
+        skip: nextSkip,
+      });
+    },
+    handleClickElm(action: { elm: string; value: unknown }) {
+      // console.log("[PAGE]media/season_playing - handleClickElm", target);
+      const { elm, value } = action;
+      if (!elm) {
+        return;
+      }
+      if (elm === "play-menu") {
+        $player.play();
+        return;
+      }
+      if (elm === "pause-menu") {
+        $player.pause();
+        return;
+      }
+      if (elm === "arrow-left-menu") {
+        history.back();
+        return;
+      }
+      if (elm === "skip-forward-menu") {
+        $tv.playNextEpisode();
+        return;
+      }
+      if (elm === "subtitle-menu") {
+        if ($tv.$source.subtitle === null) {
+          return;
+        }
+        $player.toggleSubtitleVisible();
+        $tv.$source.toggleSubtitleVisible();
+        return;
+      }
+      if (elm === "skip-menu") {
+        const currentTime = $tv.currentTime;
+        const v = Number(currentTime);
+        this.changeSkipTime(v);
+        app.tip({
+          text: [`设置片头跳过 ${seconds_to_minute(v)}`],
+        });
+        return;
+      }
+    },
   };
 }
 
@@ -354,6 +404,19 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
   const $page = useInstance(() => new SeasonPlayingPageView({ app, view }));
   const [state, setProfile] = useState($logic.$tv.state);
   const [playerState, setPlayerState] = useState($logic.$player.state);
+
+  const handleClickElm = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.currentTarget as HTMLDivElement | null;
+    if (target === null) {
+      return;
+    }
+    // console.log("[PAGE]media/season_playing - handleClickElm", target);
+    const { elm, value } = target.dataset;
+    if (!elm) {
+      return;
+    }
+    $logic.handleClickElm({ elm, value });
+  }, []);
 
   useInitialize(() => {
     $logic.$player.onStateChange((v) => setPlayerState(v));
@@ -600,6 +663,13 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                       },
                     ]}
                   />
+                </div>
+                <div
+                  className="relative p-2 rounded-md cursor-pointer"
+                  data-elm="skip-menu"
+                  onClick={handleClickElm}
+                >
+                  {playerState?.skipText ? <div>{playerState?.skipText}</div> : <div>片头时间</div>}
                 </div>
                 <div
                   className="relative p-2 rounded-md"

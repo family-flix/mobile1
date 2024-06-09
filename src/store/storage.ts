@@ -15,7 +15,8 @@ const DEFAULT_CACHE_VALUES = {
   player_settings: {
     rate: 1,
     volume: 0.5,
-    type: MediaResolutionTypes.SD,
+    type: MediaResolutionTypes.HD,
+    skip: {} as Record<string, number>,
   },
   token_id: "",
   tv_search: {

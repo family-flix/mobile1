@@ -12,13 +12,13 @@ export function timeStrToSeconds(durationStr: string) {
     const hours = parseInt(timeParts[0]);
     const minutes = parseInt(timeParts[1]);
     const seconds = parseFloat(timeParts[2].replace(",", ".")); // 处理逗号分隔的秒和毫秒部分
-    return hours * 60 * 60 + minutes * 60 + seconds;
+    return parseFloat((hours * 60 * 60 + minutes * 60 + seconds).toFixed(2));
   }
   if (durationStr.match(/[0-9]{2}:[0-9]{2}[\.,]/)) {
     const timeParts = durationStr.split(":");
     const minutes = parseInt(timeParts[0]);
     const seconds = parseFloat(timeParts[1].replace(",", ".")); // 处理逗号分隔的秒和毫秒部分
-    return minutes * 60 + seconds;
+    return parseFloat((minutes * 60 + seconds).toFixed(2));
   }
   return 0;
 }
@@ -108,11 +108,15 @@ const SUBTITLE_PARSER_MAP: Record<SubtitleFileSuffix, (content: string) => Subti
       return [];
     }
     const c = content.replace(/WEBVTT/, "");
-    const oriParagraphs = c.split("\n\n").filter(Boolean);
-    //     console.log("[DOMAIN]subtitle/utils - vtt", oriParagraphs);
+    const oriParagraphs = c
+      .split("\n\n")
+      .filter(Boolean)
+      .filter((v) => v !== "\n");
+    // console.log("[DOMAIN]subtitle/utils - vtt", oriParagraphs);
     return oriParagraphs
       .map((paragraph, i) => {
         const [startAndEnd, ...texts] = paragraph.split("\n").filter(Boolean);
+        // console.log("[DOMAIN]subtitle/utils - vtt", startAndEnd);
         const [start, end] = startAndEnd.split(" --> ");
         const s = start.split(",")[0];
         const e = end.split(",")[0];

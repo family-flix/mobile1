@@ -283,6 +283,9 @@ export const SeasonMediaSettings = (
                   className="px-4"
                   onClick={(event) => {
                     event.stopPropagation();
+                    if (subtitle === null) {
+                      return;
+                    }
                     $player.toggleSubtitleVisible();
                     $media.$source.toggleSubtitleVisible();
                   }}

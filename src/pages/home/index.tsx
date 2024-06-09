@@ -156,7 +156,7 @@ function Page(props: ViewComponentProps) {
       });
       $tab.onMounted(() => {
         const pathname = history.$router.pathname;
-        console.log("[PAGE]home/index - tab-header onMounted", pathname, $tab.keys);
+        console.log("[PAGE]home/index - tab-header onMounted", pathname, $tab.key);
         $tab.selectById("china");
       });
       $updatedMediaList.onStateChange((v) => {

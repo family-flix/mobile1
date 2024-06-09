@@ -70,8 +70,17 @@ export const TabHeader = React.memo(
                     if (store.mounted) {
                       return;
                     }
-                    const { width, height, left } = event.currentTarget.getBoundingClientRect();
-                    store.updateTabClient(index, { width, height, left });
+                    const target = event.currentTarget;
+                    store.updateTabClient(index, {
+                      rect() {
+                        const { offsetLeft, clientWidth, clientHeight } = target;
+                        return {
+                          width: clientWidth,
+                          height: clientHeight,
+                          left: offsetLeft,
+                        };
+                      },
+                    });
                   }}
                 >
                   {tab.text}

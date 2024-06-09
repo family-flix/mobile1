@@ -1,6 +1,7 @@
 import { debounce } from "@/utils/lodash/debounce";
 
 import { BaseDomain, Handler } from "@/domains/base";
+import { deepMerge } from "@/utils/index";
 
 enum Events {
   StateChange,
@@ -39,11 +40,7 @@ export class StorageCore<T extends Record<string, unknown>> extends BaseDomain<T
 
     const { key, client, defaultValues, values } = props;
     this.key = key;
-    this.values = values;
-    this.values = {
-      ...defaultValues,
-      ...values,
-    };
+    this.values = deepMerge(values, defaultValues);
     this.defaultValues = defaultValues;
     this.client = client;
   }

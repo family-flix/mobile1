@@ -65,6 +65,7 @@ type SeasonCoreState = {
   groups: SeasonEpisodeGroup[];
   curGroup: null | SeasonEpisodeGroup;
   playing: boolean;
+  // subtitle: MediaSourceFileCore["subtitle"];
 };
 type SeasonCoreProps = {
   resolution?: MediaResolutionTypes;
@@ -100,6 +101,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       profile: this.profile,
       curSource: this.curSource,
       groups: this.sourceGroups,
+      // subtitle: this.$source.subtitle,
       curGroup: this.curGroup,
     };
   }

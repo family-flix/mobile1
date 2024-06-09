@@ -203,13 +203,14 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
     });
     $page.$rank.onStateChange((v) => setRankResponse(v));
     $page.ui.$search.onChange((v) => {
+      console.log("$page.ui.$search.onChange", v);
       if (!v) {
         setShowPlaceholder(true);
         return;
       }
-      $page.$list.searchDebounce({
-        name: v,
-      });
+      // $page.$list.search({
+      //   name: v,
+      // });
     });
     $page.ui.$search.onClear(() => {
       setShowPlaceholder(true);
@@ -373,7 +374,7 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           >
             <ListView
               store={$page.$list}
-              className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 pt-4"
+              className="relative grid grid-cols-1"
               extraEmpty={
                 <div className="mt-2">
                   <Button store={$page.ui.$mediaRequestBtn} variant="subtle">

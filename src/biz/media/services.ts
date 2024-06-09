@@ -291,7 +291,7 @@ function normalizeEpisode(episode: SeasonAndCurEpisodeResp["sources"][number]) {
   return {
     id,
     name: (() => {
-      const r = /^第[0-9一二三四五六七八九十]{1,}[集期章]/;
+      const r = /^第[0-9一二三四五六七八九十]{1,}[集期章]：/;
       if (name.match(r)) {
         return name.replace(r, "");
       }

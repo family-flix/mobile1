@@ -141,7 +141,11 @@ export function bytes_to_size(bytes: number) {
   }
   return `${remove_zero(size.toFixed(2))}${unit}`;
 }
-
+export function seconds_to_minute(value: number) {
+  const minutes = Math.floor(value / 60);
+  const seconds = Math.floor(value - minutes * 60);
+  return [minutes, "分", seconds, "秒"].join("");
+}
 /**
  * 秒数转时分秒
  * @param value
@@ -206,4 +210,27 @@ export function sleep(delay: number = 1000) {
       resolve(null);
     }, delay);
   });
+}
+export function deepMerge<T extends object, U extends object>(a: T, b: U): T & U {
+  // 检查是否为对象
+  function isObject(obj: any): obj is object {
+    return obj && typeof obj === "object" && !Array.isArray(obj);
+  }
+  // 合并两个对象
+  for (const key in b) {
+    if (isObject(b[key])) {
+      // @ts-ignore
+      if (!a[key]) {
+        (a as any)[key] = {};
+      }
+      // @ts-ignore
+      (a as any)[key] = deepMerge((a as any)[key], b[key]);
+    } else {
+      if ((a as any)[key] === undefined) {
+        (a as any)[key] = b[key];
+      }
+    }
+  }
+
+  return a as T & U;
 }
