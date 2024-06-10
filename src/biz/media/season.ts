@@ -190,7 +190,6 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return files[0];
     })();
     // console.log("[DOMAIN]media/season - playEpisode before this.$source.load", source, file);
-    this.curSource = { ...source, currentTime, thumbnailPath: source.stillPath, curFileId: file.id };
     const res = await this.$source.load(file);
     if (res.error) {
       this.tip({
@@ -337,6 +336,19 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok(null);
   }
+  setSourceFileInvalid() {
+    if (!this.curSource) {
+      return;
+    }
+    const files = this.curSource.files;
+    const curFileId = this.curSource.curFileId;
+    const matched = files.find((f) => f.id === curFileId);
+    // console.log('[DOMAIN]')
+    if (!matched) {
+      return;
+    }
+    matched.invalid = true;
+  }
   async changeSourceFile(sourceFile: { id: string }) {
     if (this.profile === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
@@ -431,7 +443,7 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
   /** 当前进度改变 */
   handleCurTimeChange(values: { currentTime: number; duration: number }) {
     this.playing = true;
-    this._pause();
+    // this._pause();
     const { currentTime = 0 } = values;
     // console.log("[DOMAIN]tv/index - handleCurTimeChange", currentTime);
     this.currentTime = currentTime;

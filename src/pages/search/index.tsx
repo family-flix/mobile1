@@ -19,7 +19,7 @@ import {
   Dialog,
   Node,
 } from "@/components/ui/index";
-import { MediaRequestCore } from "@/components/media-request/index";
+import { MediaRequestCore } from "@/biz/media_request/index";
 import { useInitialize, useInstance } from "@/hooks/index";
 import {
   ScrollViewCore,

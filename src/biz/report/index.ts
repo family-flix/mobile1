@@ -1,5 +1,5 @@
 // import { client } from "@/store/request";
-import { reportSomething } from "@/services";
+import { reportSomething } from "@/services/index";
 import { BaseDomain, Handler } from "@/domains/base";
 import { RefCore } from "@/domains/cur";
 import { DialogCore } from "@/domains/ui";
@@ -26,6 +26,7 @@ export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
   $ref = new RefCore<string>({});
   $media = new RefCore<{ media_id: string; media_source_id?: string }>({});
   $create: RequestCore<typeof reportSomething>;
+  $dialog: DialogCore;
 
   constructor(props: Partial<{ _name: string }> & MediaReportCoreProps) {
     super(props);
@@ -36,7 +37,7 @@ export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
       client,
     });
     const dialog = new DialogCore({
-      title: "发现问题",
+      title: "提交问题",
       onOk: () => {
         if (!this.$ref.value) {
           app.tip({
@@ -58,7 +59,7 @@ export class MediaReportCore extends BaseDomain<TheTypesOfEvents> {
         });
       },
     });
-
+    this.$dialog = dialog;
     this.$create.onLoadingChange((loading) => {
       dialog.okBtn.setLoading(loading);
     });

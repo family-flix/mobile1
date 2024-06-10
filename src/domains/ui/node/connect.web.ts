@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 
-import { NodeCore } from ".";
+import { NodeCore } from "./index";
 
 export function connect(node: HTMLDivElement, store: NodeCore<any>) {
   store.scrollTo = (pos: { top: number }) => {
@@ -16,11 +16,12 @@ export function connect(node: HTMLDivElement, store: NodeCore<any>) {
     height,
     scrollHeight: node.scrollHeight,
   });
-  node.classList.add("__a");
+  // node.classList.add("__a");
   node.addEventListener("click", () => {
     store.handleClick();
   });
-  node.addEventListener("animationend", () => {
-    store.handleMounted();
-  });
+  store.setMounted();
+  // node.addEventListener("animationend", () => {
+  //   store.handleMounted();
+  // });
 }

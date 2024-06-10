@@ -115,7 +115,7 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       }
       if ($cursor) {
         leftRef.current = posX - cursorWidth;
-        $cursor.style.left = posX - cursorWidth + "px";
+        $cursor.style.left = leftRef.current + "px";
       }
     },
     handleTouchMove(event: {
@@ -154,11 +154,10 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       }
       if ($cursor) {
         leftRef.current = posX - cursorWidth;
-        $cursor.style.left = posX - cursorWidth + "px";
+        $cursor.style.left = leftRef.current + "px";
       }
       const text = seconds_to_hour(percent * store._duration);
       const $target = targetTimeRef.current;
-      console.log("----- $target", $target);
       if ($target) {
         $target.innerText = `${text}/${seconds_to_hour(store._duration)}`;
       }
@@ -196,14 +195,16 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
         width: client.width,
         left: client.left,
       };
-      const percent = (store.currentTime / store._duration) * client.width;
+      const percent = store._duration !== 0 ? (store.currentTime / store._duration) * client.width : 0;
+      console.log("[COMPONENT]ui/video-progress-bar", percent);
       const $bar = barRef.current;
       const $cursor = cursorRef.current;
       if ($bar) {
         $bar.style.width = percent + "px";
       }
       if ($cursor) {
-        $cursor.style.left = percent - cursorWidth + "px";
+        leftRef.current = percent - cursorWidth;
+        $cursor.style.left = leftRef.current + "px";
       }
     },
     ready() {
@@ -217,7 +218,8 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
             $bar.style.width = percent + "px";
           }
           if ($cursor) {
-            $cursor.style.left = percent - cursorWidth + "px";
+            leftRef.current = percent - cursorWidth;
+            $cursor.style.left = leftRef.current + "px";
           }
         }
         emitter.emit(Events.Change, {
@@ -294,7 +296,7 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
         <div className="w-[72px] text-sm">{times.currentTime}</div>
         <div
           className="__a relative mx-4 w-full bg-gray-300 cursor-pointer rounded-md"
-          onAnimationEnd={$com.handleAnimationEnd}
+          onAnimationStart={$com.handleAnimationEnd}
         >
           <div
             className="progress__mask absolute top-1/2 left-0 w-full h-[4px] bg-w-fg-3 rounded-sm"
@@ -324,7 +326,7 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
         <Presence store={$com.$time}>
           <div
             className="z-10 fixed toast p-4 top-[32%] left-1/2 w-[240px] rounded-md"
-            style={{ transform: "translate(-50%, -50%)" }}
+            style={{ zIndex: 900, transform: "translate(-50%, -50%)" }}
           >
             <div
               className="z-0 absolute top-0 left-0 w-full h-full rounded-md"

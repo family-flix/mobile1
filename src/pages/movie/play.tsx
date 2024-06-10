@@ -1,7 +1,7 @@
 /**
  * @file 电影播放页面
  */
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Airplay,
   AlertTriangle,
@@ -19,14 +19,15 @@ import {
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { Show } from "@/packages/ui/show";
-import { Sheet, ScrollView, Video } from "@/components/ui";
+import { Sheet, ScrollView, Video, Dialog, Node } from "@/components/ui";
 import { MovieMediaSettings } from "@/components/movie-media-settings";
 import { Presence } from "@/components/ui/presence";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
+import { MediaReportCore } from "@/biz/report/index";
 import { MovieMediaCore } from "@/biz/media/movie";
 import { createVVTSubtitle } from "@/biz/subtitle/utils";
 import { MediaResolutionTypes } from "@/biz/source/constants";
-import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
+import { ScrollViewCore, DialogCore, PresenceCore, NodeCore } from "@/domains/ui";
 import { RouteViewCore } from "@/domains/route_view";
 import { RefCore } from "@/domains/cur";
 import { PlayerCore } from "@/domains/player";
@@ -34,7 +35,7 @@ import { OrientationTypes } from "@/domains/app";
 import { cn, seconds_to_hour, sleep } from "@/utils/index";
 
 function MoviePlayingPageLogic(props: ViewComponentProps) {
-  const { app, client, storage } = props;
+  const { app, client, storage, view } = props;
 
   const settings = storage.get("player_settings");
   const $settings = new RefCore<{
@@ -51,7 +52,7 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
   });
   const $tv = tv;
   const player = new PlayerCore({ app, volume, rate });
-  const $report = new RefCore<string>();
+  const $mediaReport = new MediaReportCore({ app, client });
   const $player = player;
 
   app.onHidden(() => {
@@ -179,26 +180,33 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     //       resolutionSheet.hide();
   });
   // console.log("[PAGE]play - before player.onError");
-  player.onError(async (error) => {
-    console.log("[PAGE]play - player.onError", tv.curSource?.name, tv.curSource?.curFileId);
-    // router.replaceSilently(`/out_players?token=${token}&tv_id=${view.params.id}`);
+  $player.onError(async (error) => {
+    console.log("[PAGE]play - player.onError", error);
+    $tv.setSourceFileInvalid();
     await (async () => {
-      if (!tv.curSource) {
+      if (!$tv.profile) {
         return;
       }
-      const files = tv.curSource.files;
-      const curFileId = tv.curSource.curFileId;
+      if (!$tv.curSource) {
+        return;
+      }
+      const files = $tv.curSource.files;
+      const curFileId = $tv.curSource.curFileId;
       const curFileIndex = files.findIndex((f) => f.id === curFileId);
       const nextIndex = curFileIndex + 1;
       const nextFile = files[nextIndex];
       if (!nextFile) {
-        app.tip({ text: ["视频加载错误", error.message] });
-        player.setInvalid(error.message);
+        $mediaReport.$ref.select("无法播放");
+        $mediaReport.$media.select({
+          media_id: $tv.profile.id,
+          media_source_id: $tv.curSource.id,
+        });
+        $player.setInvalid(error.message);
         return;
       }
-      await tv.changeSourceFile(nextFile);
+      await $tv.changeSourceFile(nextFile);
     })();
-    player.pause();
+    $player.pause();
   });
   player.onUrlChange(async ({ url }) => {
     player.load(url);
@@ -207,7 +215,53 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
   return {
     $tv,
     $player,
-    $report,
+    $mediaReport,
+    ready() {
+      $tv.fetchProfile(view.query.id);
+    },
+    handleClickElm(action: { elm: string; value: unknown }) {
+      // console.log("[PAGE]media/season_playing - handleClickElm", target);
+      const { elm, value } = action;
+      if (!elm) {
+        return;
+      }
+      if (elm === "play-menu") {
+        $player.play();
+        return;
+      }
+      if (elm === "pause-menu") {
+        $player.pause();
+        return;
+      }
+      if (elm === "arrow-left-menu") {
+        history.back();
+        return;
+      }
+      if (elm === "subtitle-menu") {
+        if ($tv.$source.subtitle === null) {
+          return;
+        }
+        $player.toggleSubtitleVisible();
+        $tv.$source.toggleSubtitleVisible();
+        return;
+      }
+      if (elm === "copy-media-url-btn") {
+        if ($tv.$source.profile) {
+          app.copy($tv.$source.profile?.url);
+          app.tip({
+            text: ["复制成功"],
+          });
+          return;
+        }
+        app.tip({
+          text: ["暂无播放地址"],
+        });
+        return;
+      }
+      if (elm === "report-media-error-btn") {
+        $mediaReport.$dialog.show();
+      }
+    },
   };
 }
 
@@ -220,6 +274,7 @@ class MoviePlayingPageView {
   $bottom = new PresenceCore({ mounted: true, visible: true });
   $control = new PresenceCore({ mounted: true, visible: true });
   $subtitle = new PresenceCore({});
+  $tmpRateTip = new PresenceCore();
   $settings = new DialogCore();
   $episodes = new DialogCore();
 
@@ -296,13 +351,42 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
 
   const $logic = useInstance(() => MoviePlayingPageLogic(props));
   const $page = useInstance(() => new MoviePlayingPageView({ app, view }));
-
-  const [state, setProfile] = useState($logic.$tv.state);
+  const $node = useInstance(
+    () =>
+      new NodeCore({
+        onLongPress() {
+          if (!$logic.$tv.playing) {
+            return;
+          }
+          $page.$tmpRateTip.show();
+          $logic.$player.changeRateTmp(2);
+        },
+        onLongPressFinish() {
+          $page.$tmpRateTip.hide();
+          $logic.$player.recoverRate();
+        },
+      })
+  );
+  // const [state, setProfile] = useState($logic.$tv.state);
   // const [curSource, setCurSource] = useState($logic.$tv.$source.profile);
   // const [subtileState, setCurSubtitleState] = useState($logic.$tv.$source.subtitle);
   const [playerState, setPlayerState] = useState($logic.$player.state);
   // const [shareLink, setShareLink] = useState("");
-  // const [curReportValue, setCurReportValue] = useState($logic.$report.value);
+  const handleClickElm = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.currentTarget as HTMLDivElement | null;
+    if (target === null) {
+      return;
+    }
+    // console.log("[PAGE]media/season_playing - handleClickElm", target);
+    const { elm, stop, value } = target.dataset;
+    if (!elm) {
+      return;
+    }
+    if (stop) {
+      event.stopPropagation();
+    }
+    $logic.handleClickElm({ elm, value });
+  }, []);
 
   useInitialize(() => {
     if (view.query.rate) {
@@ -322,7 +406,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     //     bottomOperation.hide();
     //   }, 1000);
     // }
-    $logic.$tv.onStateChange((v) => setProfile(v));
+    // $logic.$tv.onStateChange((v) => setProfile(v));
     $logic.$player.onStateChange((v) => setPlayerState(v));
     $logic.$player.beforeAdjustCurrentTime(() => {
       $page.stopHide();
@@ -330,7 +414,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     $logic.$player.afterAdjustCurrentTime(() => {
       $page.prepareHide();
     });
-    $logic.$tv.fetchProfile(view.query.id);
+    $logic.ready();
   });
 
   // console.log("[PAGE]TVPlayingPage - render", tvId);
@@ -357,7 +441,12 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
           <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
           </Presence>
-          <div className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
+          <div
+            className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
             <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$control}>
               <Show
                 when={!playerState.error}
@@ -376,23 +465,13 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                         <HelpCircle className="w-4 h-4" />
                       </div>
                     </div>
-                    <div
-                      className="mt-4 text-center text-sm"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if ($logic.$tv.$source.profile) {
-                          app.copy($logic.$tv.$source.profile?.url);
-                          app.tip({
-                            text: ["复制成功"],
-                          });
-                          return;
-                        }
-                        app.tip({
-                          text: ["暂无播放地址"],
-                        });
-                      }}
-                    >
-                      复制播放地址
+                    <div className="flex items-center mt-4 space-x-4 text-center text-sm">
+                      <div data-elm="report-media-error-btn" data-stop="1" onClick={handleClickElm}>
+                        反馈问题
+                      </div>
+                      <div data-elm="copy-media-url-btn" data-stop="1" onClick={handleClickElm}>
+                        复制播放地址
+                      </div>
                     </div>
                   </div>
                 }
@@ -454,7 +533,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
             </Presence>
           </div>
         </div>
-        <div className="absolute z-0 inset-0 text-w-fg-0">
+        <Node store={$node} className="absolute z-0 inset-0 text-w-fg-0">
           <div
             className=""
             onClick={(event) => {
@@ -548,7 +627,15 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               </div>
             </Presence>
           </div>
-        </div>
+          <Presence store={$page.$tmpRateTip}>
+            <div className="absolute left-1/2 bottom-[24%] -translate-x-1/2 text-center">
+              <div className="flex flex-col items-center">
+                <ChevronsRight className="w-8 h-8" />
+                <div>2x速 快进中</div>
+              </div>
+            </div>
+          </Presence>
+        </Node>
       </ScrollView>
       <Sheet store={$page.$settings} hideTitle>
         <MovieMediaSettings
@@ -560,9 +647,11 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
           storage={storage}
         />
       </Sheet>
-      {/* <Dialog store={fullscreenDialog}>
-        <div className="text-w-fg-1">点击进入全屏播放</div>
-      </Dialog> */}
+      <Dialog store={$logic.$mediaReport.$dialog}>
+        <div className="text-w-fg-1">
+          <p className="mt-2">「无法播放」</p>
+        </div>
+      </Dialog>
     </>
   );
 });

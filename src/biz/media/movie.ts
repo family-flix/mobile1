@@ -7,6 +7,7 @@ import { MediaSourceFileCore } from "@/biz/source/index";
 import { Result } from "@/domains/result/index";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { RequestCore } from "@/domains/request/index";
+import { debounce } from "@/utils/lodash/debounce";
 import { MediaTypes } from "@/constants/index";
 
 import {
@@ -44,6 +45,7 @@ type MovieCoreState = {
   profile: null | MediaProfile;
   curSource: null | CurMediaSource;
   fixTime: number;
+  playing: boolean;
   // subtitle: MediaSourceFileCore["subtitle"];
 };
 type MovieCoreProps = {
@@ -60,6 +62,8 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   /** 手动调整播放进度差值，用于校准字幕 */
   currentFixTime = 0;
   curResolutionType: MediaResolutionTypes = MediaResolutionTypes.SD;
+  /** 正在播放中 */
+  playing = false;
   /** 正在请求中（获取详情、视频源信息等） */
   _pending = false;
   played = false;
@@ -73,6 +77,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   get state(): MovieCoreState {
     return {
       profile: this.profile,
+      playing: this.playing,
       curSource: this.curSource,
       fixTime: this.currentFixTime,
       // subtitle: this.$source.subtitle,
@@ -178,6 +183,19 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.emit(Events.StateChange, { ...this.state });
     return Result.Ok(res.data);
   }
+  setSourceFileInvalid() {
+    if (!this.curSource) {
+      return;
+    }
+    const files = this.curSource.files;
+    const curFileId = this.curSource.curFileId;
+    const matched = files.find((f) => f.id === curFileId);
+    // console.log('[DOMAIN]')
+    if (!matched) {
+      return;
+    }
+    matched.invalid = true;
+  }
   async changeSourceFile(sourceFile: { id: string }) {
     if (this.profile === null) {
       const msg = this.tip({ text: ["视频还未加载完成"] });
@@ -271,12 +289,18 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
   /** 更新观看进度 */
   handleCurTimeChange = (values: Partial<{ currentTime: number; duration: number }> = {}) => {
     const { currentTime = 0 } = values;
+    this.playing = true;
+    this._pause();
     this.currentTime = currentTime;
     if (this.$source.subtitle?.visible) {
       this.$source.$subtitle?.handleTimeChange(currentTime + this.currentFixTime);
     }
     this.updatePlayProgress(values);
   };
+  /** 当 800 毫秒内没有播放，就表示暂停了 */
+  _pause = debounce(800, () => {
+    this.playing = false;
+  });
   getTitle(): [string] {
     if (this.profile === null) {
       return ["加载中..."];

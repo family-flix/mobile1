@@ -6,12 +6,14 @@ enum Events {
   Click,
   ContextMenu,
   LongPress,
+  LongPressFinish,
   Mounted,
   StateChange,
 }
 type TheTypesOfEvents<T = unknown> = {
   [Events.Click]: T | null;
   [Events.LongPress]: T | null;
+  [Events.LongPressFinish]: T | null;
   [Events.Mounted]: { canScroll: boolean };
   [Events.StateChange]: NodeState;
 };
@@ -19,15 +21,17 @@ type NodeState = {
   loading: boolean;
   disabled: boolean;
 };
-type NodeProps<T = unknown> = {
+type NodeProps<T = unknown> = Partial<{
   onMounted: (params: { canScroll: boolean }) => void;
   onClick: (record: T | null) => void;
   onLongPress: (record: T | null) => void;
-};
+  onLongPressFinish: (record: T | null) => void;
+}>;
 export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   id = this.uid();
   cur: RefCore<T>;
   longPressTimer: null | NodeJS.Timeout = null;
+  longPressing = false;
   rect: { width: number; height: number; scrollHeight: number } = { width: 0, height: 0, scrollHeight: 0 };
   canScroll: boolean = false;
 
@@ -37,11 +41,11 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   };
   pressTime = 0;
 
-  constructor(options: Partial<{ _name: string } & NodeProps<T>> = {}) {
+  constructor(options: NodeProps<T> = {}) {
     super(options);
 
     this.cur = new RefCore();
-    const { onMounted, onClick, onLongPress } = options;
+    const { onMounted, onClick, onLongPress, onLongPressFinish } = options;
     if (onMounted) {
       this.onMounted(onMounted);
     }
@@ -55,6 +59,9 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
         onLongPress(this.cur.value);
       });
     }
+    if (onLongPressFinish) {
+      this.onLongPressFinish(onLongPressFinish);
+    }
   }
 
   clearLongPressTimer() {
@@ -67,25 +74,17 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   handleMouseDown = () => {
     this.pressTime = new Date().valueOf();
     // console.log("[DOMAIN]ui/node/index - handleMouseDown");
-    // this.longPressTimer = setTimeout(() => {
-    //   console.log("[DOMAIN]ui/node/index - bingo", this);
-    //   this.emit(Events.LongPress);
-    // }, 1000);
+    this.longPressTimer = setTimeout(() => {
+      console.log("[DOMAIN]ui/node/index - bingo", this);
+      this.longPressing = true;
+      this.emit(Events.LongPress);
+    }, 600);
   };
   handleMouseUp(options: { type: string; stopPropagation: () => void }) {
-    const now = new Date().valueOf();
-    const prev = this.pressTime;
-    this.pressTime = 0;
-    // console.log("[DOMAIN]ui/node/index - handleMouseUp", options.type, now - prev);
-    if (options.stopPropagation) {
-      options.stopPropagation();
+    if (this.longPressing) {
+      this.emit(Events.LongPressFinish);
     }
-    if (now - prev >= 1200) {
-      this.emit(Events.LongPress);
-      return;
-    }
-    this.emit(Events.Click);
-    // this.clearLongPressTimer();
+    this.clearLongPressTimer();
   }
   handleMouseOut() {
     // console.log("[DOMAIN]ui/node/index - handleMouseOut");
@@ -95,8 +94,7 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
     // console.log("[DOMAIN]ui/node/index - handleClick");
     this.click();
   }
-  handleMounted() {}
-
+  setMounted() {}
   setStyles(value: unknown) {
     console.log("please implements this function in connect.web.ts");
   }
@@ -153,6 +151,9 @@ export class NodeCore<T = unknown> extends BaseDomain<TheTypesOfEvents<T>> {
   }
   onLongPress(handler: Handler<TheTypesOfEvents<T>[Events.LongPress]>) {
     return this.on(Events.LongPress, handler);
+  }
+  onLongPressFinish(handler: Handler<TheTypesOfEvents<T>[Events.LongPressFinish]>) {
+    return this.on(Events.LongPressFinish, handler);
   }
   onStateChange(handler: Handler<TheTypesOfEvents<T>[Events.StateChange]>) {
     return this.on(Events.StateChange, handler);

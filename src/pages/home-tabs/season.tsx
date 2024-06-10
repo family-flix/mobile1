@@ -4,7 +4,7 @@ import { Star } from "lucide-react";
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { fetchMediaList, fetchMediaListProcess } from "@/services/media";
 import { Button, LazyImage, ListView, ScrollView, Skeleton } from "@/components/ui";
-import { MediaRequestCore } from "@/components/media-request";
+import { MediaRequestCore } from "@/biz/media_request";
 import { ButtonCore, ImageInListCore, ScrollViewCore } from "@/domains/ui";
 import { RequestCore } from "@/domains/request";
 import { ListCore } from "@/domains/list";

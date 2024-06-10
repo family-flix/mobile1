@@ -37,8 +37,12 @@ export const Node = React.memo(
         className={props.className}
         style={props.style}
         onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
+          // console.log("[DOMAIN]ui/node/index - handleClick");
+          if (store.longPressing) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          store.longPressing = false;
           // store.click();
         }}
         onTouchStart={() => {
@@ -51,6 +55,7 @@ export const Node = React.memo(
               event.stopPropagation();
             },
           });
+          store.longPressing = false;
         }}
         onMouseDown={() => {
           store.handleMouseDown();

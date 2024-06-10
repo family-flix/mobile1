@@ -269,9 +269,27 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return;
     }
     this._curRate = v;
-    console.log("[DOMAIN]player/index - changeRate", v);
+    // console.log("[DOMAIN]player/index - changeRate", v);
     this._abstractNode.setRate(v);
     this.emit(Events.RateChange, { rate: v });
+  }
+  tmpRate: null | number = null;
+  changeRateTmp(v: number) {
+    if (this._abstractNode === null) {
+      return;
+    }
+    this.tmpRate = v;
+    this._abstractNode.setRate(v);
+  }
+  recoverRate() {
+    if (this.tmpRate === null) {
+      return;
+    }
+    if (this._abstractNode === null) {
+      return;
+    }
+    this.tmpRate = null;
+    this._abstractNode.setRate(this._curRate);
   }
   changeSkipTime(v: number) {
     this.theTimeSkip = v;

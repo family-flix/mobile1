@@ -22,20 +22,22 @@ import {
 import { ViewComponent, ViewComponentProps } from "@/store/types";
 import { Show } from "@/packages/ui/show";
 import { useInitialize, useInstance } from "@/hooks/index";
-import { Sheet, ScrollView, Video } from "@/components/ui";
+import { Sheet, ScrollView, Video, Dialog, Node } from "@/components/ui";
 import { Presence } from "@/components/ui/presence";
 import { PlayingIcon } from "@/components/playing";
 import { PlayerProgressBar } from "@/components/ui/video-progress-bar";
 import { SeasonMediaSettings } from "@/components/season-media-settings";
 import { DynamicContent } from "@/components/dynamic-content";
+import { MediaReportCore } from "@/biz/report/index";
 import { SeasonMediaCore } from "@/biz/media/season";
 import { createVVTSubtitle } from "@/biz/subtitle/utils";
-import { ScrollViewCore, DialogCore, PresenceCore } from "@/domains/ui";
+import { ScrollViewCore, DialogCore, PresenceCore, NodeCore } from "@/domains/ui";
 import { PlayerCore } from "@/domains/player/index";
 import { OrientationTypes } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { cn, seconds_to_hour, seconds_to_minute, sleep } from "@/utils/index";
+import { connect } from "@/domains/ui/node/connect.web";
 
 function SeasonPlayingPageLogic(props: ViewComponentProps) {
   const { app, storage, client, view } = props;
@@ -47,6 +49,7 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
     resolution,
   });
   const $player = new PlayerCore({ app, volume, rate, skipTime: skip[view.query.id] });
+  const $mediaReport = new MediaReportCore({ app, client });
   console.log("[PAGE]play - useInitialize");
 
   app.onHidden(() => {
@@ -203,7 +206,11 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   // console.log("[PAGE]play - before player.onError");
   $player.onError(async (error) => {
     console.log("[PAGE]play - player.onError", error);
+    $tv.setSourceFileInvalid();
     await (async () => {
+      if (!$tv.profile) {
+        return;
+      }
       if (!$tv.curSource) {
         return;
       }
@@ -213,7 +220,11 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
       const nextIndex = curFileIndex + 1;
       const nextFile = files[nextIndex];
       if (!nextFile) {
-        app.tip({ text: ["视频加载错误", error.message] });
+        $mediaReport.$ref.select("无法播放");
+        $mediaReport.$media.select({
+          media_id: $tv.profile.id,
+          media_source_id: $tv.curSource.id,
+        });
         $player.setInvalid(error.message);
         return;
       }
@@ -224,7 +235,6 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   $player.onUrlChange(async ({ url }) => {
     $player.load(url);
   });
-
   if (view.query.rate) {
     $player.changeRate(Number(view.query.rate));
   }
@@ -252,6 +262,7 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   return {
     $tv,
     $player,
+    $mediaReport,
     ready() {
       $tv.fetchProfile(view.query.id);
     },
@@ -304,6 +315,22 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
         });
         return;
       }
+      if (elm === "copy-media-url-btn") {
+        if ($tv.$source.profile) {
+          app.copy($tv.$source.profile?.url);
+          app.tip({
+            text: ["复制成功"],
+          });
+          return;
+        }
+        app.tip({
+          text: ["暂无播放地址"],
+        });
+        return;
+      }
+      if (elm === "report-media-error-btn") {
+        $mediaReport.$dialog.show();
+      }
     },
   };
 }
@@ -317,6 +344,7 @@ class SeasonPlayingPageView {
   $bottom = new PresenceCore({ mounted: true, visible: true });
   $control = new PresenceCore({ mounted: true, visible: true });
   $subtitle = new PresenceCore({});
+  $tmpRateTip = new PresenceCore({});
   $settings = new DialogCore();
   $episodes = new DialogCore();
   $nextEpisode = new DynamicContentCore({
@@ -340,56 +368,56 @@ class SeasonPlayingPageView {
     });
   }
 
-  show() {
+  showControls() {
     this.$top.show();
     this.$bottom.show();
     this.$control.show();
     this.$mask.show();
     this.visible = true;
   }
-  hide() {
+  hideControls() {
     this.$top.hide();
     this.$bottom.hide();
     this.$control.hide();
     this.$mask.hide();
     this.visible = false;
   }
-  toggle() {
+  toggleControls() {
     this.$top.toggle();
     this.$bottom.toggle();
     this.$control.toggle();
     this.$mask.toggle();
     this.visible = !this.visible;
   }
-  attemptToShow() {
+  attemptToShowControls() {
     if (this.timer !== null) {
-      this.hide();
+      this.hideControls();
       clearTimeout(this.timer);
       this.timer = null;
       return false;
     }
-    this.show();
+    this.showControls();
     return true;
   }
-  prepareHide() {
+  prepareHideControls() {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
     this.timer = setTimeout(() => {
-      this.hide();
+      this.hideControls();
       this.timer = null;
     }, 3000);
   }
-  prepareToggle() {
+  prepareToggleControls() {
     if (this.timer === null) {
-      this.toggle();
+      this.toggleControls();
       return;
     }
     clearTimeout(this.timer);
-    this.toggle();
+    this.toggleControls();
   }
-  stopHide() {
+  stopHideControls() {
     if (this.timer !== null) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -402,6 +430,22 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
 
   const $logic = useInstance(() => SeasonPlayingPageLogic(props));
   const $page = useInstance(() => new SeasonPlayingPageView({ app, view }));
+  const $node = useInstance(
+    () =>
+      new NodeCore({
+        onLongPress() {
+          if (!$logic.$tv.playing) {
+            return;
+          }
+          $page.$tmpRateTip.show();
+          $logic.$player.changeRateTmp(2);
+        },
+        onLongPressFinish() {
+          $page.$tmpRateTip.hide();
+          $logic.$player.recoverRate();
+        },
+      })
+  );
   const [state, setProfile] = useState($logic.$tv.state);
   const [playerState, setPlayerState] = useState($logic.$player.state);
 
@@ -411,9 +455,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
       return;
     }
     // console.log("[PAGE]media/season_playing - handleClickElm", target);
-    const { elm, value } = target.dataset;
+    const { elm, stop, value } = target.dataset;
     if (!elm) {
       return;
+    }
+    if (stop) {
+      event.stopPropagation();
     }
     $logic.handleClickElm({ elm, value });
   }, []);
@@ -422,13 +469,13 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
     $logic.$player.onStateChange((v) => setPlayerState(v));
     $logic.$tv.onStateChange((v) => setProfile(v));
     $logic.$player.beforeAdjustCurrentTime(() => {
-      $page.stopHide();
+      $page.stopHideControls();
     });
     $logic.$player.afterAdjustCurrentTime(() => {
-      $page.prepareHide();
+      $page.prepareHideControls();
     });
     $logic.$player.onExitFullscreen(() => {
-      $page.show();
+      $page.showControls();
     });
     $logic.ready();
   });
@@ -439,7 +486,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
         store={$page.$scroll}
         className="fixed h-screen bg-w-bg-0 scroll--hidden"
         onClick={() => {
-          $page.prepareToggle();
+          $page.prepareToggleControls();
         }}
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
@@ -447,7 +494,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
             <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
-          <div className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2">
+          <div
+            className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
             <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$control}>
               <Show
                 when={!playerState.error}
@@ -466,23 +518,13 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                         <HelpCircle className="w-4 h-4" />
                       </div>
                     </div>
-                    <div
-                      className="mt-4 text-center text-sm"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if ($logic.$tv.$source.profile) {
-                          app.copy($logic.$tv.$source.profile?.url);
-                          app.tip({
-                            text: ["复制成功"],
-                          });
-                          return;
-                        }
-                        app.tip({
-                          text: ["暂无播放地址"],
-                        });
-                      }}
-                    >
-                      复制播放地址
+                    <div className="flex items-center mt-4 space-x-4 text-center text-sm">
+                      <div data-elm="report-media-error-btn" data-stop="1" onClick={handleClickElm}>
+                        反馈问题
+                      </div>
+                      <div data-elm="copy-media-url-btn" data-stop="1" onClick={handleClickElm}>
+                        复制播放地址
+                      </div>
                     </div>
                   </div>
                 }
@@ -498,7 +540,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                       className="relative"
                       onClick={() => {
                         $logic.$player.rewind();
-                        $page.prepareHide();
+                        $page.prepareHideControls();
                       }}
                     >
                       <ChevronsLeft className="w-12 h-12" />
@@ -511,7 +553,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                           <div
                             onClick={() => {
                               $logic.$player.play();
-                              $page.prepareHide();
+                              $page.prepareHideControls();
                             }}
                           >
                             <Play className="relative left-[6px] w-20 h-20" />
@@ -531,7 +573,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                       className="relative"
                       onClick={() => {
                         $logic.$player.speedUp();
-                        $page.prepareHide();
+                        $page.prepareHideControls();
                       }}
                     >
                       <ChevronsRight className="w-12 h-12" />
@@ -543,7 +585,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
             </Presence>
           </div>
         </div>
-        <div className="absolute z-0 inset-0 text-w-fg-0">
+        <Node store={$node} className="__a absolute z-0 inset-0 text-w-fg-0">
           <div
             className="absolute top-0 z-40 w-full"
             onClick={(event) => {
@@ -559,13 +601,13 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                 event.stopPropagation();
               }}
             >
-              <div className="flex items-center">
-                <div
-                  className="inline-block p-4"
-                  onClick={() => {
-                    history.back();
-                  }}
-                >
+              <div
+                className="flex items-center"
+                onClick={() => {
+                  history.back();
+                }}
+              >
+                <div className="inline-block p-4">
                   <ArrowLeft className="w-6 h-6" />
                 </div>
                 <Show when={!!state.curSource}>
@@ -664,11 +706,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                     ]}
                   />
                 </div>
-                <div
-                  className="relative p-2 rounded-md cursor-pointer"
-                  data-elm="skip-menu"
-                  onClick={handleClickElm}
-                >
+                <div className="relative p-2 rounded-md cursor-pointer" data-elm="skip-menu" onClick={handleClickElm}>
                   {playerState?.skipText ? <div>{playerState?.skipText}</div> : <div>片头时间</div>}
                 </div>
                 <div
@@ -690,7 +728,15 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               </div>
             </Presence>
           </div>
-        </div>
+          <Presence store={$page.$tmpRateTip}>
+            <div className="absolute left-1/2 bottom-[24%] -translate-x-1/2 text-center">
+              <div className="flex flex-col items-center">
+                <ChevronsRight className="w-8 h-8" />
+                <div>2x速 快进中</div>
+              </div>
+            </div>
+          </Presence>
+        </Node>
       </ScrollView>
       <Sheet store={$page.$episodes} className="" size="lg">
         {(() => {
@@ -797,6 +843,11 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           $player={$logic.$player}
         />
       </Sheet>
+      <Dialog store={$logic.$mediaReport.$dialog}>
+        <div className="text-w-fg-1">
+          <p className="mt-2">「无法播放」</p>
+        </div>
+      </Dialog>
     </>
   );
 });
