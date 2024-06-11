@@ -53,8 +53,8 @@ export const StackRouteView = React.memo(
           <div
             className={cn(
               props.className,
-              state.enter ? `animate-in ${store.animation.in}` : "",
-              state.exit ? `animate-out ${store.animation.out}` : ""
+              state.enter && store.animation.in ? `animate-in ${store.animation.in}` : "",
+              state.exit && store.animation.out ? `animate-out ${store.animation.out}` : ""
               // "animate",
               // "animate-in duration-500",
               // index !== 0 ? (store.animation.show ? ` ${store.animation.show}` : "") : "",
@@ -68,7 +68,7 @@ export const StackRouteView = React.memo(
               zIndex: index,
               display: state.visible ? "block" : "none",
             }}
-            data-state={state.visible ? "open" : "closed"}
+            // data-state={state.visible ? "open" : "closed"}
             data-title={store.title}
             data-href={store.href}
             // onAnimationEnd={() => {

@@ -86,7 +86,7 @@ const configure = {
         options: {
           animation: {
             // in: "fade-in",
-            out: "fade-out",
+            // out: "fade-out",
           },
           require: ["login"],
         },
