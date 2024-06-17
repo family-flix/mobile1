@@ -189,14 +189,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   constructor(props: ScrollViewProps) {
     super(props);
 
-    const {
-      os,
-      offset = 80,
-      onScroll,
-      onReachBottom,
-      onPullToRefresh,
-      onPullToBack,
-    } = props;
+    const { os, offset = 80, onScroll, onReachBottom, onPullToRefresh, onPullToBack } = props;
     // console.log(props);
 
     this.options = props;
@@ -285,7 +278,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       preventDefault(e);
     }
     const startPoint = getPoint(e);
-    if (startPoint.x < 30) {
+    if (startPoint.x < 12) {
       preventDefault(e);
       return;
     }
@@ -302,7 +295,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   /** 鼠标/手指移动 */
   handlePointMove = (e: PointEvent) => {
     // console.log("[DOMAIN]ScrollView - handlePointMove");
-    if (!this.startPoint) {
+    if (this.startPoint.x === 0) {
       return;
     }
     // 当前滚动条的距离
@@ -373,6 +366,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
     this.lastPoint = curPoint;
   };
   handleTouchEnd = () => {
+    this.startPoint = { x: 0, y: 0 };
     if (!this.canPullToRefresh) {
       return;
     }
