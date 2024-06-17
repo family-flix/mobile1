@@ -32,7 +32,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
   async get<T>(
     endpoint: string,
     query?: Record<string, string | number | undefined>,
-    extra: Partial<{ headers: Record<string, string>; id: string }> = {}
+    extra: Partial<{ headers: Record<string, string | number>; id: string }> = {}
   ): Promise<Result<T>> {
     try {
       const url = [endpoint, query ? "?" + query_stringify(query) : ""].join("");
@@ -59,7 +59,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
   async post<T>(
     endpoint: string,
     body?: JSONObject | FormData,
-    extra: Partial<{ headers: Record<string, string>; id: string }> = {}
+    extra: Partial<{ headers: Record<string, string | number>; id: string }> = {}
   ): Promise<Result<T>> {
     const url = [endpoint].join("");
     try {
@@ -89,7 +89,7 @@ export class HttpClientCore extends BaseDomain<TheTypesOfEvents> {
     method: "GET" | "POST";
     id?: string;
     data?: JSONObject | FormData;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | number>;
   }) {
     console.log("请在 connect 中实现 fetch 方法");
     return { data: {} } as { data: T };

@@ -124,85 +124,85 @@ export class InputCore extends BaseDomain<TheTypesOfEvents> {
       this.onMounted(onMounted);
     }
   }
-  setMounted() {
+  setMounted = () => {
     this.emit(Events.Mounted);
-  }
-  handleEnter() {
+  };
+  handleEnter = () => {
     // if (this.value === this.valueUsed) {
     //   return;
     // }
     this.valueUsed = this.value;
     this.emit(Events.Enter, this.value);
-  }
-  handleBlur() {
+  };
+  handleBlur = () => {
     if (this.value === this.valueUsed) {
       return;
     }
     this.valueUsed = this.value;
     this.emit(Events.Blur, this.value);
-  }
-  setLoading(loading: boolean) {
+  };
+  setLoading = (loading: boolean) => {
     this.loading = loading;
     this.emit(Events.StateChange, { ...this.state });
-  }
-  focus() {
+  };
+  focus = () => {
     console.log("请在 connect 中实现 focus 方法");
-  }
-  change(value: string) {
+  };
+  change = (value: string) => {
     this.value = value;
     this.emit(Events.Change, value);
     this.emit(Events.StateChange, { ...this.state });
-  }
-  enable() {
+  };
+  enable = () => {
     this.disabled = true;
     this.emit(Events.StateChange, { ...this.state });
-  }
-  disable() {
+  };
+  disable = () => {
     this.disabled = false;
     this.emit(Events.StateChange, { ...this.state });
-  }
-  showText() {
+  };
+  showText = () => {
     this.tmpType = "text";
     this.emit(Events.StateChange, { ...this.state });
-  }
-  hideText() {
+  };
+  hideText = () => {
     this.tmpType = "";
     this.emit(Events.StateChange, { ...this.state });
-  }
-  clear() {
+  };
+  clear = () => {
     console.log("[COMPONENT]ui/input/index - clear", this._defaultValue);
     this.value = this._defaultValue;
     // this.emit(Events.Change, this.value);
     this.emit(Events.Clear);
     this.emit(Events.StateChange, { ...this.state });
-  }
-  reset() {
+  };
+  reset = () => {
     this.value = this._defaultValue;
     this.emit(Events.StateChange, { ...this.state });
-  }
-  enter() {
+  };
+  enter = () => {
     this.emit(Events.Enter);
-  }
+  };
 
-  onChange(handler: Handler<TheTypesOfEvents[Events.Change]>) {
+  onChange = (handler: Handler<TheTypesOfEvents[Events.Change]>) => {
     return this.on(Events.Change, handler);
-  }
-  onStateChange(handler: Handler<TheTypesOfEvents[Events.StateChange]>) {
+  };
+  onStateChange = (handler: Handler<TheTypesOfEvents[Events.StateChange]>) => {
     return this.on(Events.StateChange, handler);
-  }
-  onMounted(handler: Handler<TheTypesOfEvents[Events.Mounted]>) {
+  };
+  onMounted = (handler: Handler<TheTypesOfEvents[Events.Mounted]>) => {
     return this.on(Events.Mounted, handler);
-  }
-  onFocus(handler: Handler<TheTypesOfEvents[Events.Focus]>) {
+  };
+  onFocus = (handler: Handler<TheTypesOfEvents[Events.Focus]>) => {
     return this.on(Events.Focus, handler);
-  }
-  onBlur(handler: Handler<TheTypesOfEvents[Events.Blur]>) {
+  };
+  onBlur = (handler: Handler<TheTypesOfEvents[Events.Blur]>) => {
     return this.on(Events.Blur, handler);
-  }
-  onEnter(handler: Handler<TheTypesOfEvents[Events.Enter]>) {
+  };
+  onEnter = (handler: Handler<TheTypesOfEvents[Events.Enter]>) => {
     return this.on(Events.Enter, handler);
-  }
-  onClear(handler: Handler<TheTypesOfEvents[Events.Clear]>) {
+  };
+  onClear = (handler: Handler<TheTypesOfEvents[Events.Clear]>) => {
     return this.on(Events.Clear, handler);
-  }
+  };
 }

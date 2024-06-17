@@ -1,4 +1,5 @@
 import { Handler, BaseDomain } from "@/domains/base";
+import { media_request } from "@/biz/requests/index";
 import { HttpClientCore } from "@/domains/http_client/index";
 import { Result } from "@/domains/result/index";
 import { MediaOriginCountry } from "@/constants/index";
@@ -51,7 +52,7 @@ export class SubtitleCore extends BaseDomain<TheTypesOfEvents> {
       }
       if (type === SubtitleFileTypes.LocalFile) {
         try {
-          const r = await client.fetch<string>({ url, method: "GET" });
+          const r = await client.fetch<string>({ url: [media_request.getHostname(), url].join(""), method: "GET" });
           return Result.Ok({
             name,
             content: r.data,

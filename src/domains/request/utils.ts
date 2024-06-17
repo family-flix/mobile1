@@ -21,6 +21,7 @@ export type RequestPayload<T> = {
  * T extends RequestPayload
  */
 export type UnpackedRequestPayload<T> = NonNullable<T extends RequestPayload<infer U> ? (U extends null ? U : U) : T>;
+// export type UnpackedRequestPayload<T> = T extends RequestPayload<infer U> ? U : T;
 export type TmpRequestResp<T extends (...args: any[]) => any> = Result<UnpackedRequestPayload<RequestedResource<T>>>;
 
 let posterHandler: null | ((v: RequestPayload<any>) => void) = null;
@@ -95,13 +96,17 @@ export function request_factory(opt: {
     prod: string;
   };
   debug?: boolean;
+  headers?: Record<string, string | number>;
   process?: (v: any) => any;
 }) {
   let _hostname = opt.hostnames.prod;
-  let _headers = {} as Record<string, string | number>;
+  let _headers = (opt.headers ?? {}) as Record<string, string | number>;
   let _env = "prod";
   let _debug = opt.debug ?? false;
   return {
+    getHostname() {
+      return _hostname;
+    },
     setHostname(hostname: string) {
       if (_debug) {
         console.log("[REQUEST]utils - setHostname", hostname);
@@ -164,7 +169,7 @@ export function request_factory(opt: {
         body,
         headers: {
           ...payload.headers,
-          ...headers,
+          ..._headers,
         },
         process: opt.process,
       };

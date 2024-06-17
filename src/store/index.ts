@@ -1,4 +1,5 @@
 import { fetchNotifications, fetchNotificationsProcess } from "@/services/index";
+import { media_request } from "@/biz/requests";
 import { Application } from "@/domains/app/index";
 import { ListCore } from "@/domains/list/index";
 import { NavigatorCore } from "@/domains/navigator/index";
@@ -6,7 +7,7 @@ import { RouteViewCore } from "@/domains/route_view/index";
 import { RouteConfig } from "@/domains/route_view/utils";
 import { UserCore } from "@/biz/user/index";
 import { HistoryCore } from "@/domains/history/index";
-import { RequestCore, onCreate } from "@/domains/request/index";
+import { RequestCore, onRequestCreated } from "@/domains/request/index";
 import { ImageCore } from "@/domains/ui/image/index";
 import { Result } from "@/domains/result/index";
 import { MediaOriginCountry } from "@/constants/index";
@@ -17,12 +18,18 @@ import { PageKeys, routes, routesWithPathname } from "./routes";
 
 NavigatorCore.prefix = import.meta.env.BASE_URL;
 ImageCore.setPrefix(window.location.origin);
+if (window.location.hostname === "media-t.funzm.com") {
+  media_request.setEnv("dev");
+}
 
-onCreate((ins) => {
+onRequestCreated((ins) => {
   ins.onFailed((e) => {
     app.tip({
       text: [e.message],
     });
+    if (e.code === 900) {
+      history.push("root.login");
+    }
   });
   if (!ins.client) {
     ins.client = client;
@@ -72,10 +79,12 @@ export const app = new Application({
         return Result.Err("need login");
       }
     }
-    client.appendHeaders({
-      Authorization: app.$user.token,
-    });
-    messageList.init();
+    if (app.$user.isLogin) {
+      client.appendHeaders({
+        Authorization: app.$user.token,
+      });
+      messageList.init();
+    }
     if (!history.isLayout(route.name)) {
       history.push(route.name, query, { ignore: true });
       return Result.Err("can't goto layout");
