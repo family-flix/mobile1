@@ -278,7 +278,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
       preventDefault(e);
     }
     const startPoint = getPoint(e);
-    if (startPoint.x < 12) {
+    if (startPoint.x < 36) {
       preventDefault(e);
       return;
     }
@@ -295,7 +295,7 @@ export class ScrollViewCore extends BaseDomain<TheTypesOfEvents> {
   /** 鼠标/手指移动 */
   handlePointMove = (e: PointEvent) => {
     // console.log("[DOMAIN]ScrollView - handlePointMove");
-    if (this.startPoint.x === 0) {
+    if (this.startPoint.x <= 36) {
       return;
     }
     // 当前滚动条的距离

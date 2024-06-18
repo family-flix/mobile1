@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import ReactDOM from "react-dom/client";
 
 import { history, app } from "./store/index";
-import { PageKeys, routesWithPathname } from "./store/routes";
+import { PageKeys } from "./store/routes";
 import { pages } from "./store/views";
 import { client } from "./store/request";
 import { useInitialize, useInstance } from "./hooks/index";
@@ -13,34 +13,10 @@ import { ThemeProvider } from "./components/theme-switch";
 import { StackRouteView } from "./components/ui/stack-route-view";
 import { Toast, Dialog } from "./components/ui";
 import { ToastCore } from "./domains/ui/toast";
-import { connect as connectApplication } from "./domains/app/connect.web";
-import { connect as connectHistory } from "./domains/history/connect.web";
-import { NavigatorCore } from "./domains/navigator/index";
 import { DialogCore } from "./domains/ui/index";
 import { cn } from "./utils/index";
 
 import "./index.css";
-
-history.onClickLink(({ href, target }) => {
-  const { pathname, query } = NavigatorCore.parse(href);
-  const route = routesWithPathname[pathname];
-  // console.log("[ROOT]history.onClickLink", pathname, query, route);
-  if (!route) {
-    app.tip({
-      text: ["没有匹配的页面"],
-    });
-    return;
-  }
-  if (target === "_blank") {
-    const u = history.buildURLWithPrefix(route.name, query);
-    window.open(u);
-    return;
-  }
-  history.push(route.name, query);
-  return;
-});
-connectApplication(app);
-connectHistory(history);
 
 const view = history.$view;
 
@@ -67,23 +43,6 @@ function ApplicationView() {
       // console.log("[ROOT]rootView.onSubViewsChange", nextSubViews.length);
       setSubViews(v);
     });
-    history.onRouteChange(({ reason, view, href, ignore }) => {
-      // console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
-      const { title } = view;
-      app.setTitle(title);
-      if (ignore) {
-        return;
-      }
-      if (app.env.ios) {
-        return;
-      }
-      if (reason === "push") {
-        history.$router.pushState(href);
-      }
-      if (reason === "replace") {
-        history.$router.replaceState(href);
-      }
-    });
     app.onTip((msg) => {
       const { text } = msg;
       $toast.show({
@@ -92,12 +51,6 @@ function ApplicationView() {
     });
     app.onUpdate(() => {
       $upgrade.show();
-    });
-    app.onTip((msg) => {
-      const { text } = msg;
-      $toast.show({
-        texts: text,
-      });
     });
     app.onError((err) => {
       setError(err);

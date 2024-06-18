@@ -7,6 +7,8 @@ import { RouteViewCore } from "@/domains/route_view/index";
 import { RouteConfig } from "@/domains/route_view/utils";
 import { UserCore } from "@/biz/user/index";
 import { HistoryCore } from "@/domains/history/index";
+import { connect as connectApplication } from "@/domains/app/connect.web";
+import { connect as connectHistory } from "@/domains/history/connect.web";
 import { RequestCore, onRequestCreated } from "@/domains/request/index";
 import { ImageCore } from "@/domains/ui/image/index";
 import { Result } from "@/domains/result/index";
@@ -22,22 +24,7 @@ if (window.location.hostname === "media-t.funzm.com") {
   media_request.setEnv("dev");
 }
 
-onRequestCreated((ins) => {
-  ins.onFailed((e) => {
-    app.tip({
-      text: [e.message],
-    });
-    if (e.code === 900) {
-      history.push("root.login");
-    }
-  });
-  if (!ins.client) {
-    ins.client = client;
-  }
-});
-
 const router = new NavigatorCore();
-
 class ExtendsUser extends UserCore {
   say() {
     console.log(`My name is ${this.username}`);
@@ -65,7 +52,6 @@ export const app = new Application({
   user,
   storage,
   async beforeReady() {
-    await user.loginWithTokenId({ token: router.query.token, tmp: Number(router.query.tmp) });
     const { pathname, query } = history.$router;
     const route = routesWithPathname[pathname];
     console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
@@ -73,18 +59,30 @@ export const app = new Application({
       history.push("root.notfound");
       return Result.Err("not found");
     }
-    if (!app.$user.isLogin) {
-      if (route.options?.require?.includes("login")) {
-        history.push("root.login", { redirect: route.pathname });
-        return Result.Err("need login");
+    if (!route.options?.require?.includes("login")) {
+      if (!history.isLayout(route.name)) {
+        // 页面无需登录且非 layout
+        history.push(route.name, query, { ignore: true });
+        return Result.Ok(null);
       }
+      return Result.Err("can't goto layout");
     }
-    if (app.$user.isLogin) {
-      client.appendHeaders({
-        Authorization: app.$user.token,
+    // 页面需要登录
+    await user.loginWithTokenId({ token: router.query.token, tmp: Number(router.query.tmp) });
+    if (!user.isLogin) {
+      app.tip({
+        text: ["请先登录"],
       });
-      messageList.init();
+      history.push("root.login", { redirect: route.pathname });
+      return Result.Err("need login");
     }
+    client.appendHeaders({
+      Authorization: user.token,
+    });
+    media_request.appendHeaders({
+      Authorization: user.token,
+    });
+    messageList.init();
     if (!history.isLayout(route.name)) {
       history.push(route.name, query, { ignore: true });
       return Result.Err("can't goto layout");
@@ -99,28 +97,82 @@ export const app = new Application({
     return Result.Ok(null);
   },
 });
+connectApplication(app);
+connectHistory(history);
+history.onClickLink(({ href, target }) => {
+  const { pathname, query } = NavigatorCore.parse(href);
+  const route = routesWithPathname[pathname];
+  // console.log("[ROOT]history.onClickLink", pathname, query, route);
+  if (!route) {
+    app.tip({
+      text: ["没有匹配的页面"],
+    });
+    return;
+  }
+  if (target === "_blank") {
+    const u = history.buildURLWithPrefix(route.name, query);
+    window.open(u);
+    return;
+  }
+  history.push(route.name, query);
+  return;
+});
+history.onRouteChange(({ reason, view, href, ignore }) => {
+  // console.log("[ROOT]rootView.onRouteChange", href, history.$router.href);
+  const { title } = view;
+  app.setTitle(title);
+  if (ignore) {
+    return;
+  }
+  if (app.env.ios) {
+    return;
+  }
+  if (reason === "push") {
+    history.$router.pushState(href);
+  }
+  if (reason === "replace") {
+    history.$router.replaceState(href);
+  }
+});
 user.onLogin((profile) => {
   client.appendHeaders({
+    Authorization: user.token,
+  });
+  media_request.appendHeaders({
     Authorization: user.token,
   });
   storage.set("user", profile);
 });
 user.onLogout(() => {
   storage.clear("user");
-  history.replace("root.login");
+  media_request.deleteHeaders("Authorization");
+  history.push("root.login");
 });
 user.onExpired(() => {
   storage.clear("user");
   app.tip({
     text: ["token 已过期，请重新登录"],
   });
-  history.replace("root.login");
+  history.push("root.login");
 });
 user.onTip((msg) => {
   app.tip(msg);
 });
 user.onNeedUpdate(() => {
   app.tipUpdate();
+});
+onRequestCreated((ins) => {
+  ins.onFailed((e) => {
+    app.tip({
+      text: [e.message],
+    });
+    if (e.code === 900) {
+      history.push("root.login");
+    }
+  });
+  if (!ins.client) {
+    ins.client = client;
+  }
 });
 
 export const messageList = new ListCore(

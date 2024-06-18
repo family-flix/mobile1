@@ -101,6 +101,9 @@ export class UserCore extends BaseDomain<TheTypesOfEvents> {
    */
   async loginWithTokenId(values: { token: string; tmp: number }) {
     const { token, tmp } = values;
+    if (!token) {
+      return Result.Err("缺少 token");
+    }
     const request = new RequestCore(loginWithTokenId, {
       client: this.$client,
     });

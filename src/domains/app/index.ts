@@ -140,6 +140,7 @@ export class Application<T extends { storage: StorageCore<any> }> extends BaseDo
   orientation = OrientationTypes.Vertical;
   curDeviceSize: DeviceSizeTypes = "md";
   theme: ThemeTypes = "system";
+  pending = false;
 
   safeArea = false;
   Events = Events;
@@ -176,7 +177,12 @@ export class Application<T extends { storage: StorageCore<any> }> extends BaseDo
     // console.log('[Application]start');
     const { beforeReady } = this.lifetimes;
     if (beforeReady) {
+      if (this.pending) {
+        return Result.Err("请不要重复加载");
+      }
+      this.pending = true;
       const r = await beforeReady();
+      this.pending = false;
       // console.log("[]Application - ready result", r);
       if (r.error) {
         return Result.Err(r.error);

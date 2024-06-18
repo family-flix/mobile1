@@ -119,6 +119,9 @@ export function request_factory(opt: {
       }
       _headers = headers;
     },
+    deleteHeaders(key: string) {
+      delete _headers[key];
+    },
     appendHeaders(extra: Record<string, string | number>) {
       if (_debug) {
         console.log("[REQUEST]utils - appendHeaders", extra);

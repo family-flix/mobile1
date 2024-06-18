@@ -76,7 +76,7 @@ function Page(props: ViewComponentProps) {
       app.tip({
         text: ["更新成功，请重新登录"],
       });
-      history.replace("root.login");
+      history.push("root.login");
     },
   });
 

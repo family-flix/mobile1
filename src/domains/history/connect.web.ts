@@ -78,10 +78,10 @@ export function connect(history: HistoryCore<string, any>) {
     event.preventDefault();
     history.handleClickLink({ href, target: null });
   });
-  window.addEventListener("popstate", (event) => {
-    console.log("[DOMAIN]history/connect - window.addEventListener('popstate'", event.state?.from, event.state?.to);
-    const { type } = event;
-    const { pathname, href } = window.location;
-    history.$router.handlePopState({ type, href, pathname: event.state?.to });
-  });
+  // window.addEventListener("popstate", (event) => {
+  //   console.log("[DOMAIN]history/connect - window.addEventListener('popstate'", event.state?.from, event.state?.to);
+  //   const { type } = event;
+  //   const { pathname, href } = window.location;
+  //   history.$router.handlePopState({ type, href, pathname: event.state?.to });
+  // });
 }
