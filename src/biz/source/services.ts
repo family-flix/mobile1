@@ -1,8 +1,8 @@
 import { media_request } from "@/biz/requests";
-import { TmpRequestResp } from "@/domains/request/utils";
 import { SubtitleFileResp } from "@/biz/subtitle/types";
-import { Unpacked, UnpackedResult } from "@/types";
-import { Result } from "@/domains/result/index";
+import { TmpRequestResp } from "@/domains/request/utils";
+import { Result, UnpackedResult } from "@/domains/result/index";
+import { Unpacked } from "@/types/index";
 
 import { MediaResolutionTypeTexts, MediaResolutionTypes } from "./constants";
 

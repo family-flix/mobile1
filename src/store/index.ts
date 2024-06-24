@@ -99,6 +99,11 @@ export const app = new Application({
 });
 connectApplication(app);
 connectHistory(history);
+if (app.env.ios) {
+  history.back = () => {
+    history.realBack();
+  };
+}
 history.onClickLink(({ href, target }) => {
   const { pathname, query } = NavigatorCore.parse(href);
   const route = routesWithPathname[pathname];

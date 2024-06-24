@@ -35,7 +35,7 @@ type ToastProps = {
 };
 
 export class ToastCore extends BaseDomain<TheTypesOfEvents> {
-  unique_id = "ToastCore";
+  _unique_id = "ToastCore";
 
   delay = 1200;
   timer: NodeJS.Timeout | null = null;

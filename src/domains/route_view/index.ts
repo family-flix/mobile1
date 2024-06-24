@@ -88,7 +88,7 @@ type RouteViewCoreProps = {
 };
 
 export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
-  unique_id = "ViewCore";
+  _unique_id = "ViewCore";
   debug = false;
   id = this.uid();
 
@@ -145,7 +145,7 @@ export class RouteViewCore extends BaseDomain<TheTypesOfEvents> {
     this.pathname = pathname;
     this.parent = parent;
     this.title = title;
-    this.unique_id = title;
+    this._unique_id = title;
     this.animation = animation;
     this.subViews = views;
     // console.log("[DOMAIN]route_view - constructor", title, { destroyAfterHide });

@@ -6,8 +6,8 @@ import { TmpRequestResp } from "@/domains/request/utils";
 import { FetchParams } from "@/domains/list/typing";
 import { SubtitleFileResp } from "@/biz/subtitle/types";
 import { MediaResolutionTypes, MediaResolutionTypeTexts } from "@/biz/source/constants";
-import { Result } from "@/domains/result/index";
-import { RequestedResource, Unpacked, UnpackedResult } from "@/types/index";
+import { Result, UnpackedResult } from "@/domains/result/index";
+import { RequestedResource } from "@/types/index";
 import { MediaTypes, MediaOriginCountry, SeasonGenresTexts, SeasonMediaOriginCountryTexts } from "@/constants/index";
 import { episode_to_chinese_num, minute_to_hour2, relative_time_from_now } from "@/utils/index";
 

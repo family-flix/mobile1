@@ -98,7 +98,7 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     };
   }
 
-  unique_id = "NavigatorCore";
+  _unique_id = "NavigatorCore";
   debug = false;
 
   name = "root";

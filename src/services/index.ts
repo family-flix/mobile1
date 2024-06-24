@@ -4,8 +4,7 @@ import { media_request } from "@/biz/requests";
 import { ListResponse, ListResponseWithCursor } from "@/biz/requests/types";
 import { FetchParams } from "@/domains/list/typing";
 import { TmpRequestResp } from "@/domains/request/utils";
-import { Result } from "@/domains/result/index";
-import { UnpackedResult } from "@/types/index";
+import { Result, UnpackedResult } from "@/domains/result/index";
 import { MediaTypes, CollectionTypes, ReportTypes, AuthCodeStep } from "@/constants/index";
 import { relative_time_from_now, season_to_chinese_num } from "@/utils/index";
 

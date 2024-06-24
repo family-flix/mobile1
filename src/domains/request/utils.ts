@@ -88,18 +88,21 @@ export const request = {
   },
 };
 
-export function request_factory(opt: {
-  hostnames: {
-    dev?: string;
-    test?: string;
-    beta?: string;
-    prod: string;
-  };
-  debug?: boolean;
-  headers?: Record<string, string | number>;
-  process?: (v: any) => any;
-}) {
-  let _hostname = opt.hostnames.prod;
+export function request_factory(
+  opt: Partial<{
+    hostnames: Partial<{
+      dev: string;
+      test: string;
+      beta: string;
+      prod: string;
+    }>;
+    debug: boolean;
+    headers: Record<string, string | number>;
+    process: (v: any) => any;
+  }> = {}
+) {
+  const { hostnames = {} } = opt;
+  let _hostname = hostnames.prod || "";
   let _headers = (opt.headers ?? {}) as Record<string, string | number>;
   let _env = "prod";
   let _debug = opt.debug ?? false;
@@ -131,11 +134,11 @@ export function request_factory(opt: {
         ...extra,
       };
     },
-    setEnv(env: keyof (typeof opt)["hostnames"]) {
+    setEnv(env: keyof typeof hostnames) {
       if (_debug) {
         console.log("[REQUEST]utils - setEnv", env);
       }
-      const { prod, dev = prod, test = prod, beta = prod } = opt.hostnames;
+      const { prod = "", dev = prod, test = prod, beta = prod } = hostnames;
       _env = env;
       if (env === "dev") {
         _hostname = dev;

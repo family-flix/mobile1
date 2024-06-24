@@ -1,6 +1,5 @@
-import { Resp, Result } from "@/domains/result/index";
+import { Result, UnpackedResult } from "@/domains/result/index";
 
-export type UnpackedResult<T> = NonNullable<T extends Resp<infer U> ? (U extends null ? U : U) : T>;
 export type Unpacked<T> = T extends (infer U)[]
   ? U
   : T extends (...args: any[]) => infer U

@@ -52,7 +52,7 @@ type UserState = {
 export class UserCore extends BaseDomain<TheTypesOfEvents> {
   static Events = Events;
 
-  unique_id = "UserCore";
+  _unique_id = "UserCore";
   debug = false;
 
   id: string = "";

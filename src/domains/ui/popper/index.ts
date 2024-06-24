@@ -67,7 +67,7 @@ type PopperState = {
   reference: boolean;
 };
 export class PopperCore extends BaseDomain<TheTypesOfEvents> {
-  unique_id = "PopperCore";
+  _unique_id = "PopperCore";
   debug = true;
 
   // side: Side = "bottom";
@@ -129,7 +129,7 @@ export class PopperCore extends BaseDomain<TheTypesOfEvents> {
 
     const { _name: name, side = "bottom", align = "center", strategy = "fixed", middleware = [] } = options;
     if (name) {
-      this.unique_id = name;
+      this._unique_id = name;
     }
     this.strategy = strategy;
     this.placement = (side + (align !== "center" ? "-" + align : "")) as Placement;
@@ -138,7 +138,7 @@ export class PopperCore extends BaseDomain<TheTypesOfEvents> {
 
   /** 基准元素加载完成 */
   setReference(reference: { getRect: () => Rect }) {
-    console.log("setReference", this.reference, reference, this.unique_id);
+    console.log("setReference", this.reference, reference, this._unique_id);
     if (this.reference !== null) {
       return;
     }
