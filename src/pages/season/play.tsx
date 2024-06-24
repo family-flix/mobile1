@@ -131,7 +131,7 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   });
   $player.onCanPlay(() => {
     const { currentTime } = $tv;
-    console.log("[PAGE]play - player.onCanPlay", $player.hasPlayed, currentTime);
+    // console.log("[PAGE]play - player.onCanPlay", $player.hasPlayed, currentTime);
     function applySettings() {
       $player.setCurrentTime(currentTime === 0 ? $player.theTimeSkip : currentTime);
       if (settings.rate) {

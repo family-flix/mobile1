@@ -84,12 +84,11 @@ type TheTypesOfEvents = {
   [Events.Ready]: void;
   [Events.BeforeLoadStart]: void;
   // EpisodeProfile
-  [Events.SourceLoaded]: Partial<{
+  [Events.SourceLoaded]: {
     width: number;
     height: number;
-    url: string;
-    currentTime: number;
-  }>;
+    duration: number;
+  };
   [Events.Loaded]: void;
   [Events.CanPlay]: void;
   [Events.Play]: void;
@@ -582,23 +581,23 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     });
   };
   handleLoadedmetadata = (values: { width: number; height: number; duration: number }) => {
-    const { width, height } = values;
+    const { width, height, duration } = values;
     this.setSize({ width, height });
-    this._duration = values.duration;
-    this.emit(Events.SourceLoaded, { width, height });
+    this._duration = duration;
+    this.emit(Events.SourceLoaded, { width, height, duration });
   };
   handleLoad = () => {
     this.emit(Events.Loaded);
   };
-  handleCanPlay = (values?: { duration: number }) => {
+  handleCanPlay = (values: Partial<{ duration: number }> = {}) => {
+    if (values.duration && this._duration !== values.duration) {
+      this._duration = values.duration;
+      this.emit(Events.DurationChange, values.duration);
+    }
     if (this._canPlay) {
       return;
     }
     this._canPlay = true;
-    if (values?.duration) {
-      this._duration = values.duration;
-      this.emit(Events.DurationChange, values.duration);
-    }
     this.emit(Events.CanPlay);
     this.emit(Events.StateChange, { ...this.state });
   };

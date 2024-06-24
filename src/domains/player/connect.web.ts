@@ -8,12 +8,12 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   // });
   $video.onloadstart = () => {
     // 1
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onloadstart");
+    console.log("[COMPONENT]VideoPlayer/connect - 1. $video.onloadstart");
     player.handleStartLoad();
   };
   $video.onloadedmetadata = function (event) {
     // 2
-    // console.log("[COMPONENT]VideoPlayer/connect - $video.onloadedmetadata", $video.duration);
+    console.log("[COMPONENT]VideoPlayer/connect - 2. $video.onloadedmetadata", $video.duration);
     // @ts-ignore
     const width = this.videoWidth;
     // @ts-ignore
@@ -27,15 +27,15 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     });
   };
   $video.onload = () => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onload");
+    console.log("[COMPONENT]VideoPlayer/connect - 3. $video.onload");
     player.handleLoad();
   };
   // 这个居然会在调整时间进度后调用？？？
   $video.oncanplay = (event) => {
-    // console.log("[COMPONENT]VideoPlayer/connect - $video.oncanplay");
+    console.log("[COMPONENT]VideoPlayer/connect - 4. $video.oncanplay");
     // const { duration } = event.currentTarget as HTMLVideoElement;
     // console.log("[COMPONENT]VideoPlayer/connect - listen $video can play");
-    player.handleCanPlay();
+    player.handleCanPlay({ duration: $video.duration });
   };
   $video.onplay = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onplay");
@@ -57,11 +57,11 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     player.handlePause({ currentTime, duration });
   };
   $video.onwaiting = () => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onwaiting");
+    console.log("[COMPONENT]VideoPlayer/connect - 5. $video.onwaiting");
     //     player.emitEnded();
   };
   $video.onended = () => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onended");
+    console.log("[COMPONENT]VideoPlayer/connect - 6. $video.onended");
     player.handleEnded();
   };
   $video.onvolumechange = (event) => {
@@ -79,7 +79,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     player.handleResize({ width: videoWidth, height: videoHeight });
   };
   $video.onerror = (event) => {
-    console.log("[COMPONENT]VideoPlayer/connect - $video.onerror");
+    console.log("[COMPONENT]VideoPlayer/connect - 7. $video.onerror");
     const msg = (() => {
       if (typeof event === "string") {
         return new Error(event);
@@ -140,7 +140,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     },
     async load(url: string) {
       // console.log("[DOMAIN]player/connect - load", url, $video);
-      console.log("[]player.onUrlChange", url, $video.canPlayType("application/vnd.apple.mpegurl"), $video);
+      console.log("[DOMAIN]player/connect - load", url, !!$video.canPlayType("application/vnd.apple.mpegurl"));
       if ($video.canPlayType("application/vnd.apple.mpegurl")) {
         $video.src = url;
         $video.load();
@@ -148,7 +148,7 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       }
       const mod = await import("hls.js");
       const Hls2 = mod.default;
-      if (Hls2.isSupported()) {
+      if (Hls2.isSupported() && url.includes("m3u8")) {
         const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
         Hls.attachMedia($video as HTMLVideoElement);
         Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {

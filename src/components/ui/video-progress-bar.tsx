@@ -247,21 +247,21 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
         if (!rect) {
           return;
         }
-        const percent = (store.currentTime / store._duration) * rect.width;
+        const percent = store._duration !== 0 ? (store.currentTime / store._duration) * rect.width : 0;
         const $bar = barRef.current;
         const $cursor = cursorRef.current;
         if ($bar) {
           $bar.style.width = percent + "px";
         }
         if ($cursor) {
-          $cursor.style.left = percent - cursorWidth + "px";
+          $cursor.style.left = (percent - cursorWidth) + "px";
         }
         emitter.emit(Events.Change, {
           currentTime: seconds_to_hour(store.currentTime),
           duration: seconds_to_hour(store._duration),
         });
       }
-      const unlisten2 = store.onCanPlay(() => {
+      const unlisten2 = store.onDurationChange(() => {
         update();
       });
       update();

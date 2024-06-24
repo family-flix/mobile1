@@ -18,6 +18,20 @@ import { client } from "./request";
 import { storage } from "./storage";
 import { PageKeys, routes, routesWithPathname } from "./routes";
 
+onRequestCreated((ins) => {
+  ins.onFailed((e) => {
+    app.tip({
+      text: [e.message],
+    });
+    if (e.code === 900) {
+      history.push("root.login");
+    }
+  });
+  if (!ins.client) {
+    ins.client = client;
+  }
+});
+
 NavigatorCore.prefix = import.meta.env.BASE_URL;
 ImageCore.setPrefix(window.location.origin);
 if (window.location.hostname === "media-t.funzm.com") {
@@ -165,19 +179,6 @@ user.onTip((msg) => {
 });
 user.onNeedUpdate(() => {
   app.tipUpdate();
-});
-onRequestCreated((ins) => {
-  ins.onFailed((e) => {
-    app.tip({
-      text: [e.message],
-    });
-    if (e.code === 900) {
-      history.push("root.login");
-    }
-  });
-  if (!ins.client) {
-    ins.client = client;
-  }
 });
 
 export const messageList = new ListCore(
