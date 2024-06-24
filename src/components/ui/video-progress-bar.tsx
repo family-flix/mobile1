@@ -6,7 +6,7 @@ import { Presence } from "@/components/ui/presence";
 import { Handler, base } from "@/domains/base";
 import { PlayerCore } from "@/domains/player/index";
 import { PresenceCore } from "@/domains/ui/index";
-import { seconds_to_hour } from "@/utils/index";
+import { seconds_to_hour, sleep } from "@/utils/index";
 
 const cursorWidth = 6;
 
@@ -86,35 +86,43 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
         };
       })();
       isDragRef.current = true;
-      movingRef.current = true;
+      // movingRef.current = true;
       store.startAdjustCurrentTime();
       store.pause();
       const startX = finger.clientX;
       const rect = rectRef.current;
       const cur = startX - rect.left;
       const posX = finger.clientX - rect.left;
-      // const percent = posX / rect.width;
       startXRef.current = startX;
       curRef.current = cur;
       touchStartTimeRef.current = new Date().valueOf();
-      timerRef.current = setTimeout(function () {
-        if (timerRef.current !== null) {
-          isDragRef.current = true;
-          movingRef.current = true;
-          if (!hasShowRef.current) {
-            hasShowRef.current = true;
-            $time.show();
-          }
-          curRef.current = posX;
+      // curRef.current = posX;
+      timerRef.current = setTimeout(async () => {
+        if (timerRef.current === null) {
+          return;
+          // curRef.current = posX;
+        }
+        if (hasShowRef.current) {
+          return;
+        }
+        hasShowRef.current = true;
+        $time.show();
+        await sleep(800);
+        const $target = targetTimeRef.current;
+        console.log("in touch start", $target);
+        if ($target) {
+          const text = seconds_to_hour(store.currentTime);
+          $target.innerText = `${text}/${seconds_to_hour(store._duration)}`;
         }
       }, 200);
+      console.log("[COMPONENT]video-progress-bar - touch start", startX, rect.left);
+      leftRef.current = posX - cursorWidth;
       const $bar = barRef.current;
       const $cursor = cursorRef.current;
       if ($bar) {
         $bar.style.width = posX + "px";
       }
       if ($cursor) {
-        leftRef.current = posX - cursorWidth;
         $cursor.style.left = leftRef.current + "px";
       }
     },
@@ -124,6 +132,7 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       stopPropagation: () => void;
     }) {
       event.stopPropagation();
+      movingRef.current = true;
       if (isDragRef.current === false) {
         return;
       }
@@ -147,13 +156,13 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       const posX = finger.clientX - rect.left;
       const percent = posX / rect.width;
       tmpCurRef.current = distance;
+      leftRef.current = posX - cursorWidth;
       const $bar = barRef.current;
       const $cursor = cursorRef.current;
       if ($bar) {
         $bar.style.width = posX + "px";
       }
       if ($cursor) {
-        leftRef.current = posX - cursorWidth;
         $cursor.style.left = leftRef.current + "px";
       }
       const text = seconds_to_hour(percent * store._duration);
@@ -172,6 +181,7 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       }
       const now = new Date().valueOf();
       if (now - touchStartTimeRef.current <= 200) {
+        // 认为是一次点击
         const percent = curRef.current / rectRef.current.width;
         // console.log("the reason is click", curRef.current);
         const targetTime = percent * store._duration;
@@ -188,15 +198,20 @@ function VideoProgressBarComponent(props: { store: PlayerCore }) {
       // console.log("before store.adjustCurrentTime", targetTime, percent, store._duration);
       store.adjustCurrentTime(targetTime);
     },
-    handleAnimationEnd(event: { currentTarget: HTMLDivElement }) {
-      const { currentTarget: target } = event;
+    async updateRect(event: { currentTarget: HTMLDivElement }) {
+      const target = event.currentTarget;
+      await sleep(200);
       const client = target.getBoundingClientRect();
       rectRef.current = {
         width: client.width,
         left: client.left,
       };
-      const percent = store._duration !== 0 ? (store.currentTime / store._duration) * client.width : 0;
-      console.log("[COMPONENT]ui/video-progress-bar", percent);
+      console.log("[COMPONENT]ui/video-progress-bar fetch rect", rectRef.current);
+      if (store._duration === 0) {
+        return;
+      }
+      const percent = (store.currentTime / store._duration) * client.width;
+      console.log("[COMPONENT]ui/video-progress-bar initial bar and cur position", percent);
       const $bar = barRef.current;
       const $cursor = cursorRef.current;
       if ($bar) {
@@ -285,7 +300,7 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
   return (
     <>
       <div
-        className="flex items-center user-select-none"
+        className="user-select-none"
         onTouchStart={$com.handleTouchStart}
         onTouchMove={$com.handleTouchMove}
         onTouchEnd={$com.handleTouchEnd}
@@ -293,10 +308,16 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
         onMouseMove={$com.handleTouchMove}
         onMouseUp={$com.handleTouchEnd}
       >
-        <div className="w-[72px] text-sm">{times.currentTime}</div>
+        <div className="flex items-center">
+          <div className="text-sm">{times.currentTime}</div>
+          <div className="mx-1">/</div>
+          <div className="text-sm">{times.duration}</div>
+        </div>
         <div
-          className="__a relative mx-4 w-full bg-gray-300 cursor-pointer rounded-md"
-          onAnimationStart={$com.handleAnimationEnd}
+          className="__a relative w-full h-[4px] py-4 cursor-pointer rounded-md"
+          onAnimationEnd={async (event) => {
+            $com.updateRect(event);
+          }}
         >
           <div
             className="progress__mask absolute top-1/2 left-0 w-full h-[4px] bg-w-fg-3 rounded-sm"
@@ -320,7 +341,6 @@ export const PlayerProgressBar = React.memo((props: { store: PlayerCore }) => {
             }}
           ></div>
         </div>
-        <div className="text-sm">{times.duration}</div>
       </div>
       <Portal>
         <Presence store={$com.$time}>

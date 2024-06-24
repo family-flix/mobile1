@@ -101,9 +101,14 @@ export const LoginPage: ViewComponent = React.memo((props) => {
         <Button size="lg" store={$page.ui.$login}>
           登录
         </Button>
-        <Button size="lg" variant="link" store={$page.ui.$register}>
+        <div
+          className="mt-1 py-2 text-center text-w-fg-1 cursor-pointer hover:underline"
+          onClick={() => {
+            history.push("root.register");
+          }}
+        >
           没有账号，前往注册
-        </Button>
+        </div>
         {app.$user.isLogin ? (
           <div className="mt-2">
             <Button size="lg" variant="subtle" store={$page.ui.$home}>

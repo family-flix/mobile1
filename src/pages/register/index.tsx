@@ -22,7 +22,7 @@ function Page(props: ViewComponentProps) {
     },
   });
   const $code = new InputCore({
-    placeholder: "请输入邀请码",
+    placeholder: "没有则不用输入",
     autoComplete: true,
     onEnter() {
       $register.click();
@@ -108,9 +108,14 @@ export const RegisterPage: ViewComponent = React.memo((props) => {
         <Button size="lg" store={$page.ui.$register}>
           注册
         </Button>
-        <Button size="lg" variant="link" store={$page.ui.$login}>
+        <div
+          className="mt-1 py-2 text-center text-w-fg-1 cursor-pointer hover:underline"
+          onClick={() => {
+            history.push("root.login");
+          }}
+        >
           已有账号，前往登录
-        </Button>
+        </div>
         {app.$user.isLogin ? (
           <div className="mt-2">
             <Button size="lg" variant="subtle" store={$page.ui.$home}>

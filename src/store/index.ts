@@ -85,7 +85,7 @@ export const app = new Application({
     messageList.init();
     if (!history.isLayout(route.name)) {
       history.push(route.name, query, { ignore: true });
-      return Result.Err("can't goto layout");
+      return Result.Ok(null);
     }
     history.push(
       "root.home_layout.home_index.home_index_season",

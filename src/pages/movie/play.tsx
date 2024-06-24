@@ -289,56 +289,56 @@ class MoviePlayingPageView {
     });
   }
 
-  show() {
+  showControls() {
+    this.visible = true;
     this.$top.show();
     this.$bottom.show();
     this.$control.show();
     this.$mask.show();
-    this.visible = true;
   }
-  hide() {
-    this.$top.hide();
-    this.$bottom.hide();
+  hideControls() {
+    this.visible = false;
+    this.$top.hide({ destroy: false });
+    this.$bottom.hide({ destroy: false });
     this.$control.hide();
     this.$mask.hide();
-    this.visible = false;
   }
-  toggle() {
-    this.$top.toggle();
-    this.$bottom.toggle();
-    this.$control.toggle();
-    this.$mask.toggle();
-    this.visible = !this.visible;
+  toggleControls() {
+    if (this.visible) {
+      this.hideControls();
+      return;
+    }
+    this.showControls();
   }
-  attemptToShow() {
+  attemptToShowControls() {
     if (this.timer !== null) {
-      this.hide();
+      this.hideControls();
       clearTimeout(this.timer);
       this.timer = null;
       return false;
     }
-    this.show();
+    this.showControls();
     return true;
   }
-  prepareHide() {
+  prepareHideControls() {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
     this.timer = setTimeout(() => {
-      this.hide();
+      this.hideControls();
       this.timer = null;
     }, 5000);
   }
-  prepareToggle() {
+  prepareToggleControls() {
     if (this.timer === null) {
-      this.toggle();
+      this.toggleControls();
       return;
     }
     clearTimeout(this.timer);
-    this.toggle();
+    this.toggleControls();
   }
-  stopHide() {
+  stopHideControls() {
     if (this.timer !== null) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -409,10 +409,10 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
     // $logic.$tv.onStateChange((v) => setProfile(v));
     $logic.$player.onStateChange((v) => setPlayerState(v));
     $logic.$player.beforeAdjustCurrentTime(() => {
-      $page.stopHide();
+      $page.stopHideControls();
     });
     $logic.$player.afterAdjustCurrentTime(() => {
-      $page.prepareHide();
+      $page.prepareHideControls();
     });
     $logic.ready();
   });
@@ -433,13 +433,18 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
         store={$page.$scroll}
         className="fixed h-screen bg-w-bg-0 scroll--hidden"
         onClick={(event) => {
-          $page.prepareToggle();
+          $page.prepareToggleControls();
         }}
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
-          <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
-            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-w-bg-1 opacity-20"></div>
+          <Presence
+            className="z-20 absolute inset-0"
+            enterClassName="animate-in fade-in"
+            exitClassName="animate-out fade-out"
+            store={$page.$mask}
+          >
+            <div className="absolute inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
           <div
             className="absolute z-30 top-[50%] left-[50%] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2"
@@ -487,7 +492,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                       className="relative"
                       onClick={() => {
                         $logic.$player.rewind();
-                        $page.prepareHide();
+                        $page.prepareHideControls();
                       }}
                     >
                       <ChevronsLeft className="w-12 h-12" />
@@ -500,7 +505,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                           <div
                             onClick={() => {
                               $logic.$player.play();
-                              $page.prepareHide();
+                              $page.prepareHideControls();
                             }}
                           >
                             <Play className="relative left-[6px] w-16 h-16" />
@@ -510,7 +515,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                         <div
                           onClick={() => {
                             $logic.$player.pause();
-                            $page.prepareHide();
+                            $page.prepareHideControls();
                           }}
                         >
                           <Pause className="w-16 h-16" />
@@ -521,7 +526,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
                       className="relative"
                       onClick={() => {
                         $logic.$player.speedUp();
-                        $page.prepareHide();
+                        $page.prepareHideControls();
                       }}
                     >
                       <ChevronsRight className="w-12 h-12" />
@@ -542,11 +547,7 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
           >
             <Presence
               store={$page.$top}
-              className={cn(
-                "flex items-center justify-between",
-                "animate-in fade-in slide-in-from-top",
-                "data-[state=closed]:animate-out data-[state=closed]:slide-out-to-top data-[state=closed]:fade-out"
-              )}
+              className={cn("flex items-center justify-between")}
               enterClassName="animate-in fade-in slide-in-from-top"
               exitClassName="animate-out fade-out slide-out-to-top"
             >
@@ -558,16 +559,18 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               >
                 <ArrowLeft className="w-6 h-6" />
               </div>
-              <div className="flex items-center">
-                <div
-                  className="inline-block p-4"
-                  onClick={() => {
-                    $logic.$player.showAirplay();
-                  }}
-                >
-                  <Airplay className="w-6 h-6" />
+              <Show when={app.env.ios}>
+                <div className="flex items-center">
+                  <div
+                    className="inline-block p-4"
+                    onClick={(event) => {
+                      $logic.$player.showAirplay();
+                    }}
+                  >
+                    <Airplay className="w-6 h-6" />
+                  </div>
                 </div>
-              </div>
+              </Show>
             </Presence>
           </div>
           <div

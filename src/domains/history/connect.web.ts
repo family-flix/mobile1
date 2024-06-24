@@ -6,11 +6,14 @@ export function connect(history: HistoryCore<string, any>) {
   history.reload = () => {
     window.location.reload();
   };
+  history.back = () => {
+    window.history.back();
+  };
   history.$router.onPopState((r) => {
     const { type, pathname, href } = r;
-    // console.log("[ROOT]index - app.onPopState", type, pathname, href);
+    console.log("[ROOT]index - app.onPopState", type, pathname, href);
     if (type === "back") {
-      history.back();
+      history.realBack();
       return;
     }
     if (type === "forward") {
@@ -78,10 +81,10 @@ export function connect(history: HistoryCore<string, any>) {
     event.preventDefault();
     history.handleClickLink({ href, target: null });
   });
-  // window.addEventListener("popstate", (event) => {
-  //   console.log("[DOMAIN]history/connect - window.addEventListener('popstate'", event.state?.from, event.state?.to);
-  //   const { type } = event;
-  //   const { pathname, href } = window.location;
-  //   history.$router.handlePopState({ type, href, pathname: event.state?.to });
-  // });
+  window.addEventListener("popstate", (event) => {
+    console.log("[DOMAIN]history/connect - window.addEventListener('popstate'", event.state?.from, event.state?.to);
+    const { type } = event;
+    const { pathname, href } = window.location;
+    history.$router.handlePopState({ type, href, pathname: event.state?.to });
+  });
 }

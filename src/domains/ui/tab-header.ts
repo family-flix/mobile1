@@ -140,8 +140,9 @@ export class TabHeaderCore<
     }
     this.current = matchedIndex;
     const left = this.calcLineLeft(this.current);
-    // console.log("[DOMAIN]tab-header/index selectById", this.current, this.selectedTab, left);
+    // console.log("[DOMAIN]tab-header/index selectById", id, this.current, this.selectedTab, left);
     if (left !== null) {
+      // console.log("before this.changeLinePosition(left) 3");
       this.changeLinePosition(left);
     }
     this.emit(Events.StateChange, { ...this.state });
@@ -233,9 +234,9 @@ export class TabHeaderCore<
     })();
     if (theTabMiddle <= realTargetPosition) {
       this.container.scrollLeft = 0;
-      this.emit(Events.Scroll, {
-        left: 0,
-      });
+      // this.emit(Events.Scroll, {
+      //   left: 0,
+      // });
       return;
     }
     const theLeftNeedScroll = theTabMiddle - left - realTargetPosition;

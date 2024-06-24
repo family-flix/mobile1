@@ -296,10 +296,10 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     // this.emit(Events.TopViewChange, created);
     this.emit(Events.StateChange, { ...this.state });
   }
-  back() {
+  realBack() {
     const targetCursor = this.cursor - 1;
     const viewPrepareShow = this.stacks[targetCursor];
-    console.log("[DOMAIN]history - back", this.cursor, targetCursor, viewPrepareShow);
+    // console.log("[DOMAIN]history - back", this.cursor, targetCursor, viewPrepareShow);
     if (!viewPrepareShow) {
       // this.$view.showView(this.$view.subViews[0]);
       return;
@@ -336,6 +336,9 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     });
     this.emit(Events.Back);
     this.emit(Events.StateChange, { ...this.state });
+  }
+  back() {
+    console.log("请实现 back 方法");
   }
   forward() {
     const targetCursor = this.cursor + 1;

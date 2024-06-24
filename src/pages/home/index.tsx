@@ -9,6 +9,7 @@ import { ViewComponentProps, ViewComponentWithMenu } from "@/store/types";
 import { canShowDialog, dialogHasShow } from "@/store/dialog";
 import { PageKeys } from "@/store/routes";
 import { fetchUpdatedMediaHasHistory, fetchUpdatedMediaHasHistoryProcess } from "@/services";
+import { useInitialize, useInstance } from "@/hooks/index";
 import { Show } from "@/packages/ui/show";
 import { Input, LazyImage, Sheet } from "@/components/ui";
 import { StackRouteView } from "@/components/ui/stack-route-view";
@@ -18,8 +19,8 @@ import { ScrollViewCore, InputCore, DialogCore, ImageInListCore } from "@/domain
 import { AffixCore } from "@/domains/ui/affix";
 import { RequestCore } from "@/domains/request";
 import { ListCore } from "@/domains/list";
-import { useInitialize, useInstance } from "@/hooks/index";
 import { MediaOriginCountry } from "@/constants/index";
+import { sleep } from "@/utils/index";
 
 function Page(props: ViewComponentProps) {
   const { app, history, client, storage, pages, view } = props;
@@ -105,18 +106,9 @@ function Page(props: ViewComponentProps) {
       },
     ],
     onChange(value) {
-      const { name, query } = value;
-      history.push(name, query);
+      const { id, name, query = {} } = value;
+      history.push(name, { id, ...query });
     },
-    // onMounted() {
-    //   console.log("[PAGE]home/index - tab-header onMounted", history.$router.query);
-    //   const key = history.$router.query.key;
-    //   if (!key) {
-    //     $tab.selectById("china", { ignore: true });
-    //     return;
-    //   }
-    //   $tab.selectById(key, { ignore: true });
-    // },
   });
   const $search = new InputCore({
     placeholder: "请输入关键字搜索",
@@ -147,12 +139,16 @@ function Page(props: ViewComponentProps) {
       view.onShow(() => {
         app.setTitle(view.title);
       });
-      history.onRouteChange(({ pathname, href, query }) => {
+      history.onRouteChange(async ({ pathname, href, query }) => {
         if (!$tab.mounted) {
           return;
         }
-        console.log("[PAGE]home/index - history.onRouteChange", pathname);
-        // $tab.handleChangeById(key);
+        console.log("[PAGE]home/index - history.onRouteChange", pathname, query);
+        if (!query.id) {
+          return;
+        }
+        await sleep(200);
+        $tab.selectById(query.id);
       });
       $tab.onMounted(() => {
         const pathname = history.$router.pathname;
@@ -319,9 +315,6 @@ export const HomeIndexPage: ViewComponentWithMenu = React.memo((props) => {
                   <div className="">
                     <div className="max-w-full text-w-fg-2 text-sm truncate text-ellipsis">
                       <div className="">{latest_episode.name}</div>
-                      <div className="" style={{ fontSize: 12 }}>
-                        {latest_episode.created_at}
-                      </div>
                     </div>
                   </div>
                 </div>

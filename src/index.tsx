@@ -38,7 +38,6 @@ function ApplicationView() {
   const [subViews, setSubViews] = useState(view.subViews);
 
   useInitialize(() => {
-    const { innerWidth, innerHeight, location } = window;
     view.onSubViewsChange((v) => {
       // console.log("[ROOT]rootView.onSubViewsChange", nextSubViews.length);
       setSubViews(v);
@@ -55,6 +54,7 @@ function ApplicationView() {
     app.onError((err) => {
       setError(err);
     });
+    const { innerWidth, innerHeight, location } = window;
     history.$router.prepare(location);
     app.start({
       width: app.env.pc ? 375 : innerWidth,
@@ -135,7 +135,6 @@ function ApplicationView() {
         </Show> */}
       </div>
       <Toast store={$toast} />
-
       <Dialog store={$upgrade}>
         <div>当前版本过旧，点击确定升级</div>
       </Dialog>

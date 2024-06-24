@@ -73,6 +73,7 @@ export function connect<T extends { storage: StorageCore<any> }>(app: Applicatio
     android,
     pc: !ios && !android,
   });
+  console.log("[DOMAIN]app/connect - after app.setEnv", app.env);
   /**
    * 主题 ——-------------
    */

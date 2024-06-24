@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 
+import { useInitialize } from "@/hooks/index";
 import { ScrollViewCore } from "@/domains/ui/scroll-view";
-import { connectScroll, connectIndicator as connectIndicator } from "@/domains/ui/scroll-view/connect.web";
-import { useInitialize } from "@/hooks";
+import { connectScroll, connectIndicator } from "@/domains/ui/scroll-view/connect.web";
 
 export const Root = React.memo((props: { store: ScrollViewCore } & React.HTMLAttributes<HTMLDivElement>) => {
   const { store, children, ...rest } = props;

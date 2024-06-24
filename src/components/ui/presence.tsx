@@ -36,6 +36,7 @@ export const Presence = React.memo(
             props.className
           )}
           role="presentation"
+          style={{ display: visible ? "block" : "none" }}
           // data-state={visible ? "open" : "closed"}
           // onAnimationEnd={() => {
           //   store.unmount();

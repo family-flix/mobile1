@@ -37,7 +37,6 @@ import { OrientationTypes } from "@/domains/app";
 import { RouteViewCore } from "@/domains/route_view";
 import { DynamicContentCore, DynamicContentInListCore } from "@/domains/ui/dynamic-content";
 import { cn, seconds_to_hour, seconds_to_minute, sleep } from "@/utils/index";
-import { connect } from "@/domains/ui/node/connect.web";
 
 function SeasonPlayingPageLogic(props: ViewComponentProps) {
   const { app, storage, client, view } = props;
@@ -95,15 +94,8 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   $tv.onProfileLoaded((profile) => {
     app.setTitle($tv.getTitle().join(" - "));
     const { curSource: curEpisode } = profile;
-    // const episodeIndex = tv.curGroup ? tv.curGroup.list.findIndex((e) => e.id === curEpisode.id) : -1;
-    // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name, episodeIndex);
-    // const EPISODE_CARD_WIDTH = 120;
-    // if (episodeIndex !== -1) {
-    //   episodeView.scrollTo({ left: episodeIndex * (EPISODE_CARD_WIDTH + 8) });
-    // }
     $tv.playEpisode(curEpisode, { currentTime: curEpisode.currentTime ?? 0 });
     $player.setCurrentTime(curEpisode.currentTime);
-    // bottomOperation.show();
   });
   $tv.$source.onSubtitleLoaded((subtitle) => {
     $player.showSubtitle(createVVTSubtitle(subtitle));
@@ -111,13 +103,7 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   $tv.onEpisodeChange((curEpisode) => {
     app.setTitle($tv.getTitle().join(" - "));
     const { currentTime } = curEpisode;
-    // nextEpisodeLoader.unload();
     $player.setCurrentTime(currentTime);
-    // const episodeIndex = tv.curGroup ? tv.curGroup.list.findIndex((e) => e.id === curEpisode.id) : -1;
-    // const EPISODE_CARD_WIDTH = 120;
-    // if (episodeIndex !== -1) {
-    //   episodeView.scrollTo({ left: episodeIndex * (EPISODE_CARD_WIDTH + 8) });
-    // }
     $player.pause();
   });
   $tv.onTip((msg) => {
@@ -203,7 +189,6 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
       return;
     }
   });
-  // console.log("[PAGE]play - before player.onError");
   $player.onError(async (error) => {
     console.log("[PAGE]play - player.onError", error);
     $tv.setSourceFileInvalid();
@@ -250,14 +235,6 @@ function SeasonPlayingPageLogic(props: ViewComponentProps) {
   // $logic.$player.onRateChange(({ rate }) => {
   //   setRate(rate);
   // });
-  // $logic.$player.onCanPlay((v) => {
-  //   $page.prepareHide();
-  // });
-  // if (!view.query.hide_menu) {
-  //   scrollView.onPullToBack(() => {
-  //     app.back();
-  //   });
-  // }
 
   return {
     $tv,
@@ -369,25 +346,25 @@ class SeasonPlayingPageView {
   }
 
   showControls() {
+    this.visible = true;
     this.$top.show();
     this.$bottom.show();
     this.$control.show();
     this.$mask.show();
-    this.visible = true;
   }
   hideControls() {
-    this.$top.hide();
-    this.$bottom.hide();
+    this.visible = false;
+    this.$top.hide({ destroy: false });
+    this.$bottom.hide({ destroy: false });
     this.$control.hide();
     this.$mask.hide();
-    this.visible = false;
   }
   toggleControls() {
-    this.$top.toggle();
-    this.$bottom.toggle();
-    this.$control.toggle();
-    this.$mask.toggle();
-    this.visible = !this.visible;
+    if (this.visible) {
+      this.hideControls();
+      return;
+    }
+    this.showControls();
   }
   attemptToShowControls() {
     if (this.timer !== null) {
@@ -471,9 +448,9 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
     $logic.$player.beforeAdjustCurrentTime(() => {
       $page.stopHideControls();
     });
-    $logic.$player.afterAdjustCurrentTime(() => {
-      $page.prepareHideControls();
-    });
+    // $logic.$player.afterAdjustCurrentTime(() => {
+    //   $page.prepareHideControls();
+    // });
     $logic.$player.onExitFullscreen(() => {
       $page.showControls();
     });
@@ -486,13 +463,19 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
         store={$page.$scroll}
         className="fixed h-screen bg-w-bg-0 scroll--hidden"
         onClick={() => {
+          // console.log('[PAGE]season/play - before $page.prepareToggleControls');
           $page.prepareToggleControls();
         }}
       >
         <div className="absolute z-10 top-[36%] left-[50%] w-full min-h-[120px] -translate-x-1/2 -translate-y-1/2">
           <Video store={$logic.$player} />
-          <Presence enterClassName="animate-in fade-in" exitClassName="animate-out fade-out" store={$page.$mask}>
-            <div className="absolute z-20 inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
+          <Presence
+            className="z-20 absolute inset-0"
+            enterClassName="animate-in fade-in"
+            exitClassName="animate-out fade-out"
+            store={$page.$mask}
+          >
+            <div className="absolute inset-0 bg-w-fg-1 dark:bg-black opacity-20"></div>
           </Presence>
           <div
             className="absolute z-30 top-[50%] left-[50%] min-h-[64px] text-w-bg-0 dark:text-w-fg-0 -translate-x-1/2 -translate-y-1/2"
@@ -658,6 +641,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               })()}
             </Presence> */}
             <Presence
+              className=""
               enterClassName="animate-in slide-in-from-bottom fade-in"
               exitClassName="animate-out slide-out-to-bottom fade-out"
               store={$page.$bottom}

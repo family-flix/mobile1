@@ -1,7 +1,7 @@
 /**
  * @file 支持动画的 Popup
  */
-import { BaseDomain, Handler  } from "@/domains/base";
+import { BaseDomain, Handler } from "@/domains/base";
 
 enum Events {
   StateChange,
@@ -83,14 +83,14 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
 
     const { mounted = false, visible = false } = props;
     this.mounted = mounted;
-    this.visible = visible;
+    this.visible = mounted;
     if (visible) {
       this.mounted = true;
     }
   }
-  toggle() {
+  toggle(options: Partial<{ reason: "show_sibling" | "back" | "forward"; destroy: boolean }> = {}) {
     if (this.visible) {
-      this.hide();
+      this.hide(options);
       return;
     }
     this.show();
@@ -98,21 +98,27 @@ export class PresenceCore extends BaseDomain<TheTypesOfEvents> {
   show() {
     this.mounted = true;
     this.enter = true;
-    this.visible = true;
     this.emit(Events.StateChange, { ...this.state });
     setTimeout(() => {
+      this.visible = true;
       // 120 是预计的动画时间
       this.emit(Events.Show);
+      this.emit(Events.StateChange, { ...this.state });
     }, 120);
   }
   hide(options: Partial<{ reason: "show_sibling" | "back" | "forward"; destroy: boolean }> = {}) {
-    // console.log("[DOMAIN]ui/presence - hide", options);
+    console.log("[DOMAIN]ui/presence - hide", options);
     const { destroy = true } = options;
     if (destroy === false) {
       // 不销毁，但是要隐藏
-      this.visible = false;
-      this.emit(Events.Hidden);
-      this.emit(Events.StateChange, { ...this.state });
+      this.exit = true;
+      setTimeout(() => {
+        this.enter = false;
+        this.visible = false;
+        this.exit = false;
+        this.emit(Events.Hidden);
+        this.emit(Events.StateChange, { ...this.state });
+      }, 120);
       return;
     }
     this.exit = true;
