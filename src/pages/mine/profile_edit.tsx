@@ -137,6 +137,7 @@ export const PersonProfileEditPage: ViewComponent = React.memo((props) => {
                 </div>
               </div>
             </div>
+            <div className="w-full h-[1px] transform scale-y-50 bg-w-fg-3" />
             <div
               className="flex items-center justify-between p-4 bg-w-bg-1"
               onClick={() => {

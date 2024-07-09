@@ -177,7 +177,7 @@ export const HomeMovieTabContent: ViewComponent = React.memo((props) => {
                           <div
                             className={cn(
                               "relative",
-                              vote <= 6 ? "text-gray-500" : vote >= 8 ? "text-w-brand" : "text-orange-500"
+                              vote <= 6 ? "text-gray-500" : vote >= 8 ? "text-orange-500" : "text-w-brand"
                             )}
                             style={{}}
                           >
