@@ -148,6 +148,12 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
       setT(system);
     })();
     $page.ready();
+    // document.addEventListener('click', (event) => {
+    //   console.log(event.currentTarget);
+    // });
+    // document.addEventListener('touchstart', (event) => {
+    //   console.log(event.currentTarget);
+    // });
   });
 
   return (
@@ -155,13 +161,16 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
       <ScrollView store={$page.ui.$scroll} className="bg-w-bg-0">
         <div className="w-full h-full">
           <div
-            className=""
-            onClick={() => {
+            className="header"
+            // onClick={() => {
+            //   history.back();
+            // }}
+            onTouchEnd={() => {
               history.back();
             }}
           >
             <div className="flex items-center">
-              <div className="inline-block m-4">
+              <div className="inline-block p-4">
                 <ArrowLeft className="w-6 h-6" />
               </div>
             </div>

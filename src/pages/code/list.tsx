@@ -68,7 +68,7 @@ export const InvitationCodeListPage: ViewComponent = React.memo((props) => {
         <div className="flex items-center space-x-2">
           <div
             className="inline-block"
-            onClick={() => {
+            onTouchEnd={() => {
               history.back();
             }}
           >

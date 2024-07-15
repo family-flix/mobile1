@@ -218,24 +218,23 @@ export const HomeHistoryTabContent: ViewComponentWithMenu = React.memo((props) =
                         style={{ width: `${record.percent}%` }}
                       ></div>
                     </div>
+                    <div className="absolute bottom-2 right-2 text-[12px] text-w-bg-0 dark:text-w-fg-0">{record.percent}%</div>
                   </div>
                   <Show when={!!record.hasUpdate}>
                     <div className="absolute top-2 left-2">
                       <div className="huizhang">更新</div>
                     </div>
                   </Show>
-                  <div className="p-2 pb-4">
-                    <div className="text-w-fg-0">{record.name}</div>
-                    <div className="flex items-center mt-2 text-sm text-w-fg-1">
+                  <div className="p-2 pb-2">
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap text-w-fg-0">{record.name}</div>
+                    <div className="flex items-center mt-1 text-sm text-w-fg-1">
                       {record.updated}
-                      <p className="mx-1">·</p>
                       <Show when={!!record.episodeText}>
                         <>
-                          <p className="">{record.episodeText}</p>
                           <p className="mx-1">·</p>
+                          <p className="">{record.episodeText}</p>
                         </>
                       </Show>
-                      {record.percent}%
                     </div>
                   </div>
                 </div>

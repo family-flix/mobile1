@@ -374,7 +374,8 @@ export const MediaSearchPage: ViewComponent = React.memo((props) => {
           >
             <ListView
               store={$page.$list}
-              className="relative grid grid-cols-1"
+              className="relative grid grid-cols-1 pt-2"
+              wrapClassName="pb-8"
               extraEmpty={
                 <div className="mt-2">
                   <Button store={$page.ui.$mediaRequestBtn} variant="subtle">

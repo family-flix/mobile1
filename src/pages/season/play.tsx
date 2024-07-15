@@ -577,40 +577,42 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
           >
             <Presence
               store={$page.$top}
-              className={cn("flex items-center justify-between")}
+              className=""
               enterClassName="animate-in fade-in slide-in-from-top"
               exitClassName="animate-out slide-out-to-top fade-out"
               onClick={(event) => {
                 event.stopPropagation();
               }}
             >
-              <div
-                className="flex items-center"
-                onClick={() => {
-                  history.back();
-                }}
-              >
-                <div className="inline-block p-4">
-                  <ArrowLeft className="w-6 h-6" />
+              <div className="flex items-center justify-between">
+                <div
+                  className="flex items-center"
+                  onTouchEnd={() => {
+                    history.back();
+                  }}
+                >
+                  <div className="inline-block p-4">
+                    <ArrowLeft className="w-6 h-6" />
+                  </div>
+                  <Show when={!!state.curSource}>
+                    <div className="max-w-[248px] truncate break-all">
+                      {state.curSource?.order}、{state.curSource?.name}
+                    </div>
+                  </Show>
                 </div>
-                <Show when={!!state.curSource}>
-                  <div className="max-w-[248px] truncate break-all">
-                    {state.curSource?.order}、{state.curSource?.name}
+                <Show when={app.env.ios}>
+                  <div className="flex items-center">
+                    <div
+                      className="inline-block p-4"
+                      onClick={(event) => {
+                        $logic.$player.showAirplay();
+                      }}
+                    >
+                      <Airplay className="w-6 h-6" />
+                    </div>
                   </div>
                 </Show>
               </div>
-              <Show when={app.env.ios}>
-                <div className="flex items-center">
-                  <div
-                    className="inline-block p-4"
-                    onClick={(event) => {
-                      $logic.$player.showAirplay();
-                    }}
-                  >
-                    <Airplay className="w-6 h-6" />
-                  </div>
-                </div>
-              </Show>
             </Presence>
           </div>
           <div
@@ -738,7 +740,7 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
                   return (
                     <div
                       key={text}
-                      className={cn("p-2", state.curGroup?.text === text ? "underline" : "")}
+                      className={cn("p-2 whitespace-nowrap", state.curGroup?.text === text ? "underline" : "")}
                       onClick={() => {
                         $logic.$tv.fetchEpisodeOfGroup(group);
                       }}

@@ -547,30 +547,31 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
           >
             <Presence
               store={$page.$top}
-              className={cn("flex items-center justify-between")}
               enterClassName="animate-in fade-in slide-in-from-top"
               exitClassName="animate-out fade-out slide-out-to-top"
             >
-              <div
-                className="inline-block p-4"
-                onClick={() => {
-                  history.back();
-                }}
-              >
-                <ArrowLeft className="w-6 h-6" />
-              </div>
-              <Show when={app.env.ios}>
-                <div className="flex items-center">
-                  <div
-                    className="inline-block p-4"
-                    onClick={(event) => {
-                      $logic.$player.showAirplay();
-                    }}
-                  >
-                    <Airplay className="w-6 h-6" />
-                  </div>
+              <div className="flex items-center justify-between">
+                <div
+                  className="inline-block p-4"
+                  onTouchEnd={() => {
+                    history.back();
+                  }}
+                >
+                  <ArrowLeft className="w-6 h-6" />
                 </div>
-              </Show>
+                <Show when={app.env.ios}>
+                  <div className="flex items-center">
+                    <div
+                      className="inline-block p-4"
+                      onClick={(event) => {
+                        $logic.$player.showAirplay();
+                      }}
+                    >
+                      <Airplay className="w-6 h-6" />
+                    </div>
+                  </div>
+                </Show>
+              </div>
             </Presence>
           </div>
           <div

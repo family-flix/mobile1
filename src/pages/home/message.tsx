@@ -126,7 +126,7 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
           <div className="flex items-center cursor-pointer">
             <div
               className="inline-block"
-              onClick={() => {
+              onTouchEnd={() => {
                 history.back();
               }}
             >
