@@ -1,4 +1,5 @@
-export const __VERSION__ = "2.3.0";
+// @ts-ignore
+export const __VERSION__ = process.global.__VERSION__;
 /**
  * @doc https://www.iso.org/standard/63545.html
  */

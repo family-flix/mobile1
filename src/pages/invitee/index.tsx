@@ -417,7 +417,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
       </Dialog>
       <Dialog store={$page.ui.$invitationCodeResultDialog}>
         <div className="text-left">注册地址</div>
-        <div className="text-left">https://media.funzm.com/mobile/register</div>
+        <div className="text-left">{history.$router.origin}/mobile/register</div>
         <div className="mt-4 text-left">邀请码</div>
         <div className="h-[120px] overflow-y-auto space-y-1 text-left">
           {codes?.list.map((code) => {
@@ -428,7 +428,7 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
           className="flex items-center mt-4 space-x-2"
           onClick={() => {
             const text = `注册地址
-https://media.funzm.com/mobile/register
+${history.$router.origin}/mobile/register
             
 邀请码
 ${codes?.list.map((code) => code).join("\n")}

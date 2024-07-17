@@ -23,7 +23,7 @@ export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
         },
       })
   );
-  const WEBSITE_PC_URL = "https://media.funzm.com/pc/home/index";
+  const WEBSITE_PC_URL = `${history.$router.origin}/pc/home/index`;
 
   return (
     <ScrollView className="h-screen bg-w-bg-0 safe-bottom" store={$scroll}>
