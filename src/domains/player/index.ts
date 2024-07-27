@@ -231,6 +231,12 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       this._abstractNode.setVolume(this._curVolume);
     }
   };
+  getNode = () => {
+    if (!this._abstractNode) {
+      return null;
+    }
+    return this._abstractNode.$node;
+  }
   /** 手动播放过 */
   hasPlayed = false;
   /** 开始播放 */

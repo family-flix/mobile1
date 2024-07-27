@@ -32,25 +32,6 @@ function Page(props: ViewComponentProps) {
 
   const $requireRequest = new RequestCore(reportSomething, {
     client,
-    onLoading(loading) {
-      if ($reportDialog.open) {
-        $reportDialog.okBtn.setLoading(loading);
-      }
-      if ($reportDialog.open) {
-        $reportDialog.okBtn.setLoading(loading);
-      }
-    },
-    onSuccess(r) {
-      app.tip({
-        text: ["提交成功"],
-      });
-      if ($reportDialog.open) {
-        $reportDialog.hide();
-      }
-      if ($requireDialog.open) {
-        $requireDialog.hide();
-      }
-    },
   });
   const $scroll = new ScrollViewCore({
     os: app.env,
@@ -66,19 +47,29 @@ function Page(props: ViewComponentProps) {
   });
   const $reportDialog = new DialogCore({
     title: "问题与建议",
-    onOk() {
+    async onOk() {
       if (!$reportInput.value) {
         app.tip({
           text: ["请先输入问题"],
         });
         return;
       }
-      $requireRequest.run({
+      // console.log("before $requireRequest.run", $reportInput.value);
+      $reportDialog.okBtn.setLoading(true);
+      const r = await $requireRequest.run({
         type: ReportTypes.Question,
         data: JSON.stringify({
           content: $reportInput.value,
         }),
       });
+      $reportDialog.okBtn.setLoading(false);
+      if (r.error) {
+        return;
+      }
+      app.tip({
+        text: ["提交成功"],
+      });
+      $reportDialog.hide();
     },
   });
   const $requireInput = new InputCore({
@@ -88,17 +79,26 @@ function Page(props: ViewComponentProps) {
   });
   const $requireDialog = new DialogCore({
     title: "想看",
-    onOk() {
+    async onOk() {
       if (!$requireInput.value) {
         app.tip({
           text: ["请先输入电视剧/电影"],
         });
         return;
       }
-      $requireRequest.run({
+      $requireDialog.okBtn.setLoading(true);
+      const r = await $requireRequest.run({
         type: ReportTypes.Want,
-        data: $reportInput.value,
+        data: $requireInput.value,
       });
+      if (r.error) {
+        return;
+      }
+      $requireDialog.okBtn.setLoading(false);
+      app.tip({
+        text: ["提交成功"],
+      });
+      $requireDialog.hide();
     },
   });
   const $logout = new ButtonCore({
