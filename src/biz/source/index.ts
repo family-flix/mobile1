@@ -170,6 +170,12 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
     this.subtitles = subtitles;
     console.log("[DOMAIN]tv/index - loadSubtitle2 ", subtitles);
     const subtitleFile = (() => {
+      const matched1 = subtitles.find((s) => {
+        return s.language.join("&") === [MediaOriginCountry.CN, MediaOriginCountry.US].join("&");
+      });
+      if (matched1) {
+        return matched1;
+      }
       const matched = subtitles.find((s) => {
         return s.language.join("&") === MediaOriginCountry.CN;
       });
@@ -178,7 +184,7 @@ export class MediaSourceFileCore extends BaseDomain<TheTypesOfEvents> {
       }
       return subtitles[0] ?? null;
     })();
-    // console.log("[DOMAIN]tv/index - no matched subtitle?", subtitleFile);
+    console.log("[DOMAIN]tv/index - no matched subtitle?", subtitleFile);
     // @todo 清掉字幕，尤其是字幕正渲染时，切换到没有字幕的剧集，字幕还存在且不改变了
     this.subtitle = null;
     this.emit(Events.SubtitleChange, null);
