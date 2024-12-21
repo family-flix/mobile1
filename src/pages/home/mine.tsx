@@ -162,12 +162,12 @@ export const UserCenterPage: ViewComponent = React.memo((props) => {
         <div className="w-full h-full">
           <div
             className="header"
-            // onClick={() => {
-            //   history.back();
-            // }}
-            onTouchEnd={() => {
+            onClick={() => {
               history.back();
             }}
+            // onTouchEnd={() => {
+            //   history.back();
+            // }}
           >
             <div className="flex items-center">
               <div className="inline-block p-4">

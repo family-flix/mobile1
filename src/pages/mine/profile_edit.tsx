@@ -104,7 +104,10 @@ export const PersonProfileEditPage: ViewComponent = React.memo((props) => {
             <div className="flex items-center">
               <div
                 className="inline-block p-4"
-                onTouchEnd={() => {
+                // onTouchEnd={() => {
+                //   history.back();
+                // }}
+                onClick={() => {
                   history.back();
                 }}
               >

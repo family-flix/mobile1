@@ -553,9 +553,12 @@ export const MoviePlayingPageV2: ViewComponent = React.memo((props) => {
               <div className="flex items-center justify-between">
                 <div
                   className="inline-block p-4"
-                  onTouchEnd={() => {
+                  onClick={() => {
                     history.back();
                   }}
+                  // onTouchEnd={() => {
+                  //   history.back();
+                  // }}
                 >
                   <ArrowLeft className="w-6 h-6" />
                 </div>

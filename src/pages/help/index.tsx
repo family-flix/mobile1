@@ -29,15 +29,18 @@ export const HelpCenterHomePage: ViewComponent = React.memo((props) => {
     <ScrollView className="h-screen bg-w-bg-0 safe-bottom" store={$scroll}>
       <div className="flex items-center">
         <div
-          className="inline-block p-4"
-          onTouchEnd={() => {
+          className="inline-block p-4 cursor-pointer"
+          // onTouchEnd={() => {
+          //   history.back();
+          // }}
+          onClick={() => {
             history.back();
           }}
         >
           <ArrowLeft className="w-6 h-6" />
         </div>
       </div>
-      <div className="space-y-4 px-4">
+      <div className="space-y-4 p-4">
         <div className="p-4 rounded bg-w-bg-1">
           <div className="">PC 端地址是什么？</div>
           <div className="flex items-center mt-1 break-all text-sm">

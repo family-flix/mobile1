@@ -204,6 +204,9 @@ export const TVChannelPlayingPage: ViewComponent = React.memo((props) => {
                         onClick={() => {
                           history.back();
                         }}
+                        // onTouchEnd={() => {
+                        //   history.back();
+                        // }}
                       >
                         <ArrowLeft className="w-6 h-6" />
                       </div>

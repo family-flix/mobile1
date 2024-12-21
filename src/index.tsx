@@ -139,6 +139,7 @@ function ApplicationView() {
         <div>当前版本过旧，点击确定升级</div>
       </Dialog>
       {/* <HistoryPanel store={history} /> */}
+      {/* <MediaQueryTip /> */}
     </>
   );
 }

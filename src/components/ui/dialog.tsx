@@ -69,13 +69,11 @@ export const Dialog = React.memo(
               </DialogPrimitive.Description>
             </DialogPrimitive.Header>
             <Show when={!!footer}>
-              <DialogPrimitive.Footer className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2")}>
-                <Show when={!!cancel}>
-                  <DialogPrimitive.Cancel className="mt-2" store={store}>
-                    取消
-                  </DialogPrimitive.Cancel>
-                </Show>
+              <DialogPrimitive.Footer className={cn("flex flex-col space-y-2 sm:flex-row sm:justify-end sm:space-x-2 sm:space-y-0")}>
                 <DialogPrimitive.Submit store={store}></DialogPrimitive.Submit>
+                <Show when={!!cancel}>
+                  <DialogPrimitive.Cancel store={store}>取消</DialogPrimitive.Cancel>
+                </Show>
               </DialogPrimitive.Footer>
             </Show>
             <DialogPrimitive.Close

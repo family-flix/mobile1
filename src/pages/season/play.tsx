@@ -587,9 +587,12 @@ export const SeasonPlayingPageV2: ViewComponent = React.memo((props) => {
               <div className="flex items-center justify-between">
                 <div
                   className="flex items-center"
-                  onTouchEnd={() => {
+                  onClick={() => {
                     history.back();
                   }}
+                  // onTouchEnd={() => {
+                  //   history.back();
+                  // }}
                 >
                   <div className="inline-block p-4">
                     <ArrowLeft className="w-6 h-6" />
