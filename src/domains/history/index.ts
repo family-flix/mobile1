@@ -64,6 +64,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
   stacks: RouteViewCore[] = [];
   /** 栈指针 */
   cursor: number = -1;
+  extra_query = {};
 
   /** 浏览器 url 管理 */
   $router: NavigatorCore;
@@ -109,7 +110,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     }> = {}
   ) {
     // console.log("-----------");
-    // console.log("[DOMAIN]history/index - push target url is", name, "and cur href is", this.$router.href);
+    console.log("[DOMAIN]history/index - push ", name, query);
     const { ignore } = options;
     if (this.isLayout(name)) {
       console.log("[DOMAIN]history/index - the target url is layout", name);
@@ -120,7 +121,8 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
       console.log("[DOMAIN]history/index - push 2. no matched route", name);
       return;
     }
-    const uniqueKey = [route1.pathname, query_stringify(query)].filter(Boolean).join("?");
+    const q = { ...query, ...this.extra_query };
+    const uniqueKey = [route1.pathname, query_stringify(q)].filter(Boolean).join("?");
     if (uniqueKey === this.$router.href) {
       // console.log("[DOMAIN]history/index - push target url is", uniqueKey, "and cur href is", this.$router.href);
       return;
@@ -128,7 +130,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     const view = this.views[uniqueKey];
     if (view) {
       this.ensureParent(view);
-      view.query = query;
+      view.query = q;
       if (!view.parent) {
         console.log("[DOMAIN]history/index - error1");
         return;
@@ -176,7 +178,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
       name: route.name,
       pathname: route.pathname,
       title: route.title,
-      query,
+      query: q,
       animation: route.options?.animation,
       parent: null,
     });
@@ -213,7 +215,8 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     this.emit(Events.StateChange, { ...this.state });
   }
   replace(name: K, query: Record<string, string> = {}) {
-    const uniqueKey = [name, query_stringify(query)].filter(Boolean).join("?");
+    const q = { ...query, ...this.extra_query };
+    const uniqueKey = [name, query_stringify(q)].filter(Boolean).join("?");
     if (uniqueKey === this.$router.href) {
       console.log("[DOMAIN]history/index - replace target url is", uniqueKey, "and cur href is", this.$router.href);
       return;
@@ -221,7 +224,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
     const view = this.views[uniqueKey];
     if (view) {
       this.ensureParent(view);
-      view.query = query;
+      view.query = q;
       if (!view.parent) {
         console.log("[DOMAIN]history/index - replace 1");
         return;
@@ -262,7 +265,7 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
       name: route.name,
       pathname: route.pathname,
       title: route.title,
-      query,
+      query: q,
       animation: route.options?.animation,
       parent: null,
     });
@@ -378,6 +381,14 @@ export class HistoryCore<K extends string, R extends Record<string, any>> extend
   }
   reload() {
     // 销毁再初始化？
+    console.log("请实现 reload 方法");
+  }
+  clear() {
+    this.$router.histories = [];
+    this.$router.prevHistories = [];
+    this.$view.curView?.hide();
+    this.$view.subViews = [];
+    this.$view.curView = null;
   }
   ensureParent(view: RouteViewCore) {
     const { name } = view;

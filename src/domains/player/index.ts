@@ -1,5 +1,5 @@
 /**
- * @file 播放器
+ * @file 视频播放器
  */
 import { BaseDomain, Handler } from "@/domains/base";
 import { Application } from "@/domains/app";
@@ -17,6 +17,7 @@ enum MediaResolutionTypes {
   /** 超高清 */
   FHD = "FHD",
 }
+export const MediaRateOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 enum Events {
   Mounted,
@@ -236,7 +237,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
       return null;
     }
     return this._abstractNode.$node;
-  }
+  };
   /** 手动播放过 */
   hasPlayed = false;
   /** 开始播放 */
@@ -478,7 +479,7 @@ export class PlayerCore extends BaseDomain<TheTypesOfEvents> {
     this.setCurrentTime(time);
     this.emit(Events.AfterAdjustCurrentTime, { time });
   };
-  async screenshot(): Promise<Result<string>> {
+  screenshot(): Result<string> {
     return Result.Err("请实现 screenshot 方法");
   }
   node = () => {

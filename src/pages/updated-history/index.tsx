@@ -110,6 +110,9 @@ export const UpdatedHistoryListPage: ViewComponentWithMenu = React.memo((props) 
           <div className="flex items-center cursor-pointer">
             <div
               className="inline-block"
+              onClick={() => {
+                history.back();
+              }}
               onTouchEnd={() => {
                 history.back();
               }}

@@ -1,3 +1,5 @@
+import { Result } from "@/domains/result";
+
 import { PlayerCore } from "./index";
 
 /** 连接 $video 标签和 player 领域 */
@@ -106,23 +108,18 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   $video.addEventListener("webkitendfullscreen", () => {
     player.handleFullscreenChange(false);
   });
-  // player.screenshot = () => {
-  //   return new Promise((resolve) => {
-  //     if (!context) {
-  //       resolve(Result.Err("getContext 失败"));
-  //       return;
-  //     }
-  //     context.drawImage($video, 0, 0, canvas.width, canvas.height);
-  //     canvas.toBlob((blob) => {
-  //       if (!blob) {
-  //         resolve(Result.Err("toBlob 失败"));
-  //         return;
-  //       }
-  //       const url = URL.createObjectURL(blob);
-  //       resolve(Result.Ok(url));
-  //     }, "image/jpeg");
-  //   });
-  // };
+  const $canvas = document.createElement("canvas");
+  player.screenshot = () => {
+    $canvas.width = $video.width;
+    $canvas.height = $video.height;
+    const context = $canvas.getContext("2d");
+    if (!context) {
+      return Result.Err("getContext 失败");
+    }
+    context.drawImage($video, 0, 0, $canvas.width, $canvas.height);
+    const dataURL = $canvas.toDataURL("image/png");
+    return Result.Ok(dataURL.split(",")[1]);
+  };
   player.bindAbstractNode({
     $node: $video,
     async play() {

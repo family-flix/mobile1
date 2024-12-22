@@ -122,14 +122,14 @@ export const HomeMessagePage: ViewComponent = React.memo((props) => {
   return (
     <>
       <div className="z-50 w-full bg-w-bg-0">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center cursor-pointer">
-            <div
-              className="inline-block"
-              onTouchEnd={() => {
-                history.back();
-              }}
-            >
+        <div className="flex items-center justify-between">
+          <div
+            className="flex items-center cursor-pointer"
+            onClick={() => {
+              history.back();
+            }}
+          >
+            <div className="inline-block p-4">
               <ArrowLeft className="w-6 h-6" />
             </div>
             {/* <div className="text-md">我的消息</div> */}

@@ -416,7 +416,10 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
       return f;
     });
   }
-  updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
+  screenshot(): Result<string> {
+    return Result.Err("请实现 screenshot 方法");
+  }
+  async updatePlayProgressForce(values: Partial<{ currentTime: number; duration: number }> = {}) {
     const { currentTime = this.currentTime, duration = 0 } = values;
     console.log("[DOMAIN]media/season - update_play_progress", currentTime);
     if (this.profile === null) {
@@ -428,11 +431,19 @@ export class SeasonMediaCore extends BaseDomain<TheTypesOfEvents> {
     if (this.$source.profile === null) {
       return;
     }
+    const thumbnail = (() => {
+      const r = this.screenshot();
+      if (r.data) {
+        return r.data;
+      }
+      return "";
+    })();
     this.$update.run({
       media_id: this.profile.id,
       media_source_id: this.curSource.id,
       current_time: parseFloat(currentTime.toFixed(2)),
       duration: parseFloat(duration.toFixed(2)),
+      thumbnail,
       source_id: this.$source.profile.id,
     });
   }

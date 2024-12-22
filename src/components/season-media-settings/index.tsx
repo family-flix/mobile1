@@ -14,7 +14,7 @@ import { DynamicContent } from "@/components/dynamic-content/index";
 import { InviteeSelectCore } from "@/components/member-select/store";
 import { useInitialize, useInstance } from "@/hooks/index";
 import { DynamicContentInListCore } from "@/domains/ui/dynamic-content/index";
-import { PlayerCore } from "@/domains/player/index";
+import { MediaRateOptions, PlayerCore } from "@/domains/player/index";
 import { RefCore } from "@/domains/cur/index";
 import { MovieMediaCore } from "@/biz/media/movie";
 import { SeasonMediaCore } from "@/biz/media/season";
@@ -597,7 +597,7 @@ export const SeasonMediaSettings = (
                       return (
                         <div className="max-h-full overflow-y-auto px-4 text-w-fg-1">
                           <div className="pb-24">
-                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rateOpt, index) => {
+                            {MediaRateOptions.map((rateOpt, index) => {
                               return (
                                 <div
                                   key={index}

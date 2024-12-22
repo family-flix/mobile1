@@ -87,6 +87,9 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
       player.disableFullscreen();
     }
   });
+  tv.screenshot = () => {
+    return $player.screenshot();
+  };
   tv.onProfileLoaded((profile) => {
     app.setTitle(tv.getTitle().join(" - "));
     const { curSource } = profile;

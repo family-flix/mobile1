@@ -322,13 +322,13 @@ export const InviteeListPage: ViewComponent = React.memo((props) => {
                               <div key={id} className="flex space-x-2">
                                 {[
                                   {
-                                    prefix: "/pc/home/index?force=1&token=",
+                                    prefix: "/pc/home/index?tmp=1&token=",
                                     qrcode: false,
                                     platform: 1,
                                     text: "PC 端",
                                   },
                                   {
-                                    prefix: "/mobile/home/index?force=1&token=",
+                                    prefix: "/mobile/home/index?tmp=1&token=",
                                     qrcode: true,
                                     platform: 2,
                                     text: "移动端",

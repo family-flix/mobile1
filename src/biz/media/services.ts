@@ -459,15 +459,17 @@ export function updatePlayHistory(body: {
   /** 视频当前时间 */
   current_time: number;
   duration?: number;
+  thumbnail: string;
   /** 视频源 */
   source_id: string;
 }) {
-  const { media_id, media_source_id, current_time, duration, source_id } = body;
+  const { media_id, media_source_id, current_time, duration, thumbnail, source_id } = body;
   return media_request.post<null>("/api/v2/wechat/history/update", {
     media_id,
     media_source_id,
     current_time,
     duration,
+    thumbnail,
     source_id,
   });
 }

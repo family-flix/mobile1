@@ -143,8 +143,8 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
 
   /** 启动路由监听 */
   async prepare(location: RouteLocation) {
-    // console.log("[DOMAIN]router - start");
     const { pathname, href, search, origin } = location;
+    console.log("[DOMAIN]router - prepare", href);
     const cleanPathname = pathname.replace(NavigatorCore.prefix!, "");
     this.setPathname(cleanPathname);
     this.origin = origin;
@@ -323,7 +323,10 @@ export class NavigatorCore extends BaseDomain<TheTypesOfEvents> {
     this.setPrevPathname(this.pathname);
     this.setPathname(targetPathname);
     // const cloneStacks = this.histories.slice(0, this.histories.length - 1);
-    console.log( "[DOMAIN]navigator - before pop", this.histories.map((h) => h.pathname));
+    console.log(
+      "[DOMAIN]navigator - before pop",
+      this.histories.map((h) => h.pathname)
+    );
     const cloneStacks = this.histories.slice(0, this.histories.length - 1);
     this.histories = cloneStacks.filter(Boolean);
     // this.histories.pop();

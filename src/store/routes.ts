@@ -23,18 +23,30 @@ const configure = {
               home_index_season: {
                 title: "电视剧",
                 pathname: "/home/index/season",
+                options: {
+                  require: ["login"],
+                },
               },
               home_index_movie: {
                 title: "电影",
                 pathname: "/home/index/movie",
+                options: {
+                  require: ["login"],
+                },
               },
               home_index_recommended: {
                 title: "推荐",
                 pathname: "/home/index/recommended",
+                options: {
+                  require: ["login"],
+                },
               },
               home_index_history: {
                 title: "播放历史",
                 pathname: "/home/index/history",
+                options: {
+                  require: ["login"],
+                },
               },
             },
             options: {

@@ -68,7 +68,7 @@ export const app = new Application({
   async beforeReady() {
     const { pathname, query } = history.$router;
     const route = routesWithPathname[pathname];
-    console.log("[ROOT]onMount", pathname, route, app.$user.isLogin);
+    console.log("[ROOT]onMount", pathname, route, app.$user.isLogin, router.query.token);
     if (!route) {
       history.push("root.notfound");
       return Result.Err("not found");
@@ -90,6 +90,7 @@ export const app = new Application({
       history.push("root.login", { redirect: route.pathname });
       return Result.Err("need login");
     }
+    history.extra_query = { token: router.query.token, tmp: router.query.tmp };
     client.appendHeaders({
       Authorization: user.token,
     });
