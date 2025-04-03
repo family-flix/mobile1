@@ -1,9 +1,11 @@
+import Artplayer from "artplayer";
+
 import { Result } from "@/domains/result";
 
 import { PlayerCore } from "./index";
 
 /** 连接 $video 标签和 player 领域 */
-export function connect($video: HTMLVideoElement, player: PlayerCore) {
+export function connect($video: HTMLDivElement, player: PlayerCore) {
   // const canvas = document.createElement("canvas");
   // const context = canvas.getContext("2d", {
   //   willReadFrequently: true,
@@ -13,32 +15,32 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     console.log("[COMPONENT]VideoPlayer/connect - 1. $video.onloadstart");
     player.handleStartLoad();
   };
-  $video.onloadedmetadata = function (event) {
-    // 2
-    console.log("[COMPONENT]VideoPlayer/connect - 2. $video.onloadedmetadata", $video.duration);
-    // @ts-ignore
-    const width = this.videoWidth;
-    // @ts-ignore
-    const height = this.videoHeight;
-    // canvas.width = width;
-    // canvas.height = height;
-    player.handleLoadedmetadata({
-      width,
-      height,
-      duration: $video.duration,
-    });
-  };
+  //   $video.onloadedmetadata = function (event) {
+  //     // 2
+  //     console.log("[COMPONENT]VideoPlayer/connect - 2. $video.onloadedmetadata", $video.duration);
+  //     // @ts-ignore
+  //     const width = this.videoWidth;
+  //     // @ts-ignore
+  //     const height = this.videoHeight;
+  //     // canvas.width = width;
+  //     // canvas.height = height;
+  //     player.handleLoadedmetadata({
+  //       width,
+  //       height,
+  //       duration: $video.duration,
+  //     });
+  //   };
   $video.onload = () => {
     console.log("[COMPONENT]VideoPlayer/connect - 3. $video.onload");
     player.handleLoad();
   };
   // 这个居然会在调整时间进度后调用？？？
-  $video.oncanplay = (event) => {
-    console.log("[COMPONENT]VideoPlayer/connect - 4. $video.oncanplay");
-    // const { duration } = event.currentTarget as HTMLVideoElement;
-    // console.log("[COMPONENT]VideoPlayer/connect - listen $video can play");
-    player.handleCanPlay({ duration: $video.duration });
-  };
+  //   $video.oncanplay = (event) => {
+  //     console.log("[COMPONENT]VideoPlayer/connect - 4. $video.oncanplay");
+  //     // const { duration } = event.currentTarget as HTMLVideoElement;
+  //     // console.log("[COMPONENT]VideoPlayer/connect - listen $video can play");
+  //     player.handleCanPlay({ duration: $video.duration });
+  //   };
   $video.onplay = () => {
     console.log("[COMPONENT]VideoPlayer/connect - $video.onplay");
     player.handlePlay();
@@ -75,11 +77,11 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
     }
     player.handleVolumeChange(cur_volume);
   };
-  $video.onresize = () => {
-    const { videoHeight, videoWidth } = $video;
-    // console.log("[]Video - onResize", videoWidth, videoHeight);
-    player.handleResize({ width: videoWidth, height: videoHeight });
-  };
+  //   $video.onresize = () => {
+  //     const { videoHeight, videoWidth } = $video;
+  //     // console.log("[]Video - onResize", videoWidth, videoHeight);
+  //     player.handleResize({ width: videoWidth, height: videoHeight });
+  //   };
   $video.onerror = (event) => {
     console.log("[COMPONENT]VideoPlayer/connect - 7. $video.onerror");
     const msg = (() => {
@@ -110,66 +112,73 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
   });
   const $canvas = document.createElement("canvas");
   player.screenshot = () => {
-    $canvas.width = $video.width;
-    $canvas.height = $video.height;
-    const context = $canvas.getContext("2d");
-    if (!context) {
-      return Result.Err("getContext 失败");
-    }
-    context.drawImage($video, 0, 0, $canvas.width, $canvas.height);
-    try {
-      const dataURL = $canvas.toDataURL("image/png");
-      return Result.Ok(dataURL.split(",")[1]);
-    } catch (err) {
-      console.log(err);
-      return Result.Err("截图失败");
-    }
+    //     $canvas.width = $video.width;
+    //     $canvas.height = $video.height;
+    //     const context = $canvas.getContext("2d");
+    //     if (!context) {
+    //       return Result.Err("getContext 失败");
+    //     }
+    //     context.drawImage($video, 0, 0, $canvas.width, $canvas.height);
+    //     const dataURL = $canvas.toDataURL("image/png");
+    //     return Result.Ok(dataURL.split(",")[1]);
+    return Result.Err("getContext 失败");
   };
   player.bindAbstractNode({
     $node: $video,
     async play() {
-      try {
-        await $video.play();
-      } catch (err) {
-        console.log(err);
-      }
+      //       try {
+      //         await $video.play();
+      //       } catch (err) {
+      //         console.log(err);
+      //       }
     },
     pause() {
-      $video.pause();
+      //       $video.pause();
     },
     canPlayType(type: string) {
-      return !!$video.canPlayType(type);
+      //       return !!$video.canPlayType(type);
+      return false;
     },
     async load(url: string) {
-      // console.log("[DOMAIN]player/connect - load", url, $video);
-      console.log("[DOMAIN]player/connect - load", url, !!$video.canPlayType("application/vnd.apple.mpegurl"));
-      if ($video.canPlayType("application/vnd.apple.mpegurl")) {
-        $video.src = url;
-        $video.load();
-        return;
-      }
-      const mod = await import("hls.js");
-      const Hls2 = mod.default;
-      if (Hls2.isSupported() && url.match(/\.m3u8$/)) {
-        const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
-        Hls.attachMedia($video as HTMLVideoElement);
-        Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {
-          Hls.loadSource(url);
-        });
-        return;
-      }
-      $video.src = url;
-      $video.load();
+      const p = new Artplayer({
+        container: $video,
+        url,
+        customType: {
+          async m3u8(video, url, art) {
+            const mod = await import("hls.js");
+            const Hls2 = mod.default;
+            if (Hls2.isSupported()) {
+              const hls = new Hls2();
+              hls.loadSource(url);
+              hls.attachMedia(video);
+              art.hls = hls;
+              //       art.once("url", () => hls.destroy());
+              art.once("destroy", () => hls.destroy());
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+              video.src = url;
+            } else {
+              art.notice.show = "Unsupported playback format: m3u8";
+            }
+          },
+        },
+      });
+      player.handleLoad();
+      player.setMounted();
+      player.handleCanPlay();
+      p.on("video:canplay", () => {
+        player.handleCanPlay();
+      });
+      //       p.play();
     },
     setCurrentTime(currentTime: number) {
-      $video.currentTime = currentTime;
+      //       $video.currentTime = currentTime;
     },
     setVolume(volume: number) {
-      $video.volume = volume;
+      //       $video.volume = volume;
     },
     setRate(rate: number) {
       // console.log("[DOMAIN]player/connect - setRate", rate, $video);
-      $video.playbackRate = rate;
+      //       $video.playbackRate = rate;
     },
     enableFullscreen() {
       $video.removeAttribute("webkit-playsinline");
@@ -201,15 +210,15 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       console.log("no");
     },
     showSubtitle() {
-      if ($video.textTracks[0]) {
-        $video.textTracks[0].mode = "showing";
-      }
+      //       if ($video.textTracks[0]) {
+      //         $video.textTracks[0].mode = "showing";
+      //       }
     },
     hideSubtitle() {
       // console.log("[DOMAIN]player/connect - hideSubtitle", $video.textTracks[0]);
-      if ($video.textTracks[0]) {
-        $video.textTracks[0].mode = "hidden";
-      }
+      //       if ($video.textTracks[0]) {
+      //         $video.textTracks[0].mode = "hidden";
+      //       }
     },
     showAirplay() {
       // @ts-ignore
