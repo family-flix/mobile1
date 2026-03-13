@@ -150,7 +150,13 @@ export function connect($video: HTMLVideoElement, player: PlayerCore) {
       }
       const mod = await import("hls.js");
       const Hls2 = mod.default;
-      if (Hls2.isSupported() && url.includes("m3u8")) {
+      Hls2.DefaultConfig.xhrSetup = function (xhr, url) {
+        console.log("[DOMAIN]player/connect - xhrSetup", xhr, url);
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        xhr.send();
+      };
+      if (Hls2.isSupported()) {
         const Hls = new Hls2({ fragLoadingTimeOut: 2000 });
         Hls.attachMedia($video as HTMLVideoElement);
         Hls.on(Hls2.Events.MEDIA_ATTACHED, () => {

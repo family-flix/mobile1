@@ -34,6 +34,13 @@ const configure = {
                   require: ["login"],
                 },
               },
+              home_index_av: {
+                title: "AV",
+                pathname: "/home/index/av",
+                options: {
+                  require: ["login"],
+                },
+              },
               home_index_recommended: {
                 title: "推荐",
                 pathname: "/home/index/recommended",

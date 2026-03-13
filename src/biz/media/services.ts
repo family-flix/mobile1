@@ -285,7 +285,7 @@ function normalizeEpisode(episode: SeasonAndCurEpisodeResp["sources"][number]) {
     still_path,
     runtime,
     // current_time,
-    sources,
+    sources = [],
     subtitles,
   } = episode;
   return {
@@ -358,7 +358,7 @@ export function fetchSourceInGroupProcess(r: TmpRequestResp<typeof fetchSourceIn
   return Result.Ok(
     r.data.list.map((episode) => {
       return normalizeEpisode(episode);
-    })
+    }),
   );
 }
 export function fetchEpisodesWithNextMarker(body: { media_id: string; next_marker: string; page_size: number }) {

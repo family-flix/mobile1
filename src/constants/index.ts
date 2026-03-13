@@ -223,6 +223,7 @@ export const CommonReportList = [""];
 export enum MediaTypes {
   Season = 1,
   Movie = 2,
+  AV = 3,
 }
 
 export const players: { icon: string; name: string; scheme: string }[] = [

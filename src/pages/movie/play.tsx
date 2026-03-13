@@ -93,7 +93,7 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
   tv.onProfileLoaded((profile) => {
     app.setTitle(tv.getTitle().join(" - "));
     const { curSource } = profile;
-    // console.log("[PAGE]play - tv.onProfileLoaded", curEpisode.name);
+    console.log("[PAGE]play - tv.onProfileLoaded", curSource);
     tv.playSource(curSource, { currentTime: curSource.currentTime ?? 0 });
     player.setCurrentTime(curSource.currentTime);
     //       bottomOperation.show();
@@ -220,7 +220,7 @@ function MoviePlayingPageLogic(props: ViewComponentProps) {
     $player,
     $mediaReport,
     ready() {
-      $tv.fetchProfile(view.query.id);
+      $tv.fetchProfile(view.query.id, view.query.type);
     },
     handleClickElm(action: { elm: string; value: unknown }) {
       // console.log("[PAGE]media/season_playing - handleClickElm", target);

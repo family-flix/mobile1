@@ -8,6 +8,7 @@ import { HomeMessagePage } from "@/pages/home/message";
 import { HomeRecommendedTabContent } from "@/pages/home-tabs/recommended";
 import { HomeSeasonTabContent } from "@/pages/home-tabs/season";
 import { HomeMovieTabContent } from "@/pages/home-tabs/movie";
+import { HomeAVTabContent } from "@/pages/home-tabs/av";
 import { HomeHistoryTabContent } from "@/pages/home-tabs/history";
 import { UserCenterPage } from "@/pages/home/mine";
 import { MediaSearchPage } from "@/pages/search";
@@ -36,6 +37,7 @@ export const pages: Omit<Record<PageKeys, ViewComponent | ViewComponentWithMenu>
   "root.home_layout.home_index.home_index_history": HomeHistoryTabContent,
   "root.home_layout.home_index.home_index_movie": HomeMovieTabContent,
   "root.home_layout.home_index.home_index_season": HomeSeasonTabContent,
+  "root.home_layout.home_index.home_index_av": HomeAVTabContent,
   "root.mine": UserCenterPage,
   "root.update_mine_profile": PersonProfileEditPage,
   "root.history_updated": UpdatedHistoryListPage,

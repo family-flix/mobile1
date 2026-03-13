@@ -66,8 +66,8 @@ export function fetchMediaListProcess(r: Result<UnpackedRequestPayload<Requested
         poster_path,
         air_date,
         vote_average,
-        genres,
-        origin_country,
+        genres = [],
+        origin_country = [],
         actors = [],
       } = movie;
       return {

@@ -96,7 +96,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
     this.$update = new RequestCore(updatePlayHistory, { client });
   }
 
-  async fetchProfile(media_id: string) {
+  async fetchProfile(media_id: string, type?: string) {
     if (media_id === undefined) {
       const msg = this.tip({ text: ["缺少电影 id 参数"] });
       return Result.Err(msg);
@@ -105,7 +105,7 @@ export class MovieMediaCore extends BaseDomain<TheTypesOfEvents> {
       process: fetchMediaPlayingEpisodeProcess,
       client: this.$client,
     });
-    const res = await fetch.run({ media_id, type: MediaTypes.Movie });
+    const res = await fetch.run({ media_id, type: type ? Number(type) : MediaTypes.Movie });
     if (res.error) {
       const msg = this.tip({ text: ["获取电视剧详情失败", res.error.message] });
       return Result.Err(msg);

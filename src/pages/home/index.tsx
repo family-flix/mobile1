@@ -72,6 +72,12 @@ function Page(props: ViewComponentProps) {
         text: "电影",
         query: {},
       },
+      {
+        id: "av",
+        name: "root.home_layout.home_index.home_index_av",
+        text: "AV",
+        query: {},
+      },
       // {
       //   id: "animate",
       //   text: "动漫",
@@ -122,7 +128,7 @@ function Page(props: ViewComponentProps) {
     }),
     {
       pageSize: 5,
-    }
+    },
   );
 
   return {
